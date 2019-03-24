@@ -1,0 +1,29 @@
+event startup
+begin
+
+  SetLangMode(LangEnglish,"ENG",0);
+
+/* modCredMan */  
+  Register("B2B Loan Applications","B2B Loan Applications",B2BLoanApplicationVc,modCredMan);
+
+  Setting("Number Series - B2B Loan Applications",B2BLoanAppSerTClass,modCredMan);
+  Setting("Application Settings",CMApplicationSetTClass,modCredMan);
+  Setting("Scoring Support",ScoringSupLClass,modCredMan);
+  Setting("Order Classes",OrderClassLClass,modCredMan);
+  Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
+
+  StrSetAdd(584);
+  StrSetText(CredManVc,"Credit Agreements");
+  StrSetText(B2BLoanApplicationVc,"B2B Loan Applications");
+  EndStrSet;
+
+  SetBegin(2000);
+  SetText(kRowColorNone,"None");
+  SetText(kRowColorGreen,"Green");
+  SetText(kRowColorRed,"Red");
+  SetText(kRowColorYellow,"Yellow");
+  SetText(kRowColorGray,"Grey");
+  EndSet;
+
+  return;
+end;

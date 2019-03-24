@@ -1,0 +1,676 @@
+remote procedure B2BLoanApp_ContactSClassOnOpenRemote(Integer,string,var Array string,var Integer);
+remote function Boolean InsertContactName(var record B2BLoanApplicationVc);
+remote function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc);
+remote function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
+external inner procedure PasteFromSysList2(Integer,Integer);
+remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
+external inner procedure SetupCustPS2Rn(string,var record RcVc);
+remote function Boolean PasteCustInCredMan(var record CredManVc);
+
+function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (InsertCustomerInB2BApplication(LAr)) then begin
+    PutWindowRecord(wn,LAr);
+  end;
+  
+  B2BLoanApplicationDClassCustCodeEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassContactNameEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+  
+  GetWindowRecord(wn,LAr);
+
+  if (InsertContactName(LAr)) then begin
+    PutWindowRecord(wn,LAr);
+  end;
+  
+  B2BLoanApplicationDClassContactNameEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassManagerEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (InsertManagerInB2BApplication(LAr)) then begin
+    PutWindowRecord(wn,LAr);
+  end;
+  
+  B2BLoanApplicationDClassManagerEFAfter = res;
+  return;
+end;
+
+procedure CalculateEndDate(var record B2BLoanApplicationVc LAr)
+begin
+
+  if (nonblank(LAr.StartDate) and LAr.Months>0) then begin
+    LAr.EndDate = AddDay(AddMonth(LAr.StartDate,LAr.Months),-1);
+  end else begin
+    LAr.EndDate = "";
+  end;
+  
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassMonthsEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (LAr.Months<0) then begin
+    LAr.Months = 1;
+  end;
+  CalculateEndDate(LAr);
+  PutWindowRecord(wn,LAr);    
+  
+  B2BLoanApplicationDClassMonthsEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassMonthlyPaymentDayEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (LAr.MonthlyPaymentDay<1) then begin
+    LAr.MonthlyPaymentDay = 1;
+  end;
+  if (LAr.MonthlyPaymentDay>31) then begin
+    LAr.MonthlyPaymentDay = 31;
+  end;
+  
+  PutWindowRecord(wn,LAr);    
+  B2BLoanApplicationDClassMonthlyPaymentDayEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassStartDateEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+
+  CalculateEndDate(LAr);
+  
+  PutWindowRecord(wn,LAr);    
+  B2BLoanApplicationDClassStartDateEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassSuretyProviderEFAfter(Integer wn,Integer changed,Integer num)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+
+  if (InsertSuretyInB2BApplication(LAr,num)) then begin
+    PutWindowRecord(wn,LAr);    
+  end;
+  
+  B2BLoanApplicationDClassSuretyProviderEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassLateRatingEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (LAr.LateRating<1) then begin
+    LAr.LateRating = 1;
+  end;
+  if (LAr.LateRating>10) then begin
+    LAr.LateRating = 10;
+  end;
+  
+  PutWindowRecord(wn,LAr);    
+  B2BLoanApplicationDClassLateRatingEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassBankruptcyRatingEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  if (LAr.BankruptcyRating<1) then begin
+    LAr.BankruptcyRating = 1;
+  end;
+  if (LAr.BankruptcyRating>10) then begin
+    LAr.BankruptcyRating = 10;
+  end;
+  
+  PutWindowRecord(wn,LAr);    
+  B2BLoanApplicationDClassBankruptcyRatingEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassTypeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record CredManTypeVc CMTr;
+  
+  GetWindowRecord(wn,LAr);
+  CMTr.Code = LAr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    LAr.InterestRate = CMTr.IntRate;
+    LAr.Months = CMTr.InstalmentMonths;
+    CalculateEndDate(LAr);
+    
+    PutWindowRecord(wn,LAr);    
+  end;
+  
+  B2BLoanApplicationDClassTypeEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassBankCodeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record BankVc Bankr;
+  
+  GetWindowRecord(wn,LAr);
+  Bankr.Code = LAr.BankCode;
+  if (ReadFirstMain(Bankr,1,true)) then begin
+    LAr.BankName = Bankr.Name;
+    
+    PutWindowRecord(wn,LAr);    
+  end;
+  
+  B2BLoanApplicationDClassBankCodeEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassOwnerCustCodeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+  
+  GetWindowRecord(wn,LAr);
+  CUr.Code = LAr.OwnerCustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    LAr.OwnerName = CUr.Name;
+    
+    PutWindowRecord(wn,LAr);    
+  end;
+  
+  B2BLoanApplicationDClassOwnerCustCodeEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassCEOCustCodeeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+  
+  GetWindowRecord(wn,LAr);
+  CUr.Code = LAr.CEOCustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    LAr.CEOName = CUr.Name;
+    
+    PutWindowRecord(wn,LAr);    
+  end;
+  
+  B2BLoanApplicationDClassCEOCustCodeeEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassRevMonthsEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  LAr.AnnualRevenue = LAr.Revenue/LAr.RevMonths*12;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassRevMonthsEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassRevenueEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  LAr.AnnualRevenue = LAr.Revenue/LAr.RevMonths*12;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassRevenueEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassCurReceivablesEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  LAr.CurTotal = LAr.CurReceivables-LAr.CurPayables;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassCurReceivablesEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassCurPayablesEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+   
+  GetWindowRecord(wn,LAr);
+  LAr.CurTotal = LAr.CurReceivables-LAr.CurPayables;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassCurPayablesEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassPrevReceivablesEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  LAr.PrevTotal = LAr.PrevReceivables-LAr.PrevPayables;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassPrevReceivablesEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassPrevPayablesEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  
+  GetWindowRecord(wn,LAr);
+  LAr.PrevTotal = LAr.PrevReceivables-LAr.PrevPayables;
+  PutWindowRecord(wn,LAr);
+
+  B2BLoanApplicationDClassPrevPayablesEFAfter = res;
+  return;
+end;
+
+
+global
+function Boolean B2BLoanApplicationDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  if (changed) then begin
+    switch (fieldname) begin
+      case "CustCode": 
+        res = B2BLoanApplicationDClassCustCodeEFAfter(wn,changed);
+      case "ContactName": 
+        res = B2BLoanApplicationDClassContactNameEFAfter(wn,changed);
+      case "Manager":
+        res = B2BLoanApplicationDClassManagerEFAfter(wn,changed);
+      case "Months": 
+        res = B2BLoanApplicationDClassMonthsEFAfter(wn,changed);
+      case "StartDate": 
+        res = B2BLoanApplicationDClassStartDateEFAfter(wn,changed);
+      case "MonthlyPaymentDay": 
+        res = B2BLoanApplicationDClassMonthlyPaymentDayEFAfter(wn,changed);
+      case "SuretyProvider1": 
+        res = B2BLoanApplicationDClassSuretyProviderEFAfter(wn,changed,1);
+      case "SuretyProvider2": 
+        res = B2BLoanApplicationDClassSuretyProviderEFAfter(wn,changed,2);
+      case "SuretyProvider3": 
+        res = B2BLoanApplicationDClassSuretyProviderEFAfter(wn,changed,3);
+      case "LateRating": 
+        res = B2BLoanApplicationDClassLateRatingEFAfter(wn,changed);
+      case "BankruptcyRating": 
+        res = B2BLoanApplicationDClassBankruptcyRatingEFAfter(wn,changed);
+      case "Type":
+        res = B2BLoanApplicationDClassTypeEFAfter(wn,changed);
+      case "BankCode":
+        res = B2BLoanApplicationDClassBankCodeEFAfter(wn,changed);
+      case "OwnerCustCode":
+        res = B2BLoanApplicationDClassOwnerCustCodeEFAfter(wn,changed);
+      case "CEOCustCode":
+        res = B2BLoanApplicationDClassCEOCustCodeeEFAfter(wn,changed);
+      case "RevMonths":
+        res = B2BLoanApplicationDClassRevMonthsEFAfter(wn,changed);
+      case "Revenue":
+        res = B2BLoanApplicationDClassRevenueEFAfter(wn,changed);
+      case "CurReceivables":
+        res = B2BLoanApplicationDClassCurReceivablesEFAfter(wn,changed);
+      case "CurPayables":
+        res = B2BLoanApplicationDClassCurPayablesEFAfter(wn,changed);
+      case "PrevReceivables":
+        res = B2BLoanApplicationDClassPrevReceivablesEFAfter(wn,changed);
+      case "PrevPayables":
+        res = B2BLoanApplicationDClassPrevPayablesEFAfter(wn,changed);       
+    end;
+  end;
+    
+  B2BLoanApplicationDClassAfterEditField = res;
+  return;
+end;
+
+
+global
+function Boolean B2BLoanApp_ContactSClassOnOpenWindow(Integer wn)
+begin
+  Integer mwn;
+  record B2BLoanApplicationVc LAr;
+  Array string 60 acontact;
+  Integer i,acnt;
+  longint pos;
+  string 255 namestr,titlestr,code;
+
+  mwn = MotherWindow(wn);
+
+  GetWindowRecord(mwn,LAr);
+  ClearStringList(wn);
+  B2BLoanApp_ContactSClassOnOpenRemote(wn,LAr.CustCode,acontact,acnt);
+  for (i=0;i<acnt;i=i+1) begin
+    pos = 0;
+    GetNextSubstring(acontact[i],pos,"#",code);
+    GetNextSubstring(acontact[i],pos,"#",namestr);
+    GetNextSubstring(acontact[i],pos,"#",titlestr);
+    if (WindowActiveField(mwn)=="ContactName") then begin
+      AddListRow(wn,"DLPasteContact",1,namestr,0);
+    end else begin
+      AddListRow(wn,"DLPasteContact",1,code,0);    
+    end;
+    AddListData(wn,"DLPasteContact","DLContactName",namestr);
+    AddListData(wn,"DLPasteContact","DLContactTitle",titlestr);
+  end;
+
+  B2BLoanApp_ContactSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+function Boolean B2BLoanApp_ContactSClassOnOKWindow(Integer wn)
+begin
+  
+  PasteFromSysList2(wn,60);
+
+  B2BLoanApp_ContactSClassOnOKWindow = false;
+  return;
+end;
+
+global
+function Boolean B2BLoanApplicationDClassMajorityOwner1ButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(wn,LAr);
+  if (LAr.MajorityOwner1==0) then begin
+    LAr.MajorityOwner2 = 0;
+    LAr.MajorityOwner3 = 0;
+  end;
+  PutWindowRecord(wn,LAr);
+  
+  res = true;
+  
+  B2BLoanApplicationDClassMajorityOwner1ButtonAction = res;
+  return;
+end;
+
+global
+function Boolean B2BLoanApplicationDClassMajorityOwner2ButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(wn,LAr);
+  if (LAr.MajorityOwner2==0) then begin
+    LAr.MajorityOwner1 = 0;
+    LAr.MajorityOwner3 = 0;
+  end;
+  PutWindowRecord(wn,LAr);
+  res = true;
+  
+  B2BLoanApplicationDClassMajorityOwner2ButtonAction = res;
+  return;
+end;
+
+global
+function Boolean B2BLoanApplicationDClassMajorityOwner3ButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(wn,LAr);
+  if (LAr.MajorityOwner3==0) then begin
+    LAr.MajorityOwner1 = 0;
+    LAr.MajorityOwner2 = 0;
+  end;
+  PutWindowRecord(wn,LAr);
+  res = true;
+  
+  B2BLoanApplicationDClassMajorityOwner3ButtonAction = res;
+  return;
+end;
+
+global
+updating procedure OpenScoringWindow(Longint b2bapp,string surety)
+begin
+  record ScoringSupVc SSr;
+  Integer i,wn;
+ 
+  if (blank(surety)) then begin
+    goto LOpenScoringWindow;
+  end;
+
+  SSr.B2BApp = b2bapp;
+  SSr.SuretyCustCode = surety;
+  if (ReadFirstKey("SuretyApp",SSr,1,true)==false) then begin
+    RecordNew(SSr);
+    SSr.SerNr = NextSerNr("ScoringSupVc",CurrentDate,-1,false,"");
+    SSr.B2BApp = b2bapp;
+    SSr.SuretyCustCode = surety;
+    RecordStore(SSr,true);
+  end;
+  wn = OpenWindow("ScoringSupDClass",1,0,"","",SSr);
+
+LOpenScoringWindow:;
+  return;
+end;
+
+global
+procedure ShowB2BAppScoring1()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider1);
+
+  return;
+end;
+
+global
+procedure ShowB2BAppScoring2()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider2);
+
+  return;
+end;
+
+global
+procedure ShowB2BAppScoring3()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider3);
+
+  return;
+end;
+
+global
+function string 40 B2BLoanApplicationDClassSpecPasteName(Integer wn,string defpsname)
+begin
+  string 255 psname,fn;
+  record B2BLoanApplicationVc LAr;
+  record CMApplicationSetBlock ASb;
+  
+  BlockLoad(ASb);
+  
+  psname = defpsname;
+  BlockLoad(ASb);
+  if (ASb.ContactPasteSpecial==1) then begin
+    fn = WindowActiveField(wn);
+    if (left(fn,14)=="SuretyProvider" or fn=="OwnerCustCode" or fn=="CEOCustCode") then begin
+      psname = "B2BLoanApp_ContactSClass";
+    end;      
+  end;
+  B2BLoanApplicationDClassSpecPasteName = psname;
+  return;
+end;
+
+
+global
+procedure ContactsSwitchToCust()
+begin
+  record CUVc CUr;
+  Integer wn,mwn,nwn;
+  
+  wn = CurWindow;
+  mwn = MotherWindow(wn);
+ 
+  CloseWindow(wn);
+  nwn = OpenWindow("B2BLoanApp_CUSClass",0,mwn,"","",CUr);
+  
+  return;
+end;
+
+global
+procedure CustSwitchToContacts()
+begin
+  record CUVc CUr;
+  record RcVc RepSpec;
+  Integer wn,mwn,nwn;
+  
+  wn = CurWindow;
+  mwn = MotherWindow(wn);
+ 
+  nwn = OpenWindow("B2BLoanApp_ContactSClass",0,mwn,"","",RepSpec);
+  CloseWindow(wn);
+  
+  return;
+end;
+
+global
+function Integer B2BLoanApplicationLClassRowColor(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  record OrderClassColorBlock OCb;
+  row OrderClassColorBlock OCbrw;
+  Integer i,rwcnt;
+  
+  res = kRowColorNone;
+  BlockLoad(OCb);
+  rwcnt = MatRowCnt(OCb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(OCb,i,OCbrw);
+    if (OCbrw.OrderClass==LAr.OrderClass) then begin
+      res = OCbrw.Color;
+    end;
+  end; 
+LB2BLoanApplicationLClassRowColor:;  
+  B2BLoanApplicationLClassRowColor = res;
+  return;
+end;
+
+global
+procedure CUStatusB2BLoanAppLsm()
+begin
+  record CUVc CUr;
+  record RcVc RepSpec;
+  Integer wn;
+  Boolean testf;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  if (GetRecordFromBrowse(LAr,wn,1)) then begin
+    CUr.Code = LAr.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      SetupCustPS2Rn(CUr.Code,RepSpec);
+      RunReport(RepSpec,0);
+    end;
+  end;
+  return;
+end;
+
+global
+procedure B2BLoanAppAddSurety()
+begin
+  Integer wn;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  if (LAr.SuretyCnt<1) then begin
+    LAr.SuretyCnt = 1;
+  end;
+  LAr.SuretyCnt = LAr.SuretyCnt + 1;
+  PutWindowRecord(wn,LAr);
+  RerunWindowDef(wn);
+  WindowFieldGoto(wn,LAr,-1,"SuretyProvider" & LAr.SuretyCnt,true);
+
+  return;
+end;
+
+global
+procedure CreateB2BLoanApplicationCUDsm()
+begin
+  record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+  Integer nwn;
+  
+  RecordNew(LAr);
+  GetWindowRecord(CurWindow,CUr);
+  LAr.CustCode = CUr.Code;
+  if (InsertCustomerInB2BApplication(LAr)) then begin
+    nwn = OpenWindow("B2BLoanApplicationDClass",0,0,"","",LAr);
+  end;
+
+  return;
+end;
+
+global
+procedure CreateCredManCUDsm()
+begin
+  record CredManVc CredManr;
+  record CUVc CUr;
+  Integer nwn;
+  
+  RecordNew(CredManr);
+  GetWindowRecord(CurWindow,CUr);
+  CredManr.CustCode = CUr.Code;
+  PasteCustInCredMan(CredManr);
+  nwn = OpenWindow("B2BLoanApplicationDClass",0,0,"","",CredManr);
+
+  return;
+end;

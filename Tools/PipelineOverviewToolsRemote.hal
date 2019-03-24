@@ -1,0 +1,60 @@
+external inner procedure FindPPOColumns(record RcVc,record PipelinOverviewBlock,LongInt,LongInt,var LongInt,var LongInt);
+external inner function string 255 FindMatchingTag(string,string,string);
+
+
+function string 255 FindMatching(record RcVc RepSpec,string status,LongInt fromppocol,LongInt toppocol)
+begin
+  record PipelinOverviewBlock POb;
+  row PipelinOverviewBlock POfromrw;
+  row PipelinOverviewBlock POtorw;
+  LongInt pofrom,poto;
+  
+  BlockLoad(POb);
+  FindPPOColumns(RepSpec,POb,fromppocol,toppocol,pofrom,poto);
+  
+  MatRowGet(POb,pofrom,POfromrw);
+  MatRowGet(POb,poto,POtorw);
+ 
+  FindMatching = FindMatchingTag(status,POfromrw.RegisterFilter,POtorw.RegisterFilter);
+end;
+
+global
+updating procedure ColumnGridDraggedCredMan(Integer compnr,record RcVc RepSpec,record CredManVc CMr,LongInt fromcol,LongInt tocol)
+begin
+  record CredManVc oldCMr;
+  string 255 newstatus;
+  
+  if (ReadFirstMain(CMr,0,true)==false) then begin
+    goto LColumnGridDraggedCredMan;
+  end;
+
+  newstatus = FindMatching(RepSpec,CMr.OrderClass,fromcol,tocol);
+  if (nonblank(newstatus)) then begin
+    RecordCopy(oldCMr,CMr);
+    CMr.OrderClass = newstatus;
+    RecordUpdate(oldCMr,CMr,true);
+  end;
+  
+LColumnGridDraggedCredMan:;
+end;
+
+global
+updating procedure ColumnGridDraggedB2BLoanApp(Integer compnr,record RcVc RepSpec,record B2BLoanApplicationVc LAr,LongInt fromcol,LongInt tocol)
+begin
+  record B2BLoanApplicationVc oldLAr;
+  string 255 newstatus;
+  
+  if (ReadFirstMain(LAr,0,true)==false) then begin
+    goto LColumnGridDraggedB2BLoanApp;
+  end;
+  
+  newstatus = FindMatching(RepSpec,LAr.OrderClass,fromcol,tocol);
+  
+  if (nonblank(newstatus)) then begin
+    RecordCopy(oldLAr,LAr);
+    LAr.OrderClass = newstatus;
+    RecordUpdate(oldLAr,LAr,true);
+  end;
+  
+LColumnGridDraggedB2BLoanApp:;
+end;

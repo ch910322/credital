@@ -1,0 +1,59 @@
+global
+function string 40 PORegisterFilterSetSClassPasteSpecialWindowClass(string defpsname)
+begin
+  string 40 psname,actfld;
+  record PipelinOverviewBlock POb;
+  row PipelinOverviewBlock PObrw;
+  Integer rwcnt,wn,arow;
+  record UserPipelinOverviewVc UPOr;
+  row UserPipelinOverviewVc UPOrw;
+  Boolean foundf;
+  
+  wn = CurWindow;
+  arow = WindowActiveRow(wn);
+  actfld = WindowActiveField(wn);
+  psname = "";
+  switch (GetWindowClass(wn)) begin
+    case "UserPipelinOverviewDClass":
+      GetWindowRecord(wn,UPOr);
+      rwcnt = MatRowCnt(UPOr);
+      if (arow<rwcnt) then begin
+        MatRowGet(UPOr,arow,UPOrw);
+        switch (StringSetFromString(584,UPOrw.Register)) begin
+          case "CredManVc":
+            if (actfld=="RegisterFilter") then begin
+              psname = "OrderClassSClass";
+            end;
+            foundf = true;
+          case "B2BLoanApplicationVc":
+            if (actfld=="RegisterFilter") then begin
+              psname = "OrderClassSClass";
+            end;
+            foundf = true;
+        end;
+      end;
+    case "PipelineOverviewTClass":
+      GetWindowRecord(wn,POb);
+      rwcnt = MatRowCnt(POb);
+      if (arow<rwcnt) then begin
+        MatRowGet(POb,arow,PObrw);
+        switch (StringSetFromString(584,PObrw.Register)) begin
+          case "CredManVc":
+            if (actfld=="RegisterFilter") then begin
+              psname = "OrderClassSClass";
+            end;
+            foundf = true;
+          case "B2BLoanApplicationVc":
+            if (actfld=="RegisterFilter") then begin
+              psname = "OrderClassSClass";
+            end;
+            foundf = true;
+        end;
+      end;
+  end;  
+  if (!foundf) then begin
+    psname = inner.PORegisterFilterSetSClassPasteSpecialWindowClass(defpsname);
+  end;
+  PORegisterFilterSetSClassPasteSpecialWindowClass = psname;
+  return;
+end;

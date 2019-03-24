@@ -1,0 +1,437 @@
+external inner function LongInt AddTime(Time,LongInt,var Time);
+external inner function LongInt TimeToMinutes(Time);
+external inner function Time ValToTime(val);
+external inner procedure M4PadString(string,Integer,string,Boolean,var string);
+external inner procedure In2Period(var string,var Date,var Date);
+external inner function string 255 GetGlobalUserMainCompanies(string);
+external inner procedure ExtractObj(string,var Integer,var string);
+external inner procedure CurValToOtherCur(Date,string,val,string,var val,roundmode);
+external inner function Integer InString2(string,string);
+remote updating procedure ColumnGridDraggedCredMan(Integer,record RcVc,record CredManVc,LongInt,LongInt);
+remote updating procedure ColumnGridDraggedB2BLoanApp(Integer,record RcVc,record B2BLoanApplicationVc,LongInt,LongInt);
+
+global
+updating procedure ColumnGridDraggedCell_CredManVc(LongInt wn,LongInt fromRow,LongInt fromCol,LongInt toRow,LongInt toCol)
+begin
+  string 255 rlink,vcname;
+  Integer compnr,oldcomp;
+  LongInt rownr;
+  record CredManVc CMr;
+  record RcVc RepSpec;
+
+  oldcomp = CurrentCompany;
+  GetWindowRecord(wn,RepSpec);
+  
+  ColumnGridGetCell(wn,fromRow,fromCol,rlink,rownr);
+  
+  compnr = GetRecordLinkFields(rlink,vcname);
+  
+  LogText2(0,"ColumnGridDraggedCell_CredManVc wn=" & wn & ", fromRow=" & fromRow & ", fromCol=" & fromCol & ", toRow=" & toRow & ", toCol=" & toCol,kVerbosityDebugDetailed);
+
+  if (SetCompany(compnr,false)==false) then begin
+    LogText2(0,"ColumnGridDraggedCell SetCompany compnr=" & compnr & " failed",kVerbosityDebug);
+    goto LColumnGridDraggedCell;
+  end;
+  
+  compnr = UnpackRecordLink(rlink,CMr);
+  ColumnGridDraggedCredMan(compnr,RepSpec,CMr,fromCol,toCol);
+
+  UpdateBrowses("PipelineWClass");
+  
+LColumnGridDraggedCell:;
+  ResetCompany(oldcomp);
+end;
+
+global
+updating procedure ColumnGridDraggedCell_B2BLoanApplicationVc(LongInt wn,LongInt fromRow,LongInt fromCol,LongInt toRow,LongInt toCol)
+begin
+  string 255 rlink,vcname;
+  Integer compnr,oldcomp;
+  LongInt rownr;
+  record B2BLoanApplicationVc LAr;
+  record RcVc RepSpec;
+
+  oldcomp = CurrentCompany;
+  GetWindowRecord(wn,RepSpec);
+  
+  ColumnGridGetCell(wn,fromRow,fromCol,rlink,rownr);
+  
+  compnr = GetRecordLinkFields(rlink,vcname);
+  
+  LogText2(0,"ColumnGridDraggedCell_CredManVc wn=" & wn & ", fromRow=" & fromRow & ", fromCol=" & fromCol & ", toRow=" & toRow & ", toCol=" & toCol,kVerbosityDebugDetailed);
+
+  if (SetCompany(compnr,false)==false) then begin
+    LogText2(0,"ColumnGridDraggedCell SetCompany compnr=" & compnr & " failed",kVerbosityDebug);
+    goto LColumnGridDraggedCell;
+  end;
+  
+  compnr = UnpackRecordLink(rlink,LAr);
+  ColumnGridDraggedB2BLoanApp(compnr,RepSpec,LAr,fromCol,toCol);
+
+  UpdateBrowses("PipelineWClass");
+  
+LColumnGridDraggedCell:;
+  ResetCompany(oldcomp);
+end;
+
+
+function LongInt MAX(LongInt a,LongInt b)
+begin
+  LongInt res;
+  
+  if (a>=b) then begin
+    res = a;
+  end else begin
+    res = b;
+  end;
+  Max = res;
+  return;
+end;
+
+procedure AddMemReaderStringToArea(string str,var Area a)
+begin
+  AddByteToArea(0,a);
+  AddByteToArea(0,a);
+  AddByteToArea(0,a);
+  AddStringToArea(str,a);
+  if (MOD(GetAreaLength(a),2)!=0) then begin
+    AddByteToArea(0,a);
+  end;
+end;
+
+procedure AddToArray(string tstr,Array string atstr,var Integer atstrcnt)
+begin
+  Integer i;
+  
+  for (i=0;i<atstrcnt;i=i+1) begin
+    if (atstr[i]==tstr) then begin
+      goto LAddToArray;
+    end;
+  end;
+  atstr[atstrcnt] = tstr;
+  atstrcnt = atstrcnt + 1;
+LAddToArray:;
+  return;
+end;
+
+procedure AddPipelineItemToArea(string filename,string recid,string user,string caption,string value,string customer,longint iconno,longint rownr,date dt,LongInt colnr,var area a)
+begin
+  AddLongToArea(kPipelineItemTypeRecordId,a);   // Item type
+  AddMemReaderStringToArea(recid,a);            // Record ID
+  AddMemReaderStringToArea(Left(caption,30),a); // Caption
+  AddMemReaderStringToArea(value,a);            // Value
+  AddMemReaderStringToArea(Left(customer,255),a);// Customer
+  AddMemReaderStringToArea(Left(user,12),a);    // User
+  AddLongToArea(iconno,a);                      // Iconno
+  AddIntToArea(0,a);                            // unreadf
+  AddLongToArea(-1,a);                          // rowno
+  AddDateToArea(dt,a);                          // date
+  AddLongToArea(colnr,a);                       // colnr
+end;
+
+procedure AddPipelineItemToTemporaryArray(string filename,string recid,string user,string caption,string value,val vvalue,string customer,longint iconno,val sum,LongInt rownr,date dt,LongInt colnr,var record ORVc tempORr)
+begin
+  row ORVc ORrw;
+  string 255 tstr;
+  
+  ClearRow(tempORr,ORrw,1);
+  ORrw.Salesmen = user;
+  ORrw.MotherArtCode = filename;
+  ORrw.SerialNr = recid;
+  ORrw.Spec = caption;
+  ORrw.ShipNote = value;
+  ORrw.PlanShipRow = customer;
+  ORrw.GroupOrdRow = iconno;
+  M4PadString(ValToString(sum*100,M40Val,"","",0),20,"0",true,tstr); 
+  ORrw.UnitComment = iconno & "_" & tstr & "_" & MatRowCnt(tempORr);
+  ORrw.ServiceDelDate = dt;
+  ORrw.Sum = vvalue;
+  ORrw.Perceptions = colnr;
+  MatRowPut(tempORr,MatRowCnt(tempORr),ORrw);
+  return;
+end;
+
+procedure AddCredManToPipeline(record CompanyTimezoneBlock CTb,var Area a,var LongInt leadm_cnt,record RcVc RepSpec,record CredManVc CMr,string BaseCur1,var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,var record ORVc tempORr)
+begin
+  string 255 value,spec;
+  LongInt iconno;
+  Integer actnr;
+  record ActVc nextstepActr;
+  record ActVc firstnextstepActr;
+  record RLinkVc RLr;
+  Boolean nextstepactfound;
+  string 255 recid,curncy;
+  val sum;
+  Date cd,nextdate;
+  Time t,tt;
+
+  curncy = CMr.CurncyCode;
+  if (blank(curncy)) then begin
+    curncy = BaseCur1;
+  end;
+  if (blank(curncy)) then begin
+    curncy = "EUR";
+  end;
+  sum = CMr.InvSum4;
+  if (nonblank(RepSpec.CurncyCode)) then begin
+    CurValToOtherCur(CMr.TransDate,curncy,sum,RepSpec.CurncyCode,sum,DefaultCurRoundOff);
+    curncy = RepSpec.CurncyCode;  
+  end;
+  iconno = 1112; //yellow
+  actnr = 1;
+  nextdate = CMr.TransDate;
+
+  while (ReadRecordLink(CMr,actnr,nextstepActr,RLr)) begin
+    if (nextstepActr.OKFlag==0) then begin
+      nextstepactfound = true;
+      if (nextstepActr.TransDate<firstnextstepActr.TransDate) or (blankdate(firstnextstepActr.TransDate)) then begin
+        firstnextstepActr = nextstepActr;
+      end;
+    end;
+    actnr = actnr + 1;
+  end;
+
+  if (nextstepactfound) then begin
+    cd = CurrentDate;
+    t = ValToTime(CTb.OffsetFromServer);
+    if (CTb.OffsetFromServer<0) then begin
+      cd = AddDay(cd,-AddTime(CurrentTime,TimeToMinutes(t),tt));
+    end else begin
+      cd = AddDay(cd,AddTime(CurrentTime,TimeToMinutes(t),tt));
+    end;
+    if (firstnextstepActr.TransDate<cd) then begin
+      iconno = 1113; // red
+    end;
+    if (firstnextstepActr.TransDate==cd) then begin
+      iconno = 1111; // green
+    end;
+    if (firstnextstepActr .TransDate>cd) then begin
+      iconno = 1110; // gray
+    end;
+  end;
+
+  if (leadm_cnt<100) then begin
+    value = curncy & " " & ValToString(sum,M40Val,ThousandSeparator,"",0);
+    if (blank(RepSpec.f1)) then begin
+      spec = CMr.Addr0;
+    end else begin
+      spec = CMr.Addr0;
+    end;
+    recid = BuildRecordIdStr(CMr,CurrentCompany);
+    AddPipelineItemToTemporaryArray("CredManVc",recid,CMr.SalesMan,spec,value,1,"",iconno,blankval,-1,CMr.TransDate,kButtonColourDefault,tempORr);
+  end;
+  vcurnr[curncy] = vcurnr[curncy] + 1;
+  vcurv[curncy] = vcurv[curncy] + sum;
+  AddToArray(curncy,acur,acnt);
+  return;
+end;
+
+global
+procedure FillPipeline_CredManVc(record CompanyTimezoneBlock CTb,record RcVc RepSpec,string statuses,var area aleadm,var LongInt leadm_cnt,
+                                 var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,
+                                 var record ORVc tempORr)
+begin
+  record CredManVc CMr;
+  string 255 index,status;
+  Integer segs,pos;
+  Boolean found,testf;
+  record BaseCurBlock BCb;
+  
+  if (blank(statuses)) then begin
+    goto LFillPipeline_CredManVc;
+  end;
+  
+  BlockLoad(BCb);
+  pos = 0;
+  ExtractObj(statuses,pos,status);
+  while (nonblank(status)) begin
+    RecordClear(CMr);
+    ResetLoop(CMr);    
+    found = true;
+    CMr.OrderClass = status;
+    while (LoopBackKey("OrderClass",CMr,1,found)) begin
+      if (CMr.OrderClass!=status) then begin 
+        found = false; 
+      end else begin
+        testf = true;
+        if (nonblank(RepSpec.Period2Str)) then begin
+          if (DateInRange(CMr.TransDate,RepSpec.sStartDate,RepSpec.sEndDate)==false) then begin
+            testf = false;
+          end;
+        end;
+        if (nonblank(RepSpec.f1)) then begin
+          if (CMr.SalesMan!=RepSpec.f1) then begin testf = false; end;
+        end;
+        if (nonblank(RepSpec.f2)) then begin
+          if (CMr.CustCode!=RepSpec.f2) then begin testf = false; end;      
+        end;
+/*
+        if (nonblank(RepSpec.f7)) then begin
+          if (InString2(ASPSr.Comment,RepSpec.f7)<0) then begin testf = false; end;
+        end;
+*/
+        if (testf) then begin
+          AddCredManToPipeline(CTb,aleadm,leadm_cnt,RepSpec,CMr,BCb.BaseCur1,vcurnr,vcurv,acur,acnt,tempORr);
+          leadm_cnt = leadm_cnt + 1;
+        end;
+      end;
+    end;
+
+    ExtractObj(statuses,pos,status);
+  end;
+LFillPipeline_CredManVc:;  
+  return;
+end;
+
+procedure AddB2BLoanAppToPipeline(record CompanyTimezoneBlock CTb,var Area a,var LongInt leadm_cnt,record RcVc RepSpec,record B2BLoanApplicationVc LAr,string BaseCur1,var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,var record ORVc tempORr)
+begin
+  string 255 value,spec;
+  LongInt iconno;
+  Integer actnr;
+  record ActVc nextstepActr;
+  record ActVc firstnextstepActr;
+  record RLinkVc RLr;
+  Boolean nextstepactfound;
+  string 255 recid,curncy;
+  val sum;
+  Date cd,nextdate;
+  Time t,tt;
+
+  curncy = BaseCur1;
+  if (blank(curncy)) then begin
+    curncy = "EUR";
+  end;
+  if (blank(RepSpec.CurncyCode)) then begin
+    sum = LAr.Sum;
+  end else begin 
+    CurValToOtherCur(LAr.TransDate,curncy,LAr.Sum,RepSpec.CurncyCode,sum,DefaultCurRoundOff);
+    curncy = RepSpec.CurncyCode;  
+  end;
+  iconno = 1112; //yellow
+  actnr = 1;
+  nextdate = LAr.TransDate;
+
+  while (ReadRecordLink(LAr,actnr,nextstepActr,RLr)) begin
+    if (nextstepActr.OKFlag==0) then begin
+      nextstepactfound = true;
+      if (nextstepActr.TransDate<firstnextstepActr.TransDate) or (blankdate(firstnextstepActr.TransDate)) then begin
+        firstnextstepActr = nextstepActr;
+      end;
+    end;
+    actnr = actnr + 1;
+  end;
+
+  if (nextstepactfound) then begin
+    cd = CurrentDate;
+    t = ValToTime(CTb.OffsetFromServer);
+    if (CTb.OffsetFromServer<0) then begin
+      cd = AddDay(cd,-AddTime(CurrentTime,TimeToMinutes(t),tt));
+    end else begin
+      cd = AddDay(cd,AddTime(CurrentTime,TimeToMinutes(t),tt));
+    end;
+    if (firstnextstepActr.TransDate<cd) then begin
+      iconno = 1113; // red
+    end;
+    if (firstnextstepActr.TransDate==cd) then begin
+      iconno = 1111; // green
+    end;
+    if (firstnextstepActr .TransDate>cd) then begin
+      iconno = 1110; // gray
+    end;
+  end;
+
+  if (leadm_cnt<100) then begin
+    value = curncy & " " & ValToString(sum,M40Val,ThousandSeparator,"",0);
+    if (blank(RepSpec.f1)) then begin
+      spec = LAr.CustName;
+    end else begin
+      spec = LAr.CustName;
+    end;
+    recid = BuildRecordIdStr(LAr,CurrentCompany);
+    AddPipelineItemToTemporaryArray("B2BLoanApplicationVc",recid,LAr.Manager,spec,value,1,"",iconno,blankval,-1,LAr.TransDate,kButtonColourDefault,tempORr);
+  end;
+  vcurnr[curncy] = vcurnr[curncy] + 1;
+  vcurv[curncy] = vcurv[curncy] + sum;
+  AddToArray(curncy,acur,acnt);
+  return;
+end;
+
+global
+procedure FillPipeline_B2BLoanApplicationVc(record CompanyTimezoneBlock CTb,record RcVc RepSpec,string statuses,var area aleadm,var LongInt leadm_cnt,
+                                 var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,
+                                 var record ORVc tempORr)
+begin
+  record B2BLoanApplicationVc LAr;
+  string 255 index,status;
+  Integer segs,pos;
+  Boolean found,testf;
+  record BaseCurBlock BCb;
+  
+  if (blank(statuses)) then begin
+    goto LFillPipeline_B2BLoanApplicationVc;
+  end;
+  
+  BlockLoad(BCb);
+  pos = 0;
+  ExtractObj(statuses,pos,status);
+  while (nonblank(status)) begin
+    RecordClear(LAr);
+    ResetLoop(LAr);    
+    found = true;
+    LAr.OrderClass = status;
+    while (LoopBackKey("OrderClass",LAr,1,found)) begin
+      if (LAr.OrderClass!=status) then begin 
+        found = false; 
+      end else begin
+        testf = true;
+        if (nonblank(RepSpec.Period2Str)) then begin
+          if (DateInRange(LAr.TransDate,RepSpec.sStartDate,RepSpec.sEndDate)==false) then begin
+            testf = false;
+          end;
+        end;
+        if (nonblank(RepSpec.f1)) then begin
+          if (LAr.Manager!=RepSpec.f1) then begin testf = false; end;
+        end;
+        if (nonblank(RepSpec.f2)) then begin
+          if (LAr.CustCode!=RepSpec.f2) then begin testf = false; end;      
+        end;
+/*
+        if (nonblank(RepSpec.f7)) then begin
+          if (InString2(ASPSr.Comment,RepSpec.f7)<0) then begin testf = false; end;
+        end;
+*/
+        if (testf) then begin
+          AddB2BLoanAppToPipeline(CTb,aleadm,leadm_cnt,RepSpec,LAr,BCb.BaseCur1,vcurnr,vcurv,acur,acnt,tempORr);
+          leadm_cnt = leadm_cnt + 1;
+        end;
+      end;
+    end;
+
+    ExtractObj(statuses,pos,status);
+  end;
+LFillPipeline_B2BLoanApplicationVc:;  
+  return;
+end;
+
+global
+procedure FillPipeline_Custom(row PipelinOverviewBlock PObrw,Integer oldcomp,record CompanyTimezoneBlock CTb,record RcVc RepSpec,string qclasses,Integer amounts,var area acol,var LongInt col_cnt,
+var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,var record ORVc tempORr)
+begin
+  Integer curcomp;
+
+  if (StringSetFromString(584,PObrw.Register)=="CredManVc") then begin
+    curcomp = CurrentCompany;
+    SetCompany(oldcomp,false);
+    FillPipeline_CredManVc(CTb,RepSpec,PObrw.RegisterFilter,acol,col_cnt,vcurnr,vcurv,acur,acnt,tempORr);
+    ResetCompany(curcomp);
+  end;
+  if (PObrw.Register=="B2BLoanApplicationVc") then begin
+    curcomp = CurrentCompany;
+    SetCompany(oldcomp,false);
+    FillPipeline_B2BLoanApplicationVc(CTb,RepSpec,PObrw.RegisterFilter,acol,col_cnt,vcurnr,vcurv,acur,acnt,tempORr);
+    ResetCompany(curcomp);
+  end;
+
+  return;
+end;
+

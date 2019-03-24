@@ -1,0 +1,66 @@
+external function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
+
+global
+function LongInt B2BLoanApplicationVcRecordDefaults(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+  record CredManSetBlock CredManSb;
+  
+  res = 1;  
+
+  LAr.TransDate = CurrentDate;
+  if (SingleUserMode) then begin
+    LAr.SerNr = NextSerNr("B2BLoanApplicationVc",LAr.TransDate,-1,false,"");
+  end;
+  LAr.Manager = CurrentUser;
+  InsertManagerInB2BApplication(LAr);
+ 
+  BlockLoad(CredManSb);
+  LAr.MonthlyPaymentDay = CredManSb.InvDay;
+  
+  B2BLoanApplicationVcRecordDefaults = res; 
+  return;
+end;
+
+global
+function LongInt B2BLoanApplicationVcRecordDuplicate(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res; 
+  res = 1;  
+
+  LAr.TransDate = CurrentDate;
+  LAr.SerNr = -1;
+  LAr.Manager = CurrentUser;
+  InsertManagerInB2BApplication(LAr);
+  
+  B2BLoanApplicationVcRecordDuplicate = res; 
+  return;
+end;
+
+global
+function LongInt B2BLoanApplicationVcRecordCheck(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record BankVc Bankr;
+  record CUVc CUr;
+
+  res = 0;
+  if (LAr.SerNr<=0) then begin
+    LAr.SerNr = NextSerNr("B2BLoanApplicationVc",LAr.TransDate,-1,false,"");
+  end;
+  if (blank(LAr.BankCode) or blank(LAr.BankAccount)) then begin
+    CUr.Code = LAr.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      LAr.BankCode = CUr.AccOperator;
+      Bankr.Code = CUr.AccOperator;
+      if (ReadFirstMain(Bankr,1,true)) then begin
+        LAr.BankName = Bankr.Name;
+      end;
+      LAr.BankAccount = CUr.BankAccount;
+    end;
+  end;
+
+  B2BLoanApplicationVcRecordCheck = res;
+  return;
+end;
+

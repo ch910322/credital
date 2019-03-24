@@ -1,0 +1,185 @@
+global
+function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
+begin
+  Boolean res;
+  record CUVc CUr;
+  record ContactRelVc CRr;
+  
+  CRr.ContactName = LAr.ContactName;
+  CRr.CustCode = LAr.CustCode;
+  if (ReadFirstKey("Contact",CRr,2,true)) then begin
+    CUr.Code = CRr.ContactCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      LAr.ContactPhoneNo = CUr.Phone;
+      LAr.ContactMobile = CUr.Mobile;
+      LAr.ContacteMail = CUr.eMail;
+      res = true;
+    end;
+  end;
+
+  InsertContactName = res;
+  return;
+end;
+
+procedure InsertAdditionalContacts(var record B2BLoanApplicationVc LAr)
+begin
+  record CUVc CUr;
+  record ContactRelVc CRr;
+  record CMApplicationSetBlock ASb;
+  
+  BlockLoad(ASb);
+  if (nonblank(ASb.CEOTitle) or nonblank(ASb.OwnerTitle)) then begin
+    while (LoopKey("CustContactCode:" & LAr.CustCode,CRr,1,true)) begin
+      if (SetInSet(ASb.OwnerTitle,CRr.JobTitle)) then begin
+        LAr.OwnerCustCode = CRr.ContactCode;
+        LAr.OwnerName = CRr.ContactName;
+      end;
+      if (SetInSet(ASb.CEOTitle,CRr.JobTitle)) then begin
+        LAr.CEOCustCode = CRr.ContactCode;
+        LAr.CEOName = CRr.ContactName;
+      end;
+    end;
+  end;  
+
+  return;
+end;
+
+global
+function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc LAr)
+begin
+  record CUVc CUr;
+  Boolean res;
+  record BankVc Bankr;
+
+  CUr.Code = LAr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    LAr.CustName = CUr.Name;
+    LAr.PhoneNo = CUr.Phone;
+    LAr.eMail = CUr.eMail;
+    LAr.ContactName = CUr.Person;
+    LAr.Addr0 = CUr.InvAddr0;
+    LAr.Addr1 = CUr.InvAddr1;
+    LAr.Addr2 = CUr.InvAddr2;
+    LAr.Addr3 = CUr.InvAddr3;
+    LAr.Addr4 = CUr.InvAddr4;
+    LAr.BankCode = CUr.AccOperator;
+    Bankr.Code = CUr.AccOperator;
+    if (ReadFirstMain(Bankr,1,true)) then begin
+      LAr.BankName = Bankr.Name;
+    end;
+    LAr.BankAccount = CUr.BankAccount;
+  
+    InsertContactName(LAr);
+    InsertAdditionalContacts(LAr);
+    res = true;
+  end;
+  
+  InsertCustomerInB2BApplication = res;
+  return;
+end;
+
+global
+function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc LAr,Integer num)
+begin
+  record CUVc CUr;
+  Boolean res;
+
+  CUr.Code = GetFieldValueByName(LAr,"SuretyProvider" & num,-1);
+  if (ReadFirstMain(CUr,1,true)) then begin
+    SetFieldValueByName(LAr,"Surety" & num & "AccessToDataUntil",CUr.AccessToDataUntil,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Name",CUr.Name,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Position",CUr.JobDesc,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Phone",CUr.Phone,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "eMail",CUr.eMail,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "ID",CUr.RegNr1,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr0",CUr.InvAddr0,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr1",CUr.InvAddr1,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr2",CUr.InvAddr2,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr3",CUr.InvAddr3,-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr4",CUr.InvAddr4,-1);
+
+    res = true;
+  end;
+  
+  InsertSuretyInB2BApplication = res;
+  return;
+end;
+
+global
+function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc LAr)
+begin
+  record UserVc Userr;
+  record GlobalUserVc GlobalUserr;
+  Boolean res;
+  
+  Userr.Code = LAr.Manager;
+  if (ReadFirstMain(Userr,1,true)) then begin
+    LAr.ManagerName = Userr.Name;
+    res = true;
+  end else begin
+    GlobalUserr.Code = LAr.Manager;
+    if (ReadFirstMain(GlobalUserr,1,true)) then begin
+      LAr.ManagerName = Userr.Name;
+      res = true;
+    end;
+  end;
+
+  InsertManagerInB2BApplication = res;
+  return;
+end;
+
+global
+procedure B2BLoanApp_ContactSClassOnOpenRemote(string custcode,var Array string acontact,var Integer acnt)
+begin
+  Boolean found;
+  string 255 tstr,maincontact,spacertstr;
+  record CUVc CUr;
+  record CUVc ContactCUr;
+  record ContactRelVc ContactRelr;
+
+  spacertstr = "#";
+/*
+  CUr.Code = custcode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    if (nonblank(CUr.Person)) then begin
+      tstr = CUr.Person;
+      maincontact = CUr.Person;
+//       M4PadString(CUr.Person,60," ",false,tstr);
+      tstr = CUr.Person;
+      if (FindCustomerRelation(CUr.Code,CUr.Person,ContactCUr)) then begin
+        tstr = tstr & spacertstr & ContactCUr.Title;
+      end else begin
+        tstr = tstr & spacertstr & CUr.Title;
+      end;
+      acontact[acnt] = tstr;
+      acnt = acnt + 1;
+    end;
+  end;
+*/
+  ContactRelr.CustCode = CUr.Code;
+  found = true;
+  while (LoopKey("CompKey",ContactRelr,1,found)) begin
+    if ((ContactRelr.CustCode==custcode) or (blank(custcode))) then begin
+      if (ContactRelr.ContactName!=maincontact) then begin
+        if (ContactRelr.Invalid==0) then begin
+          ContactCUr.Code = ContactRelr.ContactCode;
+          if (ReadFirstMain(ContactCUr,1,true)) then begin
+            if (ContactCUr.blockedFlag==0) then begin
+//               M4PadString(ContactCUr.Name,60," ",false,tstr);
+              tstr = ContactCUr.Code & spacertstr;
+              tstr = tstr & ContactCUr.Name;
+              if (nonblank(ContactCUr.Title)) then begin 
+                tstr = tstr & spacertstr & ContactCUr.Title;
+              end; 
+              acontact[acnt] = tstr;
+              acnt = acnt + 1;
+            end;
+          end;
+        end;
+      end;
+    end else begin
+      found = false;
+    end;
+  end;
+  return;
+end;
