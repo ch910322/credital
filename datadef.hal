@@ -380,6 +380,7 @@ begin
   SourceFile("halcust\\WActions", 3);
   SourceFile("halcust\\Tools", 3);
   SourceFile("halcust\\English", 0);
+  SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
    
 

@@ -38,25 +38,27 @@ begin
 end;
 
 global
-function LongInt B2BLoanApplicationVcRecordCheck(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt stat,LongInt long4)
+updating function LongInt B2BLoanApplicationVcRecordCheck(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt stat,LongInt long4)
 begin
   LongInt res;
-  record BankVc Bankr;
-  record CUVc CUr;
+  record CUVc CUr,oldCUr;
 
   res = 0;
   if (LAr.SerNr<=0) then begin
     LAr.SerNr = NextSerNr("B2BLoanApplicationVc",LAr.TransDate,-1,false,"");
   end;
-  if (blank(LAr.BankCode) or blank(LAr.BankAccount)) then begin
+  if (nonblank(LAr.BankCode) or nonblank(LAr.BankAccount)) then begin
     CUr.Code = LAr.CustCode;
     if (ReadFirstMain(CUr,1,true)) then begin
-      LAr.BankCode = CUr.AccOperator;
-      Bankr.Code = CUr.AccOperator;
-      if (ReadFirstMain(Bankr,1,true)) then begin
-        LAr.BankName = Bankr.Name;
+      if (blank(CUr.AccOperator) or blank(CUr.BankAccount)) then begin
+        CUr.Code = LAr.CustCode;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          RecordCopy(oldCUr,CUr);
+          CUr.BankAccount = LAr.BankAccount;
+          CUr.AccOperator = LAr.BankCode;
+          RecordUpdate(oldCUr,CUr,true);
+        end;
       end;
-      LAr.BankAccount = CUr.BankAccount;
     end;
   end;
 

@@ -1,0 +1,483 @@
+external function string 60 UserDefined(string,string);
+external function Boolean HasCustomerSearchKey();
+external function Boolean HasCategories();
+external function Boolean HasDepartments();
+external function Boolean HasStandardCommunicator();
+external function Boolean CUVATNrColumn;
+external function Boolean HasLimitedAccess();
+external function Boolean HasCustomerStatusReport();
+
+event DefineWindows
+begin
+  real v,vs,h,h2,h3,t,tilenr,vm,pos;
+ 
+  SetLangMode(LangLithuanian,"LIT",0);
+
+  WindowBegin("B2B Loan Applications",B2BLoanApplicationLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,800,298);
+  SpawnClass(B2BLoanApplicationDClass);
+  UseView(B2BLoanApplicationVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlColKey(101,101,"Date",TransDate,false,TransDate);
+  RlColKey(181,181,"Start Date",StartDate,false,StartDate);
+  RlColKey(260,260,"Customer",CustName,false,CustName);
+  RlColKey(-240,-240,"Class",OrderClass,false,OrderClass);
+  RlCol   (-200,-200,"Type",Type,false);
+  RlCol   (-120,-120,"Rate %",InterestRate,true);
+  RlCol   (-70,-70,"Total Sum",Sum,true);
+  SpecialMenu("Customer status",'e',1,"CUStatusB2BLoanAppLsm");
+  SpecialMenu("Evaluation report",' ',2,"");
+  EndWindow;
+
+  WindowBegin("Number Series - B2B Loan Applications",B2BLoanAppSerTClass,CGHbl,HBlRecType);
+  SetBlid(B2BLoanAppSerBlock);
+  SetWRect(20,80,600,351);
+  Sizeable(-1,-1,0,0);
+  MatrixBegin(h,v,-31,-20,-,199);
+  MatCol(1,24,"From No.",0,TSerStart,false,0);
+  MatCol(1,104,"To No.",0,TSerEnd,false,0);
+  MatCol(1,184,"From Date",0,StartDate,false,PasteCurDate);
+  MatCol(1,264,"To Date",0,EndDate,false,PasteCurDate);
+  MatCol(1,344,"Comment",0,TSerCom,false,0);
+  EndMatrix;
+  EndWindow;
+  
+  WindowBegin("Application Settings",CMApplicationSetTClass,CGSbl,SRType);
+  SetBlid(CMApplicationSetBlock);
+  SetWRect(20,80,570,298);
+  Sizeable(-1,-1,0,0);
+  EditField(h=130,v=6,100,"Owner Title",Normal,OwnerTitle,false,JobTitleSClass);
+  EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
+  ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
+  RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
+  RadioButton(h,v+=16,1,0,"Contact Person",ContactPasteSpecial);  
+  EndWindow;
+
+  WindowBegin("Scoring",ScoringSupLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  //Sizeable(-1,-1,0,0);
+  SpawnClass(ScoringSupDClass);
+  UseView(ScoringSupVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"SerNr",SerNr,false,SerNr);
+  SearchField("Search");
+  EndWindow;
+
+  WindowBegin("Scoring",ScoringSupDClass,CGOther,-);
+  SetWRect(20,80,730,539);
+  UseView(ScoringSupVc);
+  AutoSizeWindow(false);  
+  vs = 20; h=135; h2=375; h3=575;
+  EditField(h,v=6,100,"Risk Class",Normal,RiskClass,false,0);
+  EditField(h2,v,100,"Debts",Normal,Debts,false,0);
+  CheckBox(h3,v,0,"Credit History",CreditHistory);
+  EditField(h,v+=vs,100,"Debt-free Months",Normal,DebtFreeMonths,false,0);
+  EditField(h2,v,100,"6 Months Salary",Normal,Salary6Months,false,0);
+  EditField(h3,v,100,"Date Employed",Normal,DateEmployed,false,PasteCurDate);
+  EditField(h,v+=vs,100,"Company",Normal,Company,false,0);
+  EditField(h2,v,100,"Position",Normal,Position,false,0);
+ 
+  EditField(h,v+=vs,100,"Late Credits",Normal,LateCredits,false,0);
+  EditField(h2,v,100,"Late Days",Normal,LateDays,false,0);
+  
+  EditField(h2,v+=vs,100,"Overall monthly Obligation Payment",Normal,MonthlyOblPayment,false,0);
+  EditField(h2,v+=vs,100,"Total monthly Income from other Companies",Normal,TotIncomeFromCompanies,false,0);
+
+  vm = v+40;
+  ButtonFrame(h,v=vm,190,4,"Assets");
+  RadioButton(h,v,0,0,"No",AssetsType);
+  RadioButton(h,v+=16,1,0,"Mortgage",AssetsType);  
+  RadioButton(h,v+=16,2,0,"Ownership <20k",AssetsType);  
+  RadioButton(h,v+=16,3,0,"Ownership of 20+k or 3+ Assets",AssetsType);
+    
+  ButtonFrame(h2,v=vm,150,2,"Sex");
+  RadioButton(h2,v,0,0,"Male",SexType);
+  RadioButton(h2,v+=16,1,0,"Female",SexType);  
+  
+  ButtonFrame(h3,v=vm,150,2,"Residency");
+  RadioButton(h3,v,0,0,"Resident",ResidencyType);
+  RadioButton(h3,v+=16,1,0,"Not Resident",ResidencyType);  
+
+  MatrixBegin(10,v+=vs+60,-40,-1,-,50);
+  Flip(0);
+  MatCol(1,20,"Period",0,Period,false,0);
+  Flip(1);
+  MatCol(1,80,"Industry",0,Industry,false,0);
+  MatCol(1,-300,"Check. Month",0,MonthChecks,false,0);
+  MatCol(1,-200,"Check. Quarter",0,QuarterChecks,false,0);
+  MatCol(1,-100,"Check. Half Year",0,HalfYearChecks,false,0);
+  Flip(2);
+  MatCol(1,80,"Salary",0,Salary,false,0);
+  MatCol(1,180,"Additional Salary",0,ExtraSalary,false,0);
+  Flip(3);
+  MatCol(1,80,"Asset",0,Asset,false,0);
+  MatCol(1,200,"Asset Type",0,AssetType,false,0);
+  MatCol(1,270,"Location",0,Location,false,0);
+  MatCol(1,400,"Legal Status",0,LegalStatus,false,0);
+  MatCol(1,-50,"Value",0,AssetValue,false,0);
+  Flip(4);
+  MatCol(1,80,"Obligations",0,Obligations,false,0);
+  MatCol(1,150,"Value",0,ObligationsValue,false,0);
+  MatCol(1,220,"Loans",0,Loans,false,0);
+  MatCol(1,290,"Credit Cards",0,CreditCards,false,0);
+  MatCol(1,360,"Credit Limits",0,CreditLimits,false,0);
+  MatCol(1,430,"Leasing",0,Leasing,false,0);
+  EndMatrix;
+
+  VTab(-50,v=15,-16,v+=vs,ToolFlip,1,"A");
+  VTab(-50,v,-6,v+=vs,ToolFlip,2,"B");
+  VTab(-50,v,-6,v+=vs,ToolFlip,3,"C");
+  VTab(-50,v,-16,v+=vs,ToolFlip,4,"D");
+
+  EndWindow;
+ 
+  WindowBegin("Paste Customer",B2BLoanApp_CUSClass,CGslist,-);
+  SetWRect(20,80,700,298);
+  Sizeable(-1,-1,0,0);
+  UseView(CUVc);
+  SpawnClass(CUDClass);
+  
+  HalPushButton(-300,v=7,-200,v+=20,"CustSwitchToContacts","Contact Persons");
+ 
+  RecordList(4,20,-21,-39);
+  RlColKey(4,4,"No.",Code,false,ActCode);
+  pos = 96;
+  if (HasCustomerSearchKey) then begin
+    RlColKey(pos,pos,"Short",SearchKey,false,SearchKey);
+    pos = pos + 50;
+  end;
+  
+  if (HasCategories) then begin
+    RlColKey(pos,pos,"C_at",CustCat,false,ActGroup);
+    pos = pos + 50;
+  end;
+  if (IsStandardProduct) then begin
+    if (HasLocalization("FIN,POL")) then begin
+      RlColKey(pos,pos,"#VAT Reg. No.#",VATNr,false,VATNr);
+      pos = pos + 120;
+    end;
+  end;
+  RlColKey(pos,pos,"Name",Name,false,ActName);  
+  if (HasDepartments) then begin
+    RlColKey(-230,-230,"Department",Department,false,ActDepartment);
+  end;
+  if (HasStandardCommunicator) then begin
+    if (CUVATNrColumn) then begin
+      RlColKey(-110,-110,"#VAT Reg. No.#",VATNr,false,ActVATNr);
+    end else begin
+      RlColKey(-110,-110,"#Reg. No.#",RegNr1,false,ActRegNr1);
+    end;
+  end;
+  if (HasLimitedAccess) then begin
+    BrowseSubsetButton(-40,-15);
+  end;
+  SearchField("Search");
+  if (GuiType!=kGuiiPhone and GuiType!=kGuiAndroid) then begin
+    if (HasCustomerStatusReport) then begin
+      SpecialMenu("Customer Status",'e',0,"CUStatusCUSsm");
+    end;
+  end;
+  SpecialMenu("Search",'F',1,"CUSearchLsm");
+  EndWindow;
+
+  WindowBegin("Order Class Colors",OrderClassColorTClass,CGHBl,-);
+  SetWRect(80,80,400,280);
+  SetBlid(OrderClassColorBlock);
+  MatrixBegin(10,20,-30,-10,-,10);
+  MatCol(1,25,"Order Class",0,OrderClass,false,OrderClassSClass);
+  MatCol(1,100,"Color",0,Color,false,SetSClass);
+  EndMatrix;
+  EndWindow;
+
+  return;
+end;
+
+window B2BLoanApp_ContactSClass:1
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real v;
+
+  WindowBegin("Paste Contact",B2BLoanApp_ContactSClass,CGother,RcType);
+  SetWRect(64,80,500,298);
+  HalPushButton(-120,v=8,-6,v+=20,"ContactsSwitchToCust","Contacts");
+  DataList(9,v+10,-22,-6,"DLPasteContact");
+  DataListColumn(1,6,250,AdjLeft,"DLContactName","Name",M4Str);
+  DataListColumn(1,256,-32,AdjLeft,"DLContactTitle","Courtesy Title",M4Str);  
+  EndWindow;
+end;
+
+window B2BLoanApplicationDClass:11
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real v,vs,h,h2,h3,t,tilenr,vm,pos;
+  string 255 label1,label2,label3,label4,label5;
+  record B2BLoanApplicationVc LAr;
+
+  WindowBegin("B2B Loan Application",B2BLoanApplicationDClass,CGview,-);
+  SetWRect(64,80,859,300);
+  UseView(B2BLoanApplicationVc);
+  DynamicWindow;
+  vs = 20; h=135; h2=375; h3=595;
+  Tile(0,95,false,"",SerNr);
+  EditField(h,v=6,100,"Ser. No.",Normal,SerNr,false,TSerSClass);
+  EditField(h2,v,80,"Date",Normal,TransDate,false,PasteCurDate);
+  EditField(h,v+=vs,100,"Customer",Normal,CustCode,false,CUSClass);
+  EditField(h2,v,-40,"Name",Normal,CustName,false,0);
+  EditField(h,v+=vs,100,"Contact",Normal,ContactName,false,B2BLoanApp_ContactSClass);
+  EditField(h2,v,130,"Email",Normal,eMail,false,0);
+  EditField(h3+30,v,-40,"Telephone",Normal,PhoneNo,false,0);
+  EditField(h,v+=vs,100,"Contact Email",Normal,ContacteMail,false,0);
+  EditField(h2,v,130,"Contact Telephone",Normal,ContactPhoneNo,false,0);
+  EditField(h3+30,v,-40,"Contact Mobile",Normal,ContactMobile,false,0);
+  EditField(h,v+=vs,100,"Manager",Normal,Manager,false,UserSClass);
+  EditField(h2,v,-40,"Name",Normal,ManagerName,false,0);
+  EditField(h,v+=vs,100,"Type",Normal,Type,false,CredManTypeSClass);
+  EditField(h2,v,100,"Total Sum",Normal,Sum,false,0);
+  EditField(h3,v,-40,"Start Date",Normal,StartDate,false,PasteCurDate);
+  EditField(h,v+=vs,100,"Interest Rate %",Normal,InterestRate,false,0);
+  EditField(h2,v,100,"Months",Normal,Months,false,0);
+  EditField(h3,v,-40,"End Date",ViewOnly,EndDate,false,0);
+  EditField(h,v+=vs,100,"Monthly Payment Day",Normal,MonthlyPaymentDay,false,0);
+  EditField(h2,v,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  tilenr = 1;
+  TileButton(tilenr,"Contact"); tilenr = tilenr + 1;
+  TileButton(tilenr,"Surety"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Evaluation"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Factoring"); tilenr = tilenr + 1;  
+  tilenr = 1;
+  Tile(tilenr,290,true,tilenr,Addr0); tilenr = tilenr + 1;
+  v = 6;
+  label1 = UserDefined("CUVc","InvAddr0");
+  EditField(h,v,150,label1,Normal,Addr0,false,0);
+  label2 = UserDefined("CUVc","InvAddr1");
+  EditField(h,v+=vs,150,label2,Normal,Addr1,false,0);
+  label3 = UserDefined("CUVc","InvAddr2");
+  EditField(h,v+=vs,150,label3,Normal,Addr2,false,0);
+  label4 = UserDefined("CUVc","InvAddr3");
+  EditField(h,v+=vs,150,label4,Normal,Addr3,false,0);
+  label5 = UserDefined("CUVc","InvAddr4");
+  EditField(h,v+=vs,150,label5,Normal,Addr4,false,0);
+  vm = v;
+  v = 6;
+  EditField(h2=400,v,120,"Bank Code",Normal,BankCode,false,BankSClass);
+  EditField(h2,v+=vs,120,"Bank Name",Normal,BankName,false,0);
+  EditField(h2,v+=vs,120,"Bank Account",Normal,BankAccount,false,0);
+  CheckBox(h3,v=6,0,"Request Direct Debit",RequestDirectDebit);
+  
+  v = vm + v;
+  ButtonFrame(h,v=v+40,500,1,"Owner");
+  EditField(h+100,v,100,"Contact Code",Normal,OwnerCustCode,false,B2BLoanApp_CUSClass);
+  EditField(h2+100,v,100,"Owner Name",Normal,OwnerName,false,0);
+  ButtonFrame(h,v=v+40,500,1,"CEO");
+  EditField(h+100,v,100,"Contact Code",Normal,CEOCustCode,false,B2BLoanApp_CUSClass);
+  EditField(h2+100,v,100,"CEO Name",Normal,CEOName,false,0);
+  
+  Tile(tilenr,290,true,tilenr,MajorityOwner1); tilenr = tilenr + 1;  
+  
+  StaticText(h,v=26,"Surety Provider 1",false);
+  CheckBox(h,v=v+vs,0,"Majority Owner",MajorityOwner1);
+  EditField(h,v+=vs,100,"Contact Code 1",Normal,SuretyProvider1,false,B2BLoanApp_CUSClass);
+  EditField(h,v+=vs,100,"Access to Data till",ViewOnly,Surety1AccessToDataUntil,false,PasteCurDate);
+  vm = v;
+  CheckBox(h,v=v+vs,0,"Asset Arrests",Surety1AssetArrests);
+  CheckBox(h,v=v+vs,0,"Bankruptcy",Surety1Bankruptcy);
+  CheckBox(h,v=v+vs,0,"Not Creditable",Surety1NotCreditable);
+  CheckBox(h,v=v+vs,0,"Court Cases last Year",Surety1Courts);
+  v = vm;
+  ButtonFrame(h-100,v+=40,90,2,"Type");
+  RadioButton(h-100,v,0,0,"Entrepreneur",Surety1Type);
+  RadioButton(h-100,v+=16,1,0,"Specialist",Surety1Type);  
+  HalPushButton(h,v+=vs+30,h+120,v+25,"ShowB2BAppScoring1","Scoring Rate"); v = v + 10;
+  EditField(h,v+=vs,100,"Name",Normal,Surety1Name,false,0);
+  EditField(h,v+=vs,100,"Position",Normal,Surety1Position,false,JobTitleSClass);
+  EditField(h,v+=vs,100,"Phone",Normal,Surety1Phone,false,0);
+  EditField(h,v+=vs,100,"Email",Normal,Surety1eMail,false,0);
+  EditField(h,v+=vs,100,"ID",Normal,Surety1ID,false,0);
+
+  EditField(h,v+=vs,130,label1,Normal,Surety1Addr0,false,0);
+  EditField(h,v+=vs,130,label2,Normal,Surety1Addr1,false,0);
+  EditField(h,v+=vs,130,label3,Normal,Surety1Addr2,false,0);
+  EditField(h,v+=vs,130,label4,Normal,Surety1Addr3,false,0);
+  EditField(h,v+=vs,130,label5,Normal,Surety1Addr4,false,0);
+  ButtonFrame(h,v=v+40,150,4,"Age Group");
+  RadioButton(h,v,0,0,"Under 21",Surety1AgeGroup);
+  RadioButton(h,v+=16,1,0,"21-27",Surety1AgeGroup);  
+  RadioButton(h,v+=16,2,0,"28-64",Surety1AgeGroup);  
+  RadioButton(h,v+=16,3,0,"65+",Surety1AgeGroup);
+  if (GetWindowClass(CurWindow)=="B2BLoanApplicationDClass") then begin  
+    GetWindowRecord(CurWindow,LAr);
+  end;
+  if (LAr.SuretyCnt>=2) then begin
+    StaticText(h2=365,v=26,"Surety Provider 2",false);
+    CheckBox(h2,v=v+vs,0,"Majority Owner",MajorityOwner2);
+    EditField(h2,v+=vs,100,"Contact Code 2",Normal,SuretyProvider2,false,B2BLoanApp_CUSClass);
+    EditField(h2,v+=vs,100,"Access to Data till",ViewOnly,Surety2AccessToDataUntil,false,PasteCurDate);
+    vm = v;
+    CheckBox(h2,v=v+vs,0,"Asset Arrests",Surety2AssetArrests);
+    CheckBox(h2,v=v+vs,0,"Bankruptcy",Surety2Bankruptcy);
+    CheckBox(h2,v=v+vs,0,"Not Creditable",Surety2NotCreditable);
+    CheckBox(h2,v=v+vs,0,"Court Cases last Year",Surety2Courts);
+    v = vm;
+    ButtonFrame(h2-100,v=v+40,90,2,"Type");
+    RadioButton(h2-100,v,0,0,"Entrepreneur",Surety2Type);
+    RadioButton(h2-100,v+=16,1,0,"Specialist",Surety2Type);  
+    HalPushButton(h2,v+=vs+30,h2+120,v+25,"ShowB2BAppScoring2","Scoring Rate"); v = v + 10;
+    EditField(h2,v+=vs,100,"Name",Normal,Surety2Name,false,0);
+    EditField(h2,v+=vs,100,"Position",Normal,Surety2Position,false,JobTitleSClass);
+    EditField(h2,v+=vs,100,"Phone",Normal,Surety2Phone,false,0);
+    EditField(h2,v+=vs,100,"Email",Normal,Surety2eMail,false,0);
+    EditField(h2,v+=vs,100,"ID",Normal,Surety2ID,false,0);
+
+    EditField(h2,v+=vs,130,label1,Normal,Surety2Addr0,false,0);
+    EditField(h2,v+=vs,130,label2,Normal,Surety2Addr1,false,0);
+    EditField(h2,v+=vs,130,label3,Normal,Surety2Addr2,false,0);
+    EditField(h2,v+=vs,130,label4,Normal,Surety2Addr3,false,0);
+    EditField(h2,v+=vs,130,label5,Normal,Surety2Addr4,false,0);
+    ButtonFrame(h2,v=v+40,150,4,"Age Group");
+    RadioButton(h2,v,0,0,"Under 21",Surety2AgeGroup);
+    RadioButton(h2,v+=16,1,0,"21-27",Surety2AgeGroup);  
+    RadioButton(h2,v+=16,2,0,"28-64",Surety2AgeGroup);  
+    RadioButton(h2,v+=16,3,0,"65+",Surety2AgeGroup);  
+  end;
+  if (LAr.SuretyCnt>=3) then begin
+    StaticText(h3,v=26,"Surety Provider 3",false);
+    CheckBox(h3,v=v+vs,0,"Majority Owner",MajorityOwner3);
+    EditField(h3,v+=vs,100,"Contact Code 3",Normal,SuretyProvider3,false,B2BLoanApp_CUSClass);
+    EditField(h3,v+=vs,100,"Access to Data till",ViewOnly,Surety3AccessToDataUntil,false,PasteCurDate);
+    vm = v;
+    CheckBox(h3,v=v+vs,0,"Asset Arrests",Surety3AssetArrests);
+    CheckBox(h3,v=v+vs,0,"Bankruptcy",Surety3Bankruptcy);
+    CheckBox(h3,v=v+vs,0,"Not Creditable",Surety3NotCreditable);
+    CheckBox(h2,v=v+vs,0,"Court Cases last Year",Surety3Courts);
+    v = vm;
+    ButtonFrame(h3-100,v=v+40,90,2,"Type");
+    RadioButton(h3-100,v,0,0,"Entrepreneur",Surety3Type);
+    RadioButton(h3-100,v+=16,1,0,"Specialist",Surety3Type);  
+    HalPushButton(h3,v+=vs+30,h3+120,v+25,"ShowB2BAppScoring3","Scoring Rate"); v = v + 10;
+    EditField(h3,v+=vs,100,"Name",Normal,Surety3Name,false,0);
+    EditField(h3,v+=vs,100,"Position",Normal,Surety3Position,false,JobTitleSClass);
+    EditField(h3,v+=vs,100,"Phone",Normal,Surety3Phone,false,0);
+    EditField(h3,v+=vs,100,"Email",Normal,Surety3eMail,false,0);
+    EditField(h3,v+=vs,100,"ID",Normal,Surety3ID,false,0);
+
+    EditField(h3,v+=vs,130,label1,Normal,Surety3Addr0,false,0);
+    EditField(h3,v+=vs,130,label2,Normal,Surety3Addr1,false,0);
+    EditField(h3,v+=vs,130,label3,Normal,Surety3Addr2,false,0);
+    EditField(h3,v+=vs,130,label4,Normal,Surety3Addr3,false,0);
+    EditField(h3,v+=vs,130,label5,Normal,Surety3Addr4,false,0);
+    ButtonFrame(h3,v=v+40,150,4,"Age Group");
+    RadioButton(h3,v,0,0,"Under 21",Surety3AgeGroup);
+    RadioButton(h3,v+=16,1,0,"21-27",Surety3AgeGroup);  
+    RadioButton(h3,v+=16,2,0,"28-64",Surety3AgeGroup);  
+    RadioButton(h3,v+=16,3,0,"65+",Surety3AgeGroup);  
+  end;
+  switch (LAr.SuretyCnt) begin
+    case 0:  
+      HalPushButton(h2,v=26,h2+120,v+25,"B2BLoanAppAddSurety","Add Surety"); v = v + 10;
+    case 1:  
+      HalPushButton(h2,v=26,h2+120,v+25,"B2BLoanAppAddSurety","Add Surety"); v = v + 10;
+    case 2:
+      HalPushButton(h3,v=26,h3+120,v+25,"B2BLoanAppAddSurety","Add Surety"); v = v + 10;
+  end;
+
+  Tile(tilenr,600,true,tilenr,LateRating); tilenr = tilenr + 1;
+  EditField(h,v=6,100,"Late Rating",Normal,LateRating,false,0);
+  EditField(h2=h2+50,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,false,0);
+  EditField(h,v+=vs,100,"Established",Normal,Established,false,PasteCurDate);
+  EditField(h2,v,100,"Monthly Load Payment",Normal,MonthlyLoadPayment,false,0);
+  EditField(h,v+=vs,100,"Current Debts",Normal,CurrentDebts,false,0);
+  EditField(h2,v,100,"Date of last Debt Repayment",Normal,LastRepaymentDate,false,PasteCurDate); 
+  CheckBox(h,v+=vs,0,"Ongoing Court Cases",OngoingCourtCases);
+  CheckBox(h2,v,0,"Historical Court Cases",HistoricalCourtCases);
+  CheckBox(h,v+=vs,0,"Ongoing Asset Arrests",OngoingAssetArrests);
+  CheckBox(h2,v,0,"Historical Asset Arrests",HistoricalAssetArrests);
+  CheckBox(h,v+=vs,0,"Bankruptcy",BankruptcyFlag);
+  CheckBox(h2,v,0,"Liquidation",LiquidationFlag);
+  CheckBox(h,v+=vs,0,"Ownership Changes",OwnershipChanges);
+ 
+//  EditField(h,v+=vs,100,"Long Term Asset Value",Normal,AssetValue,false,0);
+  EditField(h,v+=vs,100,"50% Rev. Customers",Normal,HalfRevenueCustomers,false,0);
+  EditField(h2=375,v,100,"Equity",Normal,Equity,false,0);
+  EditField(h3,v,100,"50% Cost Suppliers",Normal,HalfCostSuppliers,false,0);
+  EditField(h,v+=vs,100,"Late Rating",Normal,LateRating,false,0);
+  EditField(h2,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,false,0);
+  EditField(h,v+=vs,100,"Months",Normal,RevMonths,false,0);
+  EditField(h2,v,100,"Revenue",Normal,Revenue,false,0);
+  EditField(h3,v,100,"Annual revenue",Normal,AnnualRevenue,false,0);
+
+  ButtonFrame(h-50,v=v+40,640,1,"Current");
+  EditField(h,v,80,"Profit",Normal,CurProfit,false,0);
+  EditField(h2-55,v,80,"Receivables",Normal,CurReceivables,false,0);
+  EditField(h3-100,v,80,"Payables",Normal,CurPayables,false,0);
+  EditField(h3+40,v,80,"Total",Normal,CurTotal,false,0);
+
+  ButtonFrame(h-50,v=v+40,640,1,"Previous");
+  EditField(h,v,80,"Profit",Normal,PrevProfit,false,0);
+  EditField(h2-55,v,80,"Receivables",Normal,PrevReceivables,false,0);
+  EditField(h3-100,v,80,"Payables",Normal,PrevPayables,false,0);
+  EditField(h3+40,v,80,"Total",Normal,PrevTotal,false,0);
+
+  MatrixBegin(10,v+=50,-40,-1,-,50);
+  Flip(1);
+  MatCol(1,20,"Period",0,Period,false,0);
+  MatCol(1,80,"Late Rating",0,LateRating,false,0);
+  MatCol(1,180,"Bankruptcy Rating",0,BankruptcyRating,false,0);
+  MatCol(1,280,"Turnover",0,Turnover,false,0);
+  MatCol(1,380,"Gross Profit",0,GrossProfit,false,0);
+  Flip(2);
+  MatCol(1,80,"Year",0,Year,false,0);
+  MatCol(1,180,"Turnover",0,Turnover,false,0);
+  MatCol(1,280,"Employees",0,EmployeeCnt,false,0);
+  MatCol(1,380,"Av. Salary",0,AvSalary,false,0);
+  Flip(3);
+  MatCol(1,80,"Comp. owned Cars",0,OwnedCompanyCars,false,0);
+  MatCol(1,200,"Value",0,OwnedCarsValue,false,0);
+  MatCol(1,300,"Comp. used Cars",0,UsedCompanyCars,false,0);
+  MatCol(1,400,"Value",0,UsedCarsValue,false,0);
+  Flip(4);
+  MatCol(1,80,"Industry",0,Industry,false,0);
+  MatCol(1,200,"Check. Month",0,MonthChecks,false,0);
+  MatCol(1,300,"Check. Quarter",0,QuarterChecks,false,0);
+  MatCol(1,400,"Check. Half Year",0,HalfYearChecks,false,0);
+  Flip(5);
+  MatCol(1,80,"Month",0,Month,false,0);
+  MatCol(1,150,"Receivables",0,Receivables,false,0);
+  MatCol(1,220,"Payables",0,Payables,false,0);
+  MatCol(1,290,"Total",0,DiffRecPay,false,0);
+  Flip(6);
+  MatCol(1,80,"Month",0,Month,false,0);    
+  MatCol(1,150,"Estates",0,EstateCnt,false,0);
+  MatCol(1,220,"Value",0,EstateValue,false,0);
+  MatCol(1,290,"Employees",0,EmployeeCnt,false,0);  
+  MatCol(1,380,"Av. Salary",0,AvSalary,false,0);
+  EndMatrix;
+
+  VTab(-50,v=15,-16,v+=vs,ToolFlip,1,"A");
+  VTab(-50,v,-6,v+=vs,ToolFlip,2,"B");
+  VTab(-50,v,-6,v+=vs,ToolFlip,3,"C");
+  VTab(-50,v,-16,v+=vs,ToolFlip,4,"D");
+  VTab(-50,v,-16,v+=vs,ToolFlip,5,"E");
+  VTab(-50,v,-16,v+=vs,ToolFlip,6,"F");
+
+  Tile(tilenr,600,true,tilenr,BuyBankruptcyRating); tilenr = tilenr + 1;
+  EditField(h,v=6,100,"Buyer's Bankrup. Rating",Normal,BuyBankruptcyRating,false,0);
+  EditField(h2,v,100,"Buyer Established ",Normal,BuyerEstablished,false,PasteCurDate);
+  EditField(h,v+=vs,100,"Buyer's Turnover",Normal,BuyerTurnover,false,0);
+ 
+  ButtonFrame(h,v=v+40,200,3,"Factoring Type");
+  RadioButton(h,v,0,0,"Open",FactoringType);
+  RadioButton(h,v+=16,1,0,"Closed to our Account",FactoringType);  
+  RadioButton(h,v+=16,2,0,"Closed to Customer Account",FactoringType);  
+
+  SpecialMenu("Fill Data from rekvizitai.lt",' ',1,"");
+  SpecialMenu("Fill Data from SoDra",' ',2,"");
+  SpecialMenu("Get Company Credit Data",' ',3,"");
+  SpecialMenu("Get Surety Provider Data",' ',4,"");
+  SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
+  SpecialMenu("E-mail",' ',1,""); 
+  SpecialMenu("Agreement",' ',1,""); 
+
+  EndWindow;
+end;
