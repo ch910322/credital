@@ -610,7 +610,7 @@ begin
   EditField(h3,v=vm,82,"Monthly #Instalment#",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN
   EditField(h3,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
-//CUST-END
+ //CUST-END
   ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
   RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
   RadioButton(h4,v+=16,1,0,"Monthly Invoices",ChargeMethod);

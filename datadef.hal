@@ -97,24 +97,6 @@ begin
   RecordField(Surety3Addr3,M4Str,200,0);
   RecordField(Surety3Addr4,M4Str,200,0);
   RecordField(Surety3AgeGroup,M4Int,0,0);  
-/*
-  RecordField(RiskClass,M4Code,2,0);
-  RecordField(Debts,M4Int,0,0);
-  RecordField(CreditHistory,M4Int,0,0);
-  RecordField(DebtFreeMonths,M4Int,0,0);
-  RecordField(Salary6Months,M4Int,0,0);
-  RecordField(DateEmployed,M4Date,0,0);
-  RecordField(RegularIncome,M4Int,0,0);
-  RecordField(StableIncome,M4Int,0,0);
-  RecordField(OverallIncome,M4Int,0,0);
-  RecordField(Company,M4Str,200,0);
-  RecordField(Position,M4Str,200,0);
-  RecordField(LateCredits,M4Int,0,0);
-  RecordField(LateDays,M4Int,0,0);
-  RecordField(AssetsType,M4Int,0,0);  
-  RecordField(SexType,M4Int,0,0);  
-  RecordField(ResidencyType,M4Int,0,0);  
-*/
   RecordField(LateRating,M4Int,0,0);
   RecordField(BankruptcyRating,M4Int,0,0);
   RecordField(Established,M4Date,0,0);
@@ -157,7 +139,6 @@ begin
   RecordField(PrevReceivables,M4Val,0,0);
   RecordField(PrevPayables,M4Val,0,0);
   RecordField(PrevTotal,M4Val,0,0);
-
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
   ArrayField(LateRating,M4Int,0,0);
@@ -269,48 +250,7 @@ begin
   KeySegment(SerNr);
   
   EndRecord;
-/*
-  RecordBegin(EvalSupVc,-,"");
-  RecordField(SerNr,M4Long,0,0);
-  RecordField(B2BApp,M4Long,0,0);
-  RecordField(Period,M4Str,10,0);
-  RecordField(LateRating,M4Int,0,0);
-  RecordField(BankruptcyRating,M4Int,0,0);
-  RecordField(TaxDebts,M4Int,0,0);
-  RecordField(SSDebts,M4Int,0,0);
-  RecordField(Year,M4Int,0,0);
-  RecordField(Month,M4Int,0,0);
-  RecordField(Industry,M4Str,20,0);
-  RecordField(Turnover,M4Int,0,0);
-  RecordField(OwnedCompanyCars,M4Int,0,0);
-  RecordField(OwnedCarsValue,M4Int,0,0);
-  RecordField(UsedCompanyCars,M4Int,0,0);
-  RecordField(UsedCarsValue,M4Int,0,0);
-  RecordField(MonthChecks,M4Int,0,0);
-  RecordField(QuarterChecks,M4Int,0,0);
-  RecordField(HalfYearChecks,M4Int,0,0);
-  RecordField(Revenue,M4Int,0,0);
-  RecordField(Profit,M4Int,0,0);
-  RecordField(EmployeeCnt,M4Int,0,0);
-  RecordField(AvSalary,M4Int,0,0);
-  RecordField(Receivables,M4Int,0,0);
-  RecordField(Payables,M4Int,0,0);
-  RecordField(DiffRecPay,M4Int,0,0);
-  RecordField(EstateValue,M4Int,0,0);
-  RecordField(CarsValue,M4Int,0,0);
-  RecordField(TotEstateCars,M4Int,0,0);
-  
-  MainKeyBegin(SerNr,0);
-  KeySegment(SerNr);
-  
-  SubSetKeyBegin2(B2BApp);
-  StoreInBaseKey;
-  AppendFieldToKeyName(B2BApp);
-  KeySegment(Period);
-  KeySegment(SerNr);
-  
-  EndRecord;
-*/
+
   RecordBegin(LoadDummyMatVc,-,"");
   RecordField(SerNr,M4Long,0,0);
   RecordField(Math,M4Matrix,0,0);
@@ -361,6 +301,11 @@ begin
 
   RecordAddBegin(CredManVc,"CustCredManVc");
   RecordField(OrderClass,M4Code,5,OrderClassVc);
+  ChangeField(InstalmentType,M4Set,2001,0);
+  RecordField(OverduePercentage,M4Qty,0,0);
+  RecordField(SuretyInterestRate,M4Qty,0,0);
+  RecordField(StdProlongFee,M4Qty,0,0);
+  RecordField(StdProlongPrc,M4Qty,0,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -375,7 +320,16 @@ begin
   ArrayField(Color,M4Set,2000,0);
   EndArray;
   EndBlock;
- 
+  
+  RecordAddBegin(CredManTypeVc,"CustCredManTypeVc");
+  ChangeField(InstalmentType,M4Set,2001,0);
+  ChangeMatrixField(ChargeType,M4Set,2002,0);
+  RecordField(OverduePercentage,M4Qty,0,0);
+  RecordField(SuretyInterestRate,M4Qty,0,0);
+  RecordField(StdProlongFee,M4Qty,0,0);
+  RecordField(StdProlongPrc,M4Qty,0,0);
+  EndRecordAdd;
+
   SourceFile("halcust\\RActions", 3);
   SourceFile("halcust\\WActions", 3);
   SourceFile("halcust\\Tools", 3);

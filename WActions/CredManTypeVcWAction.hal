@@ -1,0 +1,24 @@
+
+global
+function Boolean CredManTypeDClassActiveEditField(Integer wn,string fieldname,Integer fn,Integer wnst,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record CredManTypeVc CMTr;
+  row CredManTypeVc CMTrw;
+  res = true;
+
+  if (rownr>-1) then begin
+    GetWindowRecord(wn,CMTr);
+    MatRowGet(CMTr,rownr,CMTrw);
+    if (CMTrw.ChargeType>1) then begin
+      switch (fieldname) begin
+        case "Price": res = false;
+        case "Sum": res = false;
+      end;   
+    end;
+  end;
+
+  CredManTypeDClassActiveEditField = res;
+  return;
+end;
+

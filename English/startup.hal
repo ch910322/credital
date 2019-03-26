@@ -25,5 +25,22 @@ begin
   SetText(kRowColorGray,"Grey");
   EndSet;
 
+  SetBegin(2001);
+  SetText(0,"Increasing #Instalment# - Decreasing Interest");
+  SetText(1,"Same #Instalment# - Decreasing Interest");
+  SetText(2,"Same #Instalment# - Same Interest");
+  SetText(3,"Bullet Loan");
+  SetText(4,"Factoring");
+  SetText(5,"Payment Guarantee");
+  EndSet;
+
+  SetBegin(2002);
+  SetText(0,"One Time fixed Fee");
+  SetText(1,"Monthly fixed Fee");
+  SetText(2,"One Time calculated Fee");
+  SetText(3,"Monthly calculated Fee");
+  EndSet;
+
+ 
   return;
 end;

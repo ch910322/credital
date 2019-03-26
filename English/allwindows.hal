@@ -610,6 +610,10 @@ begin
   EditField(h3,v=vm,82,"Monthly #Instalment#",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN
   EditField(h3,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h3,v+=vs,82,"Overdue percentage",Normal,OverduePercentage,false,0);
+  EditField(h3,v+=vs,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);
+  EditField(h3,v+=vs,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);
+  EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
 //CUST-END
   ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
   RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
@@ -697,3 +701,57 @@ begin
   SpecialMenu("Receipt",'r',1,"ReceiptCredManDsm");
   EndWindow;
 end;
+
+window CredManTypeDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,t,v,vm,vm2,vs;
+  WindowBegin("Credit Agreement Type",CredManTypeDClass,CGview,-);
+  SetWRect(20,80,640,380);
+  h = 150; h2 = 300; h3 = 440; v = 6; vs=20;
+  //CUST-BEGIN
+  h2 = 330;
+  //CUST-END
+  UseView(CredManTypeVc);
+  EditField(h,v,80,"Code",St_i,Code,false,0);
+  EditField(h2,v,-40,"Interest",Normal,InstalmentType,false,SetSClass);
+  EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
+  EditField(h,v+=vs,40,"Default Months",Normal,InstalmentMonths,false,0);
+  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST
+  EditField(h,vm=(v+=vs),40,"Pay. Terms",Normal,PayDeal,false,PDSClass);
+  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST
+  EditField(h,v+=vs,40,"Max Days Late",Normal,LateFeeDays,false,0);
+  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST
+  EditField(h,v+=vs,40,"Rate %",Normal,IntRate,false,0);
+  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST
+  EditField(h,v+=vs,40,"Deposit % ",Normal,DepositPrc,false,0);
+//  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
+  EditField(h,v+=vs,40,"Months to Settle For Free",Normal,SettleLimit,false,0);
+  EditField(h,vm2=(v+=vs),82,"Fixed Deposit",Normal,DepositSum,true,0);
+  //CUST-BEGIN
+  h2 = h2 + 110;
+  //CUST-END
+  ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
+  RadioButton(h2,v,0,0,"Due Date",LateRateOption);
+  RadioButton(h2,v+=16,1,0,"Trans. Date",LateRateOption);
+  ButtonFrame(h2,v+=40,150,2,"Charge Method");
+  RadioButton(h2,v,0,0,"Running Balance",ChargeMethod);
+  RadioButton(h2,v+=16,1,0,"Monthly Invoices",ChargeMethod);
+/*
+  ButtonFrame(h=50,vm=(v+=45),140,2,"Default Interest Type");
+  RadioButton(h,v,0,0,"Fixed",RateType);
+  RadioButton(h,v+=16,1,0,"Floating",RateType);
+*/
+
+  MatrixBegin(20,vm=(vm2+=40),-30,-10,-,99);
+  MatCol(t=1,32,"Item",0,ArtCode,false,INSClass);
+  MatCol(t,100,"Qty",0,Quant,true,0);
+  MatCol(t,140,"Type",0,ChargeType,false,SetSClass);
+  MatCol(t,220,"Description",0,Comment,false,0);
+  MatCol(t,-210,"Unit Price",0,Price,true,0);
+  MatCol(t,-120,"%",0,vRebate,true,0);
+  MatCol(t,-90,"Sum",0,Sum,true,0);
+  EndMatrix;
+  EndWindow;
+end;
+
