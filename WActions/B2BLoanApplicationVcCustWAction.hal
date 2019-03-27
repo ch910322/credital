@@ -1,0 +1,15 @@
+remote procedure CalculateB2BLoanApplication(record B2BLoanApplicationVc);
+
+global
+procedure B2BLoanAppCalculate()
+begin
+  record B2BLoanApplicationVc LAr;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  CalculateB2BLoanApplication(LAr);
+  PutWindowRecord(wn,LAr);
+
+  return;
+end;

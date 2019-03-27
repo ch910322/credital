@@ -11,6 +11,8 @@ begin
   Setting("Scoring Support",ScoringSupLClass,modCredMan);
   Setting("Order Classes",OrderClassLClass,modCredMan);
   Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
+  Setting("Evaluation Constants",EvalConstTClass,modCredMan);
+  Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
