@@ -1,0 +1,51 @@
+
+function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManVc CredManr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    if (CredManr.StdProlongFee<0) then begin
+      CredManr.StdProlongFee = 0;
+    end;
+    if (CredManr.StdProlongFee>100) then begin
+      CredManr.StdProlongFee = 100;
+    end;
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassStdProlongFeeEFAfter = true;
+  return;
+end;
+
+function Boolean CredManDClassStdProlongPrcEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManVc CredManr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    if (CredManr.StdProlongPrc<0) then begin
+      CredManr.StdProlongPrc = 0;
+    end;
+    if (CredManr.StdProlongPrc>100) then begin
+      CredManr.StdProlongPrc = 100;
+    end;
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassStdProlongPrcEFAfter = true;
+  return;
+end;
+
+global
+function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "StdProlongFee": res = CredManDClassStdProlongFeeEFAfter(wn,rownr,changed!=0);
+    case "StdProlongPrc": res = CredManDClassStdProlongPrcEFAfter(wn,rownr,changed!=0);
+    otherwise 
+      res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
+  end;
+  CredManDClassAfterEditField = res;
+  return;
+end;
