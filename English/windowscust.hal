@@ -499,7 +499,7 @@ begin
   EditField(h2,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,true,0);
   EditField(h,v+=vs,100,"Months",Normal,RevMonths,true,0);
   EditField(h2,v,100,"Revenue",Normal,Revenue,true,0);
-  EditField(h3,v,100,"Annual revenue",Normal,AnnualRevenue,true,0);
+  EditField(h3,v,100,"Annual Revenue",Normal,AnnualRevenue,true,0);
 
   ButtonFrame(h-50,v=v+40,640,1,"Current");
   EditField(h,v,80,"Profit",Normal,CurProfit,true,0);
@@ -526,22 +526,23 @@ begin
   MatCol(1,280,"Employees",0,EmployeeCnt,true,0);
   MatCol(1,380,"Av. Salary",0,AvSalary,true,0);
   Flip(3);
-  MatCol(1,80,"Comp. owned Cars",0,OwnedCompanyCars,true,0);
-  MatCol(1,200,"Value",0,OwnedCarsValue,true,0);
-  MatCol(1,300,"Comp. used Cars",0,UsedCompanyCars,true,0);
-  MatCol(1,400,"Value",0,UsedCarsValue,true,0);
+  MatCol(1,80,"Months",0,Month,false,0);    
+  MatCol(1,180,"Comp. owned Cars",0,OwnedCompanyCars,true,0);
+  MatCol(1,280,"Value",0,OwnedCarsValue,true,0);
+  MatCol(1,380,"Comp. used Cars",0,UsedCompanyCars,true,0);
+  MatCol(1,480,"Value",0,UsedCarsValue,true,0);
   Flip(4);
   MatCol(1,80,"Industry",0,Industry,false,0);
   MatCol(1,200,"Check. Month",0,MonthChecks,false,0);
   MatCol(1,300,"Check. Quarter",0,QuarterChecks,false,0);
   MatCol(1,400,"Check. Half Year",0,HalfYearChecks,false,0);
   Flip(5);
-  MatCol(1,80,"Month",0,Month,false,0);
+  MatCol(1,80,"Months",0,Month,false,0);
   MatCol(1,150,"Receivables",0,Receivables,true,0);
   MatCol(1,220,"Payables",0,Payables,true,0);
   MatCol(1,290,"Total",0,DiffRecPay,true,0);
   Flip(6);
-  MatCol(1,80,"Month",0,Month,false,0);    
+  MatCol(1,80,"Months",0,Month,false,0);    
   MatCol(1,150,"Estates",0,EstateCnt,true,0);
   MatCol(1,220,"Value",0,EstateValue,true,0);
   MatCol(1,290,"Employees",0,EmployeeCnt,true,0);  
