@@ -1,3 +1,6 @@
+remote inner procedure CredManVc_PasteType(var record CredManVc);
+external inner function roundmode SetRoundModeD(Integer);
+
 global
 function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
 begin
@@ -181,5 +184,36 @@ begin
       found = false;
     end;
   end;
+  return;
+end;
+
+
+global
+updating function Boolean B2BLoanAppCreateCredMan(record B2BLoanApplicationVc LAr,var record CredManVc CredManr)
+begin
+  record CUVc CUr;
+  Boolean res;
+
+  CUr.Code = LAr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordNew(CredManr);
+    CredManr.SerNr = NextSerNr("CredManVc",CurrentDate,-1,false,"");
+    CredManr.Type = LAr.Type;
+    CredManVc_PasteType(CredManr);
+    CredManr.IntRate = LAr.InterestRate;
+    CredManr.CustCode = LAr.CustCode;
+    CredManr.Addr0 = LAr.CustName;
+    CredManr.SalesMan = LAr.Manager;
+    CredManr.TotalSum = LAr.Sum;
+    CredManr.startDate = LAr.StartDate;
+    CredManr.InstalmentMonths = LAr.Months;
+    CredManr.PayDeal = CUr.PayDeal;
+    CredManr.DepositSum = Round(CredManr.DepositPrc/100 * CredManr.InvSum4,SetRoundModeD(2));
+    if (RecordInsert(CredManr,true)) then begin
+      res = true;
+    end;
+  end;
+
+  B2BLoanAppCreateCredMan = res;
   return;
 end;

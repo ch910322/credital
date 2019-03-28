@@ -22,3 +22,65 @@ begin
   return;
 end;
 
+function Boolean CredManTypeDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManTypeVc CredManTyper;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManTyper);
+    if (CredManTyper.StdProlongFee<0) then begin
+      CredManTyper.StdProlongFee = 0;
+    end;
+    if (CredManTyper.StdProlongFee>100) then begin
+      CredManTyper.StdProlongFee = 100;
+    end;
+    PutWindowRecord(wn,CredManTyper);   
+  end; 
+  CredManTypeDClassStdProlongFeeEFAfter = true;
+  return;
+end;
+
+function Boolean CredManTypeDClassStdProlongPrcEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManTypeVc CredManTyper;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManTyper);
+    if (CredManTyper.StdProlongPrc<0) then begin
+      CredManTyper.StdProlongPrc = 0;
+    end;
+    if (CredManTyper.StdProlongPrc>100) then begin
+      CredManTyper.StdProlongPrc = 100;
+    end;
+    PutWindowRecord(wn,CredManTyper);   
+  end; 
+  CredManTypeDClassStdProlongPrcEFAfter = true;
+  return;
+end;
+
+global
+function Boolean CredManTypeDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "StdProlongFee": res = CredManTypeDClassStdProlongFeeEFAfter(wn,rownr,changed!=0);
+    case "StdProlongPrc": res = CredManTypeDClassStdProlongPrcEFAfter(wn,rownr,changed!=0);
+    otherwise 
+      res = inner.CredManTypeDClassAfterEditField(wn,fieldname,fn,rownr,changed);
+  end;
+  CredManTypeDClassAfterEditField = res;
+  return;
+end;
+
+//overriding the standard function
+global
+function LongInt CredManTypeVcRecordRemoveTest(var record CredManTypeVc CredManTyper,record CredManTypeVc CredManType2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 1;
+  
+  CredManTypeVcRecordRemoveTest = res;
+  return;
+end;
