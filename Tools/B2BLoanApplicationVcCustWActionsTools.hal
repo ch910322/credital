@@ -706,11 +706,11 @@ begin
     cr = min(cb,cc);
   end;
 
-  LAr.Creditable = 3;
+  LAr.Creditable = 4;
   switch (cr) begin
-    case 1: LAr.Creditable = 2;
-    case 2: LAr.Creditable = 1;
-    case 3: LAr.Creditable = 0;
+    case 1: LAr.Creditable = 3;
+    case 2: LAr.Creditable = 2;
+    case 3: LAr.Creditable = 1;
   end;
  
 lout:;
