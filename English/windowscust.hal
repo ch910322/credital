@@ -478,7 +478,7 @@ begin
   SpecialMenu("Get Surety Provider Data",' ',4,"");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
-  SpecialMenu("Agreement",' ',1,""); 
+  SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 
 
   EndWindow;
 end;

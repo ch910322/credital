@@ -72,3 +72,15 @@ begin
   CredManTypeDClassAfterEditField = res;
   return;
 end;
+
+//overriding the standard function
+global
+function LongInt CredManTypeVcRecordRemoveTest(var record CredManTypeVc CredManTyper,record CredManTypeVc CredManType2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 1;
+  
+  CredManTypeVcRecordRemoveTest = res;
+  return;
+end;
