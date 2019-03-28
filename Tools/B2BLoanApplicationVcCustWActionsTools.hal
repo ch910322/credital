@@ -1,0 +1,718 @@
+external inner function LongInt MonthDiff(Date,Date);
+external inner function LongInt DateDiff(Date,Date);
+
+function val max(val v1,val v2)
+begin
+  val res;
+
+  if (v1>v2) then begin
+    res = v1;
+  end else begin
+    res = v2;
+  end;
+  
+  max = res;
+  return;
+end;
+
+function val min(val v1,val v2)
+begin
+  val res;
+
+  if (v1<v2) then begin
+    res = v1;
+  end else begin
+    res = v2;
+  end;
+  
+  min = res;
+  return;
+end;
+
+function val GetCarEstateValue(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+  row B2BLoanApplicationVc LArw;
+
+  MatRowGet(LAr,0,LArw);
+  res = LArw.EstateValue + LArw.CarsValue;
+
+  GetCarEstateValue = res;
+  return;
+end;
+
+function Boolean GetMajoritySuretyProvider(record B2BLoanApplicationVc LAr,var record ScoringSupVc SSr,var Integer surety)
+begin
+  Boolean res;
+  string 255 majsur;
+
+  if (LAr.MajorityOwner1==1) then begin
+    majsur = LAr.SuretyProvider1;
+    surety = 1;
+  end;
+  if (LAr.MajorityOwner2==1) then begin
+    majsur = LAr.SuretyProvider2;
+    surety = 2;
+  end;
+  if (LAr.MajorityOwner3==1) then begin
+    majsur = LAr.SuretyProvider3;
+    surety = 3;
+  end;
+  
+  if (nonblank(majsur)) then begin
+    SSr.B2BApp = LAr.SerNr;
+    SSr.SuretyCustCode = majsur;
+    if (ReadFirstKey("SuretyApp",SSr,1,true)) then begin
+      res = true;
+    end;
+  end else begin
+    stopalert("No Majority Surety Provider");
+  end;
+
+  
+  GetMajoritySuretyProvider = res;
+  return;
+end;
+
+function val CalculateAssets(record ScoringSupVc SSr,record EvalConstBlock ECb)
+begin
+  val res;
+  
+  switch (SSr.AssetsType) begin
+    case 0: res = ECb.NoAssetCoef;
+    case 1: res = ECb.MortgageCoef;
+    case 2: res = ECb.Ownership2Coef;
+    case 3: res = ECb.Ownership1Coef;
+  end;
+
+  CalculateAssets = res;
+  return;
+end;
+
+function val CalculateProfit(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr,record EvalConstBlock ECb,val assetscoef)
+begin
+  val res,pcoef,salarycoef,c2;
+
+  salarycoef = ECb.MininumSalary;
+  if (SSr.Salary6Months>ECb.MininumSalary) then begin
+    salarycoef = ECb.MininumSalary + (SSr.Salary6Months-ECb.MininumSalary) * ECb.SalAboveMinCoef;
+  end;
+
+  pcoef = ECb.c300;
+  if (LAr.CurProfit>=ECb.AnnualProfitHigh) then begin
+    pcoef = ECb.c600;
+  end;
+  c2 = 0;
+  if (assetscoef-salarycoef>0) then begin//IF(W-Y>0;W-Y;0)
+    c2 = assetscoef-salarycoef;
+  end;
+
+  if (LAr.CurProfit>ECb.AnnualProfitLow) then begin
+    res = max(salarycoef+pcoef+c2,assetscoef);//MAX(Y+IF(X<N4;N5;N6)+IF(W-Y>0;W-Y;0);W)
+  end else begin
+    res = max(salarycoef,assetscoef);
+  end;
+
+  CalculateProfit = res;
+  return;
+end;
+
+function val CalculateRevenueCoef(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,val carsestate)
+begin
+  val res;
+
+  res = max(LAr.AnnualRevenue * 0.2,carsestate + min(LAr.CurTotal,0) * 0.5);
+
+  CalculateRevenueCoef = res;
+  return;
+end;
+
+function val CalculatePersonCoef(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr,record EvalConstBlock ECb,val profit,Integer surety,var val d)
+begin
+  val bx,bx1,res; 
+  Integer specialist;
+  string 255 tmp; 
+
+  specialist = 0;
+  tmp = GetFieldValueByName(LAr,"Surety" & surety & "Type",-1);
+  if (tmp=="1") then begin
+    specialist = 2;
+  end;
+
+  if (SSr.Salary6Months>ECb.MininumSalary) then begin
+    bx1 = ECb.MininumSalary + (SSr.Salary6Months-ECb.MininumSalary) * ECb.SalAboveMinCoef;
+  end else begin
+    bx1 = SSr.Salary6Months;
+  end;
+  bx = max(bx1,profit);
+
+  if (specialist==2) then begin
+    if (bx<ECb.IncomeStep1) then begin
+      res = ECb.Specialist500;
+    end else begin
+      if (bx<ECb.IncomeStep2) then begin
+        res = ECb.Specialist900;
+      end else begin
+        res = ECb.Specialist9002;
+      end;
+    end;
+  end else begin
+    if (bx<ECb.IncomeStep1) then begin
+      res = ECb.Enterpreneur500;
+    end else begin
+      if (bx<ECb.IncomeStep2) then begin
+        res = ECb.Enterpreneur900;
+      end else begin
+        res = ECb.Enterpreneur9002;
+      end;
+    end;
+  end;
+
+  d = max((bx*res-SSr.MonthlyOblPayment)*25,0);
+
+  CalculatePersonCoef = res;
+  return;
+end;
+
+function string 255 GetSurityRiskRow(Longint b2bapp,string suretycode)
+begin
+  record ScoringSupVc SSr;
+  string 255 res;
+
+  SSr.B2BApp = b2bapp;
+  SSr.SuretyCustCode = suretycode;
+  if (ReadFirstKey("SuretyApp",SSr,2,true)) then begin
+    res = SSr.RiskClass;
+  end;
+  
+  GetSurityRiskRow = res;
+  return;
+end;
+
+procedure GetBestSuretyRiskRow(record B2BLoanApplicationVc LAr,var row EvalRiskClassBlock bestRCrw,var Integer bestsurety,var Integer bestsurety2)
+begin
+  Integer rwcnt,i,rw;
+  string 255 riskclass1,riskclass2,riskclass3;
+  row EvalRiskClassBlock RCrw;
+  record EvalRiskClassBlock RCb;
+  vector Longint vRisk;
+
+  BlockLoad(RCb);
+  rwcnt = MatRowCnt(RCb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(RCb,i,RCrw);
+    vRisk[RCrw.RiskClass] = i;
+  end;  
+  
+  riskclass1 = GetSurityRiskRow(LAr.SerNr,LAr.SuretyProvider1);
+  riskclass2 = GetSurityRiskRow(LAr.SerNr,LAr.SuretyProvider2);
+  riskclass3 = GetSurityRiskRow(LAr.SerNr,LAr.SuretyProvider3);
+  
+  rw = vRisk[riskclass1];
+  bestsurety = 1;
+  bestsurety2 = -1;
+  if (vRisk[riskclass2]>-1 and vRisk[riskclass2]<rw) then begin
+    rw = vRisk[riskclass2];
+    bestsurety = 2;
+    bestsurety2 = 1;
+  end;
+  if (vRisk[riskclass3]>-1 and vRisk[riskclass3]<rw) then begin
+    rw = vRisk[riskclass3];
+    bestsurety2 = bestsurety;
+    bestsurety = 3;
+  end;
+
+  MatRowGet(RCb,rw,bestRCrw);
+  return;
+end;
+
+function Longint GetCompanyAgeInMonths(record B2BLoanApplicationVc LAr)
+begin
+  Longint res;
+  
+  res = MonthDiff(LAr.Established,CurrentDate);
+  
+  GetCompanyAgeInMonths = res;
+  return;
+end;
+
+function val GetG2Score(record B2BLoanApplicationVc LAr,Integer compyears)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.BankruptcyRating>8 and compyears<2) then begin
+    res = 100;
+  end;
+
+  GetG2Score = res;
+  return;
+end;
+
+function val GetG3Score(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.OngoingCourtCases==1 or MonthDiff(LAr.LastRepaymentDate,CurrentDate)<6) then begin
+    res = 100;
+  end;
+
+  GetG3Score = res;
+  return;
+end;
+
+function val GetG4Score(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.Equity<(LAr.Sum/3)) then begin
+    res = 100;
+  end;
+
+  GetG4Score = res;
+  return;
+end;
+
+function val GetG5Score(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.Equity+LAr.CurTotal<0) then begin
+    res = 100;
+  end;
+
+  GetG5Score = res;
+  return;
+end;
+
+function val GetG6Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.Sum/LAr.CurReceivables<ECb.MinLoanReceivables) then begin
+    res = 100;
+  end;
+
+  GetG6Score = res;
+  return;
+end;
+
+function val GetG7Score(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.CurProfit<0) then begin
+    res = 100;
+  end;
+
+  GetG7Score = res;
+  return;
+end;
+
+function val GetOurCustScore(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb)
+begin
+  val res;
+  record B2BLoanApplicationVc tLAr;
+
+  res = 0;
+  tLAr.CustCode = LAr.CustCode;
+  if (ReadFirstKey("CustCode",tLAr,1,true)) then begin
+    if (tLar.SerNr!=LAr.SerNr) then begin
+      res = ECb.OurCustScore;
+    end;
+  end;
+  GetOurCustScore = res;
+  return;
+end;
+
+function val GetCompTypeScore(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb)
+begin
+  val res;
+  record B2BLoanApplicationVc tLAr;
+
+  res = ECb.OtherCompScore;
+  if (right(LAr.CustName,3)=="UAB") then begin
+    res = ECb.UABScore;
+    goto LGetCompTypeScore;
+  end;
+  if (right(LAr.CustName,2)=="MB") then begin
+    res = ECb.MBScore;
+    goto LGetCompTypeScore;
+  end;
+  if (right(LAr.CustName,2)=="I¯") then begin
+    res = ECb.IIScore;
+    goto LGetCompTypeScore;
+  end;
+  if (right(LAr.CustName,3)=="Vä¯") then begin
+    res = ECb.VSIBScore;
+    goto LGetCompTypeScore;
+  end;
+ 
+LGetCompTypeScore:;
+  GetCompTypeScore = res;
+  return;
+end;
+
+function val GetBankrLiquidScore(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.BankruptcyFlag==1 or LAr.LiquidationFlag==1) then begin
+    res = 100;
+  end;
+
+  GetBankrLiquidScore = res;
+  return;
+end;
+
+function val GetCompAgeScore(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,Longint compmonths)
+begin
+  val res;
+
+  res = ECb.AgeScore2Y2;
+  if (compmonths<1) then begin
+    res = ECb.AgeScore1M;
+    goto LGetCompAgeScore;
+  end;
+  if (compmonths<9) then begin
+    res = ECb.AgeScore9M;
+    goto LGetCompAgeScore;
+  end;
+  if (compmonths<24) then begin
+    res = ECb.AgeScore2Y;
+    goto LGetCompAgeScore;
+  end;
+  if (compmonths<1) then begin
+    res = ECb.AgeScore1M;
+    goto LGetCompAgeScore;
+  end;
+
+LGetCompAgeScore:;
+  GetCompAgeScore = res;
+  return;
+end;
+
+function val GetCompBankruptcyScore(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.BankruptcyRating>0 and LAr.BankruptcyRating<11) then begin
+    res = StringToVal(GetFieldValueByName(ECb,"BankruptcyScore" & LAr.BankruptcyRating,-1),M4Val);
+  end;
+  
+  GetCompBankruptcyScore = res;
+  return;
+end;
+
+function val GetEquityScore(record B2BLoanApplicationVc LAr)
+begin
+  val res;
+
+  res = 0;
+  if (LAr.Equity<0) then begin
+    res = 100;
+  end;
+  
+  GetEquityScore = res;
+  return;
+end;
+
+function val GetJ2Score(record B2BLoanApplicationVc LAr,Integer bestsurety)
+begin
+  val res;
+
+  res = 0;
+  if (GetFieldValueByName(LAr,"Surety" & bestsurety & "AssetArrests",-1)=="1" or
+      GetFieldValueByName(LAr,"Surety" & bestsurety & "Bankruptcy",-1)=="1" or
+      GetFieldValueByName(LAr,"Surety" & bestsurety & "NotCreditable",-1)=="1") then begin
+        res = 100;
+  end;
+   
+  GetJ2Score = res;
+  return;
+end;
+
+function val GetJ3Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,Integer bestsurety)
+begin
+  val res;
+
+  res = 0;
+  switch (GetFieldValueByName(LAr,"Surety" & bestsurety & "AgeGroup",-1)) begin
+    case "0": res = ECb.RiskAge21;
+    case "1": res = ECb.RiskAge2127;
+    case "2": res = ECb.RiskAge2864;
+    case "3": res = ECb.RiskAge65;
+  end;
+  
+  GetJ3Score = res;
+  return;
+end;
+
+function val GetJ4Score(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr)
+begin
+  val res;
+
+  res = 0;
+  if (SSr.DebtFreeMonths<=6) then begin
+    res = 100;
+  end;
+
+  GetJ4Score = res;
+  return;
+end;
+function val GetJ5Score(record B2BLoanApplicationVc LAr,Integer bestsurety)
+begin
+  val res;
+
+  res = 0;
+  if (GetFieldValueByName(LAr,"Surety" & bestsurety & "Courts",-1)=="1") then begin
+    res = 100;
+  end;
+  
+  GetJ5Score = res;
+  return;
+end;
+
+function val GetJ6Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,record ScoringSupVc SSr)
+begin
+  val res;
+  row ScoringSupVc SSrw;
+  
+  res = 0;
+  MatRowGet(SSr,0,SSrw);
+  if (SSrw.ExtraSalary>0) then begin
+    res = ECb.SecondJobCoef;
+  end;
+  
+  GetJ6Score = res;
+  return;
+end;
+
+function val GetJ7Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,record ScoringSupVc SSr)
+begin
+  val res;
+  row ScoringSupVc SSrw;
+  
+  res = 0;
+  switch (SSr.AssetsType) begin
+    case 0: res = ECb.NoAssetCoef;
+    case 1: res = ECb.MortgageCoef;
+    case 2: res = ECb.Ownership2Coef;
+    case 3: res = ECb.Ownership1Coef;
+  end;
+
+ 
+  GetJ7Score = res;
+  return;
+end;
+
+function val GetJ9Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,Integer suretycnt)
+begin
+  val res;
+  
+  res = StringToInt(GetFieldValueByName(ECb,"SuretyScore" & suretycnt,-1));
+ 
+  GetJ9Score = res;
+  return;
+end;
+
+function val GetJ10Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,Integer bestsurety2)
+begin
+  val res;
+
+  res = 0;
+  switch (GetFieldValueByName(LAr,"Surety" & bestsurety2 & "AgeGroup",-1)) begin
+    case "0": res = ECb.Risk2Age21;
+    case "1": res = ECb.Risk2Age2127;
+    case "2": res = ECb.Risk2Age2864;
+    case "3": res = ECb.Risk2Age65;
+  end;
+  
+  GetJ10Score = res;
+  return;
+end;
+
+function val GetJ11Score(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb,record ScoringSupVc SSr)
+begin
+  val res;
+  row ScoringSupVc SSrw;
+  
+  res = 0;
+  MatRowGet(SSr,0,SSrw);
+  if (SSrw.ExtraSalary>0) then begin
+    res = ECb.SecondJobCoef2;
+  end;
+  
+  GetJ11Score = res;
+  return;
+end;
+
+function Integer GetSuretyCnt(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+
+  if (nonblank(LAr.SuretyProvider1)) then begin
+    res = res + 1;
+  end;
+  if (nonblank(LAr.SuretyProvider2)) then begin
+    res = res + 1;
+  end;
+  if (nonblank(LAr.SuretyProvider3)) then begin
+    res = res + 1;
+  end;
+
+  GetSuretyCnt = res;
+  return;
+end;
+
+global
+procedure CalculateB2BLoanApplication(record B2BLoanApplicationVc LAr)
+begin
+  record EvalConstBlock ECb;
+  Integer compyears,surety;
+  val carsestate,assetscoef,d,res,mz,my,perscoef,profit,revcoef;
+  record ScoringSupVc SSr,SS2r,SS3r;
+  Integer bestsurety,bestsurety2,suretycnt;
+  Longint compmonths;
+  row EvalRiskClassBlock bestSRrw;
+  val g1,g2,g3,g4,g5,g6,g7,g8,h3,h4,h;
+  val j1,j2,j3,j4,j5,j6,j7,j8,j9,j10,j11,n19,n20,n21,n22,h1,h2,cb,cc,cr;
+
+  BlockLoad(ECb);
+
+  if (GetMajoritySuretyProvider(LAr,SSr,surety)==false) then begin
+    goto lout;
+  end;
+  suretycnt = GetSuretyCnt(LAr);
+
+  compyears = DateDiff(CurrentDate,LAr.Established)/365;
+
+  carsestate = GetCarEstateValue(LAr);
+  revcoef = CalculateRevenueCoef(LAr,ECb,carsestate);
+  assetscoef = CalculateAssets(SSr,ECb);
+  profit = CalculateProfit(LAr,SSr,ECb,assetscoef);
+  perscoef = CalculatePersonCoef(LAr,SSr,ECb,profit,bestsurety,d);
+  //my = max(LAr.AnnualRevenue*0.2,carsestate+min(LAr.CurTotal,0)*0.5);
+  my = revcoef;
+  if (suretycnt<=1) then begin
+    mz = profit*perscoef-SSr.MonthlyOblPayment*25;
+  end else begin
+    mz = (profit*perscoef-SSr.MonthlyOblPayment*25)*0.8;
+  end;
+
+  res = mz;
+  if (compyears>ECb.CompAgeStep and my>mz) then begin
+    res = (mz*2+my)/3;
+  end;
+
+  LAr.MaxRecSum = res;
+  LAr.MaxValSurety = mz;
+  LAr.MaxValCompany = my;
+
+  GetBestSuretyRiskRow(LAr,bestSRrw,bestsurety,bestsurety2);
+  SS2r.B2BApp = LAr.SerNr;
+  SS2r.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety,-1);
+  ReadFirstKey("SuretyApp",SS2r,2,true);
+  SS3r.B2BApp = LAr.SerNr;
+  SS3r.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety2,-1);
+  ReadFirstKey("SuretyApp",SS3r,2,true);
+
+
+  g1 = GetCompanyAgeInMonths(LAr);
+  g2 = GetG2Score(LAr,compyears);
+  g3 = GetG3Score(LAr);
+  g4 = GetG4Score(LAr);
+  g5 = GetG5Score(LAr);
+  g6 = GetG6Score(LAr,ECb);
+  g7 = GetG7Score(LAr);
+  g8 = LAr.OwnershipChanges;
+  h4 = 0;
+  if (g1<1 or g3==100 or g8==1) then begin
+    h4 = 100;
+  end;
+  h3 = 0;
+  if (g1>1) then begin
+    h3 = g2+g3+g4+g5+g6+g7;
+  end;
+
+  n19 = GetOurCustScore(LAr,ECb);
+  n20 = GetCompTypeScore(LAr,ECb);
+  h1 = GetBankrLiquidScore(LAr);
+  n21 = GetCompAgeScore(LAr,ECb,compmonths);
+  n22 = GetCompBankruptcyScore(LAr,ECb);
+  h2 = GetEquityScore(LAr);
+  h = n20-n19+h1+n21+n22+h2;
+
+  cb = 0;
+  if (h<=ECb.CompScoreHigh) then begin
+    if (h3+h4>0) then begin
+      cb = 1;
+    end else begin
+      if (ECb.CompScoreLow>g1) then begin
+        cb = 2;
+      end else begin
+        cb = 3;
+      end;
+    end;
+  end;
+  j2 = GetJ2Score(LAr,bestsurety);
+  j3 = GetJ3Score(LAr,ECb,bestsurety);
+  j4 = GetJ4Score(LAr,SS2r);
+  j5 = GetJ5Score(LAr,bestsurety);
+  j6 = GetJ6Score(LAr,ECb,SS2r);
+  j7 = GetJ7Score(LAr,ECb,SS2r);
+  j9 = GetJ9Score(LAr,ECb,suretycnt);
+  j10 = GetJ10Score(LAr,ECb,bestsurety2);
+  j11 = GetJ11Score(LAr,ECb,SS3r);
+
+
+  j8 = j2+bestSRrw.Score+j5+j6+j7+j9+min(j3,j10)+j11;
+
+  j1 = j2+j3+bestSRrw.Score+j4+j5+j6+j7;
+  
+  if (suretycnt==1) then begin
+    if (j1>ECb.SuretyScoreHigh) then begin
+       cc = 0;
+    end else begin
+      if (j1>ECb.SuretyScoreLow) then begin
+        cc = 2;
+      end else begin
+        cc = 3;
+      end;
+    end;
+  end else begin
+    if (j8>ECb.SuretyScoreHigh) then begin
+       cc = 0;
+    end else begin
+      if (j8>ECb.SuretyScoreLow) then begin
+        cc = 2;
+      end else begin
+        cc = 3;
+      end;
+    end;
+     
+  end;
+
+
+  cr = 1;
+  if (blank(bestSRrw.Warning)) then begin
+    cr = min(cb,cc);
+  end;
+
+  LAr.Creditable = 4;
+  switch (cr) begin
+    case 1: LAr.Creditable = 3;
+    case 2: LAr.Creditable = 2;
+    case 3: LAr.Creditable = 1;
+  end;
+ 
+lout:;
+  return;
+end;
