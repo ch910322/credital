@@ -31,9 +31,6 @@ begin
     if (CredManTyper.StdProlongFee<0) then begin
       CredManTyper.StdProlongFee = 0;
     end;
-    if (CredManTyper.StdProlongFee>100) then begin
-      CredManTyper.StdProlongFee = 100;
-    end;
     PutWindowRecord(wn,CredManTyper);   
   end; 
   CredManTypeDClassStdProlongFeeEFAfter = true;
@@ -58,6 +55,24 @@ begin
   return;
 end;
 
+function Boolean CredManTypeDClassOverduePercentageEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManTypeVc CredManTyper;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManTyper);
+    if (CredManTyper.OverduePercentage<0) then begin
+      CredManTyper.OverduePercentage = 0;
+    end;
+    if (CredManTyper.OverduePercentage>100) then begin
+      CredManTyper.OverduePercentage = 100;
+    end;
+    PutWindowRecord(wn,CredManTyper);   
+  end; 
+  CredManTypeDClassOverduePercentageEFAfter = true;
+  return;
+end;
+
 global
 function Boolean CredManTypeDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
@@ -65,6 +80,7 @@ begin
 
   switch (fieldname) begin
     case "StdProlongFee": res = CredManTypeDClassStdProlongFeeEFAfter(wn,rownr,changed!=0);
+    case "OverduePercentage": res = CredManTypeDClassOverduePercentageEFAfter(wn,rownr,changed!=0);
     case "StdProlongPrc": res = CredManTypeDClassStdProlongPrcEFAfter(wn,rownr,changed!=0);
     otherwise 
       res = inner.CredManTypeDClassAfterEditField(wn,fieldname,fn,rownr,changed);

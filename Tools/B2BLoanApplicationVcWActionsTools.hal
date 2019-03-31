@@ -204,10 +204,11 @@ begin
     CredManr.CustCode = LAr.CustCode;
     CredManr.Addr0 = LAr.CustName;
     CredManr.SalesMan = LAr.Manager;
-    CredManr.TotalSum = LAr.Sum;
+    CredManr.InvSum4 = LAr.Sum;
     CredManr.startDate = LAr.StartDate;
     CredManr.InstalmentMonths = LAr.Months;
     CredManr.PayDeal = CUr.PayDeal;
+    CredManr.ClientContact = LAr.ContactName;
     CredManr.DepositSum = Round(CredManr.DepositPrc/100 * CredManr.InvSum4,SetRoundModeD(2));
     if (RecordInsert(CredManr,true)) then begin
       res = true;
