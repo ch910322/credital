@@ -1,0 +1,434 @@
+external function Boolean GetMajoritySuretyProvider(record B2BLoanApplicationVc,var record ScoringSupVc,var Integer);
+external inner function LongInt MonthDiff(Date,Date);
+external function Integer GetSuretyCnt(record B2BLoanApplicationVc);
+external procedure GetBestSuretyRiskRow(record B2BLoanApplicationVc ,var row EvalRiskClassBlock,var Integer,var Integer);
+
+
+function Integer IsExistingCustomer(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  record CredManVc CredManr;
+
+  res = 0;
+  CredManr.CustCode = LAr.CustCode;
+  if (ReadFirstKey("CustCode",CredManr,1,true)) then begin
+    res = 1;
+  end;
+  IsExistingCustomer = res;
+  return;
+end;
+
+
+
+function string 255 GetCompanyTypeName(record B2BLoanApplicationVc LAr)
+begin
+  string 255 res;
+  record EvalConstBlock ECb;
+
+  if (right(LAr.CustName,3)=="UAB") then begin
+    res = "UAB";
+    goto LGetCompanyTypeName;
+  end;
+
+  if (right(LAr.CustName,2)=="MB") then begin
+    res = "MB";
+    goto LGetCompanyTypeName;
+  end;
+
+  BlockLoad(ECb);
+  if (right(LAr.CustName,len(ECb.IICompType))==ECb.IICompType) then begin
+    res = ECb.IICompType;
+    goto LGetCompanyTypeName;
+  end;
+
+  if (right(LAr.CustName,len(ECb.VSICompType))==ECb.VSICompType) then begin
+    res = ECb.VSICompType;
+    goto LGetCompanyTypeName;
+  end;
+
+  res = UsetStr(100052);
+
+LGetCompanyTypeName:;
+  GetCompanyTypeName = res;
+  return;
+end;
+
+function string 255 IsProblematic(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  
+  if (LAr.OngoingCourtCases+LAr.BankruptcyFlag+LAr.LiquidationFlag>0) then begin
+    res = 1;
+  end;
+
+  IsProblematic = StringFromSet(2005,res);
+  return;
+end;
+
+function string 255 IsProblematic2(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  
+  if (LAr.OngoingCourtCases+LAr.HistoricalCourtCases+LAr.OngoingAssetArrests+LAr.HistoricalAssetArrests>0) then begin
+    res = 1;
+  end;
+ 
+  IsProblematic2 = StringFromSet(432,res);
+  return;
+end;
+
+
+function string 255 IsProblematicSurety(record B2BLoanApplicationVc LAr,Integer bestsurety)
+begin
+  Integer res;
+  
+  if (GetFieldValueByName(LAr,"Surety" & bestsurety & "AssetArrests",-1)=="1") then begin
+    res = 1;
+  end;
+  if (GetFieldValueByName(LAr,"Surety" & bestsurety & "Bankruptcy",-1)=="1") then begin
+    res = 1;
+  end;
+  if (GetFieldValueByName(LAr,"Surety" & bestsurety & "NotCreditable",-1)=="1") then begin
+    res = 1;
+  end;
+
+  IsProblematicSurety = StringFromSet(2007,res);
+  return;
+end;
+
+function string 255 OwnershipChanges(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  
+  if (LAr.OwnershipChanges>0) then begin
+    res = 1;
+  end;
+ 
+  OwnershipChanges = StringFromSet(2006,res);
+  return;
+end;
+
+function string 255 SuretyIsMajority(record B2BLoanApplicationVc LAr)
+begin
+  Integer res;
+  
+  if (LAr.MajorityOwner1+LAr.MajorityOwner2+LAr.MajorityOwner3>0) then begin
+    res = 1;
+  end;
+ 
+  SuretyIsMajority = StringFromSet(432,res);
+  return;
+end;
+
+function string 255 IsActive(Integer v)
+begin
+  Integer res;
+
+  if (v>0) then begin
+    res = 1;
+  end;
+
+
+  IsActive = StringFromSet(432,res);
+  return;
+end;
+
+function string 255 GetCompanyAge(record B2BLoanApplicationVc LAr)
+begin
+  string 255 res;
+  Longint dd,years,months;
+  
+  if (nonblank(LAr.Established)) then begin
+    dd = MonthDiff(LAr.Established,CurrentDate);
+    years = dd/12;
+    months = mod(dd,12);
+    switch (years) begin
+      case 0:
+      case 1: res = "1 " & UsetStr(100022) & " ";
+      otherwise res = years & " " & UsetStr(100023) & " ";
+    end;
+    switch (months) begin
+      case 0:
+      case 1: 
+        res = res &  "1 " & UsetStr(100024);
+      otherwise res = res & months & " " & UsetStr(100025);
+    end;
+  end;
+
+  GetCompanyAge = res;
+  return;
+end;
+
+function string 255 MajoritySuretyAge(record B2BLoanApplicationVc LAr,Integer surety)
+begin
+  string 255 res;
+
+  if (surety>0) then begin
+    res = StringFromSet(2008,StringToInt(GetFieldValueByName(LAr,"Surety" & surety & "AgeGroup",-1)));
+  end else begin
+    res = UsetStr(100041);
+  end;
+  MajoritySuretyAge = res;
+  return;
+end;
+
+function string 255 PersonType(record B2BLoanApplicationVc LAr,Integer surety)
+begin
+  string 255 res;
+
+  if (surety>0) then begin
+    res = StringFromSet(2009,StringToInt(GetFieldValueByName(LAr,"Surety" & surety & "Type",-1)));
+  end;
+  PersonType = res;
+  return;
+end;
+
+procedure GetLatestEvalRow(record B2BLoanApplicationVc LAr,row B2BLoanApplicationVc LArw)
+begin
+  
+  MatRowGet(LAr,0,LArw);
+
+  return;
+end;
+
+procedure GetLatestScoringRow(record ScoringSupVc SSr,row ScoringSupVc SSrw)
+begin
+  
+  MatRowGet(SSr,0,SSrw);
+
+  return;
+end;
+
+procedure PrintSection(Longint strid)
+begin
+  StartFormat(15);
+  EndFormat;
+
+  StartFormat(15);
+  OutString(0,0,USetStr(strid),false);
+  EndFormat;
+  StartFormat(1);
+  Black_divider(0,1);
+  EndFormat;
+
+  return;
+end;
+
+function string 255 OutputVal(val v)
+begin
+  val tv;
+  string 255 res;
+
+  tv = v;
+  if (blank(v)) then begin
+    tv = 0;
+  end;
+  
+  res = ValToString(tv,M4Val,"",".",0);
+
+  OutputVal = res;
+  return;
+end;
+
+function string 255 OutputLongint(Longint l)
+begin
+  Longint tl;
+
+  tl = l;
+  if (tl<0) then begin
+    tl = 0;
+  end;
+  
+  OutputLongint = tl;
+  return;
+end;
+
+global
+procedure B2BLoanEvalRn(record RcVc RepSpec)
+begin
+  row EvalRiskClassBlock bestRCrw;
+  Integer bestsurety,bestsurety2,surety;
+  record B2BLoanApplicationVc LAr;
+  row B2BLoanApplicationVc LArw;
+  record CUVc CUr;
+  record ScoringSupVc SSr,SS2r;
+  row ScoringSupVc SSrw;
+  
+  StartReportJob(USetStr(100000));
+  
+  EndHeader;
+
+  SetRepCol(2,80);
+  SetRepCol(5,300);
+  SetRepCol(6,380);
+
+  LAr.SerNr = RepSpec.long1;
+  if (ReadFirstMain(LAr,1,true)) then begin
+    CUr.Code = LAr.CustCode;
+    if (ReadFirstMain(CUr,1,true)==false) then begin
+      StartFormat(15);
+      OutString(0,0,USetStr(100004),false);
+      EndFormat;
+    end;
+/*Section*/
+    PrintSection(100001);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100002) & LAr.CustName,false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100003) & CUr.RegNr1,false);
+    OutString(5,0,USetStr(100005) & CurrentDate,false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100006) & LAr.BankruptcyRating,false);
+    OutString(5,0,USetStr(100007) & LAr.LateRating,false);
+    EndFormat;
+
+    GetLatestEvalRow(LAr,LArw);
+    GetMajoritySuretyProvider(LAr,SS2r,surety);
+ 
+    GetBestSuretyRiskRow(LAr,bestRCrw,bestsurety,bestsurety2);
+    SSr.B2BApp = LAr.SerNr;
+    SSr.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety,-1);
+    ReadFirstKey("SuretyApp",SSr,2,true);
+    GetLatestScoringRow(SSr,SSrw);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100008) & (LArw.EstateCnt+LArw.OwnedCompanyCars),false);
+    OutString(5,0,USetStr(100009) & StringFromSet(2003,SSr.AssetsType),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(100010);
+    StartFormat(15);
+    OutString(0,0,USetStr(100011) & OutputVal(LAr.MaxRecSum),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100012) & OutputVal(LAr.MaxValSurety),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100013) & OutputVal(LAr.MaxValCompany),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100014) & StringFromSet(2004,SSr.AssetsType),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(100015);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100016) & StringFromSet(432,IsExistingCustomer(LAr)),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100017) & LAr.Sum,false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100018) & OutputLongint(LAr.Months),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100019) & GetCompanyTypeName(LAr),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100020) & IsProblematic(LAr),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100021) & GetCompanyAge(LAr),false);
+    EndFormat;
+  
+/*Section*/
+    PrintSection(100026);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100027) & LAr.BankruptcyRating,false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100028) & IsProblematic2(LAr),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100029) & OwnershipChanges(LAr),false);
+    EndFormat;
+
+
+/*Section*/
+    PrintSection(100030);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100031) & OutputVal(LAr.Equity),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100032) & OutputVal(LAr.CurTotal),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100033) & OutputVal((LArw.EstateValue + LArw.CarsValue)),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100034) & OutputVal(LAr.AnnualRevenue),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100035) & OutputVal(LAr.CurProfit),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(100036);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100037) & GetSuretyCnt(LAr),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(100038) & SuretyIsMajority(LAr),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100039) & IsProblematicSurety(LAr,bestsurety),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100040) & MajoritySuretyAge(LAr,surety),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(100042);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100043) & SSr.RiskClass,false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100044) & IsActive(SSr.DebtFreeMonths),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100045) & IsActive(StringToInt(GetFieldValueByName(LAr,"Surety" & bestsurety & "Courts",-1))),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(100046);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100047) & SSr.Salary6Months,false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100048) & PersonType(LAr,bestsurety),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100049) & IsActive(SSrw.ExtraSalary),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100050) & SSr.MonthlyOblPayment,false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(100051) & StringFromSet(2004,SSr.AssetsType),false);
+    EndFormat;
+
+  end;
+
+  EndJob;
+
+  return;
+end;

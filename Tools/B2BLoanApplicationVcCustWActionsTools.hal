@@ -41,6 +41,7 @@ begin
   return;
 end;
 
+global
 function Boolean GetMajoritySuretyProvider(record B2BLoanApplicationVc LAr,var record ScoringSupVc SSr,var Integer surety)
 begin
   Boolean res;
@@ -66,7 +67,7 @@ begin
       res = true;
     end;
   end else begin
-    stopalert("No Majority Surety Provider");
+    //stopalert("No Majority Surety Provider");
   end;
 
   
@@ -189,6 +190,7 @@ begin
   return;
 end;
 
+global
 procedure GetBestSuretyRiskRow(record B2BLoanApplicationVc LAr,var row EvalRiskClassBlock bestRCrw,var Integer bestsurety,var Integer bestsurety2)
 begin
   Integer rwcnt,i,rw;
@@ -554,6 +556,7 @@ begin
   return;
 end;
 
+global
 function Integer GetSuretyCnt(record B2BLoanApplicationVc LAr)
 begin
   Integer res;

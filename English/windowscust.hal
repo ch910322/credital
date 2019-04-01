@@ -31,6 +31,24 @@ begin
   SpecialMenu("Evaluation report",' ',2,"");
   EndWindow;
 
+  WindowBegin("Paste B2B Loan Application",B2BLoanApplicationSClass,CGsList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,800,298);
+  SpawnClass(B2BLoanApplicationDClass);
+  UseView(B2BLoanApplicationVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlColKey(101,101,"Date",TransDate,false,TransDate);
+  RlColKey(181,181,"Start Date",StartDate,false,StartDate);
+  RlColKey(260,260,"Customer",CustName,false,CustName);
+  RlColKey(-240,-240,"Class",OrderClass,false,OrderClass);
+  RlCol   (-200,-200,"Type",Type,false);
+  RlCol   (-120,-120,"Rate %",InterestRate,true);
+  RlCol   (-70,-70,"Total Sum",Sum,true);
+  SpecialMenu("Customer status",'e',1,"CUStatusB2BLoanAppLsm");
+  SpecialMenu("Evaluation report",' ',2,"");
+  EndWindow;
+
   WindowBegin("Number Series - B2B Loan Applications",B2BLoanAppSerTClass,CGHbl,HBlRecType);
   SetBlid(B2BLoanAppSerBlock);
   SetWRect(20,80,600,351);
@@ -65,7 +83,7 @@ begin
   SearchField("Search");
   EndWindow;
 
-  WindowBegin("Scoring",ScoringSupDClass,CGOther,-);
+  WindowBegin("Scoring",ScoringSupDClass,CGView,-);
   SetWRect(20,80,730,539);
   UseView(ScoringSupVc);
   AutoSizeWindow(false);  
@@ -260,6 +278,8 @@ begin
   EditField(h2,v+=vs,100,"Minimum Loan % from Receivables",Normal,MinLoanReceivables,true,0);
   EditField(h2,v+=vs,100,"Coefficient for 2nd Job",Normal,SecondJobCoef,true,0);
   EditField(h2,v+=vs,100,"Coefficient for 2nd Job - 2nd",Normal,SecondJobCoef2,true,0);
+  EditField(h2,v+=vs,100,"Company type 1",Normal,IICompType,true,0);
+  EditField(h2,v+=vs,100,"Company type 2",Normal,VSICompType,true,0);
  
   EndWindow;
 
@@ -271,6 +291,12 @@ begin
   MatCol(1,100,"Score",0,Score,true,0);
   MatCol(1,180,"Warning",0,Warning,false,SetSClass);
   EndMatrix;
+  EndWindow;
+
+  WindowBegin("B2B Application Evaluation",B2BLoanEvalRClass,CGRcW,RcType);
+  SetWRect(20,80,400,200);
+  h = 150; v=6; vs=20;
+  EditFieldTL(h,v=6,-40,"B2B Loan Application No.",M4Long,Normal,20,long1,false,B2BLoanApplicationSClass);
   EndWindow;
 
   return;
@@ -571,6 +597,7 @@ begin
   SpecialMenu("Fill Data from SoDra",' ',2,"");
   SpecialMenu("Get Company Credit Data",' ',3,"");
   SpecialMenu("Get Surety Provider Data",' ',4,"");
+  SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 

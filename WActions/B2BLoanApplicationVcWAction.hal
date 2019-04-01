@@ -695,3 +695,19 @@ begin
 
   return;
 end;
+
+global
+procedure DoEvalReportDsm()
+begin
+  record RcVc RepSpec;
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  RepSpec.repname = "B2BLoanEvalRn";
+  RepSpec.Media = mtScreen;
+  RepSpec.critname = "";
+  RepSpec.long1 = LAr.SerNr;
+  RepSpec.ArtMode = 0;
+  RunReport(RepSpec,0);
+  return;
+end;
