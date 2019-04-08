@@ -310,6 +310,7 @@ begin
   RecordField(SuretyInterestRate,M4Qty,0,0);
   RecordField(StdProlongFee,M4Qty,0,0);
   RecordField(StdProlongPrc,M4Qty,0,0);
+  ChangeMatrixField(ChargeType,M4Set,2002,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -406,6 +407,34 @@ begin
   ArrayField(Warning,M4Str,255,0);
   EndArray;
   EndBlock;
+
+//RecordType - Invoice or payment
+  RecordBegin(CredHistVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(RecordNr,M4Long,0,0); 
+  RecordField(PreviousNr,M4Long,0,CredHistVc);//in case of payment, we store here the invoices history no
+  RecordField(TransDate,M4Date,0,0);
+  RecordField(ChargeType,M4Set,2010,0);
+  RecordField(RecordType,M4Set,2011,0);
+  RecordField(Sum,M4Val,0,0);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  KeyBegin(CustTypeDate);
+  KeySegment(CustCode);
+  KeySegment(ChargeType);
+  KeySegment(TransDate);
+  KeySegment(SerNr);
+  KeyBegin(RecordNr);
+  KeySegment(RecordNr);
+  KeySegment(RecordType);
+  KeySegment(SerNr);
+  EndRecord;
+
+  RecordAddBegin(IVVc,"CustIVVc")
+  ArrayField(ChargeType,M4Set,2010,0);
+  ArrayField(CredHistNr,M4Long,0,CredHistVc);
+  EndRecordAdd;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

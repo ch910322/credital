@@ -1,3 +1,4 @@
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -47,5 +48,16 @@ begin
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
   CredManDClassAfterEditField = res;
+  return;
+end;
+
+global
+procedure CreateCredManInvoiceDsm()
+begin
+  record CredManVc CredManr;
+
+  GetWindowRecord(CurWindow,CredManr);
+  queued.CreateSingleAgreementInvoice(CredManr,CurrentDate);
+
   return;
 end;

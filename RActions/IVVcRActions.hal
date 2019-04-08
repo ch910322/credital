@@ -1,0 +1,27 @@
+external updating procedure UpdateCredHistInvoice(var record IVVc,record IVVc);
+
+
+global
+updating function LongInt IVVcRecordUpdate(var record IVVc IVr,record IVVc IV2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = inner.IVVcRecordUpdate(IVr,IV2r,stat,long4);
+  UpdateCredHistInvoice(IVr,IV2r);
+
+  IVVcRecordUpdate = res; 
+  return;
+end;
+
+global
+updating function LongInt IVVcRecordSave(var record IVVc IVr,record IVVc IV2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record IVVc IV3r;
+
+  res = inner.IVVcRecordSave(IVr,IV2r,stat,long4);
+  UpdateCredHistInvoice(IVr,IV3r);
+  
+  IVVcRecordSave = res; 
+  return;
+end;

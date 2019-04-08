@@ -13,6 +13,7 @@ begin
   Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
   Setting("Evaluation Constants",EvalConstTClass,modCredMan);
   Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
+  Setting("Credit History Support",CredHistLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 
@@ -140,6 +141,20 @@ begin
   SetBegin(2009);
   SetText(0,"Entrepreneur");
   SetText(1,"Specialist");
+  EndSet;
+
+  SetBegin(2010);
+  SetText(0,"-");
+  SetText(1,"Instalment");
+  SetText(2,"Deposit");
+  SetText(3,"Interest");
+  SetText(4,"Late Fees");
+  SetText(5,"Planned Fees");
+  EndSet;
+
+  SetBegin(2011);
+  SetText(0,"Invoice");
+  SetText(1,"Receipt");
   EndSet;
 
   return;

@@ -697,7 +697,10 @@ begin
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
   SpecialMenu("Credit Agreement Info",'I',0,"CredManInfoDsm");
-  SpecialMenu("Invoice",'F',1,"InvoiceCredManDsm");
+//CUST-BEGIN
+//  SpecialMenu("Invoice",'F',1,"InvoiceCredManDsm");
+  SpecialMenu("Invoice",'F',1,"CreateCredManInvoiceDsm");
+//CUST-END
   SpecialMenu("Receipt",'r',1,"ReceiptCredManDsm");
   EndWindow;
 end;

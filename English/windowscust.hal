@@ -299,6 +299,32 @@ begin
   EditFieldTL(h,v=6,-40,"B2B Loan Application No.",M4Long,Normal,20,long1,false,B2BLoanApplicationSClass);
   EndWindow;
 
+  WindowBegin("Credit History",CredHistLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,800,298);
+  SpawnClass(CredHistDClass);
+  UseView(CredHistVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlColKey(101,101,"Date",TransDate,false,TransDate);
+  RlColKey(181,181,"Record No.",RecordNr,false,RecordNr);
+  RlCol   (260,260,"Type",RecordType,false);
+  EndWindow;
+
+  WindowBegin("Credit History",CredHistDClass,CGview,-);
+  SetWRect(20,80,640,380);
+  h = 150; h2 = 300; h3 = 440; v = 6; vs=20;
+  UseView(CredHistVc);
+  EditField(h,v,80,"Ser. No.",ViewOnly,SerNr,false,0);
+  EditField(h2,v,120,"Customer",Normal,CustCode,false,CUSClass);
+  EditField(h,v+=vs,120,"Record No.",Normal,RecordNr,false,0);
+  EditField(h,v+=vs,120,"Previous Rec.",Normal,PreviousNr,false,0);
+  EditField(h,v+=vs,120,"Date",Normal,TransDate,false,0);
+  EditField(h,v+=vs,120,"Charge Type",Normal,ChargeType,false,0);
+  EditField(h,v+=vs,120,"Record Type",Normal,RecordType,false,0);
+  EditField(h,v+=vs,120,"Sum",Normal,Sum,false,0);
+  EndWindow;
+
   return;
 end;
 

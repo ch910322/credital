@@ -1,0 +1,343 @@
+remote inner function Boolean PasteCust2InInv(var record IVVc,record LocalMachineBlock,string,Boolean,var string,var string,var string,var string,var string);
+remote inner procedure IVVc_PastePayDeal(var record IVVc,string,string);
+remote inner procedure IVVc_PasteSalesMan(var record IVVc,string);
+external inner function Boolean IVVc_PasteArtCode(var record IVVc,Integer,var string,var string,Boolean,var Integer);
+external inner procedure IVDchsum(var record IVVc,Integer);
+external inner procedure IVVc_PastePrice(var record IVVc,record IVVc,Integer,var string);
+
+
+enum begin
+  kCredHistTypeFirstInvoice = 0,
+  kCredHistTypeMonthlyInvoice = 1
+end;
+
+enum begin
+  kCredHistRecTypeInvoice = 0,
+  kCredHistRecTypeReceipt = 1
+end;
+
+enum begin
+  kChargeTypeInstalment = 1,
+  kChargeTypeDeposit = 2,
+  kChargeTypeInterest = 3,
+  kChargeTypeLateFees = 4,
+  kChargeTypePlannedFees = 5
+end;
+
+procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate)
+begin
+  record LocalMachineBlock LMb;
+  string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
+  
+  BlockLoad(LMb);
+
+  RecordNew(IVr);
+  IVr.CustCode = CredManr.CustCode;
+  PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
+  IVr.PayDeal = CredManr.PayDeal;
+  IVVc_PastePayDeal(IVr,"",LMb.DefReturnLocation);
+  IVr.SalesMan = CredManr.SalesMan;
+  IVVc_PasteSalesMan(IVr,""); 
+
+  IVr.TransDate = CurrentDate;
+  IVr.InvDate = invdate;//from seting?
+  IVr.SerNr = NextSerNr("IVVc",IVr.InvDate,-1,false,"");
+
+  return;
+end;
+
+function val GetRateAmount(record CredManVc CredManr)
+begin
+  val res;
+
+  res = CredManr.InvSum4*(CredManr.IntRate/100);
+
+  GetRateAmount = res;
+  return;
+end;
+
+function Boolean MonthlyChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==1 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  MonthlyChargeType = res;
+  return;
+end;
+
+function Boolean CalculatedChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==2 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  CalculatedChargeType = res;
+  return;
+end;
+
+procedure SetupInvoiceRowAndAdd(var record IVVc IVr,string item,string itemname,val quant,val price,val reb,Integer chargetype)
+begin
+  row IVVc IVrw;
+  string 255 inwarning,warning;
+  Integer sernrf,rw;
+  record IVVc IV2r;
+
+  rw = MatRowCnt(IVr);
+  ClearRow(IVr,IVrw,1);
+  IVrw.ArtCode = item;
+  IVrw.Quant = quant;
+  IVrw.ChargeType = chargetype;
+  MatRowPut(IVr,rw,IVrw);
+  if (IVVc_PasteArtCode(IVr,rw,inwarning,warning,false,sernrf)) then begin    
+    IVDchsum(IVr,rw);
+  end;
+  if (price>0) then begin
+    MatRowGet(IVr,rw,IVrw);
+    IVrw.Price = price;
+    IVrw.vRebate = reb;
+    MatRowPut(IVr,rw,IVrw);
+    IVVc_PastePrice(IVr,IV2r,rw,warning);
+  end;
+  if (nonblank(itemname)) then begin
+    MatRowGet(IVr,rw,IVrw);
+    IVrw.Spec = itemname;
+    MatRowPut(IVr,rw,IVrw);
+  end;
+
+  return;
+end;
+
+procedure AddInterest(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr)
+begin
+
+  SetupInvoiceRowAndAdd(IVr,CMb.RateItem,"",1,GetRateAmount(CredManr),0,kChargeTypeInterest);
+
+  return;
+end;
+
+procedure AddPlannedFees(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Boolean allf)
+begin
+  Integer i,rwcnt;
+  row CredManVc CredManrw;
+
+  rwcnt = MatRowCnt(CredManr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManr,i,CredManrw);
+    if (allf or MonthlyChargeType(CredManrw.ChargeType)) then begin
+      if (CalculatedChargeType(CredManrw.ChargeType)) then begin
+        SetupInvoiceRowAndAdd(IVr,CredManrw.ArtCode,CredManrw.Comment,1,CredManr.InvSum4*(CredManrw.vRebate/100),0,kChargeTypePlannedFees);
+      end else begin
+        SetupInvoiceRowAndAdd(IVr,CredManrw.ArtCode,CredManrw.Comment,CredManrw.Quant,CredManrw.Price,CredManrw.vRebate,kChargeTypePlannedFees);
+      end;
+    end;
+  end;
+  
+  return;
+end;
+
+
+procedure AddDepositSum(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr)
+begin
+  
+  SetupInvoiceRowAndAdd(IVr,CMb.DepositItem,"",1,CredManr.DepositSum,0,kChargeTypeDeposit);
+
+  return;
+end;
+procedure AddLateFees(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Integer latedays,val lateamount)
+begin
+  val laterate;
+  
+  if (lateamount>0) then begin
+    SetupInvoiceRowAndAdd(IVr,CMb.LateFeeItem,"",1,0,0,kChargeTypeLateFees);
+    laterate = (CredManr.OverduePercentage*latedays*lateamount);
+    SetupInvoiceRowAndAdd(IVr,CMb.LateRateItem,"",1,laterate,0,kChargeTypeLateFees);
+  end;
+
+  return;
+end;
+
+procedure AddInstalment(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr)
+begin
+  
+  SetupInvoiceRowAndAdd(IVr,CMb.InstalmentItem,"",1,CredManr.InvSum4,0,kChargeTypeInstalment);
+
+  return;
+end;
+
+procedure GetOverdueInvoices(record CredManVc CredManr,Date invdate,Integer latedays,val lateamount)
+begin
+  
+  //we should go through the history and check for late payments
+
+  return;
+end;
+
+updating procedure CreateMonthlyLoanInvoice(record CredManVc CredManr,Date invdate,Boolean firstf)
+begin
+  record CredManSetBlock CMb;
+  Integer latedays;
+  val lateamount;
+  record IVVc IVr;
+
+  BlockLoad(CMb);
+
+  SetupLoanInvoice(CredManr,CMb,IVr,invdate);
+
+  AddInterest(CredManr,CMb,IVr);
+  AddPlannedFees(CredManr,CMb,IVr,firstf);
+  if (!firstf) then begin
+    GetOverdueInvoices(CredManr,invdate,latedays,lateamount);
+    AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+  end;
+
+  if (MatRowCnt(IVr)>0) then begin
+    IVr.OKFlag = 1;
+    RecordInsert(IVr,true);
+  end;
+
+  return;
+end;
+
+updating procedure CreateLastLoanInvoice(record CredManVc CredManr,Date invdate)
+begin
+  record CredManSetBlock CMb;
+  Integer latedays;
+  val lateamount;
+  record IVVc IVr;
+
+  BlockLoad(CMb);
+  SetupLoanInvoice(CredManr,CMb,IVr,invdate);
+
+  AddInterest(CredManr,CMb,IVr);
+  AddPlannedFees(CredManr,CMb,IVr,false);
+
+  GetOverdueInvoices(CredManr,invdate,latedays,lateamount);
+  AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+
+  AddInstalment(CredManr,CMb,IVr);
+ 
+  if (MatRowCnt(IVr)>0) then begin
+    IVr.OKFlag = 1;
+    RecordInsert(IVr,true);
+  end;
+
+  return;
+end;
+
+procedure GetLastAgreementInvoice(record CredManVc CredManr,var Date sd,var Boolean firstf)
+begin
+  record CredHistVc CredHistr;
+  
+//is it unlikely that we'll have first invoice without monthly invoice? lets assume in first version that it is
+  CredHistr.CustCode = CredManr.CustCode;
+  CredHistr.RecordType = kCredHistTypeMonthlyInvoice;
+  if (ReadLastKey("CustTypeDate",CredHistr,2,true)) begin
+    sd = AddMonth(CredHistr.TransDate,1);
+  end else begin
+    sd = CredManr.FirstIntDate;
+    firstf = true;
+  end;
+
+  return;
+end;
+
+global
+updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed)
+begin
+  Date td;
+  Boolean firstf;
+  
+  GetLastAgreementInvoice(CredManr,td,firstf);
+  if (nonblank(td)) then begin
+    while (td<=ed) begin
+      //if this is first invoice, we'll treat it differently
+      CreateMonthlyLoanInvoice(CredManr,td,firstf);
+      firstf = false;
+      td = AddMonth(td,1);
+    end;
+  end;
+
+  return;
+end;
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,var Longint histnr)
+begin
+  record CredHistVc CredHistr;
+  
+  histnr = -1;
+
+  RecordNew(CredHistr);
+  CredHistr.SerNr = NextSerNr("CredHistVc",CurrentDATE,-1,false,"");
+  CredHistr.TransDate = CurrentDate;
+  CredHistr.RecordNr = recnr;
+  CredHistr.ChargeType = chargetype;
+  CredHistr.CustCode = custcode;
+  CredHistr.RecordType = rectype;
+  CredHistr.Sum = sum;
+  if (RecordInsert(CredHistr,true)) then begin
+    histnr = CredHistr.SerNr;
+  end;
+
+  return;
+end;
+
+updating procedure RemoveCredHist(Longint recnr,Integer rectype)
+begin
+  record CredHistVc CredHistr;
+  Boolean TrHs;
+  
+  TrHs = true;
+  CredHistr.RecordNr = recnr;
+  CredHistr.RecordType = rectype;
+  while (LoopKey("RecType",CredHistr,2,TrHs)) begin
+    if (CredHistr.RecordType!=rectype or CredHistr.RecordNr!=recnr) then begin
+      TrHs = false;
+    end else begin
+      RecordRemove(CredHistr);
+      StepBack(CredHistr);
+    end;
+  end;
+
+  return;
+end;
+
+function val CalculateRowSumWithVAT(record IVVc IVr,row IVVc IVrw)
+begin
+  val res;
+
+//first version is just row sum. We should include VAT to match with payments
+  res = IVrw.Sum;
+
+  CalculateRowSumWithVAT = res;
+  return;
+end;
+
+global
+updating procedure UpdateCredHistInvoice(var record IVVc IVr,record IVVc IV2r)
+begin
+  row IVVc IVrw;
+  Integer i,rwcnt;
+  Longint histnr;
+
+  if (IVr.OKFlag==0 and IV2r.OKFlag!=0) then begin
+    RemoveCredHist(IVr.SerNr,kCredHistRecTypeInvoice);
+  end;
+  
+  if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.ChargeType>0) then begin
+        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,histnr);
+        IVrw.CredHistNr = histnr;
+        MatRowPut(IVr,i,IVrw);
+      end;
+    end;
+  end;
+
+  return;
+end;
