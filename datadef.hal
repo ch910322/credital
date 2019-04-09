@@ -196,6 +196,9 @@ begin
   RecordField(ContactPasteSpecial,M4Int,0,0);
   RecordField(CEOTitle,M4Str,100,0);
   RecordField(OwnerTitle,M4Str,100,0);
+  RecordField(DefOrderClass,M4Code,5,OrderClassVc)
+  RecordField(DaysInYear,M4Int,0,0);
+  RecordField(DaysInMonth,M4Int,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");

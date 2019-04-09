@@ -222,6 +222,9 @@ begin
   EditField(h,v+=2*vs,80,"Delsp. %",Normal,IntRate,false,0);
   EditField(h,v+=vs,80,"Sukðrimo data",ViewOnly,DateCreated,false,0);
     EditField(h,v+=vs,80,"Pagr. partneris",Normal,MainPartner,false,CUSClass);
+//CUST-BEGIN
+  EditField(h,v+=20,80,"Birthday/Reg. Date",Normal,BirthDate,false,PasteCurDate);
+//CUST-END
   EditField(h2,v=6,35,"Pirk. mok. term.",Normal,VEPayDeal,false,PDSClass);
   EditField(h2,v+=vs,80,"Pirk. kredito limitas",Normal,VECreditLimit,true,0);
     EditField(h2,v+=vs,80,"Pirk. kred. lim. d. sk.",Normal,VECreditLimitDays,false,0);
@@ -435,7 +438,9 @@ begin
   EditField(h2,v+=vs,-20,"Vardas dokumente",Normal,NameinDocument,false,0);
   //  EditFieldTL(h,vm=(v+=20),100,"Nationality",M4StrSet,Normal,423,Nationality,false,StrSetSClass);
   EditField(h,vm=(v+=20),100,"Tautyb˜",Normal,Nationality,false,CountrySClass);
-  EditField(h,v+=20,100,"Gimtadienis",Normal,BirthDate,false,PasteCurDate);
+//CUST-BEGIN
+//    EditField(h,v+=20,100,"Gimtadienis",Normal,BirthDate,false,PasteCurDate);
+//CUST-END
   EditField(h,v+=20,100,"Gimimo vieta",Normal,BirthPlace,false,0); 
   EditField(h,v+=20,100,"Gimimo äalis",Normal,BirthCountry,false,CountrySClass); 
   EditField(h,v+=20,100,"Profesija",Normal,Profesion,false,0);
@@ -614,10 +619,10 @@ begin
   EditField(h3,v+=vs,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
+//  ButtonFrame(h4,v=vm+20,150,2,"Skai‹iavimo metodas");
+//  RadioButton(h4,v,0,0,"Kaupiamas balansas",ChargeMethod);
+//  RadioButton(h4,v+=16,1,0,"M˜nesin˜s faktðros",ChargeMethod);
 //CUST-END
-  ButtonFrame(h4,v=vm+20,150,2,"Skai‹iavimo metodas");
-  RadioButton(h4,v,0,0,"Kaupiamas balansas",ChargeMethod);
-  RadioButton(h4,v+=16,1,0,"M˜nesin˜s faktðros",ChargeMethod);
 
 //  EditField(h2,v,82,"Specifiniai °naäai",Normal,Instalment,false,InstallmentSClass);
 /*
@@ -720,9 +725,13 @@ begin
   EditField(h2,v,-40,"Delspinigiai",Normal,InstalmentType,false,SetSClass);
   EditField(h,v+=vs,-40,"Komentaras",Normal,Comment,false,0);
   EditField(h,v+=vs,40,"Privalomi m˜nesiai",Normal,InstalmentMonths,false,0);
+  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST
   EditField(h,vm=(v+=vs),40,"Mok. terminas",Normal,PayDeal,false,PDSClass);
+  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST
   EditField(h,v+=vs,40,"Maks. v˜luotinos dienos",Normal,LateFeeDays,false,0);
+  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST
   EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);
+  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST
   EditField(h,v+=vs,40,"Uìstatas % ",Normal,DepositPrc,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Nemok˜tini m˜nesiai",Normal,SettleLimit,false,0);

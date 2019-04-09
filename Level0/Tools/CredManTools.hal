@@ -182,7 +182,9 @@ begin
     if (CredManVc_PasteArtCode(CredManr,rw)) then begin
     end;
     MatRowGet(CredManr,rw,CredManrw);
-    if (CredManrw.Sum!=sum) then begin
+//CUST-BEGIN
+//    if (CredManrw.Sum!=sum) then begin
+//CUST-END
       CredManrw.Price = sum;
       CredManrw.vRebate = vreb;
       CredManrw.Price = price;
@@ -191,7 +193,9 @@ begin
         CredManDchsum(CredManr,rw);
       end;
       CredManSumup(CredManr);
-    end;
+//CUST-BEGIN
+//    end;
+//CUST-END
   end else begin
     if (nonblank(comment)) then begin
       ClearRow(CredManr,CredManrw,1);

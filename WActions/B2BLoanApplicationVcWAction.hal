@@ -7,6 +7,8 @@ remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicati
 external inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote inner function Boolean PasteCustInCredMan(var record CredManVc);
 external updating function Boolean B2BLoanAppCreateCredMan(record B2BLoanApplicationVc,var record CredManVc);
+external inner procedure ActVcRecordDefClient(var record ActVc);
+external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 
 function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
 begin
@@ -740,5 +742,24 @@ begin
   GetWindowRecord(CurWindow,LAr);
   CalculateEvalReport(LAr);
 
+  return;
+end;
+
+global
+updating procedure B2BLoanApplicationVcCreateActivity()
+begin
+  Integer wn,nwn;
+  record ActVc Actr;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  RecordNew(Actr);
+  ActVcRecordDefClient(Actr);
+  if (MakeActFromB2BLoanApp(LAr,Actr)) then begin
+    nwn = OpenWindow("ActDClass",1,0,"","",Actr);
+    SetRLink(wn,true);  
+  end;
+  
   return;
 end;

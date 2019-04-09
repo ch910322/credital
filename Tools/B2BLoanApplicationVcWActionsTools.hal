@@ -218,3 +218,30 @@ begin
   B2BLoanAppCreateCredMan = res;
   return;
 end;
+
+global
+updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc LAr,var record ActVc Actr)
+begin
+  Integer curcomp;
+  Boolean res;
+
+  if (ReadFirstMain(LAr,0,true)) then begin end;  
+  curcomp = CurrentCompany;
+  Actr.Invalid = 0;
+  Actr.TodoFlag = 1;
+  Actr.CUCode = LAr.CustCode;
+  Actr.Contact = LAr.ContactName;
+  Actr.CUName = LAr.CustName;
+  Actr.Phone = LAr.PhoneNo;
+  Actr.TransDate = CurrentDate;
+  Actr.MainPersons = LAr.Manager;
+  Actr.SerNr = NextSerNr("ActVc",Actr.TransDate,-1,false,"");  
+  if (RecordStore(Actr,false)) then begin 
+    CreateRecordLink(Actr,curcomp,LAr,curcomp);  
+    CreateRecordLink(LAr,curcomp,Actr,curcomp);  
+    res = true;
+  end;  
+  MakeActFromB2BLoanApp = res;
+  return;
+end;
+

@@ -10,6 +10,7 @@ external function Boolean HasCustomerStatusReport();
 event DefineWindows
 begin
   real v,vs,h,h2,h3,t,tilenr,vm,pos;
+  vs = 20;
  
   SetLangMode(LangLithuanian,"LIT",0);
 
@@ -66,11 +67,18 @@ begin
   SetBlid(CMApplicationSetBlock);
   SetWRect(20,80,570,298);
   Sizeable(-1,-1,0,0);
-  EditField(h=130,v=6,100,"Owner Title",Normal,OwnerTitle,false,JobTitleSClass);
+  EditField(h=150,v=6,100,"Owner Title",Normal,OwnerTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
+  EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
+
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
   RadioButton(h,v+=16,1,0,"Contact Person",ContactPasteSpecial);  
+
+  EditField(h,v+=40,100,"Days in Year",Normal,DaysInYear,false,0);
+  ButtonFrame(h,v+=40,150,2,"Days in Month");
+  RadioButton(h,v,0,0,"30",DaysInMonth);
+  RadioButton(h,v+=16,1,0,"Actual",DaysInMonth);  
   EndWindow;
 
   WindowBegin("Scoring",ScoringSupLClass,CGmlist,-);

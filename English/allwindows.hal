@@ -221,6 +221,9 @@ begin
   EditField(h,v+=2*vs,80,"Interest Rate",Normal,IntRate,false,0);
   EditField(h,v+=vs,80,"Creation Date",ViewOnly,DateCreated,false,0);
   EditField(h,v+=vs,80,"Main Partner",Normal,MainPartner,false,CUSClass);
+//CUST-BEGIN
+  EditField(h,v+=20,80,"Birthday/Reg. Date",Normal,BirthDate,false,PasteCurDate);
+//CUST-END
   EditField(h2,v=6,35,"Purch. Pay. Terms",Normal,VEPayDeal,false,PDSClass);
   EditField(h2,v+=vs,80,"Purch. Credit Limit",Normal,VECreditLimit,true,0);
   EditField(h2,v+=vs,80,"Purch. Credit Limit Days",Normal,VECreditLimitDays,false,0);
@@ -231,7 +234,7 @@ begin
   EditField(h2,v+=vs,80,"Reference",Normal,RefStr,false,0);
   EditField(h2,v+=vs,80,"Last Changed",Normal,DateChanged,false,0);
 //CUST-BEGIN
-  EditField(h2,v+=vs,80,"Access to private data till",Normal,AccessToDataUntil,false,PasteCurDate);
+  EditField(h2,v+=vs,80,"Access to Private Data till",Normal,AccessToDataUntil,false,PasteCurDate);
 //CUST-END
   
   CheckBox(h5,v=12,0,"Closed",blockedFlag);
@@ -435,7 +438,9 @@ begin
     EditField(h2,v+=vs,-20,"Name in Document",Normal,NameinDocument,false,0);
 //  EditFieldTL(h,vm=(v+=20),100,"Nationality",M4StrSet,Normal,423,Nationality,false,StrSetSClass);
     EditField(h,vm=(v+=20),100,"Nationality",Normal,Nationality,false,CountrySClass);
-    EditField(h,v+=20,100,"Birthday",Normal,BirthDate,false,PasteCurDate);
+//CUST-BEGIN
+//    EditField(h,v+=20,100,"Birthday",Normal,BirthDate,false,PasteCurDate);
+//CUST-END
     EditField(h,v+=20,100,"Place of Birth",Normal,BirthPlace,false,0);
     EditField(h,v+=20,100,"Country of Birth",Normal,BirthCountry,false,CountrySClass);
     EditField(h,v+=20,100,"Profession",Normal,Profesion,false,0);
@@ -614,10 +619,10 @@ begin
   EditField(h3,v+=vs,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
+//  ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
+//  RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
+//  RadioButton(h4,v+=16,1,0,"Monthly Invoices",ChargeMethod);
 //CUST-END
-  ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
-  RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
-  RadioButton(h4,v+=16,1,0,"Monthly Invoices",ChargeMethod);
 
 //  EditField(h2,v,82,"Specific #Instalment#",Normal,#Instalment#,false,InstallmentSClass);
 /*
