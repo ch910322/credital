@@ -1,0 +1,47 @@
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date);
+
+global
+updating function Boolean LoopAndGenLoanAgreementInvoice(record RcVc RepSpec)
+begin
+  Boolean res,TrHs,testf;
+  record CredManVc CredManr;
+  
+  TrHs = true;
+  SetLoopPosition(CredManr,RepSpec.long1);
+  CredManr.OKFlag = 1;
+  while (LoopKey("OKFlag",CredManr,1,TrHs)) begin
+    if (CredManr.OKFlag!=1) then begin
+      TrHs = false;
+    end else begin
+      testf = true;
+      RepSpec.long1 = GetLoopPosition(CredManr);
+      res = true;
+      if (nonblank(RepSpec.long2) and CredManr.SerNr!=RepSpec.long2) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f1) and CredManr.CustCode!=RepSpec.f1) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f2) and CredManr.SalesMan!=RepSpec.f2) then begin
+        testf = false;
+      end;
+      if (testf) then begin
+        CreateSingleAgreementInvoice(CredManr,RepSpec.d1);
+        TrHs = false;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure GenLoanInvoicesMn(record RcVc RepSpec)
+begin
+  
+  while (qupdating.LoopAndGenLoanAgreementInvoice(RepSpec)) begin
+
+  end;
+
+  return;
+end;

@@ -17,6 +17,8 @@ begin
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 
+  Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
+
   SString(100000,"Evaluation report");
   SString(100001,"Company");
   SString(100002,"Name: ");

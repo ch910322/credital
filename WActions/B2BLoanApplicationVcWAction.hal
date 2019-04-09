@@ -696,18 +696,49 @@ begin
   return;
 end;
 
-global
-procedure DoEvalReportDsm()
+procedure CalculateEvalReport(record B2BLoanApplicationVc LAr)
 begin
   record RcVc RepSpec;
-  record B2BLoanApplicationVc LAr;
-
-  GetWindowRecord(CurWindow,LAr);
+  
   RepSpec.repname = "B2BLoanEvalRn";
   RepSpec.Media = mtScreen;
   RepSpec.critname = "";
   RepSpec.long1 = LAr.SerNr;
   RepSpec.ArtMode = 0;
   RunReport(RepSpec,0);
+
+  return;
+end;
+
+global
+procedure DoEvalReportDsm()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  CalculateEvalReport(LAr);
+
+  return;
+end;
+
+global
+procedure DoEvalReportLsm()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  if (GetRecordFromBrowse(LAr,CurWindow,1)) begin
+    CalculateEvalReport(LAr);
+  end;
+  return;
+end;
+
+global
+procedure B2BLoanAppEvaluate()
+begin
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(CurWindow,LAr);
+  CalculateEvalReport(LAr);
+
   return;
 end;

@@ -246,20 +246,35 @@ begin
   return;
 end;
 
-global
-updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed)
+updating procedure CreateSingleBulletTypeInvoice(record CredManVc CredManr,Date ed)
 begin
   Date td;
   Boolean firstf;
   
   GetLastAgreementInvoice(CredManr,td,firstf);
   if (nonblank(td)) then begin
-    while (td<=ed) begin
+    while (td<=ed and td<=CredManr.endDate) begin
       //if this is first invoice, we'll treat it differently
-      CreateMonthlyLoanInvoice(CredManr,td,firstf);
+      if (td==CredManr.endDate) then begin
+        CreateLastLoanInvoice(CredManr,td);
+      end else begin
+        CreateMonthlyLoanInvoice(CredManr,td,firstf);
+      end;
       firstf = false;
       td = AddMonth(td,1);
     end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed)
+begin
+
+  switch (CredManr.ChargeMethod) begin
+    //should be other types here as well
+    otherwise CreateSingleBulletTypeInvoice(CredManr,ed);
   end;
 
   return;

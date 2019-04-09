@@ -1,7 +1,7 @@
 event startup
 begin
 
-  SetLangMode(LangLithuanian,"LIT",0);
+  SetLangMode(LangEnglish,"ENG",0);
 
 /* modCredMan */  
   Register("B2B Loan Applications","B2B Loan Applications",B2BLoanApplicationVc,modCredMan);
@@ -13,6 +13,65 @@ begin
   Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
   Setting("Evaluation Constants",EvalConstTClass,modCredMan);
   Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
+  Setting("Credit History Support",CredHistLClass,modCredMan);
+
+  Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
+
+  Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
+
+  SString(100000,"Evaluation report");
+  SString(100001,"Company");
+  SString(100002,"Name: ");
+  SString(100003,"Reg. No.: ");
+  SString(100004,"Customer not found: ");
+  SString(100005,"Evaluation Date: ");
+  SString(100006,"Company Bankruptcy Rating: ");
+  SString(100007,"Surety provider late rating: ");
+  SString(100008,"Company Owned Assets: ");
+  SString(100009,"Surety provider with the best risk class: ");
+  SString(100010,"Loan");
+  SString(100011,"Maximum recommended amount: ");
+  SString(100012,"Recommended value based on surety provider: ");
+  SString(100013,"From companies assets (50%) and income (20%): ");
+  SString(100014,"Creditable?: ");
+  SString(100015,"Company date");
+  SString(100016,"Existing customer?: ");
+  SString(100017,"Requested Loan Amount: ");
+  SString(100018,"Months: ");
+  SString(100019,"Company type: ");
+  SString(100020,"Not having bankruptcy / liquidation or court cases: ");
+  SString(100021,"Company's age: ");
+  SString(100022,"Year");
+  SString(100023,"Years");
+  SString(100024,"Month");
+  SString(100025,"Months");
+  SString(100026,"Company's credit history");
+  SString(100027,"Company's bankruptcy rating: ");
+  SString(100028,"Has the company had court cases or debts in last 6 months?: ");
+  SString(100029,"Company Ownership Changes?: ");
+  SString(100030,"Balance Sheet and P/L Report: ");
+  SString(100031,"Equity: ");
+  SString(100032,"Receivables minus payable: ");
+  SString(100033,"Assets (Estates, cars): ");
+  SString(100034,"Revenue: ");
+  SString(100035,"Profit: ");
+  SString(100036,"Surety provider data");
+  SString(100037,"Surety Providers: ");
+  SString(100038,"Surety provider is majority owner: ");
+  SString(100039,"Does not have any asset arrests, bankruptcy and is not included in Not Creditable list: ");
+  SString(100040,"Majority owner surety provider age: ");
+  SString(100041,"No Majority owner");
+  SString(100042,"Surety Provider Credit History: ");
+  SString(100043,"Surety Provider Late Rating: ");
+  SString(100044,"Have there being any debts in last half a year: ");
+  SString(100045,"Being respondant in court cases: ");
+  SString(100046,"Surety Provider Historical Income: ");
+  SString(100047,"SoDra reported historical income: ");
+  SString(100048,"Is the surety provider entrepreneur or professional: ");
+  SString(100049,"Receiving income from other sources?: ");
+  SString(100050,"Overall monthly Obligation Payment: ");
+  SString(100051,"Assets: ");
+  SString(100052,"Other");
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
@@ -43,6 +102,62 @@ begin
   SetText(3,"Monthly calculated Fee");
   EndSet;
 
+  SetBegin(2003);
+  SetText(0,"No");
+  SetText(1,"Mortgage");
+  SetText(2,"Ownership <20k");
+  SetText(3,"Ownership of 20+k or 3+ Assets");
+  EndSet;
+
+  SetBegin(2004);
+  SetText(0,"Not Calculated");
+  SetText(1,"Yes A");
+  SetText(2,"Yes B");
+  SetText(3,"4-eyes");
+  SetText(4,"No");
+  EndSet;
  
+  SetBegin(2005);
+  SetText(0,"Active");
+  SetText(1,"Problematic");
+  EndSet;
+
+  SetBegin(2006);
+  SetText(0,"Not changed during last year");
+  SetText(1,"Changed during last year");
+  EndSet;
+
+  SetBegin(2007);
+  SetText(0,"Usable");
+  SetText(1,"Problematic");
+  EndSet;
+
+  SetBegin(2008);
+  SetText(0,"Under 21");
+  SetText(1,"21-27");
+  SetText(2,"28-64");
+  SetText(3,"4-eyes");
+  SetText(4,"65+");
+  EndSet;
+
+  SetBegin(2009);
+  SetText(0,"Entrepreneur");
+  SetText(1,"Specialist");
+  EndSet;
+
+  SetBegin(2010);
+  SetText(0,"-");
+  SetText(1,"Instalment");
+  SetText(2,"Deposit");
+  SetText(3,"Interest");
+  SetText(4,"Late Fees");
+  SetText(5,"Planned Fees");
+  EndSet;
+
+  SetBegin(2011);
+  SetText(0,"Invoice");
+  SetText(1,"Receipt");
+  EndSet;
+
   return;
 end;
