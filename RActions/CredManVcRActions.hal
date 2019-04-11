@@ -1,0 +1,15 @@
+external inner procedure CredManVc_PasteType(var record CredManVc);
+
+
+global
+function LongInt CredManVcRecordDefaults(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+
+  res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
+  
+  CredManVc_PasteType(CredManr);
+  
+  CredManVcRecordDefaults = res;
+  return;
+END;

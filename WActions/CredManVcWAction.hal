@@ -36,10 +36,29 @@ begin
   return;
 end;
 
+function Boolean CredManDClassInstalmentMonthsEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManVc CredManr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    if (CredManr.InstalmentType==4) then begin
+      CredManr.InstalmentMonths = 1;
+    end;
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassInstalmentMonthsEFAfter = true;
+  return;
+end;
+
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
   Boolean res;
+
+  if (fieldname=="InstalmentMonths" or fieldname=="InstalmentType") then begin//call standard function as well
+    res = CredManDClassInstalmentMonthsEFAfter(wn,rownr,changed!=0);
+  end;
 
   switch (fieldname) begin
     case "StdProlongFee": res = CredManDClassStdProlongFeeEFAfter(wn,rownr,changed!=0);
@@ -47,6 +66,7 @@ begin
     otherwise 
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
+  
   CredManDClassAfterEditField = res;
   return;
 end;

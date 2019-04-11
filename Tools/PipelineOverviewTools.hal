@@ -160,10 +160,11 @@ begin
   record ActVc firstnextstepActr;
   record RLinkVc RLr;
   Boolean nextstepactfound;
-  string 255 recid,curncy;
+  string 255 recid,curncy,spec2;
   val sum;
   Date cd,nextdate;
   Time t,tt;
+  record CredManTypeVc CMTr;
 
   curncy = CMr.CurncyCode;
   if (blank(curncy)) then begin
@@ -218,7 +219,12 @@ begin
       spec = CMr.Addr0;
     end;
     recid = BuildRecordIdStr(CMr,CurrentCompany);
-    AddPipelineItemToTemporaryArray("CredManVc",recid,CMr.SalesMan,spec,value,1,"",iconno,blankval,-1,CMr.TransDate,kButtonColourDefault,tempORr);
+    spec2 = "";
+    CMTr.Code = CMr.Type;
+    if (ReadFirstMain(CMTr,1,true)) then begin
+      spec2 = CMTr.Comment;
+    end;
+    AddPipelineItemToTemporaryArray("CredManVc",recid,CMr.SalesMan,spec,value,1,spec2,iconno,blankval,-1,CMr.TransDate,kButtonColourDefault,tempORr);
   end;
   vcurnr[curncy] = vcurnr[curncy] + 1;
   vcurv[curncy] = vcurv[curncy] + sum;
@@ -285,7 +291,7 @@ end;
 
 procedure AddB2BLoanAppToPipeline(record CompanyTimezoneBlock CTb,var Area a,var LongInt leadm_cnt,record RcVc RepSpec,record B2BLoanApplicationVc LAr,string BaseCur1,var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,var record ORVc tempORr)
 begin
-  string 255 value,spec;
+  string 255 value,spec,spec2;
   LongInt iconno;
   Integer actnr;
   record ActVc nextstepActr;
@@ -296,6 +302,7 @@ begin
   val sum;
   Date cd,nextdate;
   Time t,tt;
+  record CredManTypeVc CMTr;
 
   curncy = BaseCur1;
   if (blank(curncy)) then begin
@@ -348,7 +355,13 @@ begin
       spec = LAr.CustName;
     end;
     recid = BuildRecordIdStr(LAr,CurrentCompany);
-    AddPipelineItemToTemporaryArray("B2BLoanApplicationVc",recid,LAr.Manager,spec,value,1,"",iconno,blankval,-1,LAr.TransDate,kButtonColourDefault,tempORr);
+    spec2 = "";
+    CMTr.Code = LAr.Type;
+    if (ReadFirstMain(CMTr,1,true)) then begin
+      spec2 = CMTr.Comment;
+    end;    
+    
+    AddPipelineItemToTemporaryArray("B2BLoanApplicationVc",recid,LAr.Manager,spec,value,1,spec2,iconno,blankval,-1,LAr.TransDate,kButtonColourDefault,tempORr);
   end;
   vcurnr[curncy] = vcurnr[curncy] + 1;
   vcurv[curncy] = vcurv[curncy] + sum;

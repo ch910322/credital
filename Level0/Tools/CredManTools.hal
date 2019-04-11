@@ -314,6 +314,9 @@ begin
     CredManr.SuretyInterestRate = CredManTyper.SuretyInterestRate;
     CredManr.StdProlongFee = CredManTyper.StdProlongFee;
     CredManr.StdProlongPrc = CredManTyper.StdProlongPrc;
+    if (CredManr.InstalmentType==4) then begin
+      CredManr.InstalmentMonths = 1;
+    end;
 //CUST-END
     AddCredManTypeMatrix(CredManr,CredManTyper);
     if (CredManr.DepositSum==0) then begin

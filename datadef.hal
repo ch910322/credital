@@ -193,6 +193,8 @@ begin
   EndRecord; 
   
   BlockBegin(CMApplicationSetBlock,-,"");
+  LoadBlockOnStartup;
+  CacheBlockInClient;
   RecordField(ContactPasteSpecial,M4Int,0,0);
   RecordField(CEOTitle,M4Str,100,0);
   RecordField(OwnerTitle,M4Str,100,0);

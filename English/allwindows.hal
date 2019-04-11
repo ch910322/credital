@@ -602,7 +602,7 @@ begin
   EditField(h,v+=vs,82,"#Salesman#",Normal,SalesMan,false,UserSClass);
   EditField(h2,v,-40,"Attn.",Normal,ClientContact,false,ContactSClass);
   EditField(h,vm=(v+=vs),82,"Total Sum",Normal,InvSum4,true,0);
-  EditField(h,v+=vs,30,"Interest Rate %",Normal,IntRate,false,0);
+  EditField(h,v+=vs,30,"Monthly Rate %",Normal,IntRate,false,0);//CUST changed label
   EditField(h,v+=vs,30,"Months",Normal,InstalmentMonths,false,0);
   EditField(h,v+=vs,30,"Pay. Terms",Normal,PayDeal,false,PDSClass);
   EditField(h,v+=vs,30,"Deposit % ",Normal,DepositPrc,false,0);
@@ -725,13 +725,13 @@ begin
   EditField(h2,v,-40,"Interest",Normal,InstalmentType,false,SetSClass);
   EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
   EditField(h,v+=vs,40,"Default Months",Normal,InstalmentMonths,false,0);
-  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST
+  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST added
   EditField(h,vm=(v+=vs),40,"Pay. Terms",Normal,PayDeal,false,PDSClass);
-  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST
+  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST added
   EditField(h,v+=vs,40,"Max Days Late",Normal,LateFeeDays,false,0);
-  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST
-  EditField(h,v+=vs,40,"Rate %",Normal,IntRate,false,0);
-  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST
+  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST added
+  EditField(h,v+=vs,40,"Monthly Rate %",Normal,IntRate,false,0);//CUST changed label
+  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Deposit % ",Normal,DepositPrc,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Months to Settle For Free",Normal,SettleLimit,false,0);

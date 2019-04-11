@@ -760,6 +760,20 @@ begin
     nwn = OpenWindow("ActDClass",1,0,"","",Actr);
     SetRLink(wn,true);  
   end;
-  
+
   return;
 end;
+
+global
+procedure GenLoanInvoicesVClassReportDefaults(Integer wn)
+BEGIN
+  record RcVc RepSpec;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"GenLoanInvoicesMn");  
+  RepSpec.d1 = CurrentDate;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  RETURN;
+END;

@@ -223,7 +223,7 @@ begin
   EditField(h,v+=vs,80,"Sukrimo data",ViewOnly,DateCreated,false,0);
     EditField(h,v+=vs,80,"Pagr. partneris",Normal,MainPartner,false,CUSClass);
 //CUST-BEGIN
-  EditField(h,v+=20,80,"Birthday/Reg. Date",Normal,BirthDate,false,PasteCurDate);
+  EditField(h,v+=20,80,"Gimtadienis/Reg. data",Normal,BirthDate,false,PasteCurDate);
 //CUST-END
   EditField(h2,v=6,35,"Pirk. mok. term.",Normal,VEPayDeal,false,PDSClass);
   EditField(h2,v+=vs,80,"Pirk. kredito limitas",Normal,VECreditLimit,true,0);
@@ -235,7 +235,7 @@ begin
   EditField(h2,v+=vs,80,"Nuoroda",Normal,RefStr,false,0);
   EditField(h2,v+=vs,80,"Pakeitimo data",Normal,DateChanged,false,0);
 //CUST-BEGIN
-  EditField(h2,v+=vs,80,"Access to private data till",Normal,AccessToDataUntil,false,PasteCurDate);
+  EditField(h2,v+=vs,80,"Leidimas privaƒçiai info iki",Normal,AccessToDataUntil,false,PasteCurDate);
 //CUST-END
   CheckBox(h5,v=12,0,"UÏdaryta",blockedFlag);
   CheckBox(h5,v+=16,0,"Sustabdyta",OnHoldFlag);
@@ -575,7 +575,7 @@ begin
     SpecialMenu("Objektas",' ',1,"CreateObjectCUDsm");
     SpecialMenu("Prarasto slaptaÏ. gavimo el.pa‰tas",' ',3,"RandomPassMailCUDsm");
 //CUST-BEGIN
-    SpecialMenu("B2B Loan Application",' ',3,"CreateB2BLoanApplicationCUDsm");
+    SpecialMenu("Verslo kredito parai≈°ka",' ',3,"CreateB2BLoanApplicationCUDsm");
     SpecialMenu("Credit Agreement",' ',3,"CreateCredManCUDsm");
 //END-CUST
   end;
