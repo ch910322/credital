@@ -116,16 +116,17 @@ begin
   record IVVc IV2r;
   val bval;
 
-  rw = MatRowCnt(IVr);
-  ClearRow(IVr,IVrw,1);
-  IVrw.ArtCode = item;
-  IVrw.Quant = quant;
-  IVrw.ChargeType = chargetype;
-  MatRowPut(IVr,rw,IVrw);
-  if (IVVc_PasteArtCode(IVr,rw,inwarning,warning,false,sernrf)) then begin    
-    IVDchsum(IVr,rw);
-  end;
-  if (price>0) then begin
+  
+  if (price>0 and nonblank(item)) then begin
+    rw = MatRowCnt(IVr);
+    ClearRow(IVr,IVrw,1);
+    IVrw.ArtCode = item;
+    IVrw.Quant = quant;
+    IVrw.ChargeType = chargetype;
+    MatRowPut(IVr,rw,IVrw);
+    if (IVVc_PasteArtCode(IVr,rw,inwarning,warning,false,sernrf)) then begin    
+      IVDchsum(IVr,rw);
+    end;
     MatRowGet(IVr,rw,IVrw);
     IVrw.Price = price;
     if (reb>0) then begin
@@ -135,11 +136,11 @@ begin
     end;
     MatRowPut(IVr,rw,IVrw);
     IVVc_PastePrice(IVr,IV2r,rw,warning);
-  end;
-  if (nonblank(itemname)) then begin
-    MatRowGet(IVr,rw,IVrw);
-    IVrw.Spec = itemname;
-    MatRowPut(IVr,rw,IVrw);
+    if (nonblank(itemname)) then begin
+      MatRowGet(IVr,rw,IVrw);
+      IVrw.Spec = itemname;
+      MatRowPut(IVr,rw,IVrw);
+    end;
   end;
 
   return;
@@ -339,7 +340,7 @@ end;
 
 procedure MergeItemsInInvoice(var record IVVc IVr)
 begin
-  Integer i,rwcnt;
+  Integer i,rwcnt,chargetype;
   row IVVc IVrw;
   vector val vRows;
   array string 255 arr;
@@ -347,10 +348,10 @@ begin
   Longint pos;
   string 255 index,tstr,item;
   
-  MatRowCnt(IVr);
+  rwcnt = MatRowCnt(IVr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
     MatRowGet(IVr,i,IVrw);
-    index = IVrw.ArtCode & ":" & IVrw.Quant & ":" & IVrw.vRebate;
+    index = IVrw.ArtCode & ":" & IVrw.Quant & ":" & IVrw.vRebate & ":" & IVrw.ChargeType;
     vRows[index] = vRows[index] + IVrw.Price;
     MatRowDelete(IVr,i);
   end;
@@ -362,7 +363,9 @@ begin
     quant = StringToVal(tstr,M4Val);
     GetNextSubstring(arr[i],pos,":",tstr);
     reb = StringToVal(tstr,M4Val);
-    SetupInvoiceRowAndAdd(IVr,item,"",quant,vRows[arr[i]],reb,0);
+    GetNextSubstring(arr[i],pos,":",tstr);
+    chargetype = StringToInt(tstr);
+    SetupInvoiceRowAndAdd(IVr,item,"",quant,vRows[arr[i]],reb,chargetype);
   end;
 
   return;

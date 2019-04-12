@@ -1,4 +1,4 @@
-remote procedure B2BLoanApp_ContactSClassOnOpenRemote(Integer,string,var Array string,var Integer);
+remote procedure B2BLoanApp_ContactSClassOnOpenRemote(string,var Array string,var Integer);
 remote function Boolean InsertContactName(var record B2BLoanApplicationVc);
 remote function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc);
 remote function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
@@ -389,7 +389,7 @@ begin
 
   GetWindowRecord(mwn,LAr);
   ClearStringList(wn);
-  B2BLoanApp_ContactSClassOnOpenRemote(wn,LAr.CustCode,acontact,acnt);
+  B2BLoanApp_ContactSClassOnOpenRemote(LAr.CustCode,acontact,acnt);
   for (i=0;i<acnt;i=i+1) begin
     pos = 0;
     GetNextSubstring(acontact[i],pos,"#",code);

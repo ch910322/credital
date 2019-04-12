@@ -1,4 +1,4 @@
-external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date);
+remote updating procedure CreateSingleAgreementInvoice(record CredManVc,Date);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -77,7 +77,7 @@ begin
   record CredManVc CredManr;
 
   GetWindowRecord(CurWindow,CredManr);
-  queued.CreateSingleAgreementInvoice(CredManr,CurrentDate);
+  asyncremote.CreateSingleAgreementInvoice(CredManr,CurrentDate);
 
   return;
 end;
