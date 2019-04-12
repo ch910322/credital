@@ -423,6 +423,9 @@ begin
   RecordField(ChargeType,M4Set,2010,0);
   RecordField(RecordType,M4Set,2011,0);
   RecordField(Sum,M4Val,0,0);
+  RecordField(PayDate,M4Date,0,0);
+  RecordField(ArtCode,M4Code,20,INVc);
+  RecordField(CredManNr,M4Long,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(CustTypeDate);
@@ -434,12 +437,29 @@ begin
   KeySegment(RecordNr);
   KeySegment(RecordType);
   KeySegment(SerNr);
+  KeyBegin(ArtCode);
+  KeySegment(ArtCode);
+  KeySegment(CredManNr);
+  KeySegment(SerNr);
+  KeyBegin(PreviousNr);
+  KeySegment(PreviousNr);
+  KeySegment(TransDate);  
+  KeySegment(SerNr);
   EndRecord;
 
-  RecordAddBegin(IVVc,"CustIVVc")
+  RecordAddBegin(IVVc,"CustIVVc");
+  RecordField(CustCredManNr,M4Long,0,0);
   ArrayField(ChargeType,M4Set,2010,0);
   ArrayField(CredHistNr,M4Long,0,CredHistVc);
   EndRecordAdd;
+
+  BlockBegin(ItemPriorityBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,IVSerRowType,1);
+  ArrayField(ArtCode,M4Code,20,INVc);
+  ArrayField(Priority,M4Int,0,0);
+  EndArray;
+  EndBlock;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

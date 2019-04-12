@@ -1,0 +1,8 @@
+
+global
+procedure OnApplicationStartupComplete()
+begin
+//for testing purposes
+
+  return;
+end;

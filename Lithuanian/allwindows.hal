@@ -725,13 +725,13 @@ begin
   EditField(h2,v,-40,"Delspinigiai",Normal,InstalmentType,false,SetSClass);
   EditField(h,v+=vs,-40,"Komentaras",Normal,Comment,false,0);
   EditField(h,v+=vs,40,"Privalomi m˜nesiai",Normal,InstalmentMonths,false,0);
-  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST
+  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST added
   EditField(h,vm=(v+=vs),40,"Mok. terminas",Normal,PayDeal,false,PDSClass);
-  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST
+  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST added
   EditField(h,v+=vs,40,"Maks. v˜luotinos dienos",Normal,LateFeeDays,false,0);
-  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST
+  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST added
   EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);
-  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST
+  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Uìstatas % ",Normal,DepositPrc,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Nemok˜tini m˜nesiai",Normal,SettleLimit,false,0);

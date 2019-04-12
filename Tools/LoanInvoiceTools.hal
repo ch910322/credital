@@ -8,18 +8,13 @@ external inner function LongInt DateDiff(Date,Date);
 
 
 enum begin
-  kCredHistTypeFirstInvoice = 0,
-  kCredHistTypeMonthlyInvoice = 1
-end;
-
-enum begin
   kCredHistRecTypeInvoice = 0,
   kCredHistRecTypeReceipt = 1
 end;
 
 enum begin
   kPlannedFeesMonthly = 0,
-  kPlannedFeesFixed = 1
+  kPlannedFeesOneTime = 1
 end;
 
 enum begin
@@ -38,6 +33,10 @@ begin
   BlockLoad(LMb);
 
   RecordNew(IVr);
+  IVr.CustCredManNr = CredManr.SerNr;
+  IVr.TransDate = invdate;//or current date?
+  IVr.InvDate = invdate;//from seting?
+
   IVr.CustCode = CredManr.CustCode;
   PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
   IVr.PayDeal = CredManr.PayDeal;
@@ -45,8 +44,6 @@ begin
   IVr.SalesMan = CredManr.SalesMan;
   IVVc_PasteSalesMan(IVr,""); 
 
-  IVr.TransDate = CurrentDate;
-  IVr.InvDate = invdate;//from seting?
   IVr.SerNr = NextSerNr("IVVc",IVr.InvDate,-1,false,"");
 
   return;
@@ -172,7 +169,7 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CredManr,i,CredManrw);
     if ((type==kPlannedFeesMonthly and MonthlyChargeType(CredManrw.ChargeType)) or 
-        (type==kPlannedFeesFixed and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
+        (type==kPlannedFeesOneTime and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
       if (CalculatedChargeType(CredManrw.ChargeType)) then begin
         SetupInvoiceRowAndAdd(IVr,CredManrw.ArtCode,CredManrw.Comment,1,GetRateAmount(CredManr,CredManrw.vRebate),0,kChargeTypePlannedFees);
       end else begin
@@ -193,7 +190,7 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CredManr,i,CredManrw);
     if ((type==kPlannedFeesMonthly and MonthlyChargeType(CredManrw.ChargeType)) or 
-        (type==kPlannedFeesFixed and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
+        (type==kPlannedFeesOneTime and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
       if (CalculatedChargeType(CredManrw.ChargeType)) then begin
         SetupInvoiceRowAndAdd(IVr,CredManrw.ArtCode,CredManrw.Comment,1,GetRateAmount2(CredManr,CredManrw.vRebate),0,kChargeTypePlannedFees);
       end else begin
@@ -217,30 +214,97 @@ begin
   
   if (lateamount>0) then begin
     SetupInvoiceRowAndAdd(IVr,CMb.LateFeeItem,"",1,0,0,kChargeTypeLateFees);
-    laterate = (CredManr.OverduePercentage*latedays*lateamount);
-    SetupInvoiceRowAndAdd(IVr,CMb.LateRateItem,"",1,laterate,0,kChargeTypeLateFees);
+    SetupInvoiceRowAndAdd(IVr,CMb.LateRateItem,"",1,lateamount,0,kChargeTypeLateFees);
   end;
 
   return;
 end;
 
-procedure AddInstalment(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr)
+procedure AddInstalment(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Boolean linearf)
 begin
   
-  SetupInvoiceRowAndAdd(IVr,CMb.InstalmentItem,"",1,CredManr.InvSum4,0,kChargeTypeInstalment);
+  if (linearf) then begin
+    SetupInvoiceRowAndAdd(IVr,CMb.InstalmentItem,"",1,(CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths,0,kChargeTypeInstalment);
+  end else begin
+    SetupInvoiceRowAndAdd(IVr,CMb.InstalmentItem,"",1,CredManr.InvSum4,0,kChargeTypeInstalment);
+  end;
+  return;
+end;
+
+procedure GetLatePaymentPlan(record CredHistVc CredHistr,Date sd,Date ed,var array val amounts)
+begin
+  Date tempsd;
+  record CredHistVc CredPayr;//CredPayr - same credhistvc register, just for payments
+  Integer i,daydiff;
+  Boolean TrHs;
+  val paysum;
+  
+  paysum = CredHistr.Sum;
+  tempsd = sd;
+  if (tempsd<=CredHistr.PayDate) then begin
+    tempsd = AddDay(CredHistr.PayDate,1);
+  end;
+  TrHs = true;
+  CredPayr.PreviousNr = CredHistr.SerNr;
+  while (LoopKey("PreviousNr",CredPayr,1,TrHs)) begin
+    if (CredPayr.PreviousNr!=CredHistr.SerNr) then begin
+      TrHs = false;
+    end else begin
+      if (CredPayr.TransDate>CredHistr.PayDate) then begin
+        if (CredPayr.TransDate>sd and CredPayr.TransDate<=ed) then begin
+          daydiff = DateDiff(CredPayr.TransDate,tempsd);//or DateDiff2 to get daydiff+1 days
+          for (i=0;i<daydiff;i=i+1) begin
+            amounts[amounts.length] = paysum;
+          end;
+        end;
+        if (CredPayr.TransDate>ed) then begin//no need to continue for later payments
+          TrHs = false;
+        end;
+        tempsd = CredPayr.TransDate;
+      end;
+      paysum = paysum - CredPayr.Sum;
+    end;
+  end;
+  if (paysum>0 and tempsd<ed) then begin
+    daydiff = DateDiff(ed,tempsd);
+    for (i=0;i<daydiff;i=i+1) begin
+      amounts[amounts.length] = paysum;
+    end;
+  end;
 
   return;
 end;
 
-procedure GetOverdueInvoices(record CredManVc CredManr,Date invdate,Integer latedays,val lateamount)
+procedure GetOverdueInvoices(record CredManVc CredManr,record CredManSetBlock CMb,Date invdate,Date prevtd,var Integer latedays,var val lateamount)
 begin
-  
+  record CredHistVc CredHistr;
+  Boolean TrHs;
+  array val amounts;
+  val latefee;
+  Integer i;
+
   //we should go through the history and check for late payments
+  TrHs = true;
+  CredHistr.ArtCode = CMb.RateItem;
+  CredHistr.CredManNr = CredManr.SerNr;
+  while (LoopKey("ArtCode",CredHistr,2,TrHs)) begin
+    if (CredHistr.ArtCode!=CMb.RateItem or CredHistr.CredManNr!=CredManr.SerNr) then begin
+      TrHs = false;
+    end else begin
+      //Construct an array of days with amount that is over due starting with the first day of period
+      GetLatePaymentPlan(CredHistr,AddDay(prevtd,1),invdate,amounts);
+      for (i=0;i<amounts.length;i=i+1) begin
+        latefee = latefee + (amounts[i]*(CredManr.OverduePercentage/100));
+      end;
+    end;
+  end;
+
+  lateamount = latefee;
 
   return;
 end;
 
-updating procedure CreateMonthlyLoanInvoice(record CredManVc CredManr,Date invdate,Boolean firstf,Boolean lastf)
+updating procedure CreateMonthlyLoanInvoice(record CredManVc CredManr,Date invdate,Date prevtd,Boolean firstf,Boolean lastf,Boolean linearf)
 begin
   record CredManSetBlock CMb;
   Integer latedays;
@@ -258,11 +322,11 @@ begin
   end else begin
     AddInterest(CredManr,CMb,IVr);
     AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesMonthly);
-    GetOverdueInvoices(CredManr,invdate,latedays,lateamount);
+    GetOverdueInvoices(CredManr,CMb,invdate,prevtd,latedays,lateamount);
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
   end;
-  if (lastf) then begin
-    AddInstalment(CredManr,CMb,IVr);
+  if (lastf or linearf) then begin
+    AddInstalment(CredManr,CMb,IVr,linearf);
   end;
 
   if (MatRowCnt(IVr)>0) then begin
@@ -275,31 +339,31 @@ end;
 
 procedure MergeItemsInInvoice(var record IVVc IVr)
 begin
-/*
   Integer i,rwcnt;
   row IVVc IVrw;
   vector val vRows;
-  arrray string 255 arr;
+  array string 255 arr;
   val quant,reb;
+  Longint pos;
+  string 255 index,tstr,item;
   
   MatRowCnt(IVr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
     MatRowGet(IVr,i,IVrw);
-    index = IVrw.Item & ":" & IVrw.Quant & ":" & IVrw.vRebate;
+    index = IVrw.ArtCode & ":" & IVrw.Quant & ":" & IVrw.vRebate;
     vRows[index] = vRows[index] + IVrw.Price;
     MatRowDelete(IVr,i);
   end;
   GetVectorTags(vRows,arr);
   for (i=0;i<arr.length;i=i+1) begin
-    GetNextSubstring(arrr[i],pos,":",item);
-    GetNextSubstring(arrr[i],pos,":",tstr);
+    pos = -1;
+    GetNextSubstring(arr[i],pos,":",item);
+    GetNextSubstring(arr[i],pos,":",tstr);
     quant = StringToVal(tstr,M4Val);
-    GetNextSubstring(arrr[i],pos,":",tstr);
+    GetNextSubstring(arr[i],pos,":",tstr);
     reb = StringToVal(tstr,M4Val);
-    SetupInvoiceRowAndAdd(IVr,item,"",quant,price,reb,0);
+    SetupInvoiceRowAndAdd(IVr,item,"",quant,vRows[arr[i]],reb,0);
   end;
-
- */ 
 
   return;
 end;
@@ -313,9 +377,9 @@ begin
 
   BlockLoad(CMb);
 
-  SetupLoanInvoice(CredManr,CMb,IVr,CredManr.FirstInvDate);
+  SetupLoanInvoice(CredManr,CMb,IVr,CredManr.startDate);
 
-  AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesFixed);
+  AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesOneTime);
   MergeItemsInInvoice(IVr);
 
   if (MatRowCnt(IVr)>0) then begin
@@ -333,53 +397,71 @@ begin
   
 //is it unlikely that we'll have first invoice without monthly invoice? lets assume in first version that it is
   CredHistr.CustCode = CredManr.CustCode;
-  CredHistr.RecordType = kCredHistTypeMonthlyInvoice;
+  CredHistr.RecordType = kCredHistRecTypeInvoice;
   if (ReadLastKey("CustTypeDate",CredHistr,2,true)) begin
-    sd = AddMonth(CredHistr.TransDate,1);
+    sd = CredHistr.TransDate;
   end else begin
-    sd = CredManr.FirstIntDate;
     firstf = true;
   end;
 
   return;
 end;
 
-updating procedure CreateSingleBulletTypeInvoice(record CredManVc CredManr,Date ed)
+function Boolean GetNextInvoicableDate(var Date td,var Date prevtd,Date ed,record CredManVc CredManr)
 begin
-  Date td;
+  Boolean res;
+  
+  prevtd = td;
+  td = AddMonth(td,1);
+  td.Day = DaysInMonth(td.Year,td.Month);
+  if (td<=ed and td<=CredManr.endDate) begin //deal with all the other invoices
+    res = true;
+  end;
+
+  GetNextInvoicableDate = res;
+  return;
+end;
+
+updating procedure CreateSingleBulletTypeInvoice(record CredManVc CredManr,Date ed,Boolean linearf)
+begin
+  Date td,prevtd;
   Boolean firstf;
   
   GetLastAgreementInvoice(CredManr,td,firstf);
-  if (nonblank(td)) then begin
-    while (td<=ed and td<=CredManr.endDate) begin
-      //if this is first invoice, we'll treat it differently
-      if (firstf) then begin
-        CreateInitialLoanInvoice(CredManr);
-      end;
-      CreateMonthlyLoanInvoice(CredManr,td,firstf,(td==CredManr.endDate));
-      firstf = false;
-      td = AddMonth(td,1);
-    end;
+  if (firstf and CurrentDate>=CredManr.startDate) then begin//Deal with initial invoice
+    CreateInitialLoanInvoice(CredManr);
   end;
-
+  if (blank(td)) then begin
+    td = CredManr.startDate;
+  end;
+  if (td<CredManr.FirstInvDate and CurrentDate>=CredManr.FirstInvDate) then begin//deal with first monthly invoice
+    td = CredManr.FirstInvDate;
+    CreateMonthlyLoanInvoice(CredManr,td,td,true,(td==CredManr.endDate),linearf);
+  end;
+  
+  while (GetNextInvoicableDate(td,prevtd,ed,CredManr)) begin
+    CreateMonthlyLoanInvoice(CredManr,td,prevtd,false,(td==CredManr.endDate),linearf);
+  end;
+  
   return;
 end;
 
 updating procedure CreateSingleFactoringTypeInvoice(record CredManVc CredManr,Date ed)
 begin 
   record CredManSetBlock CMb;
-  Integer latedays;
-  val lateamount;
   record IVVc IVr;
+  Boolean firstf;
+  Date td;
 
-  if (CredManr.FirstInvDate==CurrentDate) then begin
+  GetLastAgreementInvoice(CredManr,td,firstf);
+  if (firstf and CredManr.FirstInvDate>=CurrentDate) then begin
     BlockLoad(CMb);
     SetupLoanInvoice(CredManr,CMb,IVr,CredManr.FirstInvDate);
 
     AddInterestCalc(CredManr,CMb,IVr);
     AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesMonthly);
-    AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesFixed);
-    AddInstalment(CredManr,CMb,IVr);
+    AddPlannedFees(CredManr,CMb,IVr,kPlannedFeesOneTime);
+    AddInstalment(CredManr,CMb,IVr,false);
     if (MatRowCnt(IVr)>0) then begin
       IVr.OKFlag = 1;
       RecordInsert(IVr,true);
@@ -393,26 +475,27 @@ global
 updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed)
 begin
 
-  switch (CredManr.InstalmentType) begin
-    //should be other types here as well
-    case 0://Annuity
+  if (CredManr.OKFlag==1 and CredManr.Approved==1) then begin
+    switch (CredManr.InstalmentType) begin
+      //should be other types here as well
+      case 0://Annuity
 
-    case 1://Linear
+      case 1://Linear
+      case 2://Linear with Service Fee
+        CreateSingleBulletTypeInvoice(CredManr,ed,true);
+      case 3://Bullet
+        CreateSingleBulletTypeInvoice(CredManr,ed,false);
+      case 4://Factoring
+        CreateSingleFactoringTypeInvoice(CredManr,ed);
+      //case 5://Payment Guarantee
 
-    case 2://Linear with Service Fee
-
-    case 3://Bullet
-      CreateSingleBulletTypeInvoice(CredManr,ed);
-    case 4://Factoring
-      CreateSingleFactoringTypeInvoice(CredManr,ed);
-    //case 5://Payment Guarantee
-
-    otherwise CreateSingleBulletTypeInvoice(CredManr,ed);
+      otherwise CreateSingleBulletTypeInvoice(CredManr,ed,false);
+    end;
   end;
 
   return;
 end;
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,var Longint histnr)
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,var Longint histnr)
 begin
   record CredHistVc CredHistr;
   
@@ -425,6 +508,10 @@ begin
   CredHistr.ChargeType = chargetype;
   CredHistr.CustCode = custcode;
   CredHistr.RecordType = rectype;
+  CredHistr.ArtCode = item;
+  CredHistr.RecordType = rectype;
+  CredHistr.PayDate = duedate;
+  CredHistr.CredManNr = agreementnr;
   CredHistr.Sum = sum;
   if (RecordInsert(CredHistr,true)) then begin
     histnr = CredHistr.SerNr;
@@ -441,7 +528,7 @@ begin
   TrHs = true;
   CredHistr.RecordNr = recnr;
   CredHistr.RecordType = rectype;
-  while (LoopKey("RecType",CredHistr,2,TrHs)) begin
+  while (LoopKey("RecordNr",CredHistr,2,TrHs)) begin
     if (CredHistr.RecordType!=rectype or CredHistr.RecordNr!=recnr) then begin
       TrHs = false;
     end else begin
@@ -480,7 +567,7 @@ begin
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(IVr,i,IVrw);
       if (IVrw.ChargeType>0) then begin
-        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,histnr);
+        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,histnr);
         IVrw.CredHistNr = histnr;
         MatRowPut(IVr,i,IVrw);
       end;

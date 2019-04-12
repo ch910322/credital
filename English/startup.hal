@@ -13,6 +13,7 @@ begin
   Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
   Setting("Evaluation Constants",EvalConstTClass,modCredMan);
   Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
+  Setting("Item Priority",ItemPriorityTClass,modCredMan);
   Setting("Credit History Support",CredHistLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);

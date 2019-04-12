@@ -301,6 +301,15 @@ begin
   EndMatrix;
   EndWindow;
 
+  WindowBegin("Item Priority",ItemPriorityTClass,CGHBl,-);
+  SetWRect(80,80,400,280);
+  SetBlid(ItemPriorityBlock);
+  MatrixBegin(10,20,-30,-10,-,10);
+  MatCol(1,25,"Item",0,ArtCode,false,INSClass);
+  MatCol(1,150,"Priority",0,Priority,true,0);
+  EndMatrix;
+  EndWindow;
+
   WindowBegin("B2B Application Evaluation",B2BLoanEvalRClass,CGRcW,RcType);
   SetWRect(20,80,400,200);
   h = 150; v=6; vs=20;
@@ -331,6 +340,9 @@ begin
   EditField(h,v+=vs,120,"Charge Type",Normal,ChargeType,false,0);
   EditField(h,v+=vs,120,"Record Type",Normal,RecordType,false,0);
   EditField(h,v+=vs,120,"Sum",Normal,Sum,false,0);
+  EditField(h,v+=vs,120,"Due Date",Normal,PayDate,false,0);
+  EditField(h,v+=vs,120,"Item",Normal,ArtCode,false,0);
+  EditField(h,v+=vs,120,"CredManNr",Normal,CredManNr,false,0);
   EndWindow;
 
   WindowBegin("Specify Credit Agreement Invoices",GenLoanInvoicesVClass,CGMnt,RcType);
@@ -346,7 +358,7 @@ begin
 end;
 
 window B2BLoanApp_ContactSClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real v;
 
@@ -360,7 +372,7 @@ begin
 end;
 
 window B2BLoanApplicationDClass:11
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real v,vs,h,h2,h3,t,tilenr,vm,pos;
   string 255 label1,label2,label3,label4,label5;
@@ -388,7 +400,7 @@ begin
   EditField(h2,v,100,"Total Sum",Normal,Sum,true,0);
   vm = v;
   HalPushButton(h3-100,v,h3,v+25,"B2BLoanAppCalculate","Calculate");
-  EditField(h,v+=vs,100,"Interest Rate %",Normal,InterestRate,true,0);
+  EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
   EditField(h2,v,100,"Months",Normal,Months,true,0);
   HalPushButton(h3-100,v+10,h3,v+35,"B2BLoanAppEvaluate","Evaluate");
   EditField(h,v+=vs,100,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
