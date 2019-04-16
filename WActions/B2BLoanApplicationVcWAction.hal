@@ -777,3 +777,18 @@ BEGIN
   SelectWindow(wn);
   RETURN;
 END;
+
+global
+procedure DblB2BLoanAppVc(string dblstr,string l,Integer currepwn)
+begin
+  Integer wn;
+  record B2BLoanApplicationVc LAr;
+
+  if (nonblank(dblstr)) then begin
+    LAr.SerNr = FirstInRange(dblstr,10);
+    if (ReadFirstMain(LAr,1,true)) then begin  
+      wn = OpenWindow("B2BLoanApplicationDClass",1,0,"","",LAr);
+    end; 
+  end;
+  return;
+end;

@@ -447,7 +447,7 @@ begin
   KeySegment(SerNr);
   EndRecord;
 
-  RecordAddBegin(IVVc,"CustIVVc");
+  RecordAddBegin(IVVc,"CredIVVc");
   RecordField(CustCredManNr,M4Long,0,0);
   ArrayField(ChargeType,M4Set,2010,0);
   ArrayField(CredHistNr,M4Long,0,CredHistVc);
@@ -461,6 +461,15 @@ begin
   EndArray;
   EndBlock;
 
+  RecordAddBegin(CustPSVc,"CredCustPSVc");
+  RecordField(B2BApps,M4Int,0,0);
+  RecordField(NrOfB2BApp,M4UVal,0,0);
+  RecordField(CredApps,M4Int,0,0);
+  RecordField(NrOfCredApp,M4UVal,0,0);
+  RecordField(CredMan,M4Int,0,0);
+  RecordField(NrOfCredMan,M4UVal,0,0);
+  EndRecordAdd;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Maint", 3);
@@ -469,6 +478,7 @@ begin
   SourceFile("halcust\\Tools", 3);
   SourceFile("halcust\\WActions", 3);
 
+  SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
 
 

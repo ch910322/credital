@@ -46,7 +46,7 @@ begin
     goto LGetCompanyTypeName;
   end;
 
-  res = UsetStr(100052);
+  res = UsetStr(200052);
 
 LGetCompanyTypeName:;
   GetCompanyTypeName = res;
@@ -144,14 +144,14 @@ begin
     months = mod(dd,12);
     switch (years) begin
       case 0:
-      case 1: res = "1 " & UsetStr(100022) & " ";
-      otherwise res = years & " " & UsetStr(100023) & " ";
+      case 1: res = "1 " & UsetStr(200022) & " ";
+      otherwise res = years & " " & UsetStr(200023) & " ";
     end;
     switch (months) begin
       case 0:
       case 1: 
-        res = res &  "1 " & UsetStr(100024);
-      otherwise res = res & months & " " & UsetStr(100025);
+        res = res &  "1 " & UsetStr(200024);
+      otherwise res = res & months & " " & UsetStr(200025);
     end;
   end;
 
@@ -166,7 +166,7 @@ begin
   if (surety>0) then begin
     res = StringFromSet(2008,StringToInt(GetFieldValueByName(LAr,"Surety" & surety & "AgeGroup",-1)));
   end else begin
-    res = UsetStr(100041);
+    res = UsetStr(200041);
   end;
   MajoritySuretyAge = res;
   return;
@@ -254,7 +254,7 @@ begin
   record ScoringSupVc SSr,SS2r;
   row ScoringSupVc SSrw;
   
-  StartReportJob(USetStr(100000));
+  StartReportJob(USetStr(200000));
   
   EndHeader;
 
@@ -267,23 +267,23 @@ begin
     CUr.Code = LAr.CustCode;
     if (ReadFirstMain(CUr,1,true)==false) then begin
       StartFormat(15);
-      OutString(0,0,USetStr(100004),false);
+      OutString(0,0,USetStr(200004),false);
       EndFormat;
     end;
 /*Section*/
-    PrintSection(100001);
+    PrintSection(200001);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100002) & LAr.CustName,false);
+    OutString(0,0,USetStr(200002) & LAr.CustName,false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100003) & CUr.RegNr1,false);
-    OutString(5,0,USetStr(100005) & CurrentDate,false);
+    OutString(0,0,USetStr(200003) & CUr.RegNr1,false);
+    OutString(5,0,USetStr(200005) & CurrentDate,false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100006) & LAr.BankruptcyRating,false);
-    OutString(5,0,USetStr(100007) & LAr.LateRating,false);
+    OutString(0,0,USetStr(200006) & LAr.BankruptcyRating,false);
+    OutString(5,0,USetStr(200007) & LAr.LateRating,false);
     EndFormat;
 
     GetLatestEvalRow(LAr,LArw);
@@ -296,134 +296,134 @@ begin
     GetLatestScoringRow(SSr,SSrw);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100008) & (LArw.EstateCnt+LArw.OwnedCompanyCars),false);
-    OutString(5,0,USetStr(100009) & StringFromSet(2003,SSr.AssetsType),false);
+    OutString(0,0,USetStr(200008) & (LArw.EstateCnt+LArw.OwnedCompanyCars),false);
+    OutString(5,0,USetStr(200009) & StringFromSet(2003,SSr.AssetsType),false);
     EndFormat;
 
 /*Section*/
-    PrintSection(100010);
+    PrintSection(200010);
     StartFormat(15);
-    OutString(0,0,USetStr(100011) & OutputVal(LAr.MaxRecSum),false);
+    OutString(0,0,USetStr(200011) & OutputVal(LAr.MaxRecSum),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100012) & OutputVal(LAr.MaxValSurety),false);
+    OutString(0,0,USetStr(200012) & OutputVal(LAr.MaxValSurety),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100013) & OutputVal(LAr.MaxValCompany),false);
+    OutString(0,0,USetStr(200013) & OutputVal(LAr.MaxValCompany),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100014) & StringFromSet(2004,SSr.AssetsType),false);
+    OutString(0,0,USetStr(200014) & StringFromSet(2004,SSr.AssetsType),false);
     EndFormat;
 
 /*Section*/
-    PrintSection(100015);
+    PrintSection(200015);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100016) & StringFromSet(432,IsExistingCustomer(LAr)),false);
+    OutString(0,0,USetStr(200016) & StringFromSet(432,IsExistingCustomer(LAr)),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100017) & LAr.Sum,false);
+    OutString(0,0,USetStr(200017) & LAr.Sum,false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100018) & OutputLongint(LAr.Months),false);
+    OutString(0,0,USetStr(200018) & OutputLongint(LAr.Months),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100019) & GetCompanyTypeName(LAr),false);
+    OutString(0,0,USetStr(200019) & GetCompanyTypeName(LAr),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100020) & IsProblematic(LAr),false);
+    OutString(0,0,USetStr(200020) & IsProblematic(LAr),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100021) & GetCompanyAge(LAr),false);
+    OutString(0,0,USetStr(200021) & GetCompanyAge(LAr),false);
     EndFormat;
   
 /*Section*/
-    PrintSection(100026);
+    PrintSection(200026);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100027) & LAr.BankruptcyRating,false);
+    OutString(0,0,USetStr(200027) & LAr.BankruptcyRating,false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100028) & IsProblematic2(LAr),false);
+    OutString(0,0,USetStr(200028) & IsProblematic2(LAr),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100029) & OwnershipChanges(LAr),false);
+    OutString(0,0,USetStr(200029) & OwnershipChanges(LAr),false);
     EndFormat;
 
-
-/*Section*/
-    PrintSection(100030);
-
-    StartFormat(15);
-    OutString(0,0,USetStr(100031) & OutputVal(LAr.Equity),false);
-    EndFormat;
-    StartFormat(15);
-    OutString(0,0,USetStr(100032) & OutputVal(LAr.CurTotal),false);
-    EndFormat;
-    StartFormat(15);
-    OutString(0,0,USetStr(100033) & OutputVal((LArw.EstateValue + LArw.CarsValue)),false);
-    EndFormat;
-    StartFormat(15);
-    OutString(0,0,USetStr(100034) & OutputVal(LAr.AnnualRevenue),false);
-    EndFormat;
-    StartFormat(15);
-    OutString(0,0,USetStr(100035) & OutputVal(LAr.CurProfit),false);
-    EndFormat;
 
 /*Section*/
-    PrintSection(100036);
+    PrintSection(200030);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100037) & GetSuretyCnt(LAr),false);
+    OutString(0,0,USetStr(200031) & OutputVal(LAr.Equity),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(100038) & SuretyIsMajority(LAr),false);
+    OutString(0,0,USetStr(200032) & OutputVal(LAr.CurTotal),false);
     EndFormat;
-
     StartFormat(15);
-    OutString(0,0,USetStr(100039) & IsProblematicSurety(LAr,bestsurety),false);
+    OutString(0,0,USetStr(200033) & OutputVal((LArw.EstateValue + LArw.CarsValue)),false);
     EndFormat;
-
     StartFormat(15);
-    OutString(0,0,USetStr(100040) & MajoritySuretyAge(LAr,surety),false);
+    OutString(0,0,USetStr(200034) & OutputVal(LAr.AnnualRevenue),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(200035) & OutputVal(LAr.CurProfit),false);
     EndFormat;
 
 /*Section*/
-    PrintSection(100042);
+    PrintSection(200036);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100043) & SSr.RiskClass,false);
+    OutString(0,0,USetStr(200037) & GetSuretyCnt(LAr),false);
+    EndFormat;
+    StartFormat(15);
+    OutString(0,0,USetStr(200038) & SuretyIsMajority(LAr),false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100044) & IsActive(SSr.DebtFreeMonths),false);
+    OutString(0,0,USetStr(200039) & IsProblematicSurety(LAr,bestsurety),false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100045) & IsActive(StringToInt(GetFieldValueByName(LAr,"Surety" & bestsurety & "Courts",-1))),false);
+    OutString(0,0,USetStr(200040) & MajoritySuretyAge(LAr,surety),false);
     EndFormat;
 
 /*Section*/
-    PrintSection(100046);
+    PrintSection(200042);
 
     StartFormat(15);
-    OutString(0,0,USetStr(100047) & SSr.Salary6Months,false);
+    OutString(0,0,USetStr(200043) & SSr.RiskClass,false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100048) & PersonType(LAr,bestsurety),false);
+    OutString(0,0,USetStr(200044) & IsActive(SSr.DebtFreeMonths),false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100049) & IsActive(SSrw.ExtraSalary),false);
+    OutString(0,0,USetStr(200045) & IsActive(StringToInt(GetFieldValueByName(LAr,"Surety" & bestsurety & "Courts",-1))),false);
+    EndFormat;
+
+/*Section*/
+    PrintSection(200046);
+
+    StartFormat(15);
+    OutString(0,0,USetStr(200047) & SSr.Salary6Months,false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100050) & SSr.MonthlyOblPayment,false);
+    OutString(0,0,USetStr(200048) & PersonType(LAr,bestsurety),false);
     EndFormat;
 
     StartFormat(15);
-    OutString(0,0,USetStr(100051) & StringFromSet(2004,SSr.AssetsType),false);
+    OutString(0,0,USetStr(200049) & IsActive(SSrw.ExtraSalary),false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(200050) & SSr.MonthlyOblPayment,false);
+    EndFormat;
+
+    StartFormat(15);
+    OutString(0,0,USetStr(200051) & StringFromSet(2004,SSr.AssetsType),false);
     EndFormat;
 
   end;

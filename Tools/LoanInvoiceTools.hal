@@ -431,13 +431,13 @@ begin
   Boolean firstf;
   
   GetLastAgreementInvoice(CredManr,td,firstf);
-  if (firstf and CurrentDate>=CredManr.startDate) then begin//Deal with initial invoice
+  if (firstf and ed>=CredManr.startDate) then begin//Deal with initial invoice
     CreateInitialLoanInvoice(CredManr);
   end;
   if (blank(td)) then begin
     td = CredManr.startDate;
   end;
-  if (td<CredManr.FirstInvDate and CurrentDate>=CredManr.FirstInvDate) then begin//deal with first monthly invoice
+  if (td<CredManr.FirstInvDate and ed>=CredManr.FirstInvDate) then begin//deal with first monthly invoice
     td = CredManr.FirstInvDate;
     CreateMonthlyLoanInvoice(CredManr,td,td,true,(td==CredManr.endDate),linearf);
   end;
@@ -457,7 +457,7 @@ begin
   Date td;
 
   GetLastAgreementInvoice(CredManr,td,firstf);
-  if (firstf and CredManr.FirstInvDate>=CurrentDate) then begin
+  if (firstf and CredManr.FirstInvDate<=ed) then begin
     BlockLoad(CMb);
     SetupLoanInvoice(CredManr,CMb,IVr,CredManr.FirstInvDate);
 
@@ -498,15 +498,15 @@ begin
 
   return;
 end;
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,var Longint histnr)
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr)
 begin
   record CredHistVc CredHistr;
   
   histnr = -1;
 
   RecordNew(CredHistr);
-  CredHistr.SerNr = NextSerNr("CredHistVc",CurrentDATE,-1,false,"");
-  CredHistr.TransDate = CurrentDate;
+  CredHistr.SerNr = NextSerNr("CredHistVc",CurrentDate,-1,false,"");
+  CredHistr.TransDate = invdate;
   CredHistr.RecordNr = recnr;
   CredHistr.ChargeType = chargetype;
   CredHistr.CustCode = custcode;
@@ -570,7 +570,7 @@ begin
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(IVr,i,IVrw);
       if (IVrw.ChargeType>0) then begin
-        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,histnr);
+        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr);
         IVrw.CredHistNr = histnr;
         MatRowPut(IVr,i,IVrw);
       end;

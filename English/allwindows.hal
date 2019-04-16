@@ -19,6 +19,17 @@ external function Boolean HasCustomerStatusReport();
 external function Boolean HasSalesman();
 external function Boolean HasSalesmanBonus();
 external procedure RateField(real,real,real,string,integer,string,boolean,real,real,string,boolean);
+external function Boolean HasModCRM();
+external function Boolean HasModSL();
+external function Boolean HasModCheck();
+external function Boolean HasModCO();
+external function Boolean HasAdvancedCRM();
+external function Boolean HasModQT();
+external function Boolean HasModSO();
+external function Boolean HasModPOS();
+external function Boolean HasModTS();
+external function Boolean HasModRent();
+external function Boolean HasModSVO();
 
 
 window CUDClass:14
@@ -763,3 +774,156 @@ begin
   EndWindow;
 end;
 
+
+window CustPSDClass:3
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,v,vm,vs,vs2;
+  Integer tilenr;
+
+  WindowBegin("Information in Customer Status Report",CustPSDClass,CGview,-);
+  UseView(CustPSVc);
+  SetWRect(74,73,550,480);
+  h=70;h2=45;h3=390;v=10;vs=20;vm=30; vs2=18;
+  if (IsEnterprise) then begin
+    Tile(0,50,false,"",Signature);
+  end;
+  tilenr = 1;
+  EditField(h,v,82,"User",Normal,Signature,false,UserSClass);
+  if (IsEnterprise) then begin
+    TileButton(tilenr,tilenr);  tilenr = tilenr + 1;
+    TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+    if (StandardHansa==false) then begin
+      TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+    end;
+//CUST-BEGIN
+    TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+//CUST-END
+    tilenr = 1;
+    Tile(tilenr,400,false,tilenr,NrOfAct); tilenr = tilenr + 1;
+    v = vm;
+  end else begin
+    tilenr = 1;
+    v = v + 40;
+    vm = v;
+  end;
+  h = 30;
+  if (HasModCRM) then begin
+    ButtonFrame(20,v=vm,420,2,"Activities");
+    CheckBox(h,v,0,"Include Activities",Activities);
+    CheckBox(h3-100,v,0,"Show Activity Classes",ShowActivityClasses);
+    CheckBox(h2,v+=17,0,"Include Not Done",NotOKAct);    
+    EditField(h3,v,40,"Last Done Activities",Normal,NrOfAct,false,0);
+  end;
+  if (HasModSL) then begin
+    ButtonFrame(20,vm=(v+40),420,3,"Invoices");
+    CheckBox(h=30,v+=(vs+20),0,"Include Invoices",Invoices);
+    CheckBox(h2,v+=17,0,"All Open",NotOKIV);
+    EditField(h3,v,40,"Last Paid Invoices",Normal,NrOfIV,false,0);
+  end;
+  if (HasModCheck) then begin
+    CheckBox(h2,v+=16,0,"Include #Cheques#",Checks);
+  end;
+  if (HasModSL) then begin
+    EndFrame;
+  end;
+  if (HasModCO) then begin
+    ButtonFrame(h=20,vm=(v+40),420,2,"Contract and Rental Quotations");
+    CheckBox(h=30,v+=(vs+20),0,"Include Contract and Rental Quotations",ContQuote);
+    CheckBox(h2,v+=17,0,"Include Rejected",TermCQ);
+    EditField(h3,v,40,"Number of Contract Quotations",Normal,NrOfCQ,false,0);
+    ButtonFrame(20,vm=(v+40),420,2,"Contracts");
+    CheckBox(h=30,v+=(vs+20),0,"Include Contracts",Contract);
+    EditField(h3,v=v-1,40,"Contract Class",Normal,ContractClass,false,ContractClassSClass);
+    CheckBox(h2,v+=17,0,"Include Not OK",NotOKCO);
+    EditField(h3,v+1,40,"Number of Contracts",Normal,NrOfCO,false,0);
+//  CheckBox(h,v+=vs+10,0,"Credit History",PaymentHistory);//available for evryone
+  end;
+  if (HasAdvancedCRM) then begin
+    ButtonFrame(20,vm=(v+40),420,2,"Messages");
+    CheckBox(h=30,v+=(vs+20),0,"Include Messages",SMSes);
+    EditField(h3,v,40,"Number of #SMS#'s",Normal,NrOfSMS,false,0);
+  end;
+  if (HasAdvancedCRM) then begin
+    Tile(tilenr,121,true,tilenr,CustItemMonthNr); tilenr = tilenr + 1;
+    if (StandardHansa==false) then begin
+      ButtonFrame(20,v=50,420,1,"Monthly Balances");
+      CheckBox(h=30,v,0,"Include Monthly Balances (12 months)",MonthBal);
+      ButtonFrame(20,vm=(v+45),420,1,"Customer Item Statistics");
+      CheckBox(h=30,v+=(vs+25),0,"Include Customer Item",CustItem);
+      EditField(h3,v,40,"Number of Months",Normal,CustItemMonthNr,false,0);
+    end;
+  end;
+  if (HasModQT) then begin
+    if (StandardHansa==false) then begin
+      ButtonFrame(20,vm=(v+45),420,2,"Quotations");
+      CheckBox(h=30,v+=(vs+25),0,"Include Quotations",Quotations);
+    end else begin
+      ButtonFrame(20,v=30,420,2,"Quotations");
+      CheckBox(h=30,v,0,"Include Quotations",Quotations);
+    end;
+    EditField(h3,v=v-1,40,"Quotation Class",Normal,QTClass,false,QuoteClassSClass);
+    EditField(h3,v+=vs2,40,"Number of Quotations",Normal,NrOfQT,false,0);
+  end;
+  if (HasModSO) then begin
+    ButtonFrame(20,vm=(v+40),420,2,"Orders");
+    CheckBox(h=30,v+=(vs+20),0,"Include Orders",Orders);
+    EditField(h3,v=v-1,40,"Order Class",Normal,ORClass,false,OrderClassSClass);
+    EditField(h3,v+=vs2,40,"Number of Orders",Normal,NrOfOR,false,0);
+  end;
+  if (HasModPOS) then begin
+    ButtonFrame(20,vm=(v+45),420,2,"POS Invoices");
+    CheckBox(h=20,v+=(vs+25),0,"Include POS Invoices",IVCash);
+    EditField(h3,v+=vs2,40,"Number of POS Invoices",Normal,NrOfIVCash,false,0);
+  end;
+  if (HasModCRM) then begin
+    ButtonFrame(20,vm=(v+40),420,1,"Exclude");
+    EditField(h+80,v+=(vs+20),100,"Activity Types",Normal,ExcludeActTypes,false,ActTypeSClass);
+  end;
+
+  if (HasModTS or HasModRent or HasModSVO) then begin
+    Tile(tilenr,121,true,tilenr,NrOfPR); tilenr = tilenr + 1;
+    h=20; v=20;
+  end;
+  if (HasModTS) then begin
+    ButtonFrame(h,v,420,1,"Projects");
+    CheckBox(h2=30,v,0,"Include Projects",Projects);
+    EditField(h3,v,40,"Number of Projects",Normal,NrOfPR,false,0);
+    ButtonFrame(h,vm=(v+40),420,1,"Project Budgets");
+    CheckBox(h2,v+=(vs+20),0,"Include Project Budgets",ProjectBudgets);
+    EditField(h3,v,40,"Number of Project Budgets",Normal,NrOfTBBU,false,0);
+  end;
+  if (HasModRent) then begin
+    ButtonFrame(h,vm=(v+40),420,1,"Agreements");
+    CheckBox(h2,v+=(vs+20),0,"Include Agreements",Agreements);
+    EditField(h3,v,40,"Number of Agreements",Normal,NrOfAgreements,false,0);
+    ButtonFrame(h,vm=(v+40),420,1,"Rental Reservations");
+    CheckBox(h2,v+=(vs+20),0,"Include Rental Reservations",RentalReservations);
+    EditField(h3,v,40,"Number of Rental Reservations",Normal,NrOfRentRes,false,0);
+  end;
+  if (HasModSVO) then begin
+    ButtonFrame(h,vm=(v+40),420,1,"Service Orders");
+    CheckBox(h2,v+=(vs+20),0,"Include Service Orders",ServiceOrders);
+    EditField(h3,v,40,"Number of Service Orders",Normal,NrOfSVO,false,0);
+    ButtonFrame(h,vm=(v+40),420,1,"Work Sheets");
+    CheckBox(h2,v+=(vs+20),0,"Include Work Sheets",WorkSheets);
+    EditField(h3,v,40,"Number of Work Sheets",Normal,NrOfWS,false,0);
+    ButtonFrame(h,vm=(v+40),420,1,"Other");
+    CheckBox(h2,v+=(vs+20),0,"Show Relations with other Contacts",ContactRelations);
+  end;
+//CUST-BEGIN
+  Tile(tilenr,121,true,tilenr,NrOfPR); tilenr = tilenr + 1;
+  h=20; v=20;
+  ButtonFrame(h,v,420,1,"B2B Loan Applications");
+  CheckBox(h2=30,v,0,"Include B2B Loan Applications",B2BApps);
+  EditField(h3,v,40,"Number of B2B Loan Applications",Normal,NrOfB2BApp,false,0);
+  ButtonFrame(h,v+=45,420,1,"Credit Applications");
+  CheckBox(h2=30,v,0,"Include Credit Applications",CredApps);
+  EditField(h3,v,40,"Number of Credit Applications",Normal,NrOfCredApp,false,0);
+  ButtonFrame(h,v+=45,420,1,"Credit Agreements");
+  CheckBox(h2=30,v,0,"Include Credit Agreements",CredMan);
+  EditField(h3,v,40,"Number of Credit Agreements",Normal,NrOfCredMan,false,0);
+
+//CUST-END
+  EndWindow;
+end;

@@ -1,0 +1,138 @@
+
+global
+procedure B2BAppCUPSList(record RcVc RepSpec,string custcode,Integer nrofco)
+begin
+  record B2BLoanApplicationVc LAr;
+  Boolean found;
+  Integer count;
+  Boolean testf,firstf;
+  record CredManTypeVc CMTr;
+
+  firstf = true;
+  LAr.CustCode = custcode;
+  found = true;
+  while (LoopBackKey("CustCode",LAr,1,found)) begin
+    if (LAr.CustCode!=custcode) then begin found = false; end;
+    if (nrofco!=0) then begin 
+      if (count>=nrofco) then begin found = false; end;
+    end;  
+    if (found) then begin
+      if (firstf) then begin
+        StartFormat(15);
+        OutString(0,0,USetStr(200060),false);
+        EndFormat;
+        Black_Divider(0,1);
+        StartFormat(15);
+        OutString(0,0,USetStr(200061),false);
+        OutString(50,0,USetStr(200062),false);
+        OutString(100,0,USetStr(200063),false);
+        OutString(200,0,USetStr(200064),false);
+        OutString(300,0,USetStr(200065),false);
+        OutString(350,0,USetStr(200066),false);
+        OutString(440,0,USetStr(200067),true);
+        OutString(1,0,USetStr(200068),true);
+        EndFormat;
+        Gray_Divider(0,1);
+        firstf = false;
+      end;    
+      CMTr.Code = LAr.Type;
+      ReadFirstMain(CMTr,1,true);  
+      StartFormat(15);
+      OutLongInt(0,"DblB2BLoanAppVc",LAr.SerNr,false);
+      OutString(50,0,LAr.TransDate,false);
+      OutStringID(100,"DblCUVc",LAr.CustName,false,LAr.CustCode);
+      OutString(200,0,StringFromSet(2001,CMTr.InstalmentType),false);
+      OutString(300,0,LAr.StartDate,false);
+      OutString(350,0,LAr.EndDate,false);
+      OutString(440,0,LAr.Sum,true);
+      OutString(1,0,LAr.InterestRate,true);
+      EndFormat;
+    end;
+  end;
+  if (firstf==false) then begin
+    Black_Divider(0,1);
+    StartFormat(15);
+    EndFormat;
+  end;
+  return;
+end;
+
+global
+procedure CredManCUPSList(record RcVc RepSpec,string custcode,Integer nrofco)
+begin
+  record CredManVc CredManr;
+  Boolean found;
+  Integer count;
+  Boolean testf,firstf;
+  record CredManTypeVc CMTr;
+
+  firstf = true;
+  CredManr.CustCode = custcode;
+  found = true;
+  while (LoopBackKey("CustCode",CredManr,1,found)) begin
+    if (CredManr.CustCode!=custcode) then begin found = false; end;
+    if (nrofco!=0) then begin 
+      if (count>=nrofco) then begin found = false; end;
+    end;  
+    if (found) then begin
+      if (firstf) then begin
+        StartFormat(15);
+        OutString(0,0,USetStr(200069),false);
+        EndFormat;
+        Black_Divider(0,1);
+        StartFormat(15);
+        OutString(0,0,USetStr(200070),false);
+        OutString(50,0,USetStr(200071),false);
+        OutString(100,0,USetStr(200063),false);
+        OutString(200,0,USetStr(200064),false);
+        OutString(300,0,USetStr(200065),false);
+        OutString(340,0,USetStr(200066),false);
+        OutString(425,0,USetStr(200067),true);
+        OutString(450,0,USetStr(200068),true);
+        OutString(1,0,USetStr(200072),true);
+        EndFormat;
+        Gray_Divider(0,1);
+        firstf = false;
+      end;    
+      CMTr.Code = CredManr.Type;
+      ReadFirstMain(CMTr,1,true);  
+      StartFormat(15);
+      OutLongInt(0,"DblCredManVc",CredManr.SerNr,false);
+      OutString(50,0,CredManr.TransDate,false);
+      OutStringID(100,"DblCUVc",CredManr.Addr0,false,CredManr.CustCode);
+      OutString(200,0,StringFromSet(2001,CMTr.InstalmentType),false);
+      OutString(300,0,CredManr.startDate,false);
+      OutString(340,0,CredManr.endDate,false);
+      OutString(425,0,CredManr.InvSum4,true);
+      OutString(450,0,CredManr.IntRate,true);
+      OutString(1,0,CredManr.MonthlySum,true);
+      EndFormat;
+    end;
+  end;
+  if (firstf==false) then begin
+    Black_Divider(0,1);
+    StartFormat(15);
+    EndFormat;
+  end;
+  return;
+end;
+
+
+global
+procedure CustPSOuterLists(record RcVc RepSpec,string custcode,record CustPSVc CuPSr)
+begin
+
+  if (CuPSr.B2BApps==1) then begin
+    B2BAppCUPSList(RepSpec,custcode,CuPSr.NrOfB2BApp);
+  end;            
+  if (CuPSr.CredMan==1) then begin
+    CredManCUPSList(RepSpec,custcode,CuPSr.NrOfCredMan);
+  end;            
+/*not available yet
+  if (CuPSr.CredApps==1) then begin
+    CredAppCUPSList(RepSpec,custcode,CuPSr.NrOfCredApp);
+  end;            
+*/
+
+  return;
+end;
