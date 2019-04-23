@@ -359,6 +359,9 @@ begin
   if (HasWithholdingTax) then begin
     EditField(h1,v+=vs,120,"Withholding Payment Modes",Normal,WithPayMode,false,PMSClass);
   end;
+//CUST-BEGIN
+  HalPushButton(h1,v+=30,h1+150,v+20,"OpenCUBankAccountsDsm","Additional Bank Accounts");
+//CUST-END
   if (HasLocalization("HRV,HUN,POL,SRB,SLV,SVN")) then begin
     ButtonFrame(h1,v+=60,150,3,"Post Payment #VAT#");
     RadioButton(h1,v,0,0,"Default",OPBookVAT);
@@ -706,6 +709,12 @@ begin
   EditField(h,v+=vs,40,"Max Late Days",Normal,LateFeeDays,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Settlement Months",Normal,SettleLimit,false,0);
+//CUST-BEGIN
+  EditField(h2,v=vm-20,-40,"Bank Code",Normal,BankCode,false,BankSClass);
+  EditField(h2,v+=vs,-40,"Bank Name",Normal,BankName,false,0);
+  EditField(h2,v+=vs,-40,"Bank Account",Normal,BankAccount,false,BankAccountSClass);
+  vm = v+40;
+//CUST-END
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
   RadioButton(h2,v,0,0,"Due Date",LateRateOption);
   RadioButton(h2,v+=16,1,0,"Trans. Date",LateRateOption);

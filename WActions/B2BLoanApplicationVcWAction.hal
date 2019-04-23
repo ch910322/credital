@@ -1,4 +1,5 @@
 remote procedure B2BLoanApp_ContactSClassOnOpenRemote(string,var Array string,var Integer);
+remote procedure BankAccountSClassOnOpenWindowRemote(string,var array string);
 remote function Boolean InsertContactName(var record B2BLoanApplicationVc);
 remote function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc);
 remote function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
@@ -790,5 +791,93 @@ begin
       wn = OpenWindow("B2BLoanApplicationDClass",1,0,"","",LAr);
     end; 
   end;
+  return;
+end;
+
+global
+function Boolean BankAccountSClassOnOpenWindow(Integer wn)
+begin
+  Integer mwn;
+  record B2BLoanApplicationVc LAr;
+  record CredManVc CredManr;
+  Array string 60 arr_bankaccount;
+  Integer i;
+  longint pos;
+  string 255 bankcode,account,custcode;
+
+  mwn = MotherWindow(wn);
+
+  switch (GetWindowClass(mwn)) begin
+    case "B2BLoanApplicationDClass":
+      GetWindowRecord(mwn,LAr);
+      custcode = LAr.CustCode;
+    case "CredManDClass":
+      GetWindowRecord(mwn,CredManr);
+      custcode = CredManr.CustCode;
+  end;
+  BankAccountSClassOnOpenWindowRemote(custcode,arr_bankaccount);
+  ClearStringList(wn);
+  for (i=0;i<arr_bankaccount.length;i=i+1) begin
+    pos = 0;
+    GetNextSubstring(arr_bankaccount[i],pos,"#",bankcode);
+    GetNextSubstring(arr_bankaccount[i],pos,"#",account);
+    AddListRow(wn,"DLPasteBankAccount",1,arr_bankaccount[i],0);
+    AddListData(wn,"DLPasteBankAccount","DLBankCode",bankcode);
+    AddListData(wn,"DLPasteBankAccount","DLBankAccount",account);
+  end;
+
+  BankAccountSClassOnOpenWindow = false;
+  return;
+end;
+
+procedure PasteBankAccount(Integer wn,Integer mwn,var string bankcode,var string account)
+begin
+  Integer Sel;
+  string 255 tstr;
+  Longint pos;
+  
+  Sel = SelectedListLine(wn);
+  if (Sel>-1) then begin
+    tstr = GetListTag(wn,Sel);
+    GetNextSubstring(tstr,pos,"#",bankcode);
+    GetNextSubstring(tstr,pos,"#",account);
+    PasteString(mwn,account);
+  end;
+  CloseWindow(wn);
+
+  return;
+end;
+
+global
+function Boolean BankAccountSClassOnOKWindow(Integer wn)
+begin
+  string 255 bankcode,bankname,account;
+  Integer mwn;
+  record B2BLoanApplicationVc LAr;
+  record CredManVc CredManr;
+  record BankVc Bankr;
+  
+  mwn = MotherWindow(wn);
+  PasteBankAccount(wn,mwn,bankcode,account);
+  Bankr.Code = bankcode;
+  if (ReadFirstMain(Bankr,1,true)) then begin
+    bankname = Bankr.Name;
+  end;
+  switch (GetWindowClass(mwn)) begin
+    case "B2BLoanApplicationDClass":
+      GetWindowRecord(mwn,LAr);
+      LAr.BankCode = bankcode;
+      LAr.BankName = bankname;
+      PutWindowRecord(mwn,LAr);
+    case "CredManDClass":
+      GetWindowRecord(mwn,CredManr);
+      if (CredManr.OKFlag==0) then begin
+        CredManr.BankCode = bankcode;
+        CredManr.BankName = bankname;
+        PutWindowRecord(mwn,CredManr);
+      end;
+  end;
+
+  BankAccountSClassOnOKWindow = false;
   return;
 end;

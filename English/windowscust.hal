@@ -78,7 +78,10 @@ begin
   EditField(h,v+=40,100,"Days in Year",Normal,DaysInYear,false,0);
   ButtonFrame(h,v+=40,150,2,"Days in Month");
   RadioButton(h,v,0,0,"30",DaysInMonth);
-  RadioButton(h,v+=16,1,0,"Actual",DaysInMonth);  
+  RadioButton(h,v+=16,1,0,"Actual",DaysInMonth); 
+  
+  CheckBox(h,v+=30,0,"Details on Invoice",DetailedInvoice);
+
   EndWindow;
 
   WindowBegin("Scoring",ScoringSupLClass,CGmlist,-);
@@ -354,6 +357,16 @@ begin
   EditFieldTL(h,v+=vs,153,"Manager",M4Code,Normal,10,f2,false,UserSClass);
   EndWindow;
 
+  WindowBegin("Additional Bank Accounts",CUBankAccDClass,CGView,-);
+  SetWRect(20,80,400,250);
+  AutoSizeWindow(false);  
+  UseView(CUBankAccVc);
+  MatrixBegin(0,16,-1,-1,-,10);
+  MatCol(1,25,"Bank Code",0,BankCode,false,BankSClass);
+  MatCol(1,140,"Bank Account",0,BankAccount,false,0);
+  EndMatrix;
+  EndWindow;
+
   return;
 end;
 
@@ -440,7 +453,7 @@ begin
   v = 6;
   EditField(h2=400,v,120,"Bank Code",Normal,BankCode,false,BankSClass);
   EditField(h2,v+=vs,120,"Bank Name",Normal,BankName,false,0);
-  EditField(h2,v+=vs,120,"Bank Account",Normal,BankAccount,false,0);
+  EditField(h2,v+=vs,120,"Bank Account",Normal,BankAccount,false,BankAccountSClass);
   CheckBox(h3,v=6,0,"Request Direct Debit",RequestDirectDebit);
   
   v = vm + v;
@@ -656,5 +669,18 @@ begin
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 
 
+  EndWindow;
+end;
+
+window BankAccountSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real v;
+
+  WindowBegin("Paste Bank Account",BankAccountSClass,CGother,RcType);
+  SetWRect(64,80,500,298);
+  DataList(0,0,-1,-1,"DLPasteBankAccount");
+  DataListColumn(1,6,120,AdjLeft,"DLBankCode","Bank Code",M4Str);
+  DataListColumn(1,256,-32,AdjLeft,"DLBankAccount","Bank Account",M4Str);  
   EndWindow;
 end;

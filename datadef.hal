@@ -201,6 +201,7 @@ begin
   RecordField(DefOrderClass,M4Code,5,OrderClassVc)
   RecordField(DaysInYear,M4Int,0,0);
   RecordField(DaysInMonth,M4Int,0,0);
+  RecordField(DetailedInvoice,M4Int,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -316,6 +317,9 @@ begin
   RecordField(StdProlongFee,M4Qty,0,0);
   RecordField(StdProlongPrc,M4Qty,0,0);
   ChangeMatrixField(ChargeType,M4Set,2002,0);
+  RecordField(BankCode,M4Code,10,BankVc);
+  RecordField(BankName,M4Str,100,0);
+  RecordField(BankAccount,M4Str,100,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -469,6 +473,17 @@ begin
   RecordField(CredMan,M4Int,0,0);
   RecordField(NrOfCredMan,M4UVal,0,0);
   EndRecordAdd;
+
+  RecordBegin(CUBankAccVc,-,"");
+  RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(BankCode,M4Code,10,BankVc);
+  ArrayField(BankAccount,M4Str,60,0);
+  EndArray;
+  MainKeyBegin(CustCode,0);
+  KeySegment(CustCode);
+  EndRecord;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

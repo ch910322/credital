@@ -30,8 +30,10 @@ begin
   record LocalMachineBlock LMb;
   string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
   row IVVc IVrw;
+  record CMApplicationSetBlock CMASb;
   
   BlockLoad(LMb);
+  BlockLoad(CMASb);
 
   RecordNew(IVr);
   IVr.CustCredManNr = CredManr.SerNr;
@@ -45,15 +47,17 @@ begin
   IVr.SalesMan = CredManr.SalesMan;
   IVVc_PasteSalesMan(IVr,""); 
 
-  ClearRow(IVr,IVrw,1);
-  IVrw.Spec = USetStr(200080) & CredManr.SerNr;
-  MatRowPut(IVr,0,IVrw);
-  ClearRow(IVr,IVrw,1);
-  IVrw.Spec = USetStr(200081) & invdate & ":" & AddDay(AddMonth(invdate,1),-1);
-  MatRowPut(IVr,1,IVrw);
-  ClearRow(IVr,IVrw,1);
-  IVrw.Spec = "";
-  MatRowPut(IVr,2,IVrw);
+  if (CMASb.DetailedInvoice==1) then begin
+    ClearRow(IVr,IVrw,1);
+    IVrw.Spec = USetStr(200080) & CredManr.SerNr;
+    MatRowPut(IVr,0,IVrw);
+    ClearRow(IVr,IVrw,1);
+    IVrw.Spec = USetStr(200081) & invdate & ":" & AddDay(AddMonth(invdate,1),-1);
+    MatRowPut(IVr,1,IVrw);
+    ClearRow(IVr,IVrw,1);
+    IVrw.Spec = " ";
+    MatRowPut(IVr,2,IVrw);
+  end;
 
   IVr.SerNr = NextSerNr("IVVc",IVr.InvDate,-1,false,"");
 

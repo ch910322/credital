@@ -1,0 +1,20 @@
+global
+procedure OpenCUBankAccountsDsm()
+begin
+  Integer wn,nwn;
+  record CUVc CUr;
+  record CUBankAccVc BAr;
+
+  wn = CurWindow;
+  if (WindowState(wn)==Rs_Normal) then begin
+    GetWindowRecord(wn,CUr);
+    BAr.CustCode = CUr.Code;
+    if (ReadFirstMain(BAr,1,true)==false) then begin
+      RecordNew(BAr);
+      BAr.CustCode = CUr.Code;
+    end;
+    nwn = OpenWindow("CUBankAccDClass",1,0,"","",BAr);
+  end;
+
+  return;
+end;

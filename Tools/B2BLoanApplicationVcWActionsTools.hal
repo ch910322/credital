@@ -245,3 +245,36 @@ begin
   return;
 end;
 
+procedure AddBankAccountToArr(string bankcode,string bankaccount,var array string arr_bankaccount)
+begin
+  string 255 tstr;
+
+  tstr = bankcode & "#";
+  tstr = tstr & bankaccount;
+  arr_bankaccount[arr_bankaccount.length] = tstr;
+
+  return;
+end;
+
+global
+procedure BankAccountSClassOnOpenWindowRemote(string custcode,var array string arr_bankaccount)
+begin
+  record CUVc CUr;
+  record CUBankAccVc BAr;
+  row CUBankAccVc BArw;
+  Integer i,rwcnt;
+
+  CUr.Code = custcode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    AddBankAccountToArr(CUr.AccOperator,CUr.BankAccount,arr_bankaccount);
+  end;
+  BAr.CustCode = custcode;
+  if (ReadFirstMain(BAr,1,true)) then begin
+    rwcnt = MatRowCnt(BAr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(BAr,i,BArw);
+      AddBankAccountToArr(BArw.BankCode,BArw.BankAccount,arr_bankaccount);
+    end;
+  end;
+  return;
+end;

@@ -1,0 +1,75 @@
+external inner function val GetCredManRate(Integer,string,val,Date);
+
+procedure CalcCredManCurrentPeriod(record CredManVc CredManr,Integer paymentnr,var Date sdp,var Date edp,var Date invd)
+begin
+
+  sdp = AddDay(AddMonth(CredManr.startDate,paymentnr),1);
+  edp = AddDay(AddMonth(sdp,1),-1);
+  if (nonblankdate(CredManr.FirstInvDate)) then begin
+    invd = AddMonth(CredManr.FirstInvDate,paymentnr); //  - 1
+  end else begin
+    invd = AddDay(edp,1);
+    invd = edp;
+  end;
+  return;
+end;
+
+global
+procedure BuildCredManPayPlanCust(record CredManVc inCredManr,var record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CredManSetb,Boolean withactuals,Boolean suggestedonsameday)
+begin
+  
+/*should we calculate VAT here?
+  if CredManr.VATSum > 0 and nonblank(CredManr.VATAddMonths) then begin
+    GetMonthlyVatVector(CredManr.VATSum, CredManr.VATAddMonths, vatPayments);
+  end;
+*/
+
+  hundred = 100;
+  twelve = 12;
+
+  months = CredManr.InstalmentMonths;
+
+  totsum = CredManr.InvSum4;
+  bal_for_interest = totsum;
+  switch (CredManr.InstalmentType) begin
+    case 0:
+      calcbal = totsum;
+    case 1:
+      calcbal = totsum;
+      instal = Round(totsum / months,SetRoundModeD(CredManSetb.InstalmentRoundOff));
+    case 2:
+      calcbal = totsum;
+      instal = Round(totsum / months,SetRoundModeD(CredManSetb.InstalmentRoundOff));
+  end;
+
+  for(i=0;i<=months;i=i+1) begin
+    CalcCredManCurrentPeriod(CredManr,i,frdat,todat,invdat); //sets dates, frdat, todat and invdat
+    therate = GetCredManRate(CredManr.RateType,CredManr.Type,CredManr.IntRate,invdat); //RateType always 0, so therate == CredManr.IntRate
+    rate = therate / twelve / hundred;
+    if (i==0) then begin
+      AddInitialInvoice(CredManr,CredManPayPlanr,invdate);
+    end;
+    switch (CredManr.InstalmentType) begin
+      case 0://Annuity
+      case 1://Linear
+      case 2://Linear with Service Fee - bullet with linear or just Same, Same
+        AddInstalment
+        AddInterest
+        AddPlannedFees
+        AddDeposit
+      case 3://Bullet
+        if (i==months-1) then begin
+          AddInstalment
+        end;
+        AddInterest
+        AddPlannedFees
+        AddDeposit
+      case 4://Factoring
+      //case 5://Payment Guarantee
+
+    end;
+
+
+
+  return;
+end;
