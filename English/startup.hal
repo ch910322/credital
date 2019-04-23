@@ -88,6 +88,10 @@ begin
   SString(200071,"Agr. Date");
   SString(200072,"Instalm.");
 
+  SString(200080,"Agreement No.: ");
+  SString(200081,"Period: ");
+
+
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
   StrSetText(B2BLoanApplicationVc,"B2B Loan Applications");

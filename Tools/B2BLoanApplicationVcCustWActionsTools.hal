@@ -210,6 +210,7 @@ begin
   riskclass2 = GetSurityRiskRow(LAr.SerNr,LAr.SuretyProvider2);
   riskclass3 = GetSurityRiskRow(LAr.SerNr,LAr.SuretyProvider3);
   
+
   rw = vRisk[riskclass1];
   bestsurety = 1;
   bestsurety2 = -1;
@@ -223,6 +224,8 @@ begin
     bestsurety2 = bestsurety;
     bestsurety = 3;
   end;
+
+  LogText2(0,"B2B Loan Calc :: Getting best Surity bestsurety=" & bestsurety & ",second best=" & bestsurety2 & ",risk eval block row=" & (rw+1),kVerbosityDebugDetailed);
 
   MatRowGet(RCb,rw,bestRCrw);
   return;
@@ -530,13 +533,15 @@ begin
   val res;
 
   res = 0;
-  switch (GetFieldValueByName(LAr,"Surety" & bestsurety2 & "AgeGroup",-1)) begin
-    case "0": res = ECb.Risk2Age21;
-    case "1": res = ECb.Risk2Age2127;
-    case "2": res = ECb.Risk2Age2864;
-    case "3": res = ECb.Risk2Age65;
+  if (bestsurety2>0) then begin
+    switch (GetFieldValueByName(LAr,"Surety" & bestsurety2 & "AgeGroup",-1)) begin
+      case "0": res = ECb.Risk2Age21;
+      case "1": res = ECb.Risk2Age2127;
+      case "2": res = ECb.Risk2Age2864;
+      case "3": res = ECb.Risk2Age65;
+    end;
   end;
-  
+
   GetJ10Score = res;
   return;
 end;
@@ -576,7 +581,7 @@ begin
 end;
 
 global
-procedure CalculateB2BLoanApplication(record B2BLoanApplicationVc LAr)
+procedure CalculateB2BLoanApplication(var record B2BLoanApplicationVc LAr)
 begin
   record EvalConstBlock ECb;
   Integer compyears,surety;
@@ -591,6 +596,7 @@ begin
   BlockLoad(ECb);
 
   if (GetMajoritySuretyProvider(LAr,SSr,surety)==false) then begin
+    LogText2(0,"B2B Loan Calc :: Failed to get Majority Surety Provider. Quitting calculation",kVerbosityDebugDetailed);
     goto lout;
   end;
   suretycnt = GetSuretyCnt(LAr);
@@ -601,14 +607,18 @@ begin
   revcoef = CalculateRevenueCoef(LAr,ECb,carsestate);
   assetscoef = CalculateAssets(SSr,ECb);
   profit = CalculateProfit(LAr,SSr,ECb,assetscoef);
-  perscoef = CalculatePersonCoef(LAr,SSr,ECb,profit,bestsurety,d);
+  perscoef = CalculatePersonCoef(LAr,SSr,ECb,profit,surety,d);
   //my = max(LAr.AnnualRevenue*0.2,carsestate+min(LAr.CurTotal,0)*0.5);
   my = revcoef;
   if (suretycnt<=1) then begin
-    mz = profit*perscoef-SSr.MonthlyOblPayment*25;
+    mz = (profit*perscoef-SSr.MonthlyOblPayment)*25;
   end else begin
-    mz = (profit*perscoef-SSr.MonthlyOblPayment*25)*0.8;
+    mz = ((profit*perscoef-SSr.MonthlyOblPayment)*25)*0.8;
   end;
+
+  LogText2(0,"B2B Loan Calc :: surety cnt=" & suretycnt & ",company age=" & compyears,kVerbosityDebugDetailed);
+
+  LogText2(0,"B2B Loan Calc :: car+estat val=" & carsestate & ",revenu coef=" & revcoef & ",assetscoef=" & assetscoef & ",profit=" & profit & ",suretycoef=" & perscoef & ",mz=" & mz & ",my=" & my,kVerbosityDebugDetailed);
 
   res = mz;
   if (compyears>ECb.CompAgeStep and my>mz) then begin
@@ -623,10 +633,11 @@ begin
   SS2r.B2BApp = LAr.SerNr;
   SS2r.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety,-1);
   ReadFirstKey("SuretyApp",SS2r,2,true);
-  SS3r.B2BApp = LAr.SerNr;
-  SS3r.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety2,-1);
-  ReadFirstKey("SuretyApp",SS3r,2,true);
-
+  if (bestsurety2>0) then begin
+    SS3r.B2BApp = LAr.SerNr;
+    SS3r.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & bestsurety2,-1);
+    ReadFirstKey("SuretyApp",SS3r,2,true);
+  end;
 
   g1 = GetCompanyAgeInMonths(LAr);
   g2 = GetG2Score(LAr,compyears);
@@ -645,6 +656,9 @@ begin
     h3 = g2+g3+g4+g5+g6+g7;
   end;
 
+  LogText2(0,"B2B Loan Calc :: g1=" & g1 & ",g2=" & g2 & ",g3=" & g3 & ",g4=" & g4 & ",g5=" & g5 & ",g6=" & g6 & ",g7=" & g7 & ",g8=" & g8,kVerbosityDebugDetailed);
+  LogText2(0,"B2B Loan Calc :: h4=" & h4 & ",h3=" & h3,kVerbosityDebugDetailed);
+
   n19 = GetOurCustScore(LAr,ECb);
   n20 = GetCompTypeScore(LAr,ECb);
   h1 = GetBankrLiquidScore(LAr);
@@ -652,6 +666,8 @@ begin
   n22 = GetCompBankruptcyScore(LAr,ECb);
   h2 = GetEquityScore(LAr);
   h = n20-n19+h1+n21+n22+h2;
+
+  LogText2(0,"B2B Loan Calc :: n19=" & n19 & ",n20=" & n20 & ",n21=" & n21 & ",n22=" & n22 & ",h=" & h & ",h1=" & h1 & ",h2=" & h2,kVerbosityDebugDetailed);
 
   cb = 0;
   if (h<=ECb.CompScoreHigh) then begin
@@ -708,6 +724,9 @@ begin
   if (blank(bestSRrw.Warning)) then begin
     cr = min(cb,cc);
   end;
+  
+  LogText2(0,"B2B Loan Calc :: j1=" & j1 & ",j2=" & j2 & ",j3=" & j3 & ",j4=" & j4 & ",j5=" & j5 & ",j6=" & j6 & ",j7=" & j7 & ",j8=" & j8 & ",j9=" & j9 & ",j10=" & j10 & ",j11=" & j11,kVerbosityDebugDetailed);
+  LogText2(0,"B2B Loan Calc :: cc=" & cc & ",cr=" & cr & ",cb=" & cb,kVerbosityDebugDetailed);
 
   LAr.Creditable = 4;
   switch (cr) begin

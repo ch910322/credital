@@ -563,7 +563,7 @@ begin
   EditField(h,v=6,100,"Late Rating",Normal,LateRating,true,0);
   EditField(h2=h2+50,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,true,0);
   EditField(h,v+=vs,100,"Established",Normal,Established,false,PasteCurDate);
-  EditField(h2,v,100,"Monthly Load Payment",Normal,MonthlyLoadPayment,true,0);
+  EditField(h2,v,100,"Monthly Loan Payment",Normal,MonthlyLoadPayment,true,0);
   EditField(h,v+=vs,100,"Current Debts",Normal,CurrentDebts,true,0);
   EditField(h2,v,100,"Date of last Debt Repayment",Normal,LastRepaymentDate,false,PasteCurDate); 
   CheckBox(h,v+=vs,0,"Ongoing Court Cases",OngoingCourtCases);

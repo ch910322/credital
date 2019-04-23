@@ -159,7 +159,7 @@ begin
     end;
   end;
 */
-  ContactRelr.CustCode = CUr.Code;
+  ContactRelr.CustCode = custcode;
   found = true;
   while (LoopKey("CompKey",ContactRelr,1,found)) begin
     if ((ContactRelr.CustCode==custcode) or (blank(custcode))) then begin

@@ -485,7 +485,7 @@ begin
 
   SSr.B2BApp = b2bapp;
   SSr.SuretyCustCode = surety;
-  if (ReadFirstKey("SuretyApp",SSr,1,true)==false) then begin
+  if (ReadFirstKey("SuretyApp",SSr,2,true)==false) then begin
     RecordNew(SSr);
     SSr.SerNr = NextSerNr("ScoringSupVc",CurrentDate,-1,false,"");
     SSr.B2BApp = b2bapp;

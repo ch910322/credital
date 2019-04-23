@@ -312,7 +312,7 @@ begin
     OutString(0,0,USetStr(200013) & OutputVal(LAr.MaxValCompany),false);
     EndFormat;
     StartFormat(15);
-    OutString(0,0,USetStr(200014) & StringFromSet(2004,SSr.AssetsType),false);
+    OutString(0,0,USetStr(200014) & StringFromSet(2004,LAr.Creditable),false);
     EndFormat;
 
 /*Section*/

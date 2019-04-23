@@ -1,4 +1,4 @@
-remote procedure CalculateB2BLoanApplication(record B2BLoanApplicationVc);
+remote procedure CalculateB2BLoanApplication(var record B2BLoanApplicationVc);
 
 global
 procedure B2BLoanAppCalculate()
