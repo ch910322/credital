@@ -1,5 +1,6 @@
 remote inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function roundmode SetRoundModeD(Integer);
+external  procedure CredManSetDatesCust(var record CredManVc);
 
 global
 function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
@@ -209,7 +210,12 @@ begin
     CredManr.InstalmentMonths = LAr.Months;
     CredManr.PayDeal = CUr.PayDeal;
     CredManr.ClientContact = LAr.ContactName;
+    CredManr.MonthlyPaymentDay = LAr.MonthlyPaymentDay;
     CredManr.DepositSum = Round(CredManr.DepositPrc/100 * CredManr.InvSum4,SetRoundModeD(2));
+    CredManSetDatesCust(CredManr);
+    CredManr.BankCode = LAr.BankCode;
+    CredManr.BankName = LAr.BankName;
+    CredManr.BankAccount = LAr.BankAccount;
     if (RecordInsert(CredManr,true)) then begin
       res = true;
     end;

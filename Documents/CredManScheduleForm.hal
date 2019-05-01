@@ -1,0 +1,90 @@
+global
+procedure DoCredManScheduleForm(record RcVc RepSpec,record CredManVc CredManr)
+BEGIN
+  record DocVc Docr;
+  record CUVc CUr;
+  record SVOVc SVOr;
+  record INVc INr;
+  record FormDefVc FDr;
+  row FormDefVc FDrw;
+  Integer i,rwcnt;
+  string 255 tstr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record UserVc Userr;
+    
+  FDr.repname = RepSpec.repname;
+  FDr.shortname = RepSpec.shortname;
+  if (ReadFirstMain(FDr,1,true)==false) then begin
+    MessageBox(1624, " " & USetStr(1623));
+    goto LDoActDocForm;
+  end;
+  rwcnt = MatRowCnt(FDr);
+  for (i=rwcnt-1;i>=0;i=i-1) begin
+    MatRowGet(FDr,i,FDrw);
+    if (FDrw.LangCode==langcode) then begin
+      i = -1;
+      langf = true;
+    end;
+  end;
+  if (langf==false) then begin langcode = ""; end;
+
+  intdocnr = 1;
+  printf = true;
+  while (printf) begin  
+    formcode = "";
+    for (i=rwcnt-1;i>=0;i=i-1) begin
+      MatRowGet(FDr,i,FDrw);
+      if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,Actr.SerNr,FDrw.PrintGroupCode,
+                      langcode,intdocnr,"",formcode)) then
+      begin
+        goto LBREAK;
+      end;
+    end;
+LBREAK:;
+    if (nonblank(formcode)) then begin  
+      if (OpenForm(formcode)) then begin
+        CommonDocumentFields(RepSpec);
+        NumberofDocumentPages(formcode,MatRowCnt(CredManr));
+        CUr.Code = CredManr.CustCode;
+        if (ReadFirstMain(CUr,1,true)) then begin
+        end;
+        Docr.Code = formcode;
+        if (ReadFirstMain(Docr,1,true)) then begin
+        end;
+//rest of fields go here
+
+        CloseForm;        
+      end else begin
+        printf = false;
+        MessageBox(1546,formcode);
+      end;
+    end else begin
+      printf = false;
+      if (intdocnr==1) then begin
+        MessageBox(1624, " " & USetStr(1623));
+      end;
+    end;
+    intdocnr = intdocnr + 1;
+  end;
+LDoActDocForm:;  
+  RETURN;  
+END;     
+ 
+
+global
+procedure CredManScheduleForm(record RcVc RepSpec)
+BEGIN
+  record CredManVc CredManr;
+  Boolean tmpf;
+  
+  StartPrintDialogGroup;
+  CredManr.SerNr = RepSpec.long1;
+  TrHs = true;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    tmpf = PrintDocument(CredManr,"CredManScheduleForm",false);    
+  end;
+  EndPrintDialogGroup;
+  RETURN;
+END;

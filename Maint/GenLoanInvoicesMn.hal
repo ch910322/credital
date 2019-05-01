@@ -1,10 +1,11 @@
-external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date);
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 
 global
 updating function Boolean LoopAndGenLoanAgreementInvoice(var record RcVc RepSpec)
 begin
   Boolean res,TrHs,testf;
   record CredManVc CredManr;
+  record IVVc IVr;
   
   TrHs = true;
   SetLoopPosition(CredManr,RepSpec.long1);
@@ -26,7 +27,7 @@ begin
         testf = false;
       end;
       if (testf) then begin
-        CreateSingleAgreementInvoice(CredManr,RepSpec.d1);
+        CreateSingleAgreementInvoice(CredManr,RepSpec.d1,IVr);
         TrHs = false;
       end;
     end;

@@ -1,0 +1,341 @@
+external inner function val GetCredManRate(Integer,string,val,Date);
+external inner function LongInt DateDiff(Date,Date);
+external inner function roundmode SetRoundModeD(Integer);
+external inner function LongInt MonthDiff(Date,Date);
+
+enum begin
+  kEventTypeNone = 0,
+  kEventTypeCalcInstalment = 1,
+  kEventTypeCalcInterest = 2,
+  kEventTypeCalcDeposit = 3,
+  kEventTypeCalcFees = 4,
+  kEventTypeIssueInstalment = 5,
+  kEventTypeIssueInterest = 6,
+  kEventTypeIssueDeposit = 7,
+  kEventTypeIssueFees = 8,
+end;
+
+enum begin
+  kPlannedFeesMonthly = 0,
+  kPlannedFeesOneTime = 1
+end;
+
+procedure CalcCredManCurrentPeriod(record CredManVc CredManr,Integer paymentnr,var Date sdp,var Date edp,var Date invd)
+begin
+
+  sdp = AddMonth(CredManr.startDate,paymentnr);//AddDay(,1);
+  edp = AddDay(AddMonth(sdp,1),-1);
+  if (nonblankdate(CredManr.FirstInvDate)) then begin
+    invd = AddMonth(CredManr.FirstInvDate,paymentnr); //  - 1
+  end else begin
+    invd = AddDay(edp,1);
+    invd = edp;
+  end;
+  return;
+end;
+
+function val GetAmount(record CredManVc CredManr)
+begin
+  val res;
+
+  res = CredManr.InvSum4 - CredManr.DepositSum;
+  
+  GetAmount = res;
+  return;
+end;
+
+function val GetRateAmount(record CredManVc CredManr,val rate,Boolean daysf,Date frdate,Date todate)
+begin
+  record CMApplicationSetBlock CMb;
+  val days,res;
+
+  if (daysf) then begin
+    BlockLoad(CMb);
+    days = DateDiff(todate,frdate);
+    res = GetAmount(CredManr)*(rate/100)*12/CMb.DaysInYear*days;
+  end else begin
+    res = GetAmount(CredManr)*(rate/100);    
+  end;
+
+  GetRateAmount = res;
+  return;
+end;
+
+function Boolean MonthlyChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==1 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  MonthlyChargeType = res;
+  return;
+end;
+
+function Boolean CalculatedChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==2 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  CalculatedChargeType = res;
+  return;
+end;
+
+function Boolean TypeAffectsBalance(Integer type)
+begin
+  Boolean res;
+
+  switch (type) begin
+    case kEventTypeCalcInstalment:  res = true;
+    case kEventTypeIssueInstalment: res = true;
+    case kEventTypeIssueDeposit:    res = true;
+    case kEventTypeCalcDeposit:     res = true;
+  end;
+  
+  TypeAffectsBalance = res;
+  return;
+end;
+
+function Boolean TypeAffectsInterest(Integer type)
+begin
+  Boolean res;
+
+  switch (type) begin
+    case kEventTypeCalcInterest:  res = true;
+    case kEventTypeIssueInterest: res = true;
+  end;
+  
+  TypeAffectsInterest = res;
+  return;
+end;
+
+procedure AddCredPayPlanLine(record CredManPayPlanVc CredManPayPlanr,Date transdate,string item,string itemname,Integer type,val sum,val reb,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  row CredManPayPlanVc CredManPayPlanrw;
+  val v;
+  
+  v = sum;//round(sum,SetRoundModeD(rounding));//CredManr.DepositSum,CredManSetb.DepositRoundOff
+  if (v!=0) then begin
+    CredManPayPlanrw.ArtCode = item;
+    CredManPayPlanrw.Spec = itemname;
+    CredManPayPlanrw.TransDate = transdate;
+    CredManPayPlanrw.PlanType = type;
+    CredManPayPlanrw.Sum = v;
+    CredManPayPlanrw.Reb = reb;
+    CredManPayPlanrw.FromDate = frdate;
+    CredManPayPlanrw.ToDate = todate;
+    if (TypeAffectsInterest(type)) then begin
+      CredManPayPlanrw.AcumulatedInt = acumint + v;
+    end else begin
+      CredManPayPlanrw.AcumulatedInt = acumint;
+    end;
+    if (TypeAffectsBalance(type)) then begin
+      CredManPayPlanrw.Bal = calcbal - v;
+    end else begin
+      CredManPayPlanrw.Bal = calcbal;
+    end;
+    MatRowPut(CredManPayPlanr,MatRowCnt(CredManPayPlanr),CredManPayPlanrw);
+    acumint = CredManPayPlanrw.AcumulatedInt;
+    calcbal = CredManPayPlanrw.Bal;
+  end;
+
+  return;
+end;
+
+global
+procedure AddInterest(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Boolean daysf,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.RateItem,"",kEventTypeCalcInterest,GetRateAmount(CredManr,CredManr.IntRate,daysf,frdate,todate),0,acumint,calcbal,frdate,todate);
+
+  return;
+end;
+
+global
+procedure AddPlannedFees(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Integer type,Boolean daysf,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  Integer i,rwcnt;
+  row CredManVc CredManrw;
+
+  rwcnt = MatRowCnt(CredManr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManr,i,CredManrw);
+    if ((type==kPlannedFeesMonthly and MonthlyChargeType(CredManrw.ChargeType)) or 
+        (type==kPlannedFeesOneTime and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
+      if (CalculatedChargeType(CredManrw.ChargeType)) then begin
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,GetRateAmount(CredManr,CredManrw.vRebate,daysf,frdate,todate),0,acumint,calcbal,frdate,todate);
+      end else begin
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,CredManrw.Price,CredManrw.vRebate,acumint,calcbal,frdate,todate);
+      end;
+    end;
+  end;
+  
+  return;
+end;
+
+procedure AddDeposit(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.DepositItem,"",kEventTypeCalcDeposit,CredManr.DepositSum,0,acumint,calcbal,frdate,todate);
+
+  return;
+end;
+
+procedure AddInstalment(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Boolean linearf,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  
+  if (linearf) then begin
+    AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,(CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths,0,acumint,calcbal,frdate,todate);
+  end else begin
+    AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate);
+  end;
+  return;
+end;
+
+global
+procedure AddInstalmentFixed(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,val amount,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,amount,0,acumint,calcbal,frdate,todate);
+
+  return;
+end;
+
+function Integer GetCredHistType(string artcode,Boolean paidflag)
+begin
+  record CredManSetBlock CMSb;
+  Integer res;
+
+  res = 0;
+  BlockLoad(CMSb);
+  if (artcode==CMSb.InstalmentItem) then begin
+    if (paidflag) then begin
+      res = kEventTypeIssueInstalment;
+    end else begin
+      res = kEventTypeCalcInstalment;
+    end;
+  end else begin
+    if (artcode==CMSb.RateItem) then begin
+      if (paidflag) then begin
+        res = kEventTypeIssueInterest;
+      end else begin
+        res = kEventTypeCalcInterest;
+      end;
+    end else begin
+      if (artcode==CMSb.DepositItem) then begin
+        if (paidflag) then begin
+          res = kEventTypeIssueDeposit;
+        end else begin
+          res = kEventTypeCalcDeposit;
+        end;
+      end else begin
+        if (paidflag) then begin
+          res = kEventTypeIssueFees;
+        end else begin
+          res = kEventTypeCalcFees;
+        end;
+      end;
+    end;
+  end;
+
+  GetCredHistType = res;
+  return;
+end;
+
+procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal)
+begin
+  record CredHistVc CredHistr;
+  Boolean TrHs;
+  Integer type;
+
+  calculatedmonths = 0;
+  TrHs = true;
+  CredHistr.CredManNr = CredManr.SerNr;
+  while (LoopKey("CredManTypeDate",CredHistr,1,TrHs)) begin
+    if (CredHistr.CredManNr!=CredManr.SerNr) then begin
+      TrHs = false;
+    end else begin
+      type = GetCredHistType(CredHistr.ArtCode,true);
+      AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","");
+      if (CredHistr.RecordType==0) then begin//invoice
+        calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+procedure AddInitialInvoice(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,var val acumint,var val calcbal,Date frdate,Date todate)
+begin
+  
+  AddPlannedFees(CredManr,CredManPayPlanr,CMb,kPlannedFeesOneTime,true,CredManr.startDate,acumint,calcbal,frdate,todate);
+
+  return;
+end;
+
+global
+procedure BuildCredManPayPlanCust(record CredManVc inCredManr,var record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CredManSetb,Boolean withactuals,Boolean suggestedonsameday)
+begin
+  Integer calculatedmonths,months;
+  val acumint,calcbal;
+  Integer i;
+  val hundred,twelve;
+  Date invdat,frdat,todat;
+  
+/*should we calculate VAT here?
+  if CredManr.VATSum > 0 and nonblank(CredManr.VATAddMonths) then begin
+    GetMonthlyVatVector(CredManr.VATSum, CredManr.VATAddMonths, vatPayments);
+  end;
+*/
+
+  hundred = 100;
+  twelve = 12;
+
+  months = inCredManr.InstalmentMonths;
+  acumint = 0;
+  calcbal = inCredManr.InvSum4;
+
+  if (withactuals) then begin
+    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal);
+  end;
+  
+  for(i=calculatedmonths;i<months;i=i+1) begin
+    if (calcbal>0) then begin
+      CalcCredManCurrentPeriod(inCredManr,i,frdat,todat,invdat); //sets dates, frdat, todat and invdat
+      if (i==0) then begin
+        AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,frdat,todat);
+      end;
+      switch (inCredManr.InstalmentType) begin
+        case 0://Annuity
+        case 1://Linear
+        case 2://Linear with Service Fee - bullet with linear or just Same, Same
+          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,true,invdat,acumint,calcbal,frdat,todat);
+          AddInterest(inCredManr,CredManPayPlanr,CredManSetb,(i==0),invdat,acumint,calcbal,frdat,todat);
+          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,(i==0),invdat,acumint,calcbal,frdat,todat);
+        case 3://Bullet
+          if (i==months-1) then begin
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,false,invdat,acumint,calcbal,frdat,todat)
+          end;
+          AddInterest(inCredManr,CredManPayPlanr,CredManSetb,(i==0),invdat,acumint,calcbal,frdat,todat);
+          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,(i==0),invdat,acumint,calcbal,frdat,todat);
+        case 4://Factoring
+          AddInterest(inCredManr,CredManPayPlanr,CredManSetb,(i==0),invdat,acumint,calcbal,frdat,todat);
+          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,false,invdat,acumint,calcbal,frdat,todat);
+          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,(i==0),invdat,acumint,calcbal,frdat,todat);
+          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,(i==0),invdat,acumint,calcbal,frdat,todat);
+        //case 5://Payment Guarantee
+
+      end;
+      if (i==0) then begin
+        AddDeposit(inCredManr,CredManPayPlanr,CredManSetb,invdat,acumint,calcbal,frdat,todat);
+      end;
+    end;
+  end;
+
+  return;
+end;

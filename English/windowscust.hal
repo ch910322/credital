@@ -70,6 +70,7 @@ begin
   EditField(h=150,v=6,100,"Owner Title",Normal,OwnerTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
@@ -367,6 +368,24 @@ begin
   EndMatrix;
   EndWindow;
 
+  WindowBegin("Check Buy-out Value",CheckBuyoutValueWClass,CGother,RcType);
+  UseView(RcVc);
+  SetWRect(20,80,400,200);
+  AutoSizeWindow(false);  
+  h = 150; h2 = 250; v=450;
+  EditFieldTL(h,v=6,120,"Buy-out Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EditFieldTL(h,v+=vs,120,"Total Dept",M4Val,Normal,0,vals0,false,0);
+  EditFieldTL(h,v+=vs,120,"Last Invoice Value",M4Val,Normal,0,vals1,false,0);
+  EditFieldTL(h,v+=vs,120,"Expected Payment",M4Val,Normal,0,vals2,false,0);
+  HalPushButton(h,v+=vs,h+120,v+20,"CalculateBuyOutValue","Calculate");
+  EndWindow;
+
+  WindowBegin("Specify Credit Agreement Schedule",CredManScheduleRClass,CGRcW,RcType);
+  SetWRect(20,80,400,220);
+  vs=20;
+  EditFieldTL(h=160,v=6,120,"Credit Agreement",M4Long,Normal,0,long1,false,CredManSClass);
+  EndWindow;
+
   return;
 end;
 
@@ -410,26 +429,29 @@ begin
   EditField(h,v+=vs,100,"Manager",Normal,Manager,false,UserSClass);
   EditField(h2,v,-40,"Name",Normal,ManagerName,false,0);
   EditField(h,v+=vs,100,"Type",Normal,Type,false,CredManTypeSClass);
-  EditField(h2,v,100,"Total Sum",Normal,Sum,true,0);
   vm = v;
-  HalPushButton(h3-100,v,h3,v+25,"B2BLoanAppCalculate","Calculate");
-  EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
-  EditField(h2,v,100,"Months",Normal,Months,true,0);
-  HalPushButton(h3-100,v+10,h3,v+35,"B2BLoanAppEvaluate","Evaluate");
-  EditField(h,v+=vs,100,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
-  EditField(h2,v,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Max Rec. Sum",ViewOnly,MaxRecSum,true,0);
-  EditField(h2,v,100,"Start Date",Normal,StartDate,false,PasteCurDate);
-  EditField(h,v+=vs,100,"Value based on Surety",Normal,MaxValSurety,true,0);
-  EditField(h2,v,100,"End Date",ViewOnly,EndDate,false,0);
-  EditField(h,v+=vs,100,"Value based on Comp.",Normal,MaxValCompany,true,0);
+  EditField(h,v+=vs,100,"Total Sum",Normal,Sum,true,0);
+  EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
+  EditField(h,v+=vs,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
+  EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
   v = vm;
-  ButtonFrame(h3+=30,v=v+20,100,5,"Creditable");
-  RadioButton(h3,v,0,0,"Not Calculated",Creditable);
-  RadioButton(h3,v+=16,1,0,"Yes A",Creditable);
-  RadioButton(h3,v+=16,2,0,"Yes B",Creditable);  
-  RadioButton(h3,v+=16,3,0,"4-eyes",Creditable);  
-  RadioButton(h3,v+=16,4,0,"No",Creditable);
+  EditField(h3=h3+30,v,-40,"Monthly Rate %",Normal,InterestRate,true,0);
+  EditField(h3,v+=vs,-40,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
+  EditField(h3,v+=vs,-40,"Max Rec. Sum",ViewOnly,MaxRecSum,true,0);
+  EditField(h3,v+=vs,-40,"Value based on Surety",Normal,MaxValSurety,true,0);
+  EditField(h3,v+=vs,-40,"Value based on Comp.",Normal,MaxValCompany,true,0);
+  v = vm;
+  ButtonFrame(h2,v=v+20,100,5,"Creditable");
+  RadioButton(h2,v,0,0,"Not Calculated",Creditable);
+  RadioButton(h2,v+=16,1,0,"Yes A",Creditable);
+  RadioButton(h2,v+=16,2,0,"Yes B",Creditable);  
+  RadioButton(h2,v+=16,3,0,"4-eyes",Creditable);  
+  RadioButton(h2,v+=16,4,0,"No",Creditable);
+  v=v+vs;
+  HalPushButton(h3-90,v,h3+10,v+25,"B2BLoanAppCalculate","Calculate");
+  HalPushButton(h3+30,v,h3+130,v+25,"B2BLoanAppEvaluate","Evaluate");
+
   h3=h3-30;
   tilenr = 1;
   TileButton(tilenr,"Contact"); tilenr = tilenr + 1;
@@ -574,22 +596,22 @@ begin
 
   Tile(tilenr,600,true,tilenr,LateRating); tilenr = tilenr + 1;
   EditField(h,v=6,100,"Late Rating",Normal,LateRating,true,0);
-  EditField(h2=h2+50,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,true,0);
-  EditField(h,v+=vs,100,"Established",Normal,Established,false,PasteCurDate);
-  EditField(h2,v,100,"Monthly Loan Payment",Normal,MonthlyLoadPayment,true,0);
-  EditField(h,v+=vs,100,"Current Debts",Normal,CurrentDebts,true,0);
-  EditField(h2,v,100,"Date of last Debt Repayment",Normal,LastRepaymentDate,false,PasteCurDate); 
+  EditField(h2=365,v,100,"Bankruptcy Rating",Normal,BankruptcyRating,true,0);
+  EditField(h3,v,100,"Established",Normal,Established,false,PasteCurDate);
+  EditField(h,v+=vs,100,"Monthly Loan Payment",Normal,MonthlyLoadPayment,true,0);
+  EditField(h2,v,100,"Current Debts",Normal,CurrentDebts,true,0);
+  EditField(h3,v,100,"Last Debt Repayment",Normal,LastRepaymentDate,false,PasteCurDate); 
   CheckBox(h,v+=vs,0,"Ongoing Court Cases",OngoingCourtCases);
   CheckBox(h2,v,0,"Historical Court Cases",HistoricalCourtCases);
-  CheckBox(h,v+=vs,0,"Ongoing Asset Arrests",OngoingAssetArrests);
-  CheckBox(h2,v,0,"Historical Asset Arrests",HistoricalAssetArrests);
-  CheckBox(h,v+=vs,0,"Bankruptcy",BankruptcyFlag);
-  CheckBox(h2,v,0,"Liquidation",LiquidationFlag);
+  CheckBox(h3,v,0,"Ongoing Asset Arrests",OngoingAssetArrests);
+  CheckBox(h,v+=vs,0,"Historical Asset Arrests",HistoricalAssetArrests);
+  CheckBox(h2,v,0,"Bankruptcy",BankruptcyFlag);
+  CheckBox(h3,v,0,"Liquidation",LiquidationFlag);
   CheckBox(h,v+=vs,0,"Ownership Changes",OwnershipChanges);
  
 //  EditField(h,v+=vs,100,"Long Term Asset Value",Normal,AssetValue,false,0);
   EditField(h,v+=vs,100,"50% Rev. Customers",Normal,HalfRevenueCustomers,true,0);
-  EditField(h2=375,v,100,"Equity",Normal,Equity,true,0);
+  EditField(h2,v,100,"Equity",Normal,Equity,true,0);
   EditField(h3,v,100,"50% Cost Suppliers",Normal,HalfCostSuppliers,true,0);
   EditField(h,v+=vs,100,"Months",Normal,RevMonths,true,0);
   EditField(h2,v,100,"Revenue",Normal,Revenue,true,0);
@@ -597,13 +619,13 @@ begin
 
   ButtonFrame(h-50,v=v+40,640,1,"Current");
   EditField(h,v,80,"Profit",Normal,CurProfit,true,0);
-  EditField(h2-55,v,80,"Receivables",Normal,CurReceivables,true,0);
+  EditField(h2=320,v,80,"Receivables",Normal,CurReceivables,true,0);
   EditField(h3-100,v,80,"Payables",Normal,CurPayables,true,0);
   EditField(h3+40,v,80,"Total",Normal,CurTotal,true,0);
 
   ButtonFrame(h-50,v=v+40,640,1,"Previous");
   EditField(h,v,80,"Profit",Normal,PrevProfit,true,0);
-  EditField(h2-55,v,80,"Receivables",Normal,PrevReceivables,true,0);
+  EditField(h2,v,80,"Receivables",Normal,PrevReceivables,true,0);
   EditField(h3-100,v,80,"Payables",Normal,PrevPayables,true,0);
   EditField(h3+40,v,80,"Total",Normal,PrevTotal,true,0);
 
@@ -652,7 +674,7 @@ begin
 
   Tile(tilenr,600,true,tilenr,BuyBankruptcyRating); tilenr = tilenr + 1;
   EditField(h,v=6,100,"Buyer's Bankrup. Rating",Normal,BuyBankruptcyRating,true,0);
-  EditField(h2,v,100,"Buyer Established ",Normal,BuyerEstablished,false,PasteCurDate);
+  EditField(h2=365,v,100,"Buyer Established ",Normal,BuyerEstablished,false,PasteCurDate);
   EditField(h,v+=vs,100,"Buyer's Turnover",Normal,BuyerTurnover,true,0);
  
   ButtonFrame(h,v=v+40,200,3,"Factoring Type");
@@ -665,6 +687,7 @@ begin
   SpecialMenu("Get Company Credit Data",' ',3,"");
   SpecialMenu("Get Surety Provider Data",' ',4,"");
   SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
+  SpecialMenu("Customer Status",'e',6,"CUStatusB2BLoanAppDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 

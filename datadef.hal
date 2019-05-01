@@ -202,6 +202,7 @@ begin
   RecordField(DaysInYear,M4Int,0,0);
   RecordField(DaysInMonth,M4Int,0,0);
   RecordField(DetailedInvoice,M4Int,0,0);
+  RecordField(TerminatedOrderClass,M4Code,5,OrderClassVc);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -320,6 +321,7 @@ begin
   RecordField(BankCode,M4Code,10,BankVc);
   RecordField(BankName,M4Str,100,0);
   RecordField(BankAccount,M4Str,100,0);
+  RecordField(MonthlyPaymentDay,M4Long,0,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -430,11 +432,12 @@ begin
   RecordField(PayDate,M4Date,0,0);
   RecordField(ArtCode,M4Code,20,INVc);
   RecordField(CredManNr,M4Long,0,0);
+  RecordField(CredFromDate,M4Date,0,0);
+  RecordField(CredToDate,M4Date,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
-  KeyBegin(CustTypeDate);
-  KeySegment(CustCode);
-  KeySegment(ChargeType);
+  KeyBegin(CredManTypeDate);
+  KeySegment(CredManNr);
   KeySegment(TransDate);
   KeySegment(SerNr);
   KeyBegin(RecordNr);
@@ -453,8 +456,10 @@ begin
 
   RecordAddBegin(IVVc,"CredIVVc");
   RecordField(CustCredManNr,M4Long,0,0);
+  RecordField(CredFromDate,M4Date,0,0);
+  RecordField(CredToDate,M4Date,0,0);
   ArrayField(ChargeType,M4Set,2010,0);
-  ArrayField(CredHistNr,M4Long,0,CredHistVc);
+  ArrayField(CredHistNr,M4Long,0,CredHistVc);  
   EndRecordAdd;
 
   BlockBegin(ItemPriorityBlock,-,"");
@@ -484,6 +489,13 @@ begin
   MainKeyBegin(CustCode,0);
   KeySegment(CustCode);
   EndRecord;
+
+  RecordAddBegin(CredManPayPlanVc,"CustCMPPVc");
+  ArrayField(FromDate,M4Date,0,0);
+  ArrayField(ToDate,M4Date,0,0);
+  ArrayField(Spec,M4Str,200,0);
+  ArrayField(Reb,M4Val,0,0);
+  EndRecordAdd;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

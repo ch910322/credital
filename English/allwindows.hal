@@ -622,10 +622,15 @@ begin
   EditField(h,v+=vs,30,"Deposit % ",Normal,DepositPrc,false,0);
   EditField(h,v+=vs,82,"Deposit Sum",Normal,DepositSum,true,0);
   EditField(h2,v=vm,82,"Start Date",Normal,startDate,false,PasteCurDate);
+//CUST-BEGIN switched fields and renamed FirstIntDate
+  EditField(h2,v+=vs,82,"Interest From Date",Normal,FirstIntDate,false,PasteCurDate);
   EditField(h2,v+=vs,82,"First Invoice Date",Normal,FirstInvDate,false,PasteCurDate);
-  EditField(h2,v+=vs,82,"First Interest Date",Normal,FirstIntDate,false,PasteCurDate);
+//CUST-END
   EditField(h2,v+=vs,82,"End Date",ViewOnly,endDate,false,PasteCurDate);
   EditField(h2,v+=vs,82,"Create Date",ViewOnly,TransDate,false,PasteCurDate);
+//CUST-BEGIN
+  EditField(h2,v+=vs,82,"Monthly Paym. Day",ViewOnly,MonthlyPaymentDay,false,0);
+//CUST-END
   EditField(h3,v=vm,82,"Monthly #Instalment#",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN
   EditField(h3,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
@@ -656,6 +661,15 @@ begin
   EditField(-340,-21,80,"Total Value in Base",ViewOnly,BaseTotalSum,true,0);
   EditField(-120,-41,80,"Total Excl. Deposit",ViewOnly,TotalSumExclDep,true,0);
   EditField(-120,-21,80,"Total Value",ViewOnly,TotalSum,true,0);
+//CUST-BEGIN
+  DataList(10,10,-50,200,"credmanevents");
+  DataListColumn(1,6,80,AdjLeft,"date","Date",M4Date);
+  DataListColumn(1,80,160,AdjLeft,"duedate","Due Date",M4Date);
+  DataListColumn(1,160,-400,AdjLeft,"comment","Comment",M4Str);
+  DataListColumn(1,-400,-300,AdjRight,"issued","Issued",M4Val);
+  DataListColumn(1,-300,-200,AdjRight,"paid","Paid",M4Val);
+  DataListColumn(1,-200,-100,AdjRight,"balance","Balance",M4Val);
+/*
   RecordList2(10,10,-30,-80,"CredManEventVc");
   RlColKey(4,4,"Trans. Date",TransDate,false,CredManTransDate);
   RlColKey(100,100,"Due Date",DueDate,false,CredManTransDate);
@@ -665,6 +679,8 @@ begin
   RlColKey(-300,-300,"Issued",InvSum,true,CredManPaidFlag);
   RlColKey(-200,-200,"Paid",PaidSum,true,CredManPaidFlag);
   RlColKey(-100,-100,"Balance",CredManBal,true,CredManTransDate);
+*/
+//CUST-END
   Tile(2,70,true,"2",Math);
   MatrixBegin(10,v=24,-50,-20,-,99);
   Flip(0);
@@ -720,6 +736,13 @@ begin
   RadioButton(h2,v+=16,1,0,"Trans. Date",LateRateOption);
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");
+  SpecialMenu("Terminate Agreement",' ',4,"TerminateCredManDsm");
+  SpecialMenu("Buy-out Agreement",' ',5,"BuyOutCredManDsm");
+  SpecialMenu("Check Buy-out Value",' ',6,"CheckBuyoutValueWindowDsm");
+  SpecialMenu("Customer Status",'e',7,"CUStatusCredManDsm");
+//CUST-BEGIN
+  SpecialMenu("Print Payment Schedule",' ',8,"PaymentScheduleCredManDsm");
+//CUST-END
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
   SpecialMenu("Credit Agreement Info",'I',0,"CredManInfoDsm");
 //CUST-BEGIN

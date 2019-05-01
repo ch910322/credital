@@ -1,0 +1,75 @@
+external updating procedure DoBuyOutAgreement(record CredManVc,var record IVVc);
+external inner procedure CredManUpdate(var record CredManVc,Integer,string);
+external inner procedure CredManSumup(var record CredManVc);
+external inner procedure CredManVc_PasteCurncyCode(var record CredManVc);
+
+global
+procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
+begin
+  record BankVc Bankr;
+  record CUVc CUr;
+  record BaseCurBlock BCb;
+
+
+  CUr.Code = CredManr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    CredManr.BankCode = CUr.AccOperator;
+    Bankr.Code = CUr.AccOperator;
+    if (ReadFirstMain(Bankr,1,true)) then begin
+      CredManr.BankName = Bankr.Name;
+    end;
+    CredManr.BankAccount = CUr.BankAccount;
+    if (nonblank(CUr.CurncyCode)) then begin
+      CredManr.CurncyCode = CUr.CurncyCode;
+    end else begin
+      BlockLoad(BCb);
+      CredManr.CurncyCode = BCb.BaseCur1;
+    end;
+    CredManVc_PasteCurncyCode(CredManr);
+  end;
+  
+  return;
+end;
+
+global
+updating procedure TerminateCredMan(var record CredManVc CredManr,var record IVVc IVr)
+begin
+  record CMApplicationSetBlock CMASb;
+  record CredManVc oldCredManr;
+   
+  BlockLoad(CMASb);
+
+  if (nonblank(CMASb.TerminatedOrderClass)) then begin
+    DoBuyOutAgreement(CredManr,IVr);
+    RecordCopy(oldCredManr,CredManr);
+    CredManr.OrderClass = CMASb.TerminatedOrderClass;
+    RecordUpdate(oldCredManr,CredManr,true);
+  end;
+
+  return;
+end;
+
+global
+procedure CredManSetDatesCust(var record CredManVc CredManr)
+begin
+  record CredManSetBlock CredManSetb;
+  Date startd,finv,fint;
+  Integer invday;
+  
+  invday = CredManr.MonthlyPaymentDay;
+  if (invday<1) then begin
+    BlockLoad(CredManSetb);
+    invday = CredManSetb.InvDay;
+  end;
+  startd = CredManr.startDate;
+  finv = AddMonth(startd,1);
+  finv = AddDay(finv,invday - GetDay(finv));
+  if (startd.day>invday) then begin
+    finv = AddMonth(finv,1);
+  end;
+  CredManr.FirstInvDate = finv;
+  CredManr.FirstIntDate = CredManr.startDate;
+  CredManUpdate(CredManr,-1,"");
+  CredManSumup(CredManr);
+  return;
+end;

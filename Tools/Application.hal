@@ -1,8 +1,23 @@
-
+/*
 global
-procedure OnApplicationStartupComplete()
+updating procedure OnApplicationStartupComplete()
 begin
 //for testing purposes
+  record IVVc IVr,oldIVr;
+  row IVVc IVrw;
+  
+  inner.OnApplicationStartupComplete;
+
+  while (LoopMain(IVr,1,true)) begin
+    RecordCopy(oldIVr,IVr);
+    if (matRowCnt(IVr)>2) then begin
+      MatRowGet(IVr,2,IVrw);
+      IVrw.Spec = " ";
+      MatRowPut(IVr,2,IVrw);
+    end;
+    RecordStore(IVr,true);
+  end;
 
   return;
 end;
+*/

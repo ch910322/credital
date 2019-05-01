@@ -20,6 +20,8 @@ begin
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
 
+  Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
+
   SString(200000,"Evaluation report");
   SString(200001,"Company");
   SString(200002,"Name: ");

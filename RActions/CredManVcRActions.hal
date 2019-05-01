@@ -5,6 +5,10 @@ global
 function LongInt CredManVcRecordDefaults(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
 BEGIN
   LongInt res;
+  record BaseCurBlock BCb;
+
+  BlockLoad(BCb);
+  CredManr.CurncyCode = BCb.BaseCur1;
 
   res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
   

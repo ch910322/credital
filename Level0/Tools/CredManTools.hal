@@ -281,7 +281,6 @@ begin
     CredManr.RebCode = CUr.RebCode;
     CredManr.Objects = CUr.Objects;
     CredManr.SalesMan = USr.Code;
-    CredManr.CurncyCode = CUr.CurncyCode;
     CredManr.LangCode = CUr.LangCode;
     CredManUpdate(CredManr,-1,"");
     CredManSumup(CredManr);
