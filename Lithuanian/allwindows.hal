@@ -19,6 +19,17 @@ external function Boolean HasCustomerStatusReport();
 external function Boolean HasSalesman();
 external function Boolean HasSalesmanBonus();
 external procedure RateField(real,real,real,string,integer,string,boolean,real,real,string,boolean);
+external function Boolean HasModCRM();
+external function Boolean HasModSL();
+external function Boolean HasModCheck();
+external function Boolean HasModCO();
+external function Boolean HasAdvancedCRM();
+external function Boolean HasModQT();
+external function Boolean HasModSO();
+external function Boolean HasModPOS();
+external function Boolean HasModTS();
+external function Boolean HasModRent();
+external function Boolean HasModSVO();
 
 SetLangMode(LangLithuanian,"LIT",0);
 
@@ -30,7 +41,7 @@ begin
   record CUVc CUr;
   Integer wn,tilenr;
   record ModuleBlock Modb;
-  
+
   BlockLoad(Modb);
   WindowBegin("Kontaktas",CUDClass,CGview,-);
   DynamicWindow;
@@ -38,16 +49,16 @@ begin
   Sizeable(-1,-1,0,0);
   UseView(CUVc);
   FormName(PrintCUD);
-  
+
   wn = CurWindow;
   if (wn>0) then begin
-    if (GetWindowClass(wn)=="CUDClass") then begin 
-    GetWindowRecord(wn,CUr);
+    if (GetWindowClass(wn)=="CUDClass") then begin
+      GetWindowRecord(wn,CUr);
     end;
   end;
-  
+
   if (HasLocalization("EST,GBR,LTU,LVA,NOR")) then begin
-  ActiveFieldOnNew("Code"); //dont change, otherwise automatic address lookup helper window wont show automatically //wns
+    ActiveFieldOnNew("Code"); // dont change, otherwise automatic address lookup helper window wont show automatically //wns
                               // this should not be based on localization, but rather on if the
                               // address lookup is enabled, erik
   end else begin
@@ -348,6 +359,9 @@ begin
   if (HasWithholdingTax) then begin
   EditField(h1,v+=vs,120,"Pelno mokes‹io mok. bðdas",Normal,WithPayMode,false,PMSClass);
   end;
+//CUST-BEGIN
+  HalPushButton(h1,v+=30,h1+150,v+20,"OpenCUBankAccountsDsm","Additional Bank Accounts");
+//CUST-END
   if (HasLocalization("HRV,HUN,POL,SRB,SLV,SVN")) then begin
     ButtonFrame(h1,v+=60,150,3,"¯kelti mok˜jimo PVM"); 
     RadioButton(h1,v,0,0,"Pagal nutyl˜jimˆ",OPBookVAT); 
@@ -602,16 +616,21 @@ begin
   EditField(h,v+=vs,82,"Pardav˜jas",Normal,SalesMan,false,UserSClass);
   EditField(h2,v,-40,"Kont.",Normal,ClientContact,false,ContactSClass);
   EditField(h,vm=(v+=vs),82,"Viso suma",Normal,InvSum4,true,0);
-  EditField(h,v+=vs,30,"Delspinigi÷ %",Normal,IntRate,false,0);
+  EditField(h,v+=vs,30,"Delspinigi÷ %",Normal,IntRate,false,0);//CUST changed label
   EditField(h,v+=vs,30,"M˜nesiai",Normal,InstalmentMonths,false,0);
   EditField(h,v+=vs,30,"Mok. terminai",Normal,PayDeal,false,PDSClass);
   EditField(h,v+=vs,30,"Uìstatas % ",Normal,DepositPrc,false,0);
   EditField(h,v+=vs,82,"Uìstato suma",Normal,DepositSum,true,0);
   EditField(h2,v=vm,82,"Pradìios data",Normal,startDate,false,PasteCurDate);
-  EditField(h2,v+=vs,82,"Pirmoji faktðros data",Normal,FirstInvDate,false,PasteCurDate);
+//CUST-BEGIN switched fields and renamed FirstIntDate
   EditField(h2,v+=vs,82,"Pirmoji palðkan÷ data",Normal,FirstIntDate,false,PasteCurDate);
+  EditField(h2,v+=vs,82,"Pirmoji faktðros data",Normal,FirstInvDate,false,PasteCurDate);
+//CUST-END
   EditField(h2,v+=vs,82,"Pabaigos data",ViewOnly,endDate,false,PasteCurDate);
   EditField(h2,v+=vs,82,"Sukðrimo data",ViewOnly,TransDate,false,PasteCurDate);
+//CUST-BEGIN
+  EditField(h2,v+=vs,82,"Monthly Paym. Day",ViewOnly,MonthlyPaymentDay,false,0);
+//CUST-END
   EditField(h3,v=vm,82,"M˜nesiniai °naäai",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN
   EditField(h3,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
@@ -642,6 +661,15 @@ begin
   EditField(-340,-21,80,"Viso vert˜ baz.val.",ViewOnly,BaseTotalSum,true,0);
   EditField(-120,-41,80,"Viso be Uìstato",ViewOnly,TotalSumExclDep,true,0);
   EditField(-120,-21,80,"Viso vert˜",ViewOnly,TotalSum,true,0);
+//CUST-BEGIN
+  DataList(10,10,-50,200,"credmanevents");
+  DataListColumn(1,6,80,AdjLeft,"date","Date",M4Date);
+  DataListColumn(1,80,160,AdjLeft,"duedate","Due Date",M4Date);
+  DataListColumn(1,160,-400,AdjLeft,"comment","Comment",M4Str);
+  DataListColumn(1,-400,-300,AdjRight,"issued","Issued",M4Val);
+  DataListColumn(1,-300,-200,AdjRight,"paid","Paid",M4Val);
+  DataListColumn(1,-200,-100,AdjRight,"balance","Balance",M4Val);
+/*
   RecordList2(10,10,-30,-80,"CredManEventVc");
   RlColKey(4,4,"Oper. data",TransDate,false,CredManTransDate);
   RlColKey(100,100,"Iki datos",DueDate,false,CredManTransDate);
@@ -651,6 +679,7 @@ begin
   RlColKey(-300,-300,"Iäleista",InvSum,true,CredManPaidFlag);
   RlColKey(-200,-200,"Sumok˜ta",PaidSum,true,CredManPaidFlag);
   RlColKey(-100,-100,"Balansas",CredManBal,true,CredManTransDate);
+*/
   Tile(2,70,true,"2",Math);
   MatrixBegin(10,v=24,-50,-20,-,99);
   Flip(0);
@@ -695,12 +724,28 @@ begin
   EditField(h,v+=vs,40,"Maks. v˜lavimo dien÷",Normal,LateFeeDays,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Sutarti m˜nesiai",Normal,SettleLimit,false,0);
+//CUST-BEGIN
+  EditField(h2,v=vm-20,-40,"Bank Code",Normal,BankCode,false,BankSClass);
+  EditField(h2,v+=vs,-40,"Bank Name",Normal,BankName,false,0);
+  EditField(h2,v+=vs,-40,"Bank Account",Normal,BankAccount,false,BankAccountSClass);
+  EditField(h2,v+=vs,-40,"Pause Date",ViewOnly,PauseDate,false,0);
+  EditField(h2,v+=vs,-40,"Pause Months",ViewOnly,PauseMonths,false,0);
+  vm = v+40;
+//CUST-END
   ButtonFrame(h2,v=vm,150,2,"V˜luotini delspinigiai skai‹iuojami");
   RadioButton(h2,v,0,0,"Nuo datos",LateRateOption); 
   RadioButton(h2,v+=16,1,0,"Operacijos datos",LateRateOption); 
   SpecialMenu("Atidaryti DK operacijˆ",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Atidaryti pirmin° °raäˆ",' ',3,"OpenSubsysCredManDsm");
-  SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
+ //CUST-BEGIN
+  SpecialMenu("Terminate Agreement",' ',4,"TerminateCredManDsm");
+  SpecialMenu("Buy-out Agreement",' ',5,"BuyOutCredManDsm");
+  SpecialMenu("Check Buy-out Value",' ',6,"CheckBuyoutValueWindowDsm");
+  SpecialMenu("Customer Status",'e',7,"CUStatusCredManDsm");
+  SpecialMenu("Print Payment Schedule",' ',8,"PaymentScheduleCredManDsm");
+  SpecialMenu("Pause Agreement",' ',8,"PauseCredManDsm");
+//CUST-END
+ SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
   SpecialMenu("Kredito sutarties inform.",'I',0,"CredManInfoDsm");
 //CUST-BEGIN
 //  SpecialMenu("Sukurti faktðrˆ",'F',1,"InvoiceCredManDsm");
@@ -730,7 +775,7 @@ begin
   EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST added
   EditField(h,v+=vs,40,"Maks. v˜luotinos dienos",Normal,LateFeeDays,false,0);
   EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST added
-  EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);
+  EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);//CUST changed label
   EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Uìstatas % ",Normal,DepositPrc,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
@@ -763,3 +808,155 @@ begin
   EndWindow;
 end;
 
+window CustPSDClass:3
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,v,vm,vs,vs2;
+  Integer tilenr;
+  
+  WindowBegin("Informacija pirk˜jo bðkl˜s ataskaitoje",CustPSDClass,CGview,-);
+  UseView(CustPSVc);
+  SetWRect(74,73,550,480);
+  h=70;h2=45;h3=390;v=10;vs=20;vm=30; vs2=18;
+  if (IsEnterprise) then begin
+  Tile(0,50,false,"",Signature);
+  end;
+  tilenr = 1;
+  EditField(h,v,82,"Vartotojas",Normal,Signature,false,UserSClass);
+  if (IsEnterprise) then begin
+    TileButton(tilenr,tilenr);  tilenr = tilenr + 1;
+    TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+    if (StandardHansa==false) then begin
+    TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+    end;
+//CUST-BEGIN
+    TileButton(tilenr,tilenr); tilenr = tilenr + 1;
+//CUST-END
+    tilenr = 1;
+    Tile(tilenr,400,false,tilenr,NrOfAct); tilenr = tilenr + 1;
+    v = vm;
+  end else begin
+    tilenr = 1;
+    v = v + 40;
+    vm = v;
+  end;
+  h = 30;
+  if (HasModCRM) then begin
+    ButtonFrame(20,v=vm,420,2,"Veiklos"); 
+    CheckBox(h,v,0,"¯traukti veiklas",Activities); 
+  CheckBox(h3-100,v,0,"Rodyti veikl÷ klases",ShowActivityClasses);
+  CheckBox(h2,v+=17,0,"¯traukti neatliktas",NotOKAct);
+  EditField(h3,v,40,"Paskutini÷ veikl÷ skai‹ius",Normal,NrOfAct,false,0);
+  end;
+  if (HasModSL) then begin
+  ButtonFrame(20,vm=(v+40),420,3,"Faktðros");
+  CheckBox(h=30,v+=(vs+20),0,"¯traukti faktðras",Invoices);
+  CheckBox(h2,v+=17,0,"Atidarytas",NotOKIV);
+  EditField(h3,v,40,"Paskutin˜ apmok˜ta faktðra",Normal,NrOfIV,false,0);
+  end;
+  if (HasModCheck) then begin
+  CheckBox(h2,v+=16,0,"¯traukti ‹ekius",Checks);
+  end;
+  if (HasModSL) then begin
+    EndFrame;
+  end;
+  if (HasModCO) then begin
+  ButtonFrame(h=20,vm=(v+40),420,2,"Kontrakt÷ pasiðlymai");
+  CheckBox(h=30,v+=(vs+20),0,"¯traukti kontrakt÷ pasiðlymus",ContQuote);
+  CheckBox(h2,v+=17,0,"¯traukti uìdarytus",TermCQ);
+  EditField(h3,v,40,"Kontrakt÷ pasiðlym÷ skai‹ius",Normal,NrOfCQ,false,0);
+  ButtonFrame(20,vm=(v+40),420,2,"Kontraktai");
+  CheckBox(h=30,v+=(vs+20),0,"¯traukti kontraktus",Contract);
+  EditField(h3,v=v-1,40,"Kontrakto klas˜",Normal,ContractClass,false,ContractClassSClass);
+  CheckBox(h2,v+=17,0,"¯traukti nepatvirtintas",NotOKCO);
+  EditField(h3,v+1,40,"Sutar‹i÷ skai‹ius",Normal,NrOfCO,false,0);
+//  CheckBox(h,v+=vs+10,0,"Kredito istorija",PaymentHistory);//available for evryone
+  end;
+  if (HasAdvancedCRM) then begin
+  ButtonFrame(20,vm=(v+40),420,2,"SMS ìinut˜s");
+  CheckBox(h=30,v+=(vs+20),0,"¯traukti SMS ìinutes",SMSes);
+  EditField(h3,v,40,"ëinu‹i÷ skai‹ius",Normal,NrOfSMS,false,0);
+  end;
+  if (HasAdvancedCRM) then begin
+    Tile(tilenr,121,true,tilenr,CustItemMonthNr); tilenr = tilenr + 1;
+    if (StandardHansa==false) then begin
+  ButtonFrame(20,v=50,420,1,"M˜nesio balansai");
+  CheckBox(h=30,v,0,"¯traukti m˜n. bal.(12 m˜nesi÷)",MonthBal);
+  ButtonFrame(20,vm=(v+45),420,1,"Pirk˜jo prek˜s statistika");
+  CheckBox(h=30,v+=(vs+25),0,"¯traukti pirk˜jo prek«",CustItem);
+  EditField(h3,v,40,"M˜nesi÷ skai‹ius",Normal,CustItemMonthNr,false,0);
+  end;
+  end;
+  if (HasModQT) then begin
+    if (StandardHansa==false) then begin
+  ButtonFrame(20,vm=(v+45),420,2,"Pasiðlymai");
+  CheckBox(h=30,v+=(vs+25),0,"¯traukti pasiðlymˆ",Quotations);
+    end else begin
+      ButtonFrame(20,v=30,420,2,"Pasiðlymai"); 
+      CheckBox(h=30,v,0,"¯traukti pasiðlymus",Quotations); 
+    end;
+  EditField(h3,v=v-1,40,"Pasiðlym÷ klas˜",Normal,QTClass,false,QuoteClassSClass);
+  EditField(h3,v+=vs2,40,"Pasiðlym÷ skai‹ius",Normal,NrOfQT,false,0);
+  end;
+  if (HasModSO) then begin
+  ButtonFrame(20,vm=(v+40),420,2,"Uìsakymai");
+  CheckBox(h=30,v+=(vs+20),0,"¯traukti uìsakymus",Orders);
+  EditField(h3,v=v-1,40,"Uìsakymo klas˜",Normal,ORClass,false,OrderClassSClass);
+  EditField(h3,v+=vs2,40,"Uìsakym÷ skai‹ius",Normal,NrOfOR,false,0);
+  end;
+  if (HasModPOS) then begin
+    ButtonFrame(20,vm=(v+45),420,2,"POS faktðros"); 
+    CheckBox(h=20,v+=(vs+25),0,"¯traukti POS faktðras",IVCash); 
+    EditField(h3,v+=vs2,40,"POS faktðr÷ skai‹ius",Normal,NrOfIVCash,false,0); 
+  end;
+  if (HasModCRM) then begin
+  ButtonFrame(20,vm=(v+40),420,1,"Ne°traukti");
+  EditField(h+80,v+=(vs+20),100,"Veikl÷ tip÷",Normal,ExcludeActTypes,false,ActTypeSClass);
+  end;
+
+  if (HasModTS or HasModRent or HasModSVO) then begin
+    Tile(tilenr,121,true,tilenr,NrOfPR); tilenr = tilenr + 1;
+    h=20; v=20;
+  end;
+  if (HasModTS) then begin
+    ButtonFrame(h,v,420,1,"Projektai"); 
+  CheckBox(h2=30,v,0,"¯traukti projektus",Projects);
+  EditField(h3,v,40,"Projekt÷ skai‹ius",Normal,NrOfPR,false,0);
+  ButtonFrame(h,vm=(v+40),420,1,"Projekt÷ Biudìetai");
+  CheckBox(h2,v+=(vs+20),0,"¯traukti projekt÷ biudìetus",ProjectBudgets);
+  EditField(h3,v,40,"Projekt÷ biudìet÷ skai‹ius",Normal,NrOfTBBU,false,0);
+  end;
+  if (HasModRent) then begin
+  ButtonFrame(h,vm=(v+40),420,1,"Sutartys");
+  CheckBox(h2,v+=(vs+20),0,"¯traukti sutartis",Agreements);
+  EditField(h3,v,40,"Sutar‹i÷ skai‹ius",Normal,NrOfAgreements,false,0);
+  ButtonFrame(h,vm=(v+40),420,1,"Nuomos rezervacijos");
+  CheckBox(h2,v+=(vs+20),0,"¯traukti nuomos rezervacijas",RentalReservations);
+  EditField(h3,v,40,"Nuomos rezervacij÷ skai‹ius",Normal,NrOfRentRes,false,0);
+  end;
+  if (HasModSVO) then begin
+  ButtonFrame(h,vm=(v+40),420,1,"Paslaug÷ uìsakymai");
+  CheckBox(h2,v+=(vs+20),0,"¯traukti paslaug÷ Uìsakymus",ServiceOrders);
+  EditField(h3,v,40,"Paslaug÷ Uìsakym÷ skai‹ius",Normal,NrOfSVO,false,0);
+  ButtonFrame(h,vm=(v+40),420,1,"Darbo kortel˜s");
+  CheckBox(h2,v+=(vs+20),0,"¯traukti darbo korteles",WorkSheets);
+  EditField(h3,v,40,"Darbo korteli÷ skai‹ius",Normal,NrOfWS,false,0);
+  ButtonFrame(h,vm=(v+40),420,1,"Kita");
+  CheckBox(h2,v+=(vs+20),0,"Rodyti ryäius su kitais kontaktais",ContactRelations);
+  end;
+//CUST-BEGIN
+  Tile(tilenr,121,true,tilenr,NrOfPR); tilenr = tilenr + 1;
+  h=20; v=20;
+  ButtonFrame(h,v,420,1,"B2B Loan Applications");
+  CheckBox(h2=30,v,0,"Include B2B Loan Applications",B2BApps);
+  EditField(h3,v,40,"Number of B2B Loan Applications",Normal,NrOfB2BApp,false,0);
+  ButtonFrame(h,v+=45,420,1,"Credit Applications");
+  CheckBox(h2=30,v,0,"Include Credit Applications",CredApps);
+  EditField(h3,v,40,"Number of Credit Applications",Normal,NrOfCredApp,false,0);
+  ButtonFrame(h,v+=45,420,1,"Credit Agreements");
+  CheckBox(h2=30,v,0,"Include Credit Agreements",CredMan);
+  EditField(h3,v,40,"Number of Credit Agreements",Normal,NrOfCredMan,false,0);
+
+//CUST-END
+  EndWindow;
+end;

@@ -6,6 +6,7 @@ remote procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
+remote updating procedure DoPauseCredMan(var record CredManVc,Longint);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -274,6 +275,47 @@ begin
 end;
 
 global
+procedure PauseCredManDsm()
+begin
+  Integer wn;
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  if (WindowState(wn)==Rs_Normal) then begin
+    
+    RepSpec.long1 = CredManr.PauseMonths;
+    OpenWindow("PauseCredManWClass",0,wn,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure PauseCredManWClassPause()
+begin
+  Integer wn,mwn;
+  record CredManVc CredManr;
+  record RcVc RepSpec;
+
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+  GetWindowRecord(wn,RepSpec);
+  if (RepSpec.long1>0) then begin
+    mwn = MotherWindow(wn);
+    if (WindowState(mwn)==Rs_Normal) then begin
+      GetWindowRecord(mwn,CredManr);
+      DoPauseCredMan(CredManr,RepSpec.long1);
+      PutWindowRecord(mwn,CredManr);
+      SetWindowState(mwn,Rs_Normal);
+    end;
+    CloseWindow(wn);
+  end;
+  return;
+end;
+
+global
 function Boolean CredManDClassOnOpenWindow(Integer wn)
 begin
   Boolean res;
@@ -337,6 +379,9 @@ begin
   LongInt res;
   
   CredManr.OrderClass = CredMan2r.OrderClass;
+  CredManr.PauseDate = CredMan2r.PauseDate;
+  CredManr.PauseMonths = CredMan2r.PauseMonths;
+  CredManr.endDate = CredMan2r.endDate;
   
   CredManVcRecordProtectFields = res;
   return;

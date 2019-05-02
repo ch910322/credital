@@ -358,7 +358,6 @@ begin
     end;
     GetOverdueInvoices(CredManr,CMb,td,AddDay(lastinv,1),latedays,lateamount);
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
-    Logtext(0,"ddd " & IVr.Sum4);
   end;
 
   return;
@@ -566,9 +565,7 @@ begin
       if (firstf==false and (CredHistr.RecordType!=prevCredHistr.RecordType or CredHistr.RecordNr!=prevCredHistr.RecordNr)) then begin
         AddCredHistToArray(ORr,prevCredHistr,balance);
       end;
-      logtext(0,"ddd " & CredHistr.ChargeType & ":" & kEventTypeIssueInstalment & ":" & CredHistr.RecordType);
       if (CredHistr.RecordType==kCredHistRecTypeInvoice and (CredHistr.ChargeType==kEventTypeIssueInstalment or CredHistr.ChargeType==kEventTypeIssueDeposit)) then begin
-      logtext(0,"dddbal " & CredHistr.ChargeType);
         balance = balance - CredHistr.Sum;
       end;
       RecordCopy(prevCredHistr,CredHistr);

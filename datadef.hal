@@ -322,6 +322,8 @@ begin
   RecordField(BankName,M4Str,100,0);
   RecordField(BankAccount,M4Str,100,0);
   RecordField(MonthlyPaymentDay,M4Long,0,0);
+  RecordFIeld(PauseDate,M4Date,0,0);
+  RecordField(PauseMonths,M4Long,0,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  

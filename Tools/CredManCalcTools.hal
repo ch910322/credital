@@ -278,6 +278,23 @@ begin
   return;
 end;
 
+function Boolean CredManIsPaused(record CredManVc CredManr,Date invdate)
+begin
+  Boolean res;
+  Date pstart,pend;
+
+  if (nonblank(CredManr.PauseDate)) then begin
+    pstart = CredManr.PauseDate;
+    pend = AddDay(AddMonth(pstart,CredManr.PauseMonths),-1);
+    if (DateInRange(invdate,pstart,pend)) then begin
+      res = true;
+    end;
+  end;
+
+  CredManIsPaused = res;
+  return;
+end;
+
 global
 procedure BuildCredManPayPlanCust(record CredManVc inCredManr,var record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CredManSetb,Boolean withactuals,Boolean suggestedonsameday)
 begin
@@ -297,6 +314,9 @@ begin
   twelve = 12;
 
   months = inCredManr.InstalmentMonths;
+  if (nonblank(inCredManr.PauseDate)) then begin
+    months = months + inCredManr.PauseMonths;
+  end;
   acumint = 0;
   calcbal = inCredManr.InvSum4;
 
@@ -314,7 +334,9 @@ begin
         case 0://Annuity
         case 1://Linear
         case 2://Linear with Service Fee - bullet with linear or just Same, Same
-          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,true,invdat,acumint,calcbal,frdat,todat);
+          if (CredManIsPaused(inCredManr,invdat)==false) then begin
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,true,invdat,acumint,calcbal,frdat,todat);
+          end;
           AddInterest(inCredManr,CredManPayPlanr,CredManSetb,(i==0),invdat,acumint,calcbal,frdat,todat);
           AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,(i==0),invdat,acumint,calcbal,frdat,todat);
         case 3://Bullet

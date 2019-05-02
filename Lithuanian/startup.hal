@@ -20,6 +20,8 @@ begin
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
 
+  Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
+
   SString(200000,"Evaluation report");
   SString(200001,"Company");
   SString(200002,"Name: ");
@@ -73,6 +75,24 @@ begin
   SString(200050,"Overall monthly Obligation Payment: ");
   SString(200051,"Assets: ");
   SString(200052,"Other");
+  //CustPSRn
+  SString(200060,"B2B Loan Applications");
+  SString(200061,"Appl. No.");
+  SString(200062,"Appl. Date");
+  SString(200063,"Customer");
+  SString(200064,"Product");
+  SString(200065,"Start Date");
+  SString(200066,"End Date");
+  SString(200067,"Amount");
+  SString(200068,"Rate");
+  SString(200069,"Credit Agreements");
+  SString(200070,"Agr. No.");
+  SString(200071,"Agr. Date");
+  SString(200072,"Instalm.");
+
+  SString(200080,"Agreement No.: ");
+  SString(200081,"Period: ");
+
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
@@ -88,9 +108,9 @@ begin
   EndSet;
 
   SetBegin(2001);
-  SetText(0,"Increasing #Instalment# - Decreasing Interest");
-  SetText(1,"Same #Instalment# - Decreasing Interest");
-  SetText(2,"Same #Instalment# - Same Interest");
+  SetText(0,"Annuity");
+  SetText(1,"Linear");
+  SetText(2,"Linear with Service Fee");
   SetText(3,"Bullet Loan");
   SetText(4,"Factoring");
   SetText(5,"Payment Guarantee");

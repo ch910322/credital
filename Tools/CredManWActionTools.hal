@@ -2,6 +2,7 @@ external updating procedure DoBuyOutAgreement(record CredManVc,var record IVVc);
 external inner procedure CredManUpdate(var record CredManVc,Integer,string);
 external inner procedure CredManSumup(var record CredManVc);
 external inner procedure CredManVc_PasteCurncyCode(var record CredManVc);
+external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -71,5 +72,42 @@ begin
   CredManr.FirstIntDate = CredManr.startDate;
   CredManUpdate(CredManr,-1,"");
   CredManSumup(CredManr);
+  CredManr.endDate = AddMonth(CredManr.FirstInvDate,CredManr.InstalmentMonths - 1);
+  if (nonblank(CredManr.PauseDate)) then begin
+    CredManr.endDate = AddMonth(CredManr.endDate,CredManr.PauseMonths);
+  end;
+  
+  return;
+end;
+
+global
+updating procedure DoPauseCredMan(var record CredManVc CredManr,Longint months)
+begin
+  record CredManVc oldCredManr;
+  record CredManPayPlanVc CredManPayPlanr;
+  row CredManPayPlanVc CredManPayPlanrw;
+  Integer i,rwcnt;
+  Date nextdate;
+  record CredManSetBlock CMb;
+
+
+  BlockLoad(CMb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+  rwcnt = MatRowCnt(CredManPayPlanr);
+  nextdate = CredManr.FirstInvDate;
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
+    if (CredManPayPlanrw.PlanType<5) then begin
+      i = rwcnt;
+      nextdate = CredManPayPlanrw.TransDate;
+    end;
+  end;
+
+  RecordCopy(oldCredManr,CredManr);
+  CredManr.PauseDate = nextdate;
+  CredManr.PauseMonths = months;
+  CredManSetDatesCust(CredManr);
+  RecordUpdate(oldCredManr,CredManr,true);
+
   return;
 end;

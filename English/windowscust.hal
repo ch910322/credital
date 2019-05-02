@@ -386,6 +386,16 @@ begin
   EditFieldTL(h=160,v=6,120,"Credit Agreement",M4Long,Normal,0,long1,false,CredManSClass);
   EndWindow;
 
+
+  WindowBegin("Pause Credit Agreement",PauseCredManWClass,CGother,RcType);
+  UseView(RcVc);
+  SetWRect(20,80,400,140);
+  AutoSizeWindow(false);  
+  h = 150; h2 = 250; v=450;
+  EditFieldTL(h,v=6,120,"Pause Months",M4Long,Normal,0,long1,false,0);
+  HalPushButton(h,v+=vs,h+120,v+20,"PauseCredManWClassPause","Pause");
+  EndWindow;
+
   return;
 end;
 

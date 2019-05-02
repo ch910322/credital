@@ -729,6 +729,8 @@ begin
   EditField(h2,v=vm-20,-40,"Bank Code",Normal,BankCode,false,BankSClass);
   EditField(h2,v+=vs,-40,"Bank Name",Normal,BankName,false,0);
   EditField(h2,v+=vs,-40,"Bank Account",Normal,BankAccount,false,BankAccountSClass);
+  EditField(h2,v+=vs,-40,"Pause Date",ViewOnly,PauseDate,false,0);
+  EditField(h2,v+=vs,-40,"Pause Months",ViewOnly,PauseMonths,false,0);
   vm = v+40;
 //CUST-END
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
@@ -736,12 +738,13 @@ begin
   RadioButton(h2,v+=16,1,0,"Trans. Date",LateRateOption);
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");
+//CUST-BEGIN
   SpecialMenu("Terminate Agreement",' ',4,"TerminateCredManDsm");
   SpecialMenu("Buy-out Agreement",' ',5,"BuyOutCredManDsm");
   SpecialMenu("Check Buy-out Value",' ',6,"CheckBuyoutValueWindowDsm");
   SpecialMenu("Customer Status",'e',7,"CUStatusCredManDsm");
-//CUST-BEGIN
   SpecialMenu("Print Payment Schedule",' ',8,"PaymentScheduleCredManDsm");
+  SpecialMenu("Pause Agreement",' ',8,"PauseCredManDsm");
 //CUST-END
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
   SpecialMenu("Credit Agreement Info",'I',0,"CredManInfoDsm");
