@@ -740,10 +740,14 @@ global
 procedure B2BLoanAppEvaluate()
 begin
   record B2BLoanApplicationVc LAr;
+  Integer wn;
 
-  GetWindowRecord(CurWindow,LAr);
-  CalculateEvalReport(LAr);
-
+  wn = CurWindow;
+  if (WindowState(wn)==Rs_Normal) then begin
+    GetWindowRecord(CurWindow,LAr);
+    CalculateEvalReport(LAr);
+  end;
+  
   return;
 end;
 

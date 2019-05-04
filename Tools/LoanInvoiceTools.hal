@@ -62,10 +62,10 @@ begin
   //we should always have in the plan first row instalment or interest where we have start and end date
   if (CMASb.DetailedInvoice==1) then begin
     ClearRow(IVr,IVrw,1);
-    IVrw.Spec = USetStr(200080) & CredManr.SerNr;
+    IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200080) & CredManr.SerNr;
     MatRowPut(IVr,0,IVrw);
     ClearRow(IVr,IVrw,1);
-    IVrw.Spec = USetStr(200081) & fromdate & ":" & todate;
+    IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200081) & fromdate & ":" & todate;
     MatRowPut(IVr,1,IVrw);
     ClearRow(IVr,IVrw,1);
     IVrw.Spec = " ";

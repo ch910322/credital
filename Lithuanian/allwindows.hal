@@ -589,8 +589,8 @@ begin
     SpecialMenu("Objektas",' ',1,"CreateObjectCUDsm");
     SpecialMenu("Prarasto slaptaì. gavimo el.paätas",' ',3,"RandomPassMailCUDsm");
 //CUST-BEGIN
-    SpecialMenu("Verslo kredito paraiÅ¡ka",' ',3,"CreateB2BLoanApplicationCUDsm");
-    SpecialMenu("Credit Agreement",' ',3,"CreateCredManCUDsm");
+    SpecialMenu("Verslo kredito paraiäka",' ',3,"CreateB2BLoanApplicationCUDsm");
+    SpecialMenu("Kredito sutartis",' ',3,"CreateCredManCUDsm");
 //END-CUST
   end;
   EndWindow;
@@ -633,11 +633,11 @@ begin
 //CUST-END
   EditField(h3,v=vm,82,"M˜nesiniai °naäai",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN
-  EditField(h3,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
-  EditField(h3,v+=vs,82,"Overdue percentage",Normal,OverduePercentage,false,0);
-  EditField(h3,v+=vs,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);
-  EditField(h3,v+=vs,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);
-  EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
+  EditField(h3,v+=vs,82,"Uìsakymo klas˜",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h3,v+=vs,82,"Delspinigiai",Normal,OverduePercentage,false,0);
+  EditField(h3,v+=vs,82,"Laiduotojo palðkanos",Normal,SuretyInterestRate,false,0);
+  EditField(h3,v+=vs,82,"Std Prat«simo mokestis",Normal,StdProlongFee,false,0);
+  EditField(h3,v+=vs,82,"Std Prat«simo mokestis %",Normal,StdProlongPrc,false,0);
 //  ButtonFrame(h4,v=vm+20,150,2,"Skai‹iavimo metodas");
 //  RadioButton(h4,v,0,0,"Kaupiamas balansas",ChargeMethod);
 //  RadioButton(h4,v+=16,1,0,"M˜nesin˜s faktðros",ChargeMethod);
@@ -767,18 +767,18 @@ begin
   //CUST-END
   UseView(CredManTypeVc);
   EditField(h,v,80,"Kodas",St_i,Code,false,0);
-  EditField(h2,v,-40,"Delspinigiai",Normal,InstalmentType,false,SetSClass);
+  EditField(h2,v,-40,"Delspinigiai %",Normal,InstalmentType,false,SetSClass);
   EditField(h,v+=vs,-40,"Komentaras",Normal,Comment,false,0);
   EditField(h,v+=vs,40,"Privalomi m˜nesiai",Normal,InstalmentMonths,false,0);
-  EditField(h2,v,82,"Overdue percentage",Normal,OverduePercentage,false,0);//CUST added
+  EditField(h2,v,82,"Deslpinigiai %",Normal,OverduePercentage,false,0);//CUST added
   EditField(h,vm=(v+=vs),40,"Mok. terminas",Normal,PayDeal,false,PDSClass);
-  EditField(h2,v,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);//CUST added
+  EditField(h2,v,82,"Laiduotojo Palðkanos",Normal,SuretyInterestRate,false,0);//CUST added
   EditField(h,v+=vs,40,"Maks. v˜luotinos dienos",Normal,LateFeeDays,false,0);
-  EditField(h2,v,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);//CUST added
-  EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);//CUST changed label
-  EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST added
+  EditField(h2,v,82,"Std Prat«simo mokestis",Normal,StdProlongFee,false,0);//CUST added
+  EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);
+  EditField(h2,v,82,"Std Prat«simo mokestis %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Uìstatas % ",Normal,DepositPrc,false,0);
-//  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
+//  EditField(h,v+=vs,40,"Dienos be palðkan÷",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Nemok˜tini m˜nesiai",Normal,SettleLimit,false,0);
   EditField(h,vm2=(v+=vs),82,"Fiksuotas Uìstatas",Normal,DepositSum,true,0);
   //CUST-BEGIN
@@ -787,7 +787,7 @@ begin
   ButtonFrame(h2,v=vm,150,2,"V˜luojam÷ delspinigi÷ skai‹iavimas");
   RadioButton(h2,v,0,0,"Nuo datos",LateRateOption); 
   RadioButton(h2,v+=16,1,0,"Oper.datos",LateRateOption); 
-  ButtonFrame(h2,v+=40,150,2,"Skai‹iavimo meodas");
+  ButtonFrame(h2,v+=40,150,2,"Skai‹iavimo metodas");
   RadioButton(h2,v,0,0,"Kaupiamas balansas",ChargeMethod);
   RadioButton(h2,v+=16,1,0,"M˜nesin˜s faktðros",ChargeMethod);
 /*

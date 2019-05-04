@@ -203,6 +203,7 @@ begin
   RecordField(DaysInMonth,M4Int,0,0);
   RecordField(DetailedInvoice,M4Int,0,0);
   RecordField(TerminatedOrderClass,M4Code,5,OrderClassVc);
+  RecordField(InvoiceCommentStr,M4Str,255,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
