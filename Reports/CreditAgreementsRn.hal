@@ -15,7 +15,8 @@ begin
 return;
 end;
 
-function val GetFutureBalance(record CredManVc CredManr,record CredManSetBlock CredManSetb,Date baldate)
+global
+function val GetFutureCredManBalance(record CredManVc CredManr,record CredManSetBlock CredManSetb,Date baldate)
 begin
 	val res;
 	record CredManPayPlanVc CredManPayr;
@@ -37,7 +38,7 @@ begin
 		res = CredManPayrw.Bal;
 	end;
 
-	GetFutureBalance = res;
+	GetFutureCredManBalance = res;
 	return;
 end;
 
@@ -94,7 +95,7 @@ begin
 		if(CredManr.startDate>RepSpec.sEndDate)then begin testf = false; TrHs = false; end;
 		
 		if (testf) then begin
-  		curbal = GetFutureBalance(CredManr,CredManSetb,RepSpec.d1);
+  		curbal = GetFutureCredManBalance(CredManr,CredManSetb,RepSpec.d1);
 			if(RepSpec.flags[5]==0 and curbal<=0)then begin testf = false; end;
 		end;
 		

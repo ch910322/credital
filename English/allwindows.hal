@@ -656,12 +656,18 @@ begin
   Tile(1,200,true,"",CurncyCode);
   CheckBox(40,-41,0,"Approved",Approved);
   CheckBox(40,-21,0,"OK",OKFlag);
+//CUST-BEGIN
+/*
   EditField(200,-21,50,"Currency",Normal,CurncyCode,false,CurncyCodeSClass);
   EditField(-340,-41,80,"Total Interest",ViewOnly,TotalInterest,true,0);
   EditField(-340,-21,80,"Total Value in Base",ViewOnly,BaseTotalSum,true,0);
   EditField(-120,-41,80,"Total Excl. Deposit",ViewOnly,TotalSumExclDep,true,0);
   EditField(-120,-21,80,"Total Value",ViewOnly,TotalSum,true,0);
-//CUST-BEGIN
+*/
+  SoftEditField(-340,-21,80,"Buy-out Value",ViewOnly,"buyoutvalue",true,0,M4Val,0);
+  SoftEditField(-120,-41,80,"Remaining Principle Part",ViewOnly,"remainingprinciple",true,0,M4Val,0);
+  SoftEditField(-120,-21,80,"Total Due Amount",ViewOnly,"totaldue",true,0,M4Val,0);
+
   DataList(10,10,-50,200,"credmanevents");
   DataListColumn(1,6,80,AdjLeft,"date","Date",M4Date);
   DataListColumn(1,80,160,AdjLeft,"duedate","Due Date",M4Date);

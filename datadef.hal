@@ -109,7 +109,7 @@ begin
   RecordField(HistoricalAssetArrests,M4Int,0,0);
   RecordField(AssetValue,M4Val,0,0);
   RecordField(HalfRevenueCustomers,M4Int,0,0);
-  RecordField(Equity,M4Int,0,0);
+  RecordField(Equity,M4Val,0,0);
   RecordField(HalfCostSuppliers,M4Str,200,0);
   RecordField(OwnerCustCode,M4Code,20,0);
   RecordField(OwnerName,M4Str,200,0);
@@ -323,7 +323,7 @@ begin
   RecordField(BankName,M4Str,100,0);
   RecordField(BankAccount,M4Str,100,0);
   RecordField(MonthlyPaymentDay,M4Long,0,0);
-  RecordFIeld(PauseDate,M4Date,0,0);
+  RecordField(PauseDate,M4Date,0,0);
   RecordField(PauseMonths,M4Long,0,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);

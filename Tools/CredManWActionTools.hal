@@ -81,7 +81,7 @@ begin
 end;
 
 global
-updating procedure DoPauseCredMan(var record CredManVc CredManr,Longint months)
+procedure DoPauseCredMan(var record CredManVc CredManr,Longint months)
 begin
   record CredManVc oldCredManr;
   record CredManPayPlanVc CredManPayPlanr;
@@ -103,11 +103,11 @@ begin
     end;
   end;
 
-  RecordCopy(oldCredManr,CredManr);
+  //RecordCopy(oldCredManr,CredManr);
   CredManr.PauseDate = nextdate;
   CredManr.PauseMonths = months;
   CredManSetDatesCust(CredManr);
-  RecordUpdate(oldCredManr,CredManr,true);
+  //RecordUpdate(oldCredManr,CredManr,true);
 
   return;
 end;

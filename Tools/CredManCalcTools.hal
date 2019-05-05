@@ -23,14 +23,19 @@ end;
 procedure CalcCredManCurrentPeriod(record CredManVc CredManr,Integer paymentnr,var Date sdp,var Date edp,var Date invd)
 begin
 
-  sdp = AddMonth(CredManr.startDate,paymentnr);//AddDay(,1);
-  edp = AddDay(AddMonth(sdp,1),-1);
-  if (nonblankdate(CredManr.FirstInvDate)) then begin
-    invd = AddMonth(CredManr.FirstInvDate,paymentnr); //  - 1
+  if (paymentnr==-1) then begin
+    sdp = CredManr.startDate;
+    edp = AddDay(CredManr.FirstInvDate,-1);
+    invd = CredManr.FirstInvDate;
   end else begin
-    invd = AddDay(edp,1);
-    invd = edp;
+    sdp = AddMonth(CredManr.startDate,paymentnr);
+    if (nonblankdate(CredManr.FirstInvDate)) then begin
+      sdp = AddMonth(CredManr.FirstInvDate,paymentnr); //  - 1
+    end;
+    edp = AddDay(AddMonth(sdp,1),-1);
+    invd = AddMonth(sdp,1);
   end;
+  logtext(0,"dates " & sdp & ":" & edp & ":" & invd & ":" & paymentnr);
   return;
 end;
 
@@ -246,12 +251,29 @@ begin
   return;
 end;
 
-procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal)
+function Boolean IsInitialInvoice(record CredManVc CredManr,Date transdate,Longint lastrecnr,Boolean firstinvf)
+begin
+  Boolean res;
+
+  if (CredManr.startDate==transdate) then begin
+    if (lastrecnr==-1 or firstinvf) then begin
+      res = true;
+    end;
+  end;
+  
+  IsInitialInvoice = res;
+  return;
+end;
+
+procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf)
 begin
   record CredHistVc CredHistr;
   Boolean TrHs;
   Integer type;
+  Longint lastrecnr;
+  vector Boolean vFirstInv;
 
+  firstinvf = false;
   calculatedmonths = 0;
   TrHs = true;
   CredHistr.CredManNr = CredManr.SerNr;
@@ -261,9 +283,15 @@ begin
     end else begin
       type = GetCredHistType(CredHistr.ArtCode,true);
       AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","");
-      if (CredHistr.RecordType==0) then begin//invoice
-        calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+      if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
+        firstinvf = true;
+        vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
+      end else begin
+        if (CredHistr.RecordType==0) then begin//invoice
+          calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+        end;
       end;
+      lastrecnr = CredHistr.RecordNr;
     end;
   end;
 
@@ -303,6 +331,7 @@ begin
   Integer i;
   val hundred,twelve;
   Date invdat,frdat,todat;
+  Boolean firstinvf;
   
 /*should we calculate VAT here?
   if CredManr.VATSum > 0 and nonblank(CredManr.VATAddMonths) then begin
@@ -321,14 +350,14 @@ begin
   calcbal = inCredManr.InvSum4;
 
   if (withactuals) then begin
-    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal);
+    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf);
   end;
   
   for(i=calculatedmonths;i<months;i=i+1) begin
     if (calcbal>0) then begin
-      CalcCredManCurrentPeriod(inCredManr,i,frdat,todat,invdat); //sets dates, frdat, todat and invdat
-      if (i==0) then begin
-        AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,frdat,todat);
+      CalcCredManCurrentPeriod(inCredManr,i-1,frdat,todat,invdat); //sets dates, frdat, todat and invdat
+      if (i==0 and firstinvf==false) then begin
+        AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,"","");
       end;
       switch (inCredManr.InstalmentType) begin
         case 0://Annuity

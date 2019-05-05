@@ -64,12 +64,14 @@ begin
     ClearRow(IVr,IVrw,1);
     IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200080) & CredManr.SerNr;
     MatRowPut(IVr,0,IVrw);
-    ClearRow(IVr,IVrw,1);
-    IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200081) & fromdate & ":" & todate;
-    MatRowPut(IVr,1,IVrw);
+    if (nonblank(fromdate)) then begin
+      ClearRow(IVr,IVrw,1);
+      IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200081) & fromdate & ":" & todate;
+      MatRowPut(IVr,1,IVrw);
+    end;
     ClearRow(IVr,IVrw,1);
     IVrw.Spec = " ";
-    MatRowPut(IVr,2,IVrw);
+    MatRowPut(IVr,MatRowCnt(IVr),IVrw);
   end;
 
 
@@ -214,9 +216,11 @@ begin
   rwcnt = MatRowCnt(IVr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
     MatRowGet(IVr,i,IVrw);
-    index = IVrw.ArtCode & ":" & IVrw.Quant & ":" & IVrw.vRebate & ":" & IVrw.ChargeType;
-    vRows[index] = vRows[index] + IVrw.Price;
-    MatRowDelete(IVr,i);
+    if (nonblank(IVrw.ArtCode)) then begin
+      index = IVrw.ArtCode & ":" & IVrw.Quant & ":" & IVrw.vRebate & ":" & IVrw.ChargeType;
+      vRows[index] = vRows[index] + IVrw.Price;
+      MatRowDelete(IVr,i);
+    end;
   end;
   GetVectorTags(vRows,arr);
   for (i=0;i<arr.length;i=i+1) begin
@@ -384,13 +388,14 @@ begin
   return;
 end;
 
-procedure CheckUnpaidInvoices(record CredManVc CredManr,var val dueamount)
+procedure CheckUnpaidInvoices(record CredManVc CredManr,var val dueamount,var val openamount)
 begin
   record ARVc ARr;
   record IVVc IVr;
   Boolean TrHs;
 
   dueamount = 0;
+  openamount = 0;
   //didn't add a new index in order to save db size. This won't be so expensive.
   
   TrHs = true;
@@ -402,7 +407,10 @@ begin
       if (IVr.CustCredManNr==CredManr.SerNr) then begin
         ARr.InvoiceNr = IVr.SerNr;
         if (ReadFirstMain(ARr,1,true)) then begin
-          dueamount = dueamount + ARr.RVal;
+          if (ARr.DueDate<CurrentDate) then begin
+            dueamount = dueamount + ARr.RVal;
+          end;
+          openamount = openamount + ARr.RVal;
         end;
       end;
     end;
@@ -411,21 +419,51 @@ begin
   return;
 end;
 
+function val GetActualBalance(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr)
+begin
+  val res;
+	row CredManPayPlanVc CredManPayrw;
+	Integer rwcnt,i;
+
+	res = CredManr.InvSum4;
+	rwcnt = MatRowCnt(CredManPayPlanr);
+	for (i=0;i<rwcnt;i=i+1) begin
+		MatRowGet(CredManPayPlanr,i,CredManPayrw);
+    if (CredManPayrw.PlanType>=5) then begin
+      res = CredManPayrw.Bal;
+    end;
+    if (CredManPayrw.PlanType<5) then begin
+      i = rwcnt;
+    end;
+    /*
+    if (CredManPayrw.TransDate>=CurrentDate) then begin
+      i = rwcnt;
+    end;
+    */
+	end;
+
+	GetActualBalance = res;
+	return;
+end;
+
 global
 procedure CheckBuyOutAgreement(record CredManVc CredManr,var record RcVc RepSpec)
 begin
   record CredManSetBlock CMb;
   record CredManPayPlanVc CredManPayPlanr;
   record IVVc IVr;
-  val dueamount;
+  val dueamount,openamount;
   
   BlockLoad(CMb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
   CreateBuyOutInvoiceFromPlan(CredManr,CMb,CredManPayPlanr,RepSpec.d1,IVr);
-  CheckUnpaidInvoices(CredManr,dueamount);
+  CheckUnpaidInvoices(CredManr,dueamount,openamount);
   RepSpec.vals1 = IVr.Sum4;
-  RepSpec.vals0 = dueamount;
+  RepSpec.vals0 = dueamount;//should this be openamount?
   RepSpec.vals2 = dueamount + IVr.Sum4;
+  RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr);
+  RepSpec.vals4 = dueamount;
+
 
   return;
 end;

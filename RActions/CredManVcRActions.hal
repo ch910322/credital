@@ -6,9 +6,12 @@ function LongInt CredManVcRecordDefaults(var record CredManVc CredManr,record Cr
 BEGIN
   LongInt res;
   record BaseCurBlock BCb;
+  record CredManSetBlock CMb;
 
   BlockLoad(BCb);
+  BlockLoad(CMb);
   CredManr.CurncyCode = BCb.BaseCur1;
+  CredManr.MonthlyPaymentDay = CMb.InvDay;
 
   res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
   
