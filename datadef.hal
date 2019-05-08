@@ -443,6 +443,11 @@ begin
   KeySegment(CredManNr);
   KeySegment(TransDate);
   KeySegment(SerNr);
+  KeyBegin(CredManChargeType);
+  KeySegment(CredManNr);
+  KeySegment(ChargeType);
+  KeySegment(TransDate);
+  KeySegment(SerNr);
   KeyBegin(RecordNr);
   KeySegment(RecordNr);
   KeySegment(RecordType);

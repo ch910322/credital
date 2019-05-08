@@ -94,6 +94,15 @@ begin
   SString(200080,"Agreement No.: ");
   SString(200081,"Period: ");
 
+/*CredManInfoRn*/
+  SString(200090,"Date");
+  SString(200091,"Type");
+  SString(200092,"Instalment");
+  SString(200093,"Interest");
+  SString(200094,"Fees");
+  SString(200095,"Penalties");
+  SString(200096,"Total");
+  SString(200097,"Balance");
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
