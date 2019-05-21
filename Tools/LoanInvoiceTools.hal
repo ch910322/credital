@@ -280,11 +280,16 @@ begin
           end;
           GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
           AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
-          IVr.OKFlag = 1;
-          RecordInsert(IVr,true);
-          if (firstf==false) then begin
-            RecordCopy(firstIVr,IVr);
-            firstf = true;
+          if (IVr.SerNr>-1) then begin
+            IVr.OKFlag = 1;
+            RecordInsert(IVr,true);
+            if (firstf==false) then begin
+              RecordCopy(firstIVr,IVr);
+              firstf = true;
+            end;
+          end else begin
+            LogText(0,"Failed to store Invoice. No Serial Number. Check Number Series. Not continuing to generate invoices");  
+            goto lout;    
           end;
         end;
         lastd2 = AddDay(lastd,1);//to get the start date for penalty calculation.
@@ -302,13 +307,18 @@ begin
   if (nonblank(lastd)) then begin
     GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
-    IVr.OKFlag = 1;
-    RecordInsert(IVr,true);
-    if (firstf==false) then begin
-      RecordCopy(firstIVr,IVr);
+    if (IVr.SerNr>-1) then begin
+      IVr.OKFlag = 1;
+      RecordInsert(IVr,true);
+      if (firstf==false) then begin
+        RecordCopy(firstIVr,IVr);
+      end;
+    end else begin
+      LogText(0,"Failed to store Invoice. No Serial Number. Check Number Series");
     end;
   end;
 
+lout:;
   return;
 end;
 
@@ -428,9 +438,13 @@ begin
     BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
     CreateBuyOutInvoiceFromPlan(CredManr,CMb,CredManPayPlanr,CurrentDate,IVr);
     if (IVr.SerNr>0) then begin
-      IVr.OKFlag = 1;
-      RecordInsert(IVr,true);
-      RecordCopy(firstIVr,IVr);
+      if (IVr.SerNr>-1) then begin
+        IVr.OKFlag = 1;
+        RecordInsert(IVr,true);
+        RecordCopy(firstIVr,IVr);
+      end;
+    end else begin
+      LogText(0,"Failed to store Invoice. No Serial Number. Check Number Series");
     end;
   end;
 
