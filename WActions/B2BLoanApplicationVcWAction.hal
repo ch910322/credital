@@ -536,9 +536,10 @@ end;
 global
 function string 40 B2BLoanApplicationDClassSpecPasteName(Integer wn,string defpsname)
 begin
-  string 255 psname,fn;
+  string 255 psname,fn,code;
   record B2BLoanApplicationVc LAr;
   record CMApplicationSetBlock ASb;
+  record CUVc CUr;
   
   BlockLoad(ASb);
   
@@ -548,7 +549,18 @@ begin
     fn = WindowActiveField(wn);
     if (left(fn,14)=="SuretyProvider" or fn=="OwnerCustCode" or fn=="CEOCustCode") then begin
       psname = "B2BLoanApp_ContactSClass";
-    end;      
+    end;    
+/* This is not correct 
+    switch (GetWindowClass(wn)) begin
+      case "B2BLoanApplicationDClass":
+        GetWindowRecord(wn,LAr);
+        code = GetFieldValueByName(LAr,fn,-1);
+        CUr.Code = code;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          psname = defpsname;
+        end;
+    end;
+*/
   end;
   B2BLoanApplicationDClassSpecPasteName = psname;
   return;

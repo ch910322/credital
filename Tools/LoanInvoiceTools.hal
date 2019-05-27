@@ -6,8 +6,8 @@ external inner function Boolean IVVc_PasteArtCode(var record IVVc,Integer,var st
 external inner procedure IVDchsum(var record IVVc,Integer);
 external inner procedure IVVc_PastePrice(var record IVVc,record IVVc,Integer,var string);
 external inner function LongInt DateDiff(Date,Date);
-external procedure AddPlannedFees(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Boolean,Date,var val,var val,Date,Date);
-external procedure AddInterest(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Boolean,Date,var val,var val,Date,Date);
+external procedure AddPlannedFees(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Integer,Date,var val,var val,Date,Date);
+external procedure AddInterest(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Date,var val,var val,Date,Date);
 external procedure AddInstalmentFixed(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,val,Date,var val,var val,Date,Date);
 
 
@@ -32,6 +32,12 @@ enum begin
   kEventTypeIssueDeposit = 7,
   kEventTypeIssueFees = 8,
   kEventTypeIssueLateFees = 9
+end;
+
+enum begin
+  kMonthTypeFirst = 0,
+  kMonthTypeRegular = 1,
+  kMonthTypeLast = 2
 end;
 
 procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate,Date fromdate,Date todate,Boolean sernrf)
@@ -412,8 +418,8 @@ begin
   if (balance>0) then begin
     SetupLoanInvoice(CredManr,CMb,IVr,td,lastinv,td,true);
     AddInstalmentFixed(CredManr,CredManPayPlan2r,CMb,balance,td,cumint,calcbal,lastinv,td);
-    AddInterest(CredManr,CredManPayPlan2r,CMb,true,td,cumint,calcbal,lastinv,td);
-    AddPlannedFees(CredManr,CredManPayPlan2r,CMb,kPlannedFeesMonthly,true,td,cumint,calcbal,lastinv,td);
+    AddInterest(CredManr,CredManPayPlan2r,CMb,kMonthTypeFirst,td,cumint,calcbal,lastinv,td);
+    AddPlannedFees(CredManr,CredManPayPlan2r,CMb,kPlannedFeesMonthly,kMonthTypeFirst,td,cumint,calcbal,lastinv,td);
     rwcnt = MatRowCnt(CredManPayPlan2r);
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(CredManPayPlan2r,i,CredManPayPlanrw);
