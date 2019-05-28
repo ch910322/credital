@@ -325,6 +325,47 @@ begin
   RecordField(MonthlyPaymentDay,M4Long,0,0);
   RecordField(PauseDate,M4Date,0,0);
   RecordField(PauseMonths,M4Long,0,0);
+  RecordField(MoneyTransferDate,M4Date,0,0);
+
+  RecordField(SuretyProvider1,M4Str,200,0);
+  RecordField(Surety1Name,M4Str,200,0);
+  RecordField(Surety1Position,M4Str,200,0);
+  RecordField(Surety1Phone,M4Str,200,0);
+  RecordField(Surety1eMail,M4Str,200,0);
+  RecordField(Surety1ID,M4Str,200,0);
+  RecordField(Surety1Addr0,M4Str,200,0);
+  RecordField(Surety1Addr1,M4Str,200,0);
+  RecordField(Surety1Addr2,M4Str,200,0);
+  RecordField(Surety1Addr3,M4Str,200,0);
+  RecordField(Surety1Addr4,M4Str,200,0);
+  RecordField(Surety1Mobile,M4Str,200,0);
+
+  RecordField(SuretyProvider2,M4Str,200,0);
+  RecordField(Surety2Name,M4Str,200,0);
+  RecordField(Surety2Position,M4Str,200,0);
+  RecordField(Surety2Phone,M4Str,200,0);
+  RecordField(Surety2eMail,M4Str,200,0);
+  RecordField(Surety2ID,M4Str,200,0);
+  RecordField(Surety2Addr0,M4Str,200,0);
+  RecordField(Surety2Addr1,M4Str,200,0);
+  RecordField(Surety2Addr2,M4Str,200,0);
+  RecordField(Surety2Addr3,M4Str,200,0);
+  RecordField(Surety2Addr4,M4Str,200,0);
+  RecordField(Surety2Mobile,M4Str,200,0);
+
+  RecordField(SuretyProvider3,M4Str,200,0);
+  RecordField(Surety3Name,M4Str,200,0);
+  RecordField(Surety3Position,M4Str,200,0);
+  RecordField(Surety3Phone,M4Str,200,0);
+  RecordField(Surety3eMail,M4Str,200,0);
+  RecordField(Surety3ID,M4Str,200,0);
+  RecordField(Surety3Addr0,M4Str,200,0);
+  RecordField(Surety3Addr1,M4Str,200,0);
+  RecordField(Surety3Addr2,M4Str,200,0);
+  RecordField(Surety3Addr3,M4Str,200,0);
+  RecordField(Surety3Addr4,M4Str,200,0);
+  RecordField(Surety3Mobile,M4Str,200,0);
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  

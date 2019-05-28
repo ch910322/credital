@@ -598,12 +598,13 @@ window CredManDClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,h2,h3,h4,t,v,vm,vs;
+  string 255 label1,label2,label3,label4,label5;
   WindowBegin("Credit Agreement",CredManDClass,CGview,-);
   SetWRect(20,80,900,500);
   Sizeable(-1,-1,0,0);
   UseView(CredManVc);
   FormName(CredManForm);
-  h = 120; h2 = 320; h3 = 550; h4 = 670; vs = 20;
+  h = 120; h2 = 320; h3 = 550; h4 = 760; vs = 20;
   Tile(0,230,false,"",SerNr);
   EditField(h,vm=(v=6), 82,"No.",St_i,SerNr,false,TSerSClass);
   EditField(h,v+=vs,82,"Type",Normal,Type,false,CredManTypeSClass);
@@ -636,6 +637,8 @@ begin
   EditField(h3,v+=vs,82,"Surety Interest Rate",Normal,SuretyInterestRate,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee",Normal,StdProlongFee,false,0);
   EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
+
+  EditField(h4,v=vm,-40,"Money Transfer Date",Normal,MoneyTransferDate,false,PasteCurDate);
 //  ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
 //  RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
 //  RadioButton(h4,v+=16,1,0,"Monthly Invoices",ChargeMethod);
@@ -651,7 +654,10 @@ begin
   TileButton(2,"Planned Fees");
   TileButton(3,"Currency");
   TileButton(4,"Terms");
-  Tile(1,200,true,"",CurncyCode);
+//CUST-BEGIN
+  TileButton(5,"Surety");
+//CUST-END
+  Tile(1,500,true,"",Approved);//CUST CurncyCode>>Approved
   CheckBox(40,-41,0,"Approved",Approved);
   CheckBox(40,-21,0,"OK",OKFlag);
 //CUST-BEGIN
@@ -662,11 +668,12 @@ begin
   EditField(-120,-41,80,"Total Excl. Deposit",ViewOnly,TotalSumExclDep,true,0);
   EditField(-120,-21,80,"Total Value",ViewOnly,TotalSum,true,0);
 */
+
   SoftEditField(-340,-21,80,"Buy-out Value",ViewOnly,"buyoutvalue",true,0,M4Val,0);
   SoftEditField(-120,-41,80,"Remaining Principle Part",ViewOnly,"remainingprinciple",true,0,M4Val,0);
   SoftEditField(-120,-21,80,"Total Due Amount",ViewOnly,"totaldue",true,0,M4Val,0);
 
-  DataList(10,10,-50,200,"credmanevents");
+  DataList(10,10,-50,-285,"credmanevents");
   DataListColumn(1,6,80,AdjLeft,"date","Date",M4Date);
   DataListColumn(1,80,160,AdjLeft,"duedate","Due Date",M4Date);
   DataListColumn(1,160,-400,AdjLeft,"comment","Comment",M4Str);
@@ -740,6 +747,62 @@ begin
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
   RadioButton(h2,v,0,0,"Due Date",LateRateOption);
   RadioButton(h2,v+=16,1,0,"Trans. Date",LateRateOption);
+
+//CUST-BEGIN
+  Tile(5,290,true,"5",SuretyProvider1); 
+
+  label1 = UserDefined("CUVc","InvAddr0");
+  label2 = UserDefined("CUVc","InvAddr1");
+  label3 = UserDefined("CUVc","InvAddr2");
+  label4 = UserDefined("CUVc","InvAddr3");
+  label5 = UserDefined("CUVc","InvAddr4");
+
+  StaticText(h,v=26,"Surety Provider 1",false);
+  EditField(h,v+=vs,100,"Contact Code 1",Normal,SuretyProvider1,false,B2BLoanApp_CUSClass);
+  EditField(h,v+=vs,100,"Name",Normal,Surety1Name,false,0);
+  EditField(h,v+=vs,100,"Position",Normal,Surety1Position,false,JobTitleSClass);
+  EditField(h,v+=vs,100,"Phone",Normal,Surety1Phone,false,0);
+  EditField(h,v+=vs,100,"Mobile",Normal,Surety1Mobile,false,0);
+  EditField(h,v+=vs,100,"Email",Normal,Surety1eMail,false,0);
+  EditField(h,v+=vs,100,"ID",Normal,Surety1ID,false,0);
+
+  EditField(h,v+=vs,130,label1,Normal,Surety1Addr0,false,0);
+  EditField(h,v+=vs,130,label2,Normal,Surety1Addr1,false,0);
+  EditField(h,v+=vs,130,label3,Normal,Surety1Addr2,false,0);
+  EditField(h,v+=vs,130,label4,Normal,Surety1Addr3,false,0);
+  EditField(h,v+=vs,130,label5,Normal,Surety1Addr4,false,0);
+
+  StaticText(h2=320,v=26,"Surety Provider 2",false);
+  EditField(h2,v+=vs,100,"Contact Code 2",Normal,SuretyProvider2,false,B2BLoanApp_CUSClass);
+  EditField(h2,v+=vs,100,"Name",Normal,Surety2Name,false,0);
+  EditField(h2,v+=vs,100,"Position",Normal,Surety2Position,false,JobTitleSClass);
+  EditField(h2,v+=vs,100,"Phone",Normal,Surety2Phone,false,0);
+  EditField(h2,v+=vs,100,"Mobile",Normal,Surety2Mobile,false,0);
+  EditField(h2,v+=vs,100,"Email",Normal,Surety2eMail,false,0);
+  EditField(h2,v+=vs,100,"ID",Normal,Surety2ID,false,0);
+
+  EditField(h2,v+=vs,130,label1,Normal,Surety2Addr0,false,0);
+  EditField(h2,v+=vs,130,label2,Normal,Surety2Addr1,false,0);
+  EditField(h2,v+=vs,130,label3,Normal,Surety2Addr2,false,0);
+  EditField(h2,v+=vs,130,label4,Normal,Surety2Addr3,false,0);
+  EditField(h2,v+=vs,130,label5,Normal,Surety2Addr4,false,0);
+
+  StaticText(h3=550,v=26,"Surety Provider 3",false);
+  EditField(h3,v+=vs,100,"Contact Code 3",Normal,SuretyProvider3,false,B2BLoanApp_CUSClass);
+  EditField(h3,v+=vs,100,"Name",Normal,Surety3Name,false,0);
+  EditField(h3,v+=vs,100,"Position",Normal,Surety3Position,false,JobTitleSClass);
+  EditField(h3,v+=vs,100,"Phone",Normal,Surety3Phone,false,0);
+  EditField(h3,v+=vs,100,"Mobile",Normal,Surety3Mobile,false,0);
+  EditField(h3,v+=vs,100,"Email",Normal,Surety3eMail,false,0);
+  EditField(h3,v+=vs,100,"ID",Normal,Surety3ID,false,0);
+
+  EditField(h3,v+=vs,130,label1,Normal,Surety3Addr0,false,0);
+  EditField(h3,v+=vs,130,label2,Normal,Surety3Addr1,false,0);
+  EditField(h3,v+=vs,130,label3,Normal,Surety3Addr2,false,0);
+  EditField(h3,v+=vs,130,label4,Normal,Surety3Addr3,false,0);
+  EditField(h3,v+=vs,130,label5,Normal,Surety3Addr4,false,0);
+
+//CUST-END
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");
 //CUST-BEGIN

@@ -77,6 +77,10 @@ begin
       ClearRow(IVr,IVrw,1);
       IVrw.Spec = CMASb.InvoiceCommentStr & USetStr(200081) & fromdate & ":" & todate;
       MatRowPut(IVr,1,IVrw);
+    end else begin
+      ClearRow(IVr,IVrw,1);
+      IVrw.Spec = " ";
+      MatRowPut(IVr,1,IVrw);      
     end;
     ClearRow(IVr,IVrw,1);
     IVrw.Spec = " ";

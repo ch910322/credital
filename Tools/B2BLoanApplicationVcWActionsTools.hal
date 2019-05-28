@@ -188,6 +188,28 @@ begin
   return;
 end;
 
+procedure PasteSurety(var record CredManVc CredManr,record B2BLoanApplicationVc LAr,Integer num)
+begin
+  record CUVc CUr;
+  
+  CUr.Code = GetFieldValueByName(LAr,"SuretyProvider" & num,-1);
+  if (ReadFirstMain(CUr,1,true)) then begin
+    SetFieldValueByName(CredManr,"SuretyProvider" & num,CUr.Code,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Name",CUr.Name,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Position",CUr.JobDesc,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Phone",CUr.Phone,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Mobile",CUr.Mobile,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "eMail",CUr.eMail,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "ID",CUr.RegNr1,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr0",CUr.InvAddr0,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr1",CUr.InvAddr1,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr2",CUr.InvAddr2,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr3",CUr.InvAddr3,-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr4",CUr.InvAddr4,-1);
+  end;
+
+  return;
+end;
 
 global
 updating function Boolean B2BLoanAppCreateCredMan(record B2BLoanApplicationVc LAr,var record CredManVc CredManr)
@@ -216,6 +238,12 @@ begin
     CredManr.BankCode = LAr.BankCode;
     CredManr.BankName = LAr.BankName;
     CredManr.BankAccount = LAr.BankAccount;
+
+//Pasting sureties
+    PasteSurety(CredManr,LAr,1);
+    PasteSurety(CredManr,LAr,2);
+    PasteSurety(CredManr,LAr,3);
+
     if (RecordInsert(CredManr,true)) then begin
       res = true;
     end;
