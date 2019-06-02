@@ -188,11 +188,12 @@ begin
   return;
 end;
 
-procedure PasteSurety(var record CredManVc CredManr,record B2BLoanApplicationVc LAr,Integer num)
+global
+procedure PasteSuretyInCredMan(var record CredManVc CredManr,string code,Integer num)
 begin
   record CUVc CUr;
   
-  CUr.Code = GetFieldValueByName(LAr,"SuretyProvider" & num,-1);
+  CUr.Code = code;
   if (ReadFirstMain(CUr,1,true)) then begin
     SetFieldValueByName(CredManr,"SuretyProvider" & num,CUr.Code,-1);
     SetFieldValueByName(CredManr,"Surety" & num & "Name",CUr.Name,-1);
@@ -240,9 +241,9 @@ begin
     CredManr.BankAccount = LAr.BankAccount;
 
 //Pasting sureties
-    PasteSurety(CredManr,LAr,1);
-    PasteSurety(CredManr,LAr,2);
-    PasteSurety(CredManr,LAr,3);
+    PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 1,-1),1);
+    PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 2,-1),2);
+    PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 3,-1),3);
 
     if (RecordInsert(CredManr,true)) then begin
       res = true;

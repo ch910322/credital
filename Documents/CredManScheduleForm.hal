@@ -1,3 +1,51 @@
+external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var record SMVc);
+external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
+external inner function Integer NumberofDocumentPages(string,Integer);
+external inner procedure CommonDocumentFields(record RcVc);
+
+procedure PrintCredManr(record CredManVc CredManr)
+begin
+  record CredManPayPlanVc CredManPayPlanr;
+  row CredManPayPlanVc CredManPayPlanrw;
+  LongInt i,rwcnt;
+  record SMVc SMr;
+  row SMVc SMrw;
+  val totpayment,totinterest;
+  record CredManSetBlock CredManSetb;
+ 
+  BlockLoad(CredManSetb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
+  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
+  
+  OutFormField("F_CREDSUM",CredManr.InvSum4);
+  OutFormField("F_KUNDNAMN",CredManr.Addr0);//Customer Name
+  OutFormField("F_CREDMONTHS",CredManr.InstalmentMonths);
+  OutFormField("F_SERNR",CredManr.SerNr);
+
+
+  rwcnt = MatRowCnt(SMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(SMr,i,SMrw);
+    OutFormField("F_TRANSDATUM",SMrw.TransDate);//Transaction Date (transdate)
+    OutFormField("F_CREDINTEREST",SMrw.CredVal);//interest
+    OutFormField("F_CREDFEES",SMrw.DebVal2);//fees
+    OutFormField("F_CREDINTEREST2",SMrw.CredVal+SMrw.DebVal2);//interest+fees   
+    OutFormField("F_CREDINSTAL",SMrw.DebVal);//instalment
+    OutFormField("F_CREDBAL",SMrw.CurCredVal);//Balance
+    OutFormField("F_CREDINVTOT",SMrw.CredVal+SMrw.DebVal2+SMrw.DebVal);//Balance
+    OutFormField("F_ROWNR",i+1);
+    EndFormRow;
+    totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
+    totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
+  end;
+
+  OutFormField("F_CREDTOTINT",totinterest);
+  OutFormField("F_CREDTOTPAY",totpayment);
+
+  return;
+end;
+
 global
 procedure DoCredManScheduleForm(record RcVc RepSpec,record CredManVc CredManr)
 BEGIN
@@ -18,7 +66,7 @@ BEGIN
   FDr.shortname = RepSpec.shortname;
   if (ReadFirstMain(FDr,1,true)==false) then begin
     MessageBox(1624, " " & USetStr(1623));
-    goto LDoActDocForm;
+    goto LDoCredManScheduleForm;
   end;
   rwcnt = MatRowCnt(FDr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
@@ -36,8 +84,7 @@ BEGIN
     formcode = "";
     for (i=rwcnt-1;i>=0;i=i-1) begin
       MatRowGet(FDr,i,FDrw);
-      if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,Actr.SerNr,FDrw.PrintGroupCode,
-                      langcode,intdocnr,"",formcode)) then
+      if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,CredManr.SerNr,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
       begin
         goto LBREAK;
       end;
@@ -54,6 +101,7 @@ LBREAK:;
         if (ReadFirstMain(Docr,1,true)) then begin
         end;
 //rest of fields go here
+        PrintCredManr(CredManr);
 
         CloseForm;        
       end else begin
@@ -68,7 +116,7 @@ LBREAK:;
     end;
     intdocnr = intdocnr + 1;
   end;
-LDoActDocForm:;  
+LDoCredManScheduleForm:;  
   RETURN;  
 END;     
  
@@ -79,12 +127,9 @@ BEGIN
   record CredManVc CredManr;
   Boolean tmpf;
   
-  StartPrintDialogGroup;
   CredManr.SerNr = RepSpec.long1;
-  TrHs = true;
   if (ReadFirstMain(CredManr,1,true)) then begin
     tmpf = PrintDocument(CredManr,"CredManScheduleForm",false);    
   end;
-  EndPrintDialogGroup;
   RETURN;
 END;

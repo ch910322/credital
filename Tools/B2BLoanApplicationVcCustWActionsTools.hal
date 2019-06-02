@@ -75,11 +75,47 @@ begin
   return;
 end;
 
-function val CalculateAssets(record ScoringSupVc SSr,record EvalConstBlock ECb)
+function Integer GetSuretyFieldInteger(record B2BLoanApplicationVc LAr,Integer num,string fn)
+begin
+  record ScoringSupVc SSr;
+  Integer res;
+  
+  res = 0;
+  SSr.B2BApp = LAr.SerNr;
+  SSr.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & num,-1);
+  if (ReadFirstKey("SuretyApp",SSr,1,true)) then begin
+    res = StringToInt(GetFieldValueByName(SSr,fn,-1));
+  end;
+
+  GetSuretyFieldInteger = res;
+  return;
+end;
+
+function Integer GetSuretyFieldVal(record B2BLoanApplicationVc LAr,Integer num,string fn)
+begin
+  record ScoringSupVc SSr;
+  val res;
+  
+  res = 0;
+  SSr.B2BApp = LAr.SerNr;
+  SSr.SuretyCustCode = GetFieldValueByName(LAr,"SuretyProvider" & num,-1);
+  if (ReadFirstKey("SuretyApp",SSr,1,true)) then begin
+    res = StringToVal(GetFieldValueByName(SSr,fn,-1),M4Val);
+  end;
+
+  GetSuretyFieldVal = res;
+  return;
+end;
+
+function val CalculateAssets(record B2BLoanApplicationVc LAr,record EvalConstBlock ECb)
 begin
   val res;
   
-  switch (SSr.AssetsType) begin
+  res = max(GetSuretyFieldInteger(LAr,1,"AssetsType"),res);
+  res = max(GetSuretyFieldInteger(LAr,2,"AssetsType"),res);
+  res = max(GetSuretyFieldInteger(LAr,3,"AssetsType"),res);
+
+  switch (res) begin
     case 0: res = ECb.NoAssetCoef;
     case 1: res = ECb.MortgageCoef;
     case 2: res = ECb.Ownership2Coef;
@@ -93,25 +129,33 @@ end;
 function val CalculateProfit(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr,record EvalConstBlock ECb,val assetscoef)
 begin
   val res,pcoef,salarycoef,c2;
+  val sixmonthsalary;
+
+  sixmonthsalary = max(GetSuretyFieldVal(LAr,1,"Salary6Months"),sixmonthsalary);
+  sixmonthsalary = max(GetSuretyFieldVal(LAr,2,"Salary6Months"),sixmonthsalary);
+  sixmonthsalary = max(GetSuretyFieldVal(LAr,3,"Salary6Months"),sixmonthsalary);
 
   salarycoef = ECb.MininumSalary;
   if (SSr.Salary6Months>ECb.MininumSalary) then begin
-    salarycoef = ECb.MininumSalary + (SSr.Salary6Months-ECb.MininumSalary) * ECb.SalAboveMinCoef;
+    salarycoef = ECb.MininumSalary + (sixmonthsalary-ECb.MininumSalary) * ECb.SalAboveMinCoef;
   end;
 
   pcoef = ECb.c300;
   if (LAr.CurProfit>=ECb.AnnualProfitHigh) then begin
     pcoef = ECb.c600;
   end;
+  /*
   c2 = 0;
   if (assetscoef-salarycoef>0) then begin//IF(W-Y>0;W-Y;0)
     c2 = assetscoef-salarycoef;
   end;
+  */
+  c2 = assetscoef;
 
   if (LAr.CurProfit>ECb.AnnualProfitLow) then begin
     res = max(salarycoef+pcoef+c2,assetscoef);//MAX(Y+IF(X<N4;N5;N6)+IF(W-Y>0;W-Y;0);W)
   end else begin
-    res = max(salarycoef,assetscoef);
+    res = salarycoef+assetscoef;//max(salarycoef,assetscoef);
   end;
 
   CalculateProfit = res;
@@ -130,12 +174,25 @@ end;
 
 function val CalculatePersonCoef(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr,record EvalConstBlock ECb,val profit,Integer surety,var val d)
 begin
-  val bx,bx1,res; 
-  Integer specialist;
+  val bx,bx1,res,surval; 
+  Integer specialist,surnum;
   string 255 tmp; 
 
   specialist = 0;
-  tmp = GetFieldValueByName(LAr,"Surety" & surety & "Type",-1);
+
+  surnum = 1;
+  surval = GetSuretyFieldVal(LAr,1,"Salary6Months") + GetSuretyFieldVal(LAr,1,"TotIncomeFromCompanies");// + assettype?
+  if (surval<GetSuretyFieldVal(LAr,2,"Salary6Months") + GetSuretyFieldVal(LAr,2,"TotIncomeFromCompanies")) then begin// + assettype?
+    surnum = 2;
+    surval = GetSuretyFieldVal(LAr,2,"Salary6Months") + GetSuretyFieldVal(LAr,2,"TotIncomeFromCompanies");
+  end;
+
+  if (surval<GetSuretyFieldVal(LAr,3,"Salary6Months") + GetSuretyFieldVal(LAr,3,"TotIncomeFromCompanies")) then begin// + assettype?
+    surnum = 3;
+    surval = GetSuretyFieldVal(LAr,3,"Salary6Months") + GetSuretyFieldVal(LAr,3,"TotIncomeFromCompanies");
+  end;
+
+  tmp = GetFieldValueByName(LAr,"Surety" & surnum & "Type",-1);
   if (tmp=="1") then begin
     specialist = 2;
   end;
@@ -169,7 +226,7 @@ begin
     end;
   end;
 
-  d = max((bx*res-SSr.MonthlyOblPayment)*25,0);
+  d = max((bx*res/100-SSr.MonthlyOblPayment)*25,0);
 
   CalculatePersonCoef = res;
   return;
@@ -605,15 +662,16 @@ begin
 
   carsestate = GetCarEstateValue(LAr);
   revcoef = CalculateRevenueCoef(LAr,ECb,carsestate);
-  assetscoef = CalculateAssets(SSr,ECb);
+  assetscoef = CalculateAssets(LAr,ECb);
   profit = CalculateProfit(LAr,SSr,ECb,assetscoef);
   perscoef = CalculatePersonCoef(LAr,SSr,ECb,profit,surety,d);
   //my = max(LAr.AnnualRevenue*0.2,carsestate+min(LAr.CurTotal,0)*0.5);
   my = revcoef;
+
   if (suretycnt<=1) then begin
-    mz = (profit*perscoef-SSr.MonthlyOblPayment)*25;
+    mz = (profit*carsestate/100-SSr.MonthlyOblPayment)*25;
   end else begin
-    mz = ((profit*perscoef-SSr.MonthlyOblPayment)*25)*0.8;
+    mz = (((profit*carsestate/100-SSr.MonthlyOblPayment)*25)+d)*0.8;
   end;
 
   LogText2(0,"B2B Loan Calc :: surety cnt=" & suretycnt & ",company age=" & compyears,kVerbosityDebugDetailed);

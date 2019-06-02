@@ -10,6 +10,7 @@ external inner procedure CalcCredManSums(record CredManVc,record CredManPayPlanV
 external procedure GetCredManOverdueInvoices(record CredManVc,record CredManSetBlock,Date,Date,var Integer,var val);
 external inner function LongInt DateDiff(Date,Date);
 external procedure TestCredManInvoicesFromPlan(record CredManVc,record CredManSetBlock,record CredManPayPlanVc,Date,var array record IVVc);
+external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 
 procedure PrintLeft(string col1str,string col1val,string col2str,string col2val)
 begin
@@ -38,6 +39,18 @@ begin
   OutString(150,0,col1val,true);
   OutString(160,0,col2str,false);
   OutString(310,0,col2val,true);
+  OutString(320,0,col3str,false);
+  OutString(470,0,col3val,true);
+  EndFormat;
+end;
+
+procedure PrintRightSettlement(Longint CredManNr,string col1str,string col1val,string col2str,string col2val,string col3str,string col3val)
+begin
+  StartFormat(15);
+  OutString(0,0,col1str,false);
+  OutString(150,0,col1val,true);
+  OutString(160,0,col2str,false);
+  OutStringID(310,"CredManInfoBuyOutDbl",col2val,true,CredManNr);
   OutString(320,0,col3str,false);
   OutString(470,0,col3val,true);
   EndFormat;
@@ -100,6 +113,7 @@ begin
   val shouldbeint,shouldbesug,v,v2;
   Boolean stopnextzero;
   Integer latedays;
+  record RCVc RepSpec2;
 
   rwcnt = MatRowCnt(CredManPayPlanr);
   CalcCredManSums(CredManr,CredManPayPlanr,CredManSetb,planinst,planint,planfee,plandep,suginst,sugint,sugfee,sugdep,
@@ -192,6 +206,10 @@ begin
   missednow = (due / CredManr.MonthlySum);
   
   BuildCredManPayPlanCust(CredManr,CredManPayPlan2r,CredManSetb,true,false); // This build is ONLY for Next Suggested Instalment......
+  RepSpec2.d1 = CurrentDate;
+  CheckBuyOutAgreement(CredManr,RepSpec2);
+  settlesum = RepSpec2.vals2;
+
   CalcCredManSums(CredManr,CredManPayPlanr,CredManSetb,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,v,d,v,cursuginst,l);
 
   PrintLeft(USetStr(17317),CredManr.SerNr,USetStr(17310),StringFromSet(368,CredManr.InstalmentType));
@@ -206,7 +224,7 @@ begin
   PrintRight("Current Balance",curbal,"Next Instal.",cursuginst,"Original Instal.",CredManr.MonthlySum);
   PrintRight("Amount Now Due",due,"","","","");
   PrintRight("Arrear Instalments",missednow,"Maximal Days Late",latedays,"Worst Arrear Period",missedworst);
-  PrintRight("Contract Age",contractage,"Settlement Sum",settlesum,"","");
+  PrintRightSettlement(CredManr.SerNr,"Contract Age",contractage,"Settlement Sum",settlesum,"","");
   PrintRight("Paid to Date",paidinst + paidint + paidfee + paiddep,"Last Paid Amount",lastpaid,"Last Paid Date",lastpaiddate);
   PrintRight("Fees to Date",addfee,"Interest to Date",addint,"Penalties to Date",latefees);
   
@@ -249,11 +267,15 @@ begin
   SMrw.CredVal2 = pen;
   SMrw.CurDebVal = IVr.Sum4;
   SMrw.CurCredVal = calcbal;
+  if (IVr.SerNr>-1) then begin
+    SMrw.ExtraComment = IVr.SerNr;
+  end;
   MatRowPut(SMr,MatRowCnt(SMr),SMrw);
 
   return;
 end;
 
+global
 procedure BuildCredManInfoMatrix(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,var record SMVc SMr)
 begin
   Integer i,rwcnt;
@@ -337,7 +359,11 @@ begin
     MatRowGet(SMr,i,SMrw);
     StartFormat(15);
     OutString(0,0,SMrw.TransDate,false);
-    OutString(2,0,StringFromSet(2011,SMrw.RowSimStat),false);
+    if (nonblank(SMrw.ExtraComment)) then begin
+      OutStringID(2,"DblIVVc",StringFromSet(2011,SMrw.RowSimStat),false,SMrw.ExtraComment);
+    end else begin
+      OutString(2,0,StringFromSet(2011,SMrw.RowSimStat),false);  
+    end;
     OutString(5,0,SMrw.DebVal,true);
     OutString(6,0,SMrw.CredVal,true);
     OutString(7,0,SMrw.DebVal2,true);

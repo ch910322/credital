@@ -7,6 +7,7 @@ remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 remote updating procedure DoPauseCredMan(var record CredManVc,Longint);
+remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -85,7 +86,18 @@ begin
   return;
 end;
 
+function Boolean CredManDClassSuretyProviderEFAfter(Integer wn,Boolean changedf,Integer num)
+begin
+  record CredManVc CredManr;
 
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    PasteSuretyInCredMan(CredManr,GetFieldValueByName(CredManr,"SuretyProvider" & num,-1),num);
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassSuretyProviderEFAfter = true;
+  return;
+end;
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
@@ -100,6 +112,9 @@ begin
     case "StdProlongPrc":     res = CredManDClassStdProlongPrcEFAfter(wn,rownr,changed!=0);
     case "startDate":         res = CredManDClassstartDateEFAfter(wn,changed!=0);
     case "MonthlyPaymentDay": res = CredManDClassstartDateEFAfter(wn,changed!=0);
+    case "SuretyProvider1":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,1);
+    case "SuretyProvider2":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,2);
+    case "SuretyProvider3":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,3);
     otherwise 
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
@@ -209,8 +224,8 @@ begin
   wn = CurWindow;
   DeselectWindow(wn,true);
   GetWindowRecord(wn,RepSpec);
-  if (GetWindowClass(MotherWindow(wn))=="CredManDClass") then begin
-    GetWindowRecord(MotherWindow(wn),CredManr);
+  CredManr.SerNr = RepSpec.long1;
+  if (ReadFirstMain(CredManr,1,true)) then begin
     CheckBuyOutAgreement(CredManr,RepSpec);
     PutWindowRecord(wn,RepSpec);
   end;
@@ -238,7 +253,12 @@ global
 procedure CheckBuyoutValueWindowDsm()
 begin
   record RcVc RepSpec;
+  Integer wn;
+  record CredManVc CredManr;
   
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  RepSpec.long1 = CredManr.SerNr;
   OpenWindow("CheckBuyoutValueWClass",0,CurWindow,"","",RepSpec);
 
   return;
@@ -400,5 +420,18 @@ begin
   //CredManr.endDate = CredMan2r.endDate;
   
   CredManVcRecordProtectFields = res;
+  return;
+end;
+
+
+global
+procedure CredManInfoBuyOutDbl(string dblstr,string l,Integer currepwn)
+begin
+  Integer wn;
+  record RCVc RepSpec;
+
+  RepSpec.long1 = StringToLongint(l);
+  OpenWindow("CheckBuyoutValueWClass",0,0,"","",RepSpec);
+
   return;
 end;
