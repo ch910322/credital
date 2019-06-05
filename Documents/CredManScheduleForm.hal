@@ -3,6 +3,7 @@ external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlan
 external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
+external inner procedure PrintCredManHeader(record CredManVc);
 
 procedure PrintCredManr(record CredManVc CredManr)
 begin
@@ -13,15 +14,21 @@ begin
   row SMVc SMrw;
   val totpayment,totinterest;
   record CredManSetBlock CredManSetb;
+  record CUVc CUr;
  
+  CUr.Code = CredManr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+  end;
   BlockLoad(CredManSetb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
   BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
-  
-  OutFormField("F_CREDSUM",CredManr.InvSum4);
-  OutFormField("F_KUNDNAMN",CredManr.Addr0);//Customer Name
-  OutFormField("F_CREDMONTHS",CredManr.InstalmentMonths);
-  OutFormField("F_SERNR",CredManr.SerNr);
+
+  PrintCredManHeader(CredManr);
+
+  OutFormField("F_EMAIL",CUr.eMail);//Email
+  OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
+  OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
+  OutFormField("F_MOBILE",CUr.Mobile);//Mobile
 
 
   rwcnt = MatRowCnt(SMr);
@@ -94,9 +101,6 @@ LBREAK:;
       if (OpenForm(formcode)) then begin
         CommonDocumentFields(RepSpec);
         NumberofDocumentPages(formcode,MatRowCnt(CredManr));
-        CUr.Code = CredManr.CustCode;
-        if (ReadFirstMain(CUr,1,true)) then begin
-        end;
         Docr.Code = formcode;
         if (ReadFirstMain(Docr,1,true)) then begin
         end;
