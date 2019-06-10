@@ -204,6 +204,7 @@ begin
   RecordField(DetailedInvoice,M4Int,0,0);
   RecordField(TerminatedOrderClass,M4Code,5,OrderClassVc);
   RecordField(InvoiceCommentStr,M4Str,255,0);
+  RecordField(RefinClass,M4Code,5,OrderClassVc);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -558,6 +559,7 @@ begin
   SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
 
+  Exec_file("halcust\\Mesente\\datadef.hal");
 
   return;
 end;

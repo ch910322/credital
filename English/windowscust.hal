@@ -71,6 +71,7 @@ begin
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
@@ -397,6 +398,38 @@ begin
   h = 150; h2 = 250; v=450;
   EditFieldTL(h,v=6,120,"Pause Months",M4Long,Normal,0,long1,false,0);
   HalPushButton(h,v+=vs,h+120,v+20,"PauseCredManWClassPause","Pause");
+  EndWindow;
+
+  WindowBegin("Refinance Agreement",RefinCredManWClass,CGother,RcType);
+  UseView(RcVc);
+  SetWRect(20,80,240,235);
+  AutoSizeWindow(false);  
+  h = 20;
+  HalPushButton(h,v=36,h+180,v+20,"RefinCredManWClassRefinance","Refinance");
+  HalPushButton(h,v+=30,h+180,v+20,"RefinCredManWClassProlong","Prolong");
+  HalPushButton(h,v+=30,h+180,v+20,"RefinCredManWClassTransfer","Transfer to Surety Provider");
+  EndWindow;
+
+  WindowBegin("Refinance Agreement",RefinCredMan2WClass,CGother,RcType);
+  UseView(RcVc);
+  SetWRect(20,80,400,440);
+  AutoSizeWindow(true);  
+  h = 150; h2 = 250; v=350;
+  EditFieldTL(h,v=6,120,"Total Dept",M4Val,ViewOnly,0,vals0,false,0);
+  EditFieldTL(h,v+=vs,120,"Remaining Balance",M4Val,Normal,0,vals1,false,0);
+  EditFieldTL(h,v+=vs,120,"Extra Value",M4Val,Normal,0,vals2,false,0);
+  EditFieldTL(h,v+=vs,120,"Refinance value",M4Val,Normal,0,vals3,false,0);
+  EditFieldTL(h,v+=vs,120,"Refinance Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EditFieldTL(h,v+=vs,120,"New Agreement Type",M4Code,Normal,20,f1,false,CredManTypeSClass);
+  EditFieldTL(h,v+=vs,120,"Months",M4Int,Normal,0,flags[0],false,0);
+  EditFieldTL(h,v+=vs,120,"New Customer",M4Code,Normal,20,f2,false,CUSClass);
+  EditFieldTL(h,v+=vs,120,"New Payment Day",M4Int,Normal,0,flags[1],false,0);
+  EditFieldTL(h,v+=vs,120,"New Monthly Rate %",M4Val,Normal,0,vals4,false,0);
+  ButtonFrame(h,v=v+40,200,3,"Refinance Type");
+  RadioButton(h,v,0,0,"Refinance",ArtMode);
+  RadioButton(h,v+=16,1,0,"Prolong",ArtMode);
+  RadioButton(h,v+=16,2,0,"Transfer to Surety Provider",ArtMode);  
+  HalPushButton(h,v+=40,h+120,v+20,"RefinCredMan2WClassSubmit","Refinance");
   EndWindow;
 
   return;

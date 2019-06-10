@@ -393,6 +393,7 @@ begin
   return;
 end;
 
+global
 procedure CreateBuyOutInvoiceFromPlan(record CredManVc CredManr,record CredManSetBlock CMb,record CredManPayPlanVc CredManPayPlanr,Date td,var record IVVc IVr)
 begin
   Integer i,rwcnt;
@@ -621,18 +622,27 @@ begin
   Integer i,rwcnt;
   Longint histnr;
 
-  if (IVr.OKFlag==0 and IV2r.OKFlag!=0) then begin
-    RemoveCredHist(IVr.SerNr,kCredHistRecTypeInvoice);
-  end;
-  
-  if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
-    rwcnt = MatRowCnt(IVr);
-    for (i=0;i<rwcnt;i=i+1) begin
-      MatRowGet(IVr,i,IVrw);
-      if (IVrw.ChargeType>0) then begin
-        CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate);
-        IVrw.CredHistNr = histnr;
-        MatRowPut(IVr,i,IVrw);
+  if (IVr.InvType==kInvoiceTypeCredit) then begin
+    //Currently remove only whole invoice. it's too much work now for checking each row separately
+    if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
+      if (IVr.CredInv>0) then begin
+        RemoveCredHist(IVr.CredInv,kCredHistRecTypeInvoice);
+      end;
+    end;
+  end else begin
+    if (IVr.OKFlag==0 and IV2r.OKFlag!=0) then begin
+      RemoveCredHist(IVr.SerNr,kCredHistRecTypeInvoice);
+    end;
+    
+    if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
+      rwcnt = MatRowCnt(IVr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(IVr,i,IVrw);
+        if (IVrw.ChargeType>0) then begin
+          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate);
+          IVrw.CredHistNr = histnr;
+          MatRowPut(IVr,i,IVrw);
+        end;
       end;
     end;
   end;

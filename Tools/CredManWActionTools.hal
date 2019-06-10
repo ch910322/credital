@@ -3,6 +3,10 @@ external inner procedure CredManUpdate(var record CredManVc,Integer,string);
 external inner procedure CredManSumup(var record CredManVc);
 external inner procedure CredManVc_PasteCurncyCode(var record CredManVc);
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
+external inner function Boolean PasteCustInCredMan(var record CredManVc);
+external inner procedure CredManVc_PasteType(var record CredManVc);
+external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -91,7 +95,6 @@ begin
   Date nextdate;
   record CredManSetBlock CMb;
 
-
   BlockLoad(CMb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
   rwcnt = MatRowCnt(CredManPayPlanr);
@@ -110,5 +113,152 @@ begin
   CredManSetDatesCust(CredManr);
   //RecordUpdate(oldCredManr,CredManr,true);
 
+  return;
+end;
+
+global
+procedure GetRefinCredManData(Longint CredManNr,Integer type,var record RcVc RepSpec,Boolean initf)
+begin
+  record CredManVc CredManr;
+  record CredManPayPlanVc CredManPayPlanr;
+  record CredManTypeVc CredManTyper;
+  record RcVc planRepSpec;
+
+  CredManr.SerNr = CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+
+    if (blank(RepSpec.d1)) then begin
+      RepSpec.d1 = CurrentDate;
+    end; 
+
+    planRepSpec.long1 = CredManr.SerNr;
+    planRepSpec.d1 = RepSpec.d1;
+    CheckBuyOutAgreement(CredManr,planRepSpec);
+    RepSpec.vals0 = planRepSpec.vals0;
+    RepSpec.vals1 = planRepSpec.vals1;
+    //RepSpec.vals2 = 0;//should stay blank;
+    RepSpec.vals3 = RepSpec.vals0 + RepSpec.vals1 + RepSpec.vals2;
+
+    if (initf) then begin
+      RepSpec.long1 = CredManr.SerNr;
+      RepSpec.f1 = CredManr.Type;
+      CredManTyper.Code = CredManr.Type;
+      if (ReadFirstMain(CredManTyper,1,true)) then begin
+        RepSpec.flags[0] = CredManTyper.InstalmentMonths;
+      end;
+      if (type==2) then begin
+        RepSpec.f2 = CredManr.SuretyProvider1;
+      end else begin
+        RepSpec.f2 = CredManr.CustCode;
+      end;
+
+      RepSpec.flags[1] = CredManr.MonthlyPaymentDay;
+      RepSpec.vals4 = 0;
+      if (type==2) then begin
+        RepSpec.vals4 = CredManr.SuretyInterestRate;
+      end;
+
+      RepSpec.ArtMode = type;
+    end;
+  end;
+
+  return;
+end;
+
+updating procedure CreateRefinCredMan(record RcVc RepSpec,var record CredManVc CredManr)
+begin
+  
+  RecordNew(CredManr);
+  CredManr.startDate = RepSpec.d1;
+  CredManr.FirstInvDate = RepSpec.d1;
+  CredManr.InvSum4 = RepSpec.vals3;
+  CredManr.Type = RepSpec.f1;
+  CredManr.CustCode = RepSpec.f2;
+  PasteCustInCredMan(CredManr);
+  CredManVc_PasteType(CredManr);
+  CredManr.IntRate = RepSpec.vals4;
+  CredManr.MonthlyPaymentDay = RepSpec.flags[1];
+  CredManr.InstalmentMonths = RepSpec.flags[0];
+  CredManSetDatesCust(CredManr); 
+  CredManr.SerNr = NextSerNr("CredManVc",CredManr.startDate,-1,false,"");
+  CredManr.OKFlag = 1;
+  CredManr.Approved = 1;
+  RecordInsert(CredManr,true);
+
+  return;
+end;
+
+updating procedure CreditAndOKInvoice(Longint ivnr)
+begin
+  record IVVc IVr,IVCreditr;
+
+  IVr.SerNr = ivnr;
+  if (ReadFirstMain(IVr,1,true)) then begin
+    if (CreateCreditNoteIV(IVr,kInvoiceTypeCredit,IVCreditr,"",false)==0) then begin
+      IVCreditr.SerNr = NextSerNr("IVVc",IVCreditr.InvDate,-1,false,"");
+      IVCreditr.OKFlag = 1;
+      RecordInsert(IVCreditr,true);
+    end;
+  end;
+
+  return;
+end;
+
+updating procedure CreditCredManInvoices(record CredManVc CredManr)
+begin
+  Boolean TrHs;
+  record CredHistVc CredHistr;
+  vector Boolean vInv;
+  array string 255 invarr;
+  record ARVc ARr;
+  Integer i;
+
+  TrHs = true;
+  CredHistr.CredManNr = CredManr.SerNr;
+  while (LoopKey("CredManChargeType",CredHistr,1,TrHs)) begin
+    if (CredHistr.CredManNr!=CredManr.SerNr) then begin
+      TrHs = false;
+    end else begin
+      if (CredHistr.RecordType==0) then begin
+        vInv[CredHistr.RecordNr] = true;
+      end;
+    end;
+  end;
+
+  GetVectorTags(vInv,invarr);
+  for (i=0;i<invarr.length;i=i+1) begin
+    ARr.InvoiceNr = StringToLongint(invarr[i]);
+    if (ReadFirstMain(ARr,1,true)) then begin
+      if (ARr.RVal>0) then begin
+        CreditAndOKInvoice(ARr.InvoiceNr);
+      end;
+    end;
+  end;
+  
+  return;
+end;
+
+global
+updating function Boolean DoRefinCredMan(record RcVc RepSpec,var string msg,var record CredManVc nCredManr)
+begin
+  record CMApplicationSetBlock CMb;
+  record IVVc IVr;
+  record CredManVc CredManr,oldCredManr;
+  Boolean res;
+  
+  CredManr.SerNr = RepSpec.long1;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    BlockLoad(CMb);
+    RecordCopy(oldCredManr,CredManr);
+    CredManr.OrderClass = CMb.RefinClass;
+    if (RecordUpdate(oldCredManr,CredManr,true)==0) then begin
+      CreateRefinCredMan(RepSpec,nCredManr);
+      DoBuyOutAgreement(CredManr,IVr);
+      CreditCredManInvoices(CredManr);
+      res = true;
+    end;
+  end;
+
+  DoRefinCredMan = res;
   return;
 end;

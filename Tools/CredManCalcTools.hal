@@ -205,7 +205,6 @@ procedure AddInstalment(record CredManVc CredManr,record CredManPayPlanVc CredMa
 begin
   
   if (linearf) then begin
-    logtext(0,"invdate " & invdate & ",monthtypef=" & monthtypef & ",calcbal=" & calcbal);
     if (monthtypef==kMonthTypeLast) then begin
       AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1);
     end else begin
@@ -214,7 +213,6 @@ begin
   end else begin
     AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate,-1);
   end;
-     logtext(0,"xxxx - invdate " & invdate & ",monthtypef=" & monthtypef & ",calcbal=" & calcbal);
  return;
 end;
 

@@ -813,6 +813,8 @@ begin
   SpecialMenu("Print Payment Schedule",' ',8,"PaymentScheduleCredManDsm");
   SpecialMenu("Pause Agreement",' ',8,"PauseCredManDsm");
   SpecialMenu("Credit Agreement Info",'I',0,"CredManInfoDsm");
+  SpecialMenu("Refinance Agreement",' ',9,"RefinCredManDsm");
+  
 //CUST-END
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
 //  SpecialMenu("Credit Agreement Info",'I',0,"CredManInfoDsm");//CUST moved to Oper. menu instead

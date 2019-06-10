@@ -8,6 +8,8 @@ remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 remote updating procedure DoPauseCredMan(var record CredManVc,Longint);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
+remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
+remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -432,6 +434,162 @@ begin
 
   RepSpec.long1 = StringToLongint(l);
   OpenWindow("CheckBuyoutValueWClass",0,0,"","",RepSpec);
+
+  return;
+end;
+
+function Boolean RefinCredMan2WClassd1EFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record RcVc RepSpec;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    GetRefinCredManData(RepSpec.long1,RepSpec.ArtMode,RepSpec,true);
+    PutWindowRecord(wn,RepSpec);   
+  end; 
+  RefinCredMan2WClassd1EFAfter = true;
+  return;
+end;
+
+function Boolean RefinCredMan2WClassvals2EFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record RcVc RepSpec;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    RepSpec.vals3 = RepSpec.vals0 + RepSpec.vals1 + RepSpec.vals2;
+    PutWindowRecord(wn,RepSpec);   
+  end; 
+  RefinCredMan2WClassvals2EFAfter = true;
+  return;
+end;
+
+function Boolean RefinCredMan2WClassvals3EFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record RcVc RepSpec;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    if (RepSpec.vals3<(RepSpec.vals0 + RepSpec.vals1)) then begin
+      RepSpec.vals3 = StringToVal(WindEFStr(wn),M4Val);
+    end else begin
+      RepSpec.vals2 = RepSpec.vals3 - (RepSpec.vals0 + RepSpec.vals1);
+    end;
+    PutWindowRecord(wn,RepSpec);
+  end; 
+  RefinCredMan2WClassvals3EFAfter = true;
+  return;
+end;
+
+function Boolean RefinCredMan2WClassflags1EFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record RcVc RepSpec;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    if (RepSpec.flags[1]>31) then begin
+      RepSpec.flags[1] = 31;
+    end;
+    if (RepSpec.flags[1]<1) then begin
+      RepSpec.flags[1] = 1;
+    end;
+    PutWindowRecord(wn,RepSpec);
+  end; 
+  RefinCredMan2WClassflags1EFAfter = true;
+  return;
+end;
+
+global
+function Boolean RefinCredMan2WClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "d1":
+      res = RefinCredMan2WClassd1EFAfter(wn,rownr,changed!=0);
+    case "vals2":
+      res = RefinCredMan2WClassvals2EFAfter(wn,rownr,changed!=0);
+    case "vals3":
+      res = RefinCredMan2WClassvals3EFAfter(wn,rownr,changed!=0);
+    case "flags[1]":
+      res = RefinCredMan2WClassflags1EFAfter(wn,rownr,changed!=0);
+  end;
+
+  RefinCredMan2WClassAfterEditField = res;
+  return;
+end;
+
+procedure RefinCredMan(Integer type)
+begin
+  Integer wn;
+  record RcVc RepSpec,RepSpec2;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,RepSpec);
+  
+  GetRefinCredManData(RepSpec.long1,type,RepSpec2,true);
+
+  CloseWindow(wn);
+  OpenWindow("RefinCredMan2WClass",0,0,"","",RepSpec2);
+
+  return;
+end;
+
+global
+procedure RefinCredManWClassRefinance()
+begin
+  RefinCredMan(0);
+  return;
+end;
+
+global
+procedure RefinCredManWClassProlong()
+begin
+  RefinCredMan(1);
+  return;
+end;
+
+global
+procedure RefinCredManWClassTransfer()
+begin
+  RefinCredMan(2);
+  return;
+end;
+
+global
+procedure RefinCredManDsm()
+begin
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+  Integer wn;
+
+  wn = CurWindow;
+  if (WindowState(wn)==Rs_Normal) then begin
+    GetWindowRecord(wn,CredManr);
+    RepSpec.long1 = CredManr.SerNr;
+    OpenWindow("RefinCredManWClass",0,0,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure RefinCredMan2WClassSubmit()
+begin
+  Integer wn;
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+  string 255 msg;
+
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+  GetWindowRecord(wn,RepSpec);
+  if (DoRefinCredMan(RepSpec,msg,CredManr)) then begin
+    CloseWindow(wn);
+    OpenWindow("CredManDClass",1,0,"","",CredManr);
+  end else begin
+    Stopalert(msg);
+  end;
 
   return;
 end;
