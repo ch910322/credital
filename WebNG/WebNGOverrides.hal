@@ -1,0 +1,104 @@
+/*
+This is a template file for using stardard functions in halcust. No need to use webng.hal file or other files to just add new functions
+This supports adding new web texts, adding new special elements, new structure types and web actions (both updating and non-updating)
+*/
+external procedure ShowSmartIDIdentification(record WebNGElementVc);
+external procedure SmartIDWebActions(string);
+external inner function string 255 removenextlistitem(var string,string);
+
+global
+function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
+begin
+  boolean res;
+
+  res = true;
+  switch (WEr.Type) begin
+    case 120:
+      //ShowLoanApp(WEr);
+    case 121:
+      ShowSmartIDIdentification(WEr);
+    otherwise
+      res = false;
+  end;
+  ShowSpecialWebElementInternal = res;
+  return;
+end;
+
+global
+function Boolean ShowInternalWebApp(Integer lasttype,record WebNGStructVc WSr,string mpath)
+begin
+  Boolean res;
+
+  //res = true;
+  switch (lasttype) begin
+  otherwise
+    res = false;
+  end;
+  ShowInternalWebApp = res;
+  return;
+end;
+
+global
+function Boolean InternalNodeIsApplication(Integer nodetype)
+begin
+  Boolean res;
+  
+  /*
+  if (nodetype==kStructTypeWatchpointApp) then begin
+      res = true;
+  end;
+  */
+
+  InternalNodeIsApplication = res;
+  return;
+end;
+
+global
+function string 255 CheckInternalStrings(Longint strno)
+begin
+  string 255 res;
+
+  switch (strno) begin
+    case 70000: res = "test";
+  end;
+
+  CheckInternalStrings = res;
+  return;
+end;
+
+
+global
+updating function Boolean InternalUpdatingActions(string action)
+begin
+  Boolean res;
+
+/*
+  switch (action) begin
+    case "aa":
+      res = true;
+
+  end;
+*/
+  InternalUpdatingActions = res;
+  return;
+end;
+
+global
+function Boolean DoOuterWebActions(string action)
+begin
+  string 255 app,naction;
+  Boolean res;
+
+  //split
+  naction = action;
+  app = removenextlistitem(naction,".");
+
+  switch (app) begin
+    case "smartid":
+      SmartIDWebActions(naction);
+      res = true;
+  end;
+
+  DoOuterWebActions = res;
+  return;
+end;

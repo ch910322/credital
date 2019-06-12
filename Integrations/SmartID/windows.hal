@@ -1,0 +1,30 @@
+event startup
+begin
+  
+  SetLangMode(LangEnglish,"ENG",0);
+
+  Setting("Smart ID",SmartIDTClass,modSY);
+
+end;
+
+event DefineWindows
+begin
+  real h,v,vs;
+
+  vs = 20;
+
+  SetLangMode(LangEnglish,"ENG",0);
+
+  WindowBegin("Smart ID",SmartIDTClass,CGSbl,SRType);
+  SetBlid(SmartIDBlock);
+  SetWRect(20,80,570,298);
+  Sizeable(-1,-1,0,0);
+  EditField(h=150,v=6,200,"Access Token",Normal,AccessToken,false,0);
+  ButtonFrame(h,v=v+40,100,2,"Mode");
+  RadioButton(h,v,0,0,"Test",Mode);
+  RadioButton(h,v+=16,1,0,"Live",Mode);
+  
+  EndWindow;
+
+  return;
+end;

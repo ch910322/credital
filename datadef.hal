@@ -555,11 +555,16 @@ begin
   SourceFile("halcust\\Reports", 3);
   SourceFile("halcust\\Tools", 3);
   SourceFile("halcust\\WActions", 3);
+  SourceFile("halcust\\WebNG", 3);
 
   SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
 
-  Exec_file("halcust\\Mesente\\datadef.hal");
+  Exec_file("halcust\\Integrations\\Mesente\\datadef.hal");
+  SourceFile("halcust\\Integrations\\Mesente", 3);
+
+  Exec_file("halcust\\Integrations\\SmartID\\datadef.hal");
+  SourceFile("halcust\\Integrations\\SmartID", 3);
 
   return;
 end;

@@ -7,7 +7,5 @@ begin
   RecordField(APIUrl,M4Str,50,0);
   EndBlock;
 
-  SourceFile("halcust\\Mesente", 3);
-
   return;
 end;

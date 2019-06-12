@@ -1,0 +1,180 @@
+
+function string 255 GetSmartIDUrl(record SmartIDBlock SIb)
+begin
+  string 255 res;
+
+  if (SIb.Mode==0) then begin
+    res = "developers.dokobit.com";
+  end else begin
+    res = "ws.dokobit.com";
+  end;
+
+  GetSmartIDUrl = res;
+  return;
+end;
+
+function Boolean GetAuthenticationSession(record CUVc CUr,record SmartIDBlock SIb,var string token)
+begin
+  string 255 url,path;
+  json js;
+  area request,reply;
+  Boolean res;
+  record CountryVc Countryr;
+
+  Countryr.Code = CUr.CountryCode;
+  if (ReadFirstMain(Countryr,1,true)) then begin
+    url = GetSmartIDUrl(SIb);
+    path = "/smartid/login.json?access_token=" & SIb.AccessToken;
+
+    AddTextToArea("code=" & CUr.RegNr1,request);
+    AddTextToArea("&country=" & Countryr.ISOCode,request);
+    if (SendWebRequest(url,443,-1,true,"POST",path,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
+      writeareatofile(reply,"smartid.txt",0);
+      js = ParseJSONArea(reply);
+      if (JSONGet(js,"status")=="ok") then begin
+        token = JSONGet(js,"token");
+        res = true;
+      end;
+    end;  
+  end;
+
+  GetAuthenticationSession = res;
+  return;
+end;
+
+function Integer GetSessionStatus(record SmartIDBlock SIb,string token)
+begin
+  Integer res;
+  string 255 url,path;
+  area request,reply;
+  json js;
+  
+  url = GetSmartIDUrl(SIb);
+  path = "/smartid/login/status/" & token & ".json?access_token=" & SIb.AccessToken;
+
+  if (SendWebRequest(url,443,-1,true,"GET",path,"application/json","",false,request,reply,30)) then begin
+      writeareatofile(reply,"smartid2.txt",0);
+    js = ParseJSONArea(reply);
+    switch (JSONGet(js,"status")) begin
+      case "ok":
+        res = 1;
+      case "canceled":
+        res = 2;
+      case "error":
+        res = 2;
+        //get the actual status
+    end;
+  end;
+
+  GetSessionStatus = res;
+  return;
+end;
+
+global
+function Boolean AuthenticateWithSmartID()
+begin
+  Boolean res;
+  string 255 token;
+  record SmartIDBlock SIb;
+  record CUVc CUr;
+  Integer stat,tries;
+  Integer err;
+
+  CUr.Code = CurrentCust;
+  if (ReadFirstMain(CUr,1,true)) begin
+    BlockLoad(SIb);
+    if (GetAuthenticationSession(CUr,SIb,token)) then begin//send authentication request
+      stat = GetSessionStatus(SIb,token);//wait for session result
+      while (stat==0 and tries<100) begin
+        sleep(1);
+        stat = GetSessionStatus(SIb,token);
+        tries = tries + 1;
+      end;
+    end;
+
+    switch (stat) begin
+      case 1://success
+        res = true;
+      case 2://failure
+        res = false;
+        err = 1;//maybe get more detailed error code;
+      case 0://timeout
+        res = false;
+        err = 2;
+
+    end;
+  end;
+
+  AuthenticateWithSmartID = res;
+  return;
+end;
+
+global
+procedure ShowSmartIDIdentification(record WebNGElementVc WEr)
+begin
+  
+  if (nonblank(CurrentCust)) then begin
+    WebOutString("<div class='smartid'>");
+    //WebOutString("<div class='person-id'><input type='text' placeholder='Person ID'></div>")
+    WebOutString("<div class='smartid-submit'>Authenticate</div>")
+    WebOutString("<div class='smartid-status'></div>")
+
+    WebOutString("</div>");
+  end;
+
+  return;
+end;
+
+global
+function Boolean InitSmartIDAuthentication(var string token)
+begin
+  Boolean res;
+  record SmartIDBlock SIb;
+  record CUVc CUr;
+  
+  CUr.Code = CurrentCust;
+  if (ReadFirstMain(CUr,1,true)) begin
+    BlockLoad(SIb);
+    if (GetAuthenticationSession(CUr,SIb,token)) then begin//send authentication request
+      res = true;
+    end;
+  end;
+
+  InitSmartIDAuthentication = res;
+  return;
+end;
+
+function Integer CheckSmartIDStatus(string token)
+begin
+  Integer res;
+  record SmartIDBlock SIb;
+ 
+  if (nonblank(CurrentCust) and nonblank(token)) then begin
+    BlockLoad(SIb);
+    res = GetSessionStatus(SIb,token);//wait for session result
+  end else begin
+    
+  end;
+
+  CheckSmartIDStatus = res;
+  return;
+end;
+
+global
+procedure SmartIDWebActions(string action)
+begin
+  Boolean res;
+  Integer stat;
+  string 255 token;
+
+  switch (action) begin
+    case "init":
+      res = InitSmartIDAuthentication(token);
+      WebOutString("<res stat='" & res & "' token='" & token & "'></res>");
+    case "check":
+      stat = CheckSmartIDStatus(WebGetArg("token"));
+      WebOutString("<res stat='" & stat & "'></res>");
+  end;
+
+  return;
+end;
