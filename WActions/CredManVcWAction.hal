@@ -405,24 +405,17 @@ begin
   record IVVc IVr;
   record IPVc IPr;
   string 255 tstr,tstr2,type;
+  record CredHistVc CredHistr;
 
-  line = SelectedListLine(wn);
-  if (line>=0) then begin
-    tstr = GetListTag(wn,line);
-    if (nonblank(tstr)) then begin
-      GetNextSubstring(tstr,pos,":",type);
-      GetNextSubstring(tstr,pos,":",tstr2);
-      sernr = StringToLongint(tstr2);
-      switch (type) begin
-        case "0":
-          IVr.SerNr = sernr;
-          if (ReadFirstMain(IVr,1,true)) then begin
-            OpenWindow("IVDClass",1,0,"","",IVr);
-          end;
-        case "1":
-          IPr.SerNr = sernr;
+  ReadMarkedRecord(wn,CredHistr);
+  switch (CredHistr.RecordType) begin
+    case "0":
+      IVr.SerNr = CredHistr.RecordNr;
+      if (ReadFirstMain(IVr,1,true)) then begin
+        OpenWindow("IVDClass",1,0,"","",IVr);
       end;
-    end;
+    case "1":
+      IPr.SerNr = CredHistr.RecordNr;
   end;
 
   return;

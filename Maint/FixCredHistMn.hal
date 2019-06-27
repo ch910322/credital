@@ -1,0 +1,47 @@
+event startup
+begin
+  
+  SetLangMode(LangEnglish,"ENG",0);
+
+  Maintenance("Update Record History",FixCredHistVClass,FixCredHistMn,modCredMan);
+
+  return;
+end;
+
+event DefineWindows
+begin
+  real h,v;
+
+  SetLangMode(LangEnglish,"ENG",0);
+
+  WindowBegin("Specify Update Record History",FixCredHistVClass,CGMnt,RcType);
+  SetWRect(20,80,400,280);
+  h = 100; v = 30;
+  StaticText(h,v,"Press the Run button to continue",false);
+  EndWindow;
+
+
+  return;
+end;
+
+global
+updating procedure FixCredHistMn(record RcVc RepSpec)
+begin
+  record CredHistVc oldCredHistr,CredHistr,prevCredHistr;
+  Longint lastrec
+  
+  while (LoopKey("RecordNr",CredHistr,1,true)) begin
+    if (prevCredHistr.RecordNr!=CredHistr.RecordNr and prevCredHistr.RecordNr>-1) then begin
+      RecordCopy(oldCredHistr,prevCredHistr);
+      prevCredHistr.MainRecord = 1;
+      RecordUpdate(oldCredHistr,prevCredHistr,true);
+    end else begin
+      RecordCopy(oldCredHistr,CredHistr);
+      CredHistr.MainRecord = 0;
+      RecordUpdate(oldCredHistr,CredHistr,true);
+    end;
+    RecordCopy(prevCredHistr,CredHistr);
+  end;
+
+  return;
+end;

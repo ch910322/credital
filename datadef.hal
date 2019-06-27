@@ -479,6 +479,7 @@ begin
   RecordField(CredManNr,M4Long,0,0);
   RecordField(CredFromDate,M4Date,0,0);
   RecordField(CredToDate,M4Date,0,0);
+  RecordField(MainRecord,M4Int,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(CredManTypeDate);

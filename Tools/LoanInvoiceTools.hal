@@ -557,7 +557,7 @@ begin
   return;
 end;
 
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto)
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf)
 begin
   record CredHistVc CredHistr;
   
@@ -575,6 +575,7 @@ begin
   CredHistr.CredManNr = agreementnr;
   CredHistr.CredFromDate = perfrom;
   CredHistr.CredToDate = perto;
+  CredHistr.MainRecord = mainf;
 
   CredHistr.Sum = sum;
   if (RecordInsert(CredHistr,true)) then begin
@@ -621,7 +622,9 @@ begin
   row IVVc IVrw;
   Integer i,rwcnt;
   Longint histnr;
+  Integer firstf;
 
+  firstf = 1;
   if (IVr.InvType==kInvoiceTypeCredit) then begin
     //Currently remove only whole invoice. it's too much work now for checking each row separately
     if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
@@ -639,9 +642,10 @@ begin
       for (i=0;i<rwcnt;i=i+1) begin
         MatRowGet(IVr,i,IVrw);
         if (IVrw.ChargeType>0) then begin
-          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate);
+          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf);
           IVrw.CredHistNr = histnr;
           MatRowPut(IVr,i,IVrw);
+          firstf = 0;
         end;
       end;
     end;
