@@ -632,6 +632,25 @@ begin
   return;
 end;
 
+function string 255 GetCredHistDetail2(record ORVc ORr,Integer sernr)
+begin
+  string 255 res;
+  Integer i,rwcnt;
+  row ORVc ORrw;
+
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    if (ORrw.CUServiceHistNr==sernr) then begin
+      res = (ORrw.Sum-ORrw.TAX1Reb);
+      i = rwcnt;
+    end;
+  end;
+
+  GetCredHistDetail2 = res;
+  return;
+end;
+
 global
 function string 255 CredManInvSum(var record CredHistVc CredHistr)
 begin
@@ -646,7 +665,7 @@ end;
 global
 function string 255 CredManComment(var record CredHistVc CredHistr)
 begin
-  if (CredHistr.RecordType==0) then begin
+  if (CredHistr.RecordType==0 and nonblank(CredHistr.CredFromDate)) then begin
     CredManComment = CredHistr.CredFromDate & ":" & CredHistr.CredToDate;
   end else begin
     CredManComment = "";
@@ -661,7 +680,7 @@ begin
 //ah, we should redo this back to DataList when that is fixed
   threadremote.GetCredManEventList2(CredHistr.CredManNr,ORr);
 
-  CredManPaidSum = GetCredHistDetail(ORr,CredHistr.SerNr,"ORrw.Sum-ORrw.TAX1Reb");
+  CredManPaidSum = GetCredHistDetail2(ORr,CredHistr.SerNr);
   return;
 end;
 
