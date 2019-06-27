@@ -673,6 +673,7 @@ begin
   SoftEditField(-120,-41,80,"Remaining Principle Part",ViewOnly,"remainingprinciple",true,0,M4Val,0);
   SoftEditField(-120,-21,80,"Total Due Amount",ViewOnly,"totaldue",true,0,M4Val,0);
 
+/*
   DataList(10,10,-50,-285,"credmanevents");
   DataListColumn(1,6,80,AdjLeft,"date","Date",M4Date);
   DataListColumn(1,80,160,AdjLeft,"duedate","Due Date",M4Date);
@@ -680,9 +681,23 @@ begin
   DataListColumn(1,-400,-300,AdjRight,"issued","Issued",M4Val);
   DataListColumn(1,-300,-200,AdjRight,"paid","Paid",M4Val);
   DataListColumn(1,-200,-100,AdjRight,"balance","Balance",M4Val);
+*/
+
+  if (GuiType==kGuiWPF) then begin
+    RecordList2(10,10,-30,-50,"CredHistVc");//CUST CredManEventVc >> CredManHistVc  
+  end else begin
+    RecordList2(10,10,-30,-80,"CredHistVc");//CUST CredManEventVc >> CredManHistVc
+  end;
+  RlColKey(4,4,"Date",TransDate,false,CredManTransDate);
+  RlCol(100,100,"Due Date",PayDate,false);
+  CalculatedColumn(200,200,"Comment","CredManComment",false);
+  CalculatedColumn(-300,-300,"Issued","CredManInvSum",true);
+  CalculatedColumn(-200,-200,"Paid","CredManPaidSum",true);
+  CalculatedColumn(-100,-100,"Balance","CredManBal",true);
+
 /*
   RecordList2(10,10,-30,-80,"CredManEventVc");
-  RlColKey(4,4,"Trans. Date",TransDate,false,CredManTransDate);
+  RlColKey(4,4,"Date",TransDate,false,CredManTransDate);
   RlColKey(100,100,"Due Date",DueDate,false,CredManTransDate);
   RlColKey(200,200,"Comment",Comment,false,CredManComment);
 //  RlColKey(-370,-370,"Sub. Type",FileName,false,FindOriginalRecord);

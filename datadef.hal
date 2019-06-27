@@ -502,6 +502,11 @@ begin
   KeySegment(PreviousNr);
   KeySegment(TransDate);  
   KeySegment(SerNr);
+  SubsetKeyBegin2(CredManTransDate);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(TransDate);
+  KeySegment(SerNr);
   EndRecord;
 
   RecordAddBegin(IVVc,"CredIVVc");

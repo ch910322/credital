@@ -6,6 +6,7 @@ remote procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
+remote procedure GetCredManEventList2(Longint,var record ORVc);
 remote updating procedure DoPauseCredMan(var record CredManVc,Longint);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
@@ -359,6 +360,7 @@ begin
 
   GetWindowRecord(wn,CredManr);
   res = inner.CredManDClassOnOpenWindow(wn);
+  SetWindowSubset(wn,CredManr.SerNr);
   UpdateCredManStringList(wn,CredManr);
   UpdateCredManSoftFields(wn,CredManr);
 
@@ -372,11 +374,28 @@ begin
   record CredManVc CredManr;
 
   GetWindowRecord(wn,CredManr);
+  SetWindowSubset(wn,CredManr.SerNr);
   UpdateCredManStringList(wn,CredManr);
   UpdateCredManSoftFields(wn,CredManr);
 
   return;
 end;
+
+global
+function Boolean CredManDClassUpdateWindowSubset(Integer wn,var string subsetname)
+begin
+  record CredManVc CredManr;
+  
+  GetWindowRecord(wn,CredManr);
+  if (CredManr.SerNr>0) then begin
+    subsetname = CredManr.SerNr;
+  end else begin
+    subsetname = chr(0);
+  end;
+  CredManDClassUpdateWindowSubset = true;
+  return;
+end;
+
 
 global
 function Boolean CredManDClassListDblClick(Integer wn)
@@ -591,5 +610,68 @@ begin
     Stopalert(msg);
   end;
 
+  return;
+end;
+
+function string 255 GetCredHistDetail(record ORVc ORr,Integer sernr,string fieldname)
+begin
+  string 255 res;
+  Integer i,rwcnt;
+  row ORVc ORrw;
+
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    if (ORrw.CUServiceHistNr==sernr) then begin
+      res = GetFieldValueByName(ORr,fieldname,i);
+      i = rwcnt;
+    end;
+  end;
+
+  GetCredHistDetail = res;
+  return;
+end;
+
+global
+function string 255 CredManInvSum(var record CredHistVc CredHistr)
+begin
+  record ORVc ORr;
+//ah, we should redo this back to DataList when that is fixed
+  threadremote.GetCredManEventList2(CredHistr.CredManNr,ORr);
+
+  CredManInvSum = GetCredHistDetail(ORr,CredHistr.SerNr,"Sum");
+  return;
+end;
+
+global
+function string 255 CredManComment(var record CredHistVc CredHistr)
+begin
+  if (CredHistr.RecordType==0) then begin
+    CredManComment = CredHistr.CredFromDate & ":" & CredHistr.CredToDate;
+  end else begin
+    CredManComment = "";
+  end;
+  return;
+end;
+
+global
+function string 255 CredManPaidSum(var record CredHistVc CredHistr)
+begin
+  record ORVc ORr;
+//ah, we should redo this back to DataList when that is fixed
+  threadremote.GetCredManEventList2(CredHistr.CredManNr,ORr);
+
+  CredManPaidSum = GetCredHistDetail(ORr,CredHistr.SerNr,"ORrw.Sum-ORrw.TAX1Reb");
+  return;
+end;
+
+global
+function string 255 CredManBal(var record CredHistVc CredHistr)
+begin
+  record ORVc ORr;
+//ah, we should redo this back to DataList when that is fixed
+  threadremote.GetCredManEventList2(CredHistr.CredManNr,ORr);
+
+  CredManBal = GetCredHistDetail(ORr,CredHistr.SerNr,"rowGP");
   return;
 end;

@@ -665,6 +665,7 @@ begin
   ORrw.InloadingDate = prevCredHistr.CredFromDate;
   ORrw.DespatchRowDate = prevCredHistr.CredToDate;
   ORrw.rowGP = balance;
+  ORrw.CUServiceHistNr = prevCredHistr.SerNr;
   if (prevCredHistr.RecordType==kCredHistRecTypeInvoice) then begin
     IVr.SerNr = prevCredHistr.RecordNr;
     if (ReadFirstMain(IVr,1,true)) then begin
@@ -712,6 +713,19 @@ begin
     AddCredHistToArray(ORr,prevCredHistr,balance);
   end;
   SortRows(ORr,"PlanShipRowDate",true);
+
+  return;
+end;
+
+global
+procedure GetCredManEventList2(Longint credmannr,var record ORVc ORr)
+begin
+  record CredManVc CredManr;
+
+  CredManr.SerNr = credmannr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    GetCredManEventList(CredManr,ORr);
+  end;  
 
   return;
 end;
