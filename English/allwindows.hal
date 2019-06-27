@@ -89,7 +89,7 @@ begin
     CheckBox(h1+80,v+=16,0,"Guest",GuestType);
   end;
   if (HasJewelleryInterface) then begin
-    CheckBox(h1+80,v+=16,0,"No Mass Letters",NoLetterPosting);
+    CheckBox(h1+80,v+=16,0,"No Mass SMS",NoLetterPosting);
     CheckBox(h1+80,v+=16,0,"No Mass Emailing",NoMailPosting);
     EditField(h1+120,v+=20,100,"Salesman",Normal,SalesMan,false,UserSClass);
   end;
@@ -263,9 +263,9 @@ begin
     CheckBox(h4,v+=16,0,"Allow Login",AllowLogin);
 //  CheckBox(h4,v+=16,0,"Allow FTP Access",FTPLogin);
     CheckBox(h4,v+=16,0,"Fiscal Invoices Only",FiscalFlag);
-    CheckBox(h4,v+=16,0,"No Mass Letters",NoLetterPosting);
+    CheckBox(h4,v+=16,0,"No Mass SMS",NoLetterPosting);
   end else begin
-    CheckBox(h4,v=12,0,"No Mass Letters",NoLetterPosting);
+    CheckBox(h4,v=12,0,"No Mass SMS",NoLetterPosting);
   end;
   CheckBox(h4,v+=16,0,"No Mass Emailing",NoMailPosting);
   CheckBox(h4,v+=16,0,"No Environment Tax",NoRepa);

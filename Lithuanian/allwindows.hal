@@ -92,7 +92,7 @@ begin
   CheckBox(h1+80,v+=16,0,"Sve‹ias",GuestType);
   end;
   if (HasJewelleryInterface) then begin
-    CheckBox(h1+80,v+=16,0,"Nesi÷sti laiäk÷",NoLetterPosting);
+    CheckBox(h1+80,v+=16,0,"Nesi÷sti bendr÷ sms",NoLetterPosting);
     CheckBox(h1+80,v+=16,0,"Nesi÷sti e-laiäk÷",NoMailPosting);
     EditField(h1+120,v+=20,100,"Pardav˜jas",Normal,SalesMan,false,UserSClass);
   end;
@@ -265,9 +265,9 @@ begin
   CheckBox(h4,v+=16,0,"Leisti prisijungti",AllowLogin);
 //  CheckBox(h4,v+=16,0,"Leisti FTP pri˜jimˆ",FTPLogin);
   CheckBox(h4,v+=16,0,"Tik fiskalin˜s fakt.",FiscalFlag);
-  CheckBox(h4,v+=16,0,"Nesi÷sti bendr÷ laiäk÷",NoLetterPosting);
+  CheckBox(h4,v+=16,0,"Nesi÷sti bendr÷ sms",NoLetterPosting);
   end else begin
-    CheckBox(h4,v=12,0,"Be mas. laiäk÷",NoLetterPosting); 
+    CheckBox(h4,v=12,0,"Nesi÷sti bendr÷ sms",NoLetterPosting); 
   end;
   CheckBox(h4,v+=16,0,"Nesi÷sti bendr÷ el. laiä.",NoMailPosting);
   CheckBox(h4,v+=16,0,"Nesk. apl. aps. mok.",NoRepa);
