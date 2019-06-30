@@ -547,7 +547,8 @@ begin
   ButtonFrame(h-100,v+=40,90,2,"Tipas");
   RadioButton(h-100,v,0,0,"Laisvai samdomas",Surety1Type);
   RadioButton(h-100,v+=16,1,0,"Specialistas",Surety1Type);  
-  HalPushButton(h,v+=vs+30,h+120,v+25,"ShowB2BAppScoring1","Vertinimo balas"); v = v + 10;
+  HalPushButton(h,v+=vs+30,h+120,v+25,"ShowB2BAppScoring1","Vertinimo balas");
+  HalPushButton(h-90,v,h-10,v+25,"ShowB2BAppRemSur1","Remove"); v = v + 10;
   EditField(h,v+=vs,100,"Vardas",Normal,Surety1Name,false,0);
   EditField(h,v+=vs,100,"Pareigos",Normal,Surety1Position,false,JobTitleSClass);
   EditField(h,v+=vs,100,"Tel. nr.",Normal,Surety1Phone,false,0);
@@ -581,7 +582,8 @@ begin
     ButtonFrame(h2-100,v=v+40,90,2,"Type");
     RadioButton(h2-100,v,0,0,"Laisvai samdomas",Surety2Type);
     RadioButton(h2-100,v+=16,1,0,"Specialistas",Surety2Type);  
-    HalPushButton(h2,v+=vs+30,h2+120,v+25,"ShowB2BAppScoring2","Vertinimo balas"); v = v + 10;
+    HalPushButton(h2,v+=vs+30,h2+120,v+25,"ShowB2BAppScoring2","Vertinimo balas");
+    HalPushButton(h2-90,v,h2-10,v+25,"ShowB2BAppRemSur2","Remove"); v = v + 10;
     EditField(h2,v+=vs,100,"Vardas",Normal,Surety2Name,false,0);
     EditField(h2,v+=vs,100,"Pozicija",Normal,Surety2Position,false,JobTitleSClass);
     EditField(h2,v+=vs,100,"Tel. nr.",Normal,Surety2Phone,false,0);
@@ -613,7 +615,8 @@ begin
     ButtonFrame(h3-100,v=v+40,90,2,"Tipas");
     RadioButton(h3-100,v,0,0,"Savininkas",Surety3Type);
     RadioButton(h3-100,v+=16,1,0,"Specialistas",Surety3Type);  
-    HalPushButton(h3,v+=vs+30,h3+120,v+25,"ShowB2BAppScoring3","Scoring Rate"); v = v + 10;
+    HalPushButton(h3,v+=vs+30,h3+120,v+25,"ShowB2BAppScoring3","Scoring Rate");
+    HalPushButton(h3-90,v,h3-10,v+25,"ShowB2BAppRemSur3","Remove"); v = v + 10;
     EditField(h3,v+=vs,100,"Vardas",Normal,Surety3Name,false,0);
     EditField(h3,v+=vs,100,"Pozicija",Normal,Surety3Position,false,JobTitleSClass);
     EditField(h3,v+=vs,100,"Tel. nr.",Normal,Surety3Phone,false,0);
