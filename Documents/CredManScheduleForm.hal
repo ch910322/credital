@@ -5,7 +5,7 @@ external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure PrintCredManHeader(record CredManVc);
 
-procedure PrintCredManr(record CredManVc CredManr)
+procedure PrintCredManr(record CredManVc CredManr,record DocVc Docr)
 begin
   record CredManPayPlanVc CredManPayPlanr;
   row CredManPayPlanVc CredManPayPlanrw;
@@ -42,6 +42,7 @@ begin
     OutFormField("F_CREDBAL",SMrw.CurCredVal);//Balance
     OutFormField("F_CREDINVTOT",SMrw.CredVal+SMrw.DebVal2+SMrw.DebVal);//Balance
     OutFormField("F_ROWNR",i+1);
+    OutFormImage(Docr);
     EndFormRow;
     totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
     totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
@@ -105,7 +106,7 @@ LBREAK:;
         if (ReadFirstMain(Docr,1,true)) then begin
         end;
 //rest of fields go here
-        PrintCredManr(CredManr);
+        PrintCredManr(CredManr,Docr);
 
         CloseForm;        
       end else begin

@@ -174,7 +174,7 @@ end;
 
 function val CalculatePersonCoef(record B2BLoanApplicationVc LAr,record ScoringSupVc SSr,record EvalConstBlock ECb,val profit,Integer surety,var val d)
 begin
-  val bx,bx1,res,surval; 
+  val bx,bx1,res,surval,bx2; 
   Integer specialist,surnum;
   string 255 tmp; 
 
@@ -197,10 +197,12 @@ begin
     specialist = 2;
   end;
 
-  if (SSr.Salary6Months>ECb.MininumSalary) then begin
-    bx1 = ECb.MininumSalary + (SSr.Salary6Months-ECb.MininumSalary) * ECb.SalAboveMinCoef;
+  bx2 = (GetSuretyFieldVal(LAr,1,"Salary6Months") + GetSuretyFieldVal(LAr,2,"Salary6Months") + GetSuretyFieldVal(LAr,3,"Salary6Months")) * 0.8;
+
+  if (bx2>ECb.MininumSalary) then begin
+    bx1 = ECb.MininumSalary + (bx2-ECb.MininumSalary) * ECb.SalAboveMinCoef;
   end else begin
-    bx1 = SSr.Salary6Months;
+    bx1 = bx2;
   end;
   bx = max(bx1,profit);
 

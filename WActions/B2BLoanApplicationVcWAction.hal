@@ -914,3 +914,93 @@ begin
   return;
 end;
 
+procedure MoveSurety(var record B2BLoanApplicationVc LAr,Integer t)
+begin
+  Integer num,num2;
+  
+  for (num=t;num<3;num=num+1) begin
+    num2 = num+1;
+    SetFieldValueByName(LAr,"SuretyProvider" & num,GetFieldValueByName(LAr,"SuretyProvider" & num2,-1),-1);
+    SetFieldValueByName(LAr,"MajorityOwner" & num,GetFieldValueByName(LAr,"MajorityOwner" & num2,-1),-1);
+
+    SetFieldValueByName(LAr,"Surety" & num & "AccessToDataUntil",GetFieldValueByName(LAr,"Surety" & num2 & "AccessToDataUntil",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Name",GetFieldValueByName(LAr,"Surety" & num2 & "Name",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Position",GetFieldValueByName(LAr,"Surety" & num2 & "Position",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Phone",GetFieldValueByName(LAr,"Surety" & num2 & "Phone",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "eMail",GetFieldValueByName(LAr,"Surety" & num2 & "eMail",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "ID",GetFieldValueByName(LAr,"Surety" & num2 & "ID",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "AgeGroup",GetFieldValueByName(LAr,"Surety" & num2 & "AgeGroup",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr0",GetFieldValueByName(LAr,"Surety" & num2 & "Addr0",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr1",GetFieldValueByName(LAr,"Surety" & num2 & "Addr1",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr2",GetFieldValueByName(LAr,"Surety" & num2 & "Addr2",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr3",GetFieldValueByName(LAr,"Surety" & num2 & "Addr3",-1),-1);
+    SetFieldValueByName(LAr,"Surety" & num & "Addr4",GetFieldValueByName(LAr,"Surety" & num2 & "Addr4",-1),-1);
+  end;
+
+  //this is to clear the last surety that was moved up
+  SetFieldValueByName(LAr,"SuretyProvider" & num,"",-1);
+  SetFieldValueByName(LAr,"MajorityOwner" & num,"",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "AccessToDataUntil","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Name","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Position","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Phone","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "eMail","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "ID","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "AgeGroup","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Addr0","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Addr1","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Addr2","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Addr3","",-1);
+  SetFieldValueByName(LAr,"Surety" & num & "Addr4","",-1);
+  LAr.SuretyCnt = LAr.SuretyCnt - 1;
+  if (LAr.SuretyCnt<1) then begin
+    LAr.SuretyCnt = 1;
+  end;
+
+  return;
+end;
+
+global
+procedure ShowB2BAppRemSur1()
+begin
+  record B2BLoanApplicationVc LAr;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  MoveSurety(LAr,1);
+  PutWindowRecord(wn,LAr);
+  RerunWindowDef(wn);
+
+  return;
+end;
+
+global
+procedure ShowB2BAppRemSur2()
+begin
+  record B2BLoanApplicationVc LAr;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  MoveSurety(LAr,2);
+  PutWindowRecord(wn,LAr);
+  RerunWindowDef(wn);
+  
+  return;
+end;
+
+global
+procedure ShowB2BAppRemSur3()
+begin
+  record B2BLoanApplicationVc LAr;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  MoveSurety(LAr,3);
+  PutWindowRecord(wn,LAr);
+  RerunWindowDef(wn);
+
+  return;
+end;
