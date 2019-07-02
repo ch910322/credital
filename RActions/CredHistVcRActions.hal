@@ -14,3 +14,66 @@ begin
   CredHistVcRecordInIndex = res;
   return;
 end; 
+
+updating procedure UpdateInvoicedCredHist(Longint prevnr)
+begin
+  record CredHistVc CredHistr,pCredHistr,oldCredHistr;
+  Boolean TrHs;
+  val sum;
+
+  CredHistr.SerNr = prevnr;
+  if (ReadFirstMain(CredHistr,1,true)) then begin
+    TrHs = true;
+    pCredHistr.PreviousNr = prevnr;
+    while (LoopKey("PreviousNr",pCredHistr,1,TrHs)) begin
+      if (pCredHistr.PreviousNr!=prevnr) then begin
+        TrHs = false;
+      end else begin
+        sum = sum + pCredHistr.Sum;
+      end;
+    end;
+    if (CredHistr.Sum==sum and CredHistr.PaidFlag==0) then begin
+      RecordCopy(oldCredHistr,CredHistr);
+      CredHistr.PaidFlag = 1;
+      RecordUpdate(oldCredHistr,CredHistr,true);
+    end;
+    if (CredHistr.Sum!=sum and CredHistr.PaidFlag!=0) then begin
+      RecordCopy(oldCredHistr,CredHistr);
+      CredHistr.PaidFlag = 0;
+      RecordUpdate(oldCredHistr,CredHistr,true);
+    end;
+  end;
+  return;
+end;
+
+global
+updating function LongInt CredHistVcRecordSaveAfter(var record CredHistVc CredHistr,record CredHistVc CredHist2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;
+
+  //if this is payment then we have to check invoice records and if it is fully paid
+  if (CredHistr.RecordType==1) then begin
+    UpdateInvoicedCredHist(CredHistr.PreviousNr);
+  end;
+
+  CredHistVcRecordSaveAfter = res;
+  return;
+end;
+
+global
+updating function LongInt CredHistVcRecordRemoveAfter(var record CredHistVc CredHistr,record CredHistVc CredHist2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;
+
+  //if this is payment then we have to update invoice history as well
+  if (CredHistr.RecordType==1) then begin
+    UpdateInvoicedCredHist(CredHistr.PreviousNr);
+  end;
+
+  CredHistVcRecordRemoveAfter = res;
+  return;
+end;

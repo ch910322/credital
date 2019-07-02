@@ -432,6 +432,16 @@ begin
   HalPushButton(h,v+=40,h+120,v+20,"RefinCredMan2WClassSubmit","Refinance");
   EndWindow;
 
+  WindowBegin("Item Priority",ItemPriorityTClass,CGHBl,-);
+  SetWRect(80,80,400,280);
+  SetBlid(ItemPriorityBlock);
+  MatrixBegin(10,20,-30,-10,-,10);
+  MatCol(1,25,"Item",0,ArtCode,false,INSClass);
+  MatCol(1,100,"Name",0,Name,false,0);
+  MatCol(1,-50,"Priority",0,Priority,false,0);
+  EndMatrix;
+  EndWindow;
+
   return;
 end;
 

@@ -557,7 +557,8 @@ begin
   return;
 end;
 
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf)
+global
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf,Longint previousnr)
 begin
   record CredHistVc CredHistr;
   
@@ -576,6 +577,7 @@ begin
   CredHistr.CredFromDate = perfrom;
   CredHistr.CredToDate = perto;
   CredHistr.MainRecord = mainf;
+  CredHistr.PreviousNr = previousnr;
 
   CredHistr.Sum = sum;
   if (RecordInsert(CredHistr,true)) then begin
@@ -642,7 +644,7 @@ begin
       for (i=0;i<rwcnt;i=i+1) begin
         MatRowGet(IVr,i,IVrw);
         if (IVrw.ChargeType>0) then begin
-          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf);
+          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf,-1);
           IVrw.CredHistNr = histnr;
           MatRowPut(IVr,i,IVrw);
           firstf = 0;

@@ -1,0 +1,31 @@
+external procedure SplitLoanPaymentsInReceipt(record IPVc);
+
+global
+updating function LongInt IPVcRecordUpdateAfter(var record IPVc IPr,record IPVc IP2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+
+  res = inner.IPVcRecordUpdateAfter(IPr,IP2r,stat,long4);
+
+  if (IPr.OKFlag==1 and IP2r.OKFlag==0) then begin
+    SplitLoanPaymentsInReceipt(IPr);
+  end;
+
+  IPVcRecordUpdateAfter = res;
+  return;
+end;
+
+global
+updating function LongInt IPVcRecordSaveAfter(var record IPVc IPr,record IPVc IP2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+
+  res = inner.IPVcRecordSaveAfter(IPr,IP2r,stat,long4);
+
+  if (IPr.OKFlag==1) then begin
+    SplitLoanPaymentsInReceipt(IPr);
+  end;
+
+  IPVcRecordSaveAfter = res;
+  return;
+end;

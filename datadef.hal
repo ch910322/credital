@@ -480,6 +480,7 @@ begin
   RecordField(CredFromDate,M4Date,0,0);
   RecordField(CredToDate,M4Date,0,0);
   RecordField(MainRecord,M4Int,0,0);
+  RecordField(PaidFlag,M4Int,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(CredManTypeDate);
@@ -508,6 +509,12 @@ begin
   AppendFieldToKeyName(CredManNr);
   KeySegment(TransDate);
   KeySegment(SerNr);
+/*
+  KeyBegin(CustPaid);
+  KeySegment(CustCode);
+  KeySegment(PaidFlag);  
+  KeySegment(SerNr);
+*/
   EndRecord;
 
   RecordAddBegin(IVVc,"CredIVVc");
@@ -553,6 +560,15 @@ begin
   ArrayField(Reb,M4Val,0,0);
   EndRecordAdd;
 
+  BlockBegin(ItemPriorityBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(ArtCode,M4Code,20,INVc);
+  ArrayField(Name,M4Str,250,0);
+  ArrayField(Priority,M4Int,0,0);
+  EndArray;
+  EndBlock;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Documents", 3);
@@ -566,11 +582,20 @@ begin
   SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
 
+/*Mesente SMS*/
   Exec_file("halcust\\Integrations\\Mesente\\datadef.hal");
   SourceFile("halcust\\Integrations\\Mesente", 3);
 
+/*SmartID*/
   Exec_file("halcust\\Integrations\\SmartID\\datadef.hal");
   SourceFile("halcust\\Integrations\\SmartID", 3);
+
+/*Bank import*/
+  Exec_file("halcust\\BankImport\\datadef.hal");
+  SourceFile("halcust\\BankImport", 3);
+  SourceFile("halcust\\BankImport\\english", 3);
+  SourceFile("halcust\\BankImport\\lithuanian", 3);
+  SourceFile("halcust\\BankImport\\Swedbank", 3);
 
   return;
 end;

@@ -1,0 +1,35 @@
+
+function Boolean ItemPriorityTClassArtCodeEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record ItemPriorityBlock IPb;
+  row ItemPriorityBlock IPbrw;
+  record INVc INr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,IPb);
+    if (rownr>-1) then begin
+      MatRowGet(IPb,rownr,IPbrw);
+      INr.Code = IPbrw.ArtCode;
+      if (ReadFirstMain(INr,1,true)) then begin
+        IPbrw.Name = INr.Name;
+        MatRowPut(IPb,rownr,IPbrw);
+      end;
+    end;
+    PutWindowRecord(wn,IPb);   
+  end; 
+  ItemPriorityTClassArtCodeEFAfter = true;
+  return;
+end;
+
+global
+function Boolean ItemPriorityTClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "ArtCode": res = ItemPriorityTClassArtCodeEFAfter(wn,rownr,changed!=0);
+  end;
+  
+  ItemPriorityTClassAfterEditField = res;
+  return;
+end;
