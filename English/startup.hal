@@ -178,11 +178,15 @@ begin
 
   SetBegin(2010);
   SetText(0,"-");
-  SetText(1,"Instalment");
-  SetText(2,"Deposit");
-  SetText(3,"Interest");
-  SetText(4,"Late Fees");
-  SetText(5,"Planned Fees");
+  SetText(1,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(2,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(3,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(4,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(5,"Invoiced Instalment");
+  SetText(6,"Invoiced Interest");
+  SetText(7,"Invoiced Deposit");
+  SetText(8,"Invoiced Fees");
+  SetText(9,"Invoices Late Fees");
   EndSet;
 
   SetBegin(2011);

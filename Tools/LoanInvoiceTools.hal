@@ -9,6 +9,7 @@ external inner function LongInt DateDiff(Date,Date);
 external procedure AddPlannedFees(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Integer,Date,var val,var val,Date,Date);
 external procedure AddInterest(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Date,var val,var val,Date,Date);
 external procedure AddInstalmentFixed(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,val,Date,var val,var val,Date,Date);
+forward procedure GetCredManEventList2(Longint,var record ORVc);
 
 
 enum begin
@@ -558,7 +559,7 @@ begin
 end;
 
 global
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf,Longint previousnr)
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf,Longint previousnr,val invsum)
 begin
   record CredHistVc CredHistr;
   
@@ -578,6 +579,10 @@ begin
   CredHistr.CredToDate = perto;
   CredHistr.MainRecord = mainf;
   CredHistr.PreviousNr = previousnr;
+  CredHistr.InvSum = invsum;
+  if (nonblank(CredHistr.CredFromDate)) then begin
+    CredHistr.Comment2 = CredHistr.CredFromDate & ":" & CredHistr.CredToDate;
+  end;
 
   CredHistr.Sum = sum;
   if (RecordInsert(CredHistr,true)) then begin
@@ -618,6 +623,40 @@ begin
   return;
 end;
 
+updating procedure UpdateCredHistBalance(Longint credmannr,Longint invnr)
+begin
+  record ORVc ORr;
+  Integer i,rwcnt;
+  record CredHistVc CredHistr,oldCredHistr;
+  row ORVc ORrw;
+  Boolean TrHs;
+  val bal;
+  
+  GetCredManEventList2(credmannr,ORr);
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    if (ORrw.GroupOrdRow==invnr) then begin
+      bal = ORrw.rowGP;
+      i = rwcnt;
+    end;
+  end;
+  TrHs = true;
+  CredHistr.RecordNr = invnr;
+  CredHistr.RecordType = 0;
+  while (LoopKey("RecordNr",CredHistr,2,TrHs)) begin
+    if (CredHistr.RecordNr!=invnr or CredHistr.RecordType!=0) then begin
+      TrHs = false;
+    end else begin
+      RecordCopy(oldCredHistr,CredHistr);
+      CredHistr.Balance = bal;
+      RecordUpdate(oldCredHistr,CredHistr,true);
+    end;
+  end;
+
+  return;
+end;
+
 global
 updating procedure UpdateCredHistInvoice(var record IVVc IVr,record IVVc IV2r)
 begin
@@ -644,7 +683,7 @@ begin
       for (i=0;i<rwcnt;i=i+1) begin
         MatRowGet(IVr,i,IVrw);
         if (IVrw.ChargeType>0) then begin
-          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf,-1);
+          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf,-1,IVr.Sum4);
           IVrw.CredHistNr = histnr;
           MatRowPut(IVr,i,IVrw);
           firstf = 0;
@@ -652,6 +691,8 @@ begin
       end;
     end;
   end;
+
+  UpdateCredHistBalance(IVr.CustCredManNr,IVr.SerNr);
 
   return;
 end;
@@ -684,7 +725,7 @@ begin
   end else begin
     IPr.SerNr = prevCredHistr.RecordNr;
   end;
-  MatRowPut(ORr,MatRowCnt(ORr),ORrw);
+  MatRowInsert(ORr,0,ORrw);
 
   return;
 end;
@@ -697,7 +738,6 @@ begin
   val balance;
   
   TrHs = true;
-  firstf = true;
   CredHistr.CredManNr = CredManr.SerNr;
   balance = CredManr.InvSum4;
   while (LoopKey("CredManTypeDate",CredHistr,1,TrHs)) begin
@@ -705,19 +745,26 @@ begin
       TrHs = false;
     end else begin
       //sortrows
-      if (firstf==false and (CredHistr.RecordType!=prevCredHistr.RecordType or CredHistr.RecordNr!=prevCredHistr.RecordNr)) then begin
+      if (firstf==true and (CredHistr.RecordType!=prevCredHistr.RecordType or CredHistr.RecordNr!=prevCredHistr.RecordNr)) then begin
         AddCredHistToArray(ORr,prevCredHistr,balance);
       end;
       if (CredHistr.RecordType==kCredHistRecTypeInvoice and (CredHistr.ChargeType==kEventTypeIssueInstalment or CredHistr.ChargeType==kEventTypeIssueDeposit)) then begin
+        if (CredManr.SerNr==190058) then begin
+          logtext(0,"check before " & CredHistr.SerNr & ":" & CredHistr.Sum & ":" & balance);
+        end;
         balance = balance - CredHistr.Sum;
+        if (CredManr.SerNr==190058) then begin
+          logtext(0,"check after " & CredHistr.SerNr & ":" & CredHistr.Sum & ":" & balance);
+        end;
       end;
+      firstf = true;
       RecordCopy(prevCredHistr,CredHistr);
-      firstf = false;
     end;
   end;
-  if (firstf==false) then begin
+  if (prevCredHistr.SerNr>-1) then begin
     AddCredHistToArray(ORr,prevCredHistr,balance);
   end;
+
   SortRows(ORr,"PlanShipRowDate",true);
 
   return;

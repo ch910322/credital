@@ -8,7 +8,7 @@ external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var 
 external inner procedure IPVc_PasteRecCurncy(var record IPVc,Integer);
 external inner procedure IPVc_PasteRecVal(var record IPVc,Integer);
 external inner procedure IPVc_PasteBankCurncy(var record IPVc,Integer);
-external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint);
+external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint,val);
 
 
 /*Invoicing tools*/
@@ -265,7 +265,7 @@ begin
         paid = remsum;
       end;
       remsum = remsum - paid;
-      CreateCredHist(IPr.SerNr,-1,ORrw.VECode,paid,1,"","",ORrw.TAX2Reb,"",histnr,"","",0,ORrw.CUServiceHistNr);
+      CreateCredHist(IPr.SerNr,-1,ORrw.VECode,paid,1,"","",ORrw.TAX2Reb,"",histnr,"","",0,ORrw.CUServiceHistNr,0);
       if (remsum<=0) then begin
         goto lout;
       end;

@@ -24,12 +24,20 @@ begin
   return;
 end;
 
+external updating procedure UpdateCredHistInvoice(var record IVVc,record IVVc);
+
+
 global
 updating procedure FixCredHistMn(record RcVc RepSpec)
 begin
   record CredHistVc oldCredHistr,CredHistr,prevCredHistr;
-  Longint lastrec
+  Longint lastrec;
+  record IVVc IVr,tIVr,tIV2r,oldIVr;
+  Boolean TrHs;
+  array record IVVc arrIVr;
+  Longint i;
   
+/*
   while (LoopKey("RecordNr",CredHistr,1,true)) begin
     if (prevCredHistr.RecordNr!=CredHistr.RecordNr and prevCredHistr.RecordNr>-1) then begin
       RecordCopy(oldCredHistr,prevCredHistr);
@@ -41,6 +49,31 @@ begin
       RecordUpdate(oldCredHistr,CredHistr,true);
     end;
     RecordCopy(prevCredHistr,CredHistr);
+  end;
+*/
+  TrHs = true;
+  IVr.OKFlag = 1;
+  while (LoopKey("OKFlag",IVr,1,TrHs)) begin
+    if (IVr.OKFlag!=1) then begin
+      TrHs = false;
+    end else begin
+      if (IVr.CustCredManNr>-1) then begin
+        RecordCopy(tIVr,IVr);
+        RecordCopy(tIV2r,IVr);
+        tIVr.OKFlag = 0;
+        UpdateCredHistInvoice(tIVr,tIV2r);
+        arrIVr[arrIVr.length] = IVr;
+      end;
+    end;
+  end;
+
+  for (i=0;i<arrIVr.length;i=i+1) begin
+    IVr = arrIVr[i];
+    RecordCopy(tIVr,IVr);
+    RecordCopy(oldIVr,IVr);
+    tIVr.OKFlag = 0;
+    UpdateCredHistInvoice(IVr,tIVr);
+    RecordUpdate(oldIVr,IVr,true);
   end;
 
   return;

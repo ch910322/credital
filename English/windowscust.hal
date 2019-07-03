@@ -351,6 +351,9 @@ begin
   EditField(h,v+=vs,120,"CredManNr",Normal,CredManNr,false,0);
   EditField(h,v+=vs,120,"Start Date",Normal,CredFromDate,false,0);
   EditField(h,v+=vs,120,"End Date",Normal,CredToDate,false,0);
+  EditField(h,v+=vs,120,"Invoices Sum",Normal,InvSum,false,0);
+  EditField(h,v+=vs,120,"Paid Sum",Normal,PaidSum,false,0);
+  EditField(h,v+=vs,120,"Balance",Normal,Balance,false,0);
   EndWindow;
 
   WindowBegin("Specify Credit Agreement Invoices",GenLoanInvoicesVClass,CGMnt,RcType);
