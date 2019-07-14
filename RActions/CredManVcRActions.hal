@@ -1,4 +1,5 @@
 external inner procedure CredManVc_PasteType(var record CredManVc);
+external inner procedure CUCreditLimit(record CUVc,Date,string,var val,var LongInt);
 
 
 global
@@ -14,9 +15,137 @@ BEGIN
   CredManr.MonthlyPaymentDay = CMb.InvDay;
 
   res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
-  
   CredManVc_PasteType(CredManr);
   
   CredManVcRecordDefaults = res;
+  return;
+END;
+
+global
+function LongInt CredManVcRecordDuplicate(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  record BaseCurBlock BCb;
+  record CredManSetBlock CMb;
+  val t;
+
+  BlockLoad(BCb);
+  BlockLoad(CMb);
+  CredManr.CurncyCode = BCb.BaseCur1;
+  CredManr.MonthlyPaymentDay = CMb.InvDay;
+/*
+  CredManr.FactInvAmount = t;
+  CredManr.LoanToValue = t;
+  CredManr.FactBuyer = "";
+  CredManr.FactBuyerName = "";
+  CredManr.FactInvNumber = "";
+  CredManr.FactComment = "";
+  CredManr.FactInsured = 0;
+*/
+
+  res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
+  
+  CredManVcRecordDuplicate = res;
+  return;
+END;
+
+function val GetFactoringTotalAgreementWorth(string cucode,Date enddate,Longint sernr)
+begin
+  record CredManVc CredManr;
+  Boolean TrHs;
+  val res;
+
+  TrHs = true;
+  CredManr.FactBuyer = cucode;
+  CredManr.endDate = CurrentDate;
+  while (LoopKey("FactBuyer",CredManr,2,TrHs)) begin
+    if (CredManr.FactBuyer!=cucode ) then begin//or CredManr.endDate>enddate?
+      TrHs = false;
+    end else begin
+      if (CredManr.startDate<=CurrentDate and CredManr.InstalmentType==4) then begin
+        if (CredManr.SerNr!=sernr) then begin
+          res = res + CredManr.FactInvAmount;
+        end;
+      end;
+    end;
+  end;
+  
+  GetFactoringTotalAgreementWorth = res;
+  return;
+end;
+
+global
+function LongInt CredManVcRecordCheck(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  record CredManVc tCredManr;
+  Boolean TrHs,credf;
+  Longint crlimitdays;
+  val crlimit,totworth;
+  record CUVc CUr;
+
+  res = 0;
+
+  if (CredManr.InstalmentType==4) then begin
+    if (CredManr.FactInvAmount<=0) then begin
+      RecordCheckError(1058,"",-1,"FactInvAmount");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
+    if (blank(CredManr.FactInvNumber)) then begin
+      RecordCheckError(1058,"",-1,"FactInvNumber");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end else begin
+      TrHs = true;
+      tCredManr.FactInvNumber = CredManr.FactInvNumber;
+      while (LoopKey("FactInvNumber",tCredManr,1,TrHs)) begin
+        if (tCredManr.FactInvNumber!=CredManr.FactInvNumber) then begin
+          TrHs = false;
+        end else begin
+          if (tCredManr.SerNr!=CredManr.SerNr) then begin
+            RecordCheckError(200100,"",-1,"FactInvNumber");
+            res = -1;
+            goto LCredManVcRecordCheck;
+          end;
+        end;
+      end;
+    end;
+    CUr.Code = CredManr.FactBuyer;
+    credf = false;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      CUCreditLimit(CUr,CredManr.startDate,"sales",crlimit,crlimitdays);
+      if (crlimit>CredManr.FactInvAmount) then begin
+        totworth = GetFactoringTotalAgreementWorth(CredManr.FactBuyer,CredManr.endDate,CredManr.SerNr);
+        if (totworth+CredManr.FactInvAmount>crlimit) then begin
+          credf = true;
+        end else begin
+          if (AddDay(CredManr.startDate,crlimitdays)<CredManr.endDate) then begin
+            credf = true;
+          end;
+        end;
+      end else begin
+        credf = true;
+      end;
+      if (credf) then begin        
+        if ((CredManr.OKFlag==1 and CredMan2r.OKFlag!=1) or (CredManr.Approved==1 and CredMan2r.Approved!=1)) then begin
+          RecordCheckError(200101,"",-1,"FactBuyer");
+          res = -1;
+          goto LCredManVcRecordCheck;
+        end else begin
+          MessageBox(200101,"");
+        end;
+      end;
+    end else begin
+      RecordCheckError(1058,"",-1,"FactBuyer");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
+  end;
+
+  res = inner.CredManVcRecordCheck(CredManr,CredMan2r,stat,long4);
+  
+LCredManVcRecordCheck:;
+  CredManVcRecordCheck = res;
   return;
 END;

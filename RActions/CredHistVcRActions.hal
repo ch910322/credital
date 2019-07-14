@@ -17,12 +17,34 @@ end;
 
 updating procedure UpdateInvoicedCredHist(Longint prevnr)
 begin
-  record CredHistVc CredHistr,pCredHistr,oldCredHistr;
+  record CredHistVc CredHistr,pCredHistr,oldCredHistr,CredHist2r;
   Boolean TrHs;
-  val sum;
+  val sum,due;
+  Integer pdf;
+  record ARVc ARr;
 
   CredHistr.SerNr = prevnr;
   if (ReadFirstMain(CredHistr,1,true)) then begin
+    CredHist2r.MainRecord = 1;
+    CredHist2r.RecordNr = CredHistr.RecordNr;
+    CredHist2r.RecordType = 0;
+    if (ReadFirstKey("MainRecord",CredHist2r,3,true)) then begin
+      ARr.InvoiceNr = CredHist2r.RecordNr;
+      if (ReadFirstMain(ARr,1,true)) begin
+        due = ARr.RVal;
+      end;
+      RecordCopy(oldCredHistr,CredHist2r);
+      CredHist2r.PaidSum = CredHist2r.InvSum - ARr.RVal;
+      if (ARr.RVal==0) then begin
+        CredHist2r.PaidFlag = 1;
+      end else begin
+        CredHist2r.PaidFlag = 0;
+      end;
+      RecordUpdate(oldCredHistr,CredHist2r,true);
+    end;
+
+  end;
+  /*
     TrHs = true;
     pCredHistr.PreviousNr = prevnr;
     while (LoopKey("PreviousNr",pCredHistr,1,TrHs)) begin
@@ -32,17 +54,16 @@ begin
         sum = sum + pCredHistr.Sum;
       end;
     end;
-    if (CredHistr.Sum==sum and CredHistr.PaidFlag==0) then begin
-      RecordCopy(oldCredHistr,CredHistr);
-      CredHistr.PaidFlag = 1;
-      RecordUpdate(oldCredHistr,CredHistr,true);
+    if (CredHistr.Sum==sum) then begin
+      pdf = 1;
     end;
-    if (CredHistr.Sum!=sum and CredHistr.PaidFlag!=0) then begin
-      RecordCopy(oldCredHistr,CredHistr);
-      CredHistr.PaidFlag = 0;
-      RecordUpdate(oldCredHistr,CredHistr,true);
-    end;
-  end;
+    RecordCopy(oldCredHistr,CredHistr);
+    CredHistr.PaidFlag = pdf;
+    CredHistr.PaidSum = sum;
+    RecordUpdate(oldCredHistr,CredHistr,true);
+*/
+
+
   return;
 end;
 

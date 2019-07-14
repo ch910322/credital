@@ -639,11 +639,11 @@ begin
   EditField(h3,v+=vs,82,"Laiduotojo palðkanos",Normal,SuretyInterestRate,false,0);
   EditField(h3,v+=vs,82,"Std Prat«simo mokestis",Normal,StdProlongFee,false,0);
   EditField(h3,v+=vs,82,"Std Prat«simo mokestis %",Normal,StdProlongPrc,false,0);
+
+  EditField(h4,v=vm,-40,"Money Transfer Date",Normal,MoneyTransferDate,false,PasteCurDate);
 //  ButtonFrame(h4,v=vm+20,150,2,"Skai‹iavimo metodas");
 //  RadioButton(h4,v,0,0,"Kaupiamas balansas",ChargeMethod);
 //  RadioButton(h4,v+=16,1,0,"M˜nesin˜s faktðros",ChargeMethod);
-
-  EditField(h4,v=vm,-40,"Money Transfer Date",Normal,MoneyTransferDate,false,PasteCurDate);
 //CUST-END
 
 //  EditField(h2,v,82,"Specifiniai °naäai",Normal,Instalment,false,InstallmentSClass);
@@ -658,6 +658,7 @@ begin
   TileButton(4,"Sˆlygos");
 //CUST-BEGIN
   TileButton(5,"Surety");
+  TileButton(6,"Factoring");
 //CUST-END
   Tile(1,200,true,"",Approved);
   CheckBox(40,-41,0,"Approved",Approved);
@@ -692,10 +693,10 @@ begin
   end;
   RlColKey(4,4,"Date",TransDate,false,CredManTransDate);
   RlCol(100,100,"Due Date",PayDate,false);
-  CalculatedColumn(200,200,"Comment","CredManComment",false);
-  CalculatedColumn(-300,-300,"Issued","CredManInvSum",true);
-  CalculatedColumn(-200,-200,"Paid","CredManPaidSum",true);
-  CalculatedColumn(-100,-100,"Balance","CredManBal",true);
+  RlCol(200,200,"Comment",Comment2,false);
+  RlCol(-300,-300,"Issued",InvSum,true);
+  RlCol(-200,-200,"Paid",PaidSum,true);
+  RlCol(-100,-100,"Balance",Balance,true);
 
 /*
   RecordList2(10,10,-30,-80,"CredManEventVc");
@@ -819,7 +820,16 @@ begin
   EditField(h3,v+=vs,130,label4,Normal,Surety3Addr3,false,0);
   EditField(h3,v+=vs,130,label5,Normal,Surety3Addr4,false,0);
 
-//CUST-END
+  Tile(6,290,true,"6",LoanToValue); 
+
+  EditField(h,v=6,100,"Loan to Value %",Normal,LoanToValue,false,0);
+  EditField(h,v+=vs,100,"Buyer",Normal,FactBuyer,false,B2BLoanApp_CUSClass);
+  EditField(h2,v,230,"Buyer Name",Normal,FactBuyerName,false,0);
+  EditField(h,v+=vs,100,"Invoice Amount",Normal,FactInvAmount,false,0);
+  EditField(h,v+=vs,100,"Invoice Number",Normal,FactInvNumber,false,0);
+  EditField(h,v+=vs,430,"Comment",Normal,FactComment,false,0);
+  CheckBox(h,v+=vs,0,"Insured",FactInsured);
+
   SpecialMenu("Atidaryti DK operacijˆ",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Atidaryti pirmin° °raäˆ",' ',3,"OpenSubsysCredManDsm");
  //CUST-BEGIN
@@ -866,6 +876,7 @@ begin
   EditField(h,v+=vs,40,"Kursas %",Normal,IntRate,false,0);
   EditField(h2,v,82,"Std Prat«simo mokestis %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Uìstatas % ",Normal,DepositPrc,false,0);
+  EditField(h2,v,82,"Loan to Value %",Normal,LoanToValue,false,0);//CUST added
 //  EditField(h,v+=vs,40,"Dienos be palðkan÷",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Nemok˜tini m˜nesiai",Normal,SettleLimit,false,0);
   EditField(h,vm2=(v+=vs),82,"Fiksuotas Uìstatas",Normal,DepositSum,true,0);

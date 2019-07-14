@@ -656,6 +656,7 @@ begin
   TileButton(4,"Terms");
 //CUST-BEGIN
   TileButton(5,"Surety");
+  TileButton(6,"Factoring");
 //CUST-END
   Tile(1,500,true,"",Approved);//CUST CurncyCode>>Approved
   CheckBox(40,-41,0,"Approved",Approved);
@@ -817,7 +818,16 @@ begin
   EditField(h3,v+=vs,130,label4,Normal,Surety3Addr3,false,0);
   EditField(h3,v+=vs,130,label5,Normal,Surety3Addr4,false,0);
 
-//CUST-END
+  Tile(6,290,true,"6",LoanToValue); 
+
+  EditField(h,v=6,100,"Loan to Value %",Normal,LoanToValue,false,0);
+  EditField(h,v+=vs,100,"Buyer",Normal,FactBuyer,false,B2BLoanApp_CUSClass);
+  EditField(h2,v,230,"Buyer Name",Normal,FactBuyerName,false,0);
+  EditField(h,v+=vs,100,"Invoice Amount",Normal,FactInvAmount,false,0);
+  EditField(h,v+=vs,100,"Invoice Number",Normal,FactInvNumber,false,0);
+  EditField(h,v+=vs,430,"Comment",Normal,FactComment,false,0);
+  CheckBox(h,v+=vs,0,"Insured",FactInsured);
+
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");
 //CUST-BEGIN
@@ -864,6 +874,7 @@ begin
   EditField(h,v+=vs,40,"Monthly Rate %",Normal,IntRate,false,0);//CUST changed label
   EditField(h2,v,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);//CUST added
   EditField(h,v+=vs,40,"Deposit % ",Normal,DepositPrc,false,0);
+  EditField(h2,v,82,"Loan to Value %",Normal,LoanToValue,false,0);//CUST added
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Months to Settle For Free",Normal,SettleLimit,false,0);
   EditField(h,vm2=(v+=vs),82,"Fixed Deposit",Normal,DepositSum,true,0);

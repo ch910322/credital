@@ -367,8 +367,27 @@ begin
   RecordField(Surety3Addr4,M4Str,200,0);
   RecordField(Surety3Mobile,M4Str,200,0);
 
+/*Factoring*/
+  RecordField(LoanToValue,M4Qty,0,0);
+  RecordField(FactBuyer,M4Code,20,0);
+  RecordField(FactBuyerName,M4Str,250,0);
+  RecordField(FactInvAmount,M4Val,0,0);
+  RecordField(FactInvNumber,M4Str,250,0);
+  RecordField(FactInsured,M4Int,0,0);
+  RecordField(FactComment,M4Str,250,0);
+/*Factoring end*/
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
+  KeySegment(SerNr);  
+
+  KeyBegin(FactInvNumber);
+  KeySegment(FactInvNumber);
+  KeySegment(SerNr);  
+
+  KeyBegin(FactBuyer);
+  KeySegment(FactBuyer);
+  KeySegment(endDate);
   KeySegment(SerNr);  
   EndRecordAdd;
 
@@ -389,6 +408,7 @@ begin
   RecordField(SuretyInterestRate,M4Qty,0,0);
   RecordField(StdProlongFee,M4Qty,0,0);
   RecordField(StdProlongPrc,M4Qty,0,0);
+  RecordField(LoanToValue,M4Qty,0,0);
   EndRecordAdd;
 
   BlockBegin(EvalConstBlock,0,"");
@@ -508,6 +528,15 @@ begin
   KeySegment(PreviousNr);
   KeySegment(TransDate);  
   KeySegment(SerNr);
+  KeyBegin(CustPaid);
+  KeySegment(CustCode);
+  KeySegment(PaidFlag);  
+  KeySegment(SerNr);
+  KeyBegin(MainRecord);
+  KeySegment(MainRecord);
+  KeySegment(RecordNr);  
+  KeySegment(RecordType);  
+  KeySegment(SerNr);
   SubsetKeyBegin2(CredManTransDate);
   StoreInBaseKey;
   AppendFieldToKeyName(CredManNr);
@@ -572,6 +601,35 @@ begin
   ArrayField(Priority,M4Int,0,0);
   EndArray;
   EndBlock;
+
+  RecordBegin(SMSScheduleVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(Comment,M4Str,255,0);
+  RecordField(Type,M4Set,2012,0);
+  RecordField(Days,M4Long,0,0);
+  RecordField(Message,M4TextField,0,0);
+  RecordField(Day1,M4Int,0,0);
+  RecordField(Day2,M4Int,0,0);
+  RecordField(Day3,M4Int,0,0);
+  RecordField(Day4,M4Int,0,0);
+  RecordField(Day5,M4Int,0,0);
+  RecordField(Day6,M4Int,0,0);
+  RecordField(Day7,M4Int,0,0);
+  RecordField(Time1,M4Time,0,0);
+  RecordField(Time2,M4Time,0,0);
+  RecordField(Time3,M4Time,0,0);
+  RecordField(Time4,M4Time,0,0);
+  RecordField(Time5,M4Time,0,0);
+  RecordField(Time6,M4Time,0,0);
+  RecordField(Time7,M4Time,0,0);
+  RecordField(BankHolidays,M4Int,0,0);
+  RecordFIeld(ActiveFlag,M4Int,0,0);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  KeyBegin(ActiveFlag);
+  KeySegment(ActiveFlag);
+  KeySegment(SerNr);
+  EndRecord;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

@@ -1,13 +1,13 @@
 remote updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 remote procedure PasteCustInAgreementRemote(var record CredManVc);
 remote updating procedure TerminateCredMan(var record CredManVc,var record IVVc);
-remote updating procedure DoBuyOutAgreement(var record CredManVc,var record IVVc);
+remote updating procedure DoBuyOutAgreement(record CredManVc,var record IVVc);
 remote procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 external procedure GetCredManEventList2(Longint,var record ORVc);
-remote updating procedure DoPauseCredMan(var record CredManVc,Longint);
+remote procedure DoPauseCredMan(var record CredManVc,Longint);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
@@ -102,6 +102,66 @@ begin
   return;
 end;
 
+procedure CalculateFactoringValue(var record CredManVc CredManr)
+begin
+  
+  CredManr.InvSum4 = CredManr.FactInvAmount*(CredManr.LoanToValue/100);
+
+  return;
+end;
+
+function Boolean CredManDClassLoanToValueEFAfter(Integer wn,Boolean changedf,Integer num)
+begin
+  record CredManVc CredManr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    if (CredManr.LoanToValue<0) then begin
+      CredManr.LoanToValue = 0;
+    end;
+    if (CredManr.LoanToValue>100) then begin
+      CredManr.LoanToValue = 100;
+    end;
+    CalculateFactoringValue(CredManr);
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassLoanToValueEFAfter = true;
+  return;
+end;
+
+function Boolean CredManDClassFactBuyerEFAfter(Integer wn,Boolean changedf,Integer num)
+begin
+  record CredManVc CredManr;
+  record CUVc CUr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    CUr.Code = CredManr.FactBuyer;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      CredManr.FactBuyerName = CUr.Name;
+    end;
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassFactBuyerEFAfter = true;
+  return;
+end;
+
+function Boolean CredManDClassFactInvAmountEFAfter(Integer wn,Boolean changedf,Integer num)
+begin
+  record CredManVc CredManr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    if (CredManr.FactInvAmount>0) then begin
+      CalculateFactoringValue(CredManr);
+    end;
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassFactInvAmountEFAfter = true;
+  return;
+end;
+
+
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
@@ -119,6 +179,9 @@ begin
     case "SuretyProvider1":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,1);
     case "SuretyProvider2":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,2);
     case "SuretyProvider3":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,3);
+    case "LoanToValue":       res = CredManDClassLoanToValueEFAfter(wn,changed!=0,3);
+    case "FactBuyer":         res = CredManDClassFactBuyerEFAfter(wn,changed!=0,3);
+    case "FactInvAmount":     res = CredManDClassFactInvAmountEFAfter(wn,changed!=0,3);
     otherwise 
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
@@ -241,17 +304,16 @@ begin
 end;
 
 global
-procedure CheckBuyoutValueWClassOnOpenWindow()
+function Boolean CheckBuyoutValueWClassOnOpenWindow(Integer wn)
 begin
-  Integer wn;
   record RcVc RepSpec;
 
-  wn = CurWindow;
   GetWindowRecord(wn,RepSpec);
   RepSpec.d1 = CurrentDate;
   PutWindowRecord(wn,RepSpec);
   CalculateBuyOutValue;
 
+  CheckBuyoutValueWClassOnOpenWindow = false;
   return;
 end;
 

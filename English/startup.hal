@@ -15,6 +15,8 @@ begin
   Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
   Setting("Item Priority",ItemPriorityTClass,modCredMan);
   Setting("Credit History Support",CredHistLClass,modCredMan);
+  Setting("Contact Credit Limits",CreditLimitLClass,modCredMan);
+  Setting("SMS Reminders",SMSScheduleLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -104,6 +106,10 @@ begin
   SString(200096,"Total");
   SString(200097,"Balance");
 
+  SString(200100,"Invoice Number already used");
+  SString(200101,"Amount is over the Credit Limit");
+
+
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
   StrSetText(B2BLoanApplicationVc,"B2B Loan Applications");
@@ -187,11 +193,17 @@ begin
   SetText(7,"Invoiced Deposit");
   SetText(8,"Invoiced Fees");
   SetText(9,"Invoices Late Fees");
+  SetText(10,"Paid invoice");
   EndSet;
 
   SetBegin(2011);
   SetText(0,"Invoice");
   SetText(1,"Receipt");
+  EndSet;
+
+  SetBegin(2012);
+  SetText(0,"Invoice");
+  SetText(1,"Due Invoice");
   EndSet;
 
   return;

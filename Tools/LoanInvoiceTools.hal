@@ -334,7 +334,7 @@ lout:;
 end;
 
 global
-updating procedure TestCredManInvoicesFromPlan(record CredManVc CredManr,record CredManSetBlock CMb,record CredManPayPlanVc CredManPayPlanr,Date ed,var array record IVVc aIVr)
+procedure TestCredManInvoicesFromPlan(record CredManVc CredManr,record CredManSetBlock CMb,record CredManPayPlanVc CredManPayPlanr,Date ed,var array record IVVc aIVr)
 begin
   Integer i,rwcnt;
   row CredManPayPlanVc CredManPayPlanrw;
@@ -549,7 +549,8 @@ begin
   Integer res;
   
   switch (type) begin
-    case 9: res = type;
+    case 9:  res = type;
+    case 10: res = type;
     otherwise
       res = type + 4;
   end;

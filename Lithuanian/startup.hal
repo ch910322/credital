@@ -15,6 +15,8 @@ begin
   Setting("Evaluation Risk Classes",EvalRiskClassTClass,modCredMan);
   Setting("Item Priority",ItemPriorityTClass,modCredMan);
   Setting("Credit History Support",CredHistLClass,modCredMan);
+  Setting("Kontakto kredito limitas",CreditLimitLClass,modCredMan);
+  Setting("SMS Reminders",SMSScheduleLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -104,6 +106,9 @@ begin
   SString(200096,"Total");
   SString(200097,"Balance");
 
+  SString(200100,"Invoice Number already used");
+  SString(200101,"Amount is over the Credit Limit");
+
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
   StrSetText(B2BLoanApplicationVc,"B2B Loan Applications");
@@ -178,16 +183,26 @@ begin
 
   SetBegin(2010);
   SetText(0,"-");
-  SetText(1,"Instalment");
-  SetText(2,"Deposit");
-  SetText(3,"Interest");
-  SetText(4,"Late Fees");
-  SetText(5,"Planned Fees");
+  SetText(1,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(2,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(3,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(4,"- Wrong value (Invoice should be unOKed and OKed)");
+  SetText(5,"Invoiced Instalment");
+  SetText(6,"Invoiced Interest");
+  SetText(7,"Invoiced Deposit");
+  SetText(8,"Invoiced Fees");
+  SetText(9,"Invoices Late Fees");
+  SetText(10,"Paid invoice");
   EndSet;
 
   SetBegin(2011);
   SetText(0,"Invoice");
   SetText(1,"Receipt");
+  EndSet;
+
+  SetBegin(2012);
+  SetText(0,"Invoice");
+  SetText(1,"Due Invoice");
   EndSet;
 
   return;

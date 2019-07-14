@@ -46,7 +46,7 @@ begin
       RecordCopy(nORr,ORr);
       foundf = true;
       index = i;
-      goto lout;
+      goto LInsertCredHistInArray;
     end;
   end;
   
@@ -54,7 +54,7 @@ begin
   RecordNew(nORr);
   nORr.BuildOn = priority;
 
-lout:;
+LInsertCredHistInArray:;
   ClearRow(nORr,ORrw,1);
   ORrw.ArtCode = CredHistr.ArtCode;
   ORrw.Sum = CredHistr.Sum;
@@ -101,11 +101,11 @@ begin
     if (IPrw.InvoiceNr==invnr) then begin
       res = true;
       rownr = i;
-      goto lout;
+      goto LFindExistingRow;
     end;
   end;
 
-lout:;
+LFindExistingRow:;
   FindExistingRow = res;
   return;
 end;
@@ -121,13 +121,16 @@ begin
   //if everything is done correctly then we shouldn't have a need to check if the amounts match. maybe we should implement that. later
   
   credsum = ORrw.Sum-ORrw.Price;
+  if (credsum>remsum) then begin
+    credsum = remsum;
+  end;
+
   if (FindExistingRow(IPr,ORrw.GroupOrdRow,num)) then begin
     MatRowGet(IPr,num,IPrw);
     IPrw.BankVal = IPrw.BankVal + credsum;
     IPrw.RecVal = IPrw.RecVal + credsum;
     MatRowPut(IPr,num,IPrw);
     IPVc_PasteRecVal(IPr,num);
-    remsum = remsum - credsum;
   end else begin
     num = MatRowCnt(IPr);
     ClearRow(IPr,IPrw,1);
@@ -152,7 +155,25 @@ begin
     IPrw.PayDate =IPr.TransDate;
     MatRowPut(IPr,num,IPrw);
     IPVc_PasteRecVal(IPr,num);
-    remsum = remsum - credsum;
+  end;
+  remsum = remsum - credsum;
+
+  return;
+end;
+
+procedure OutputPaymentArr(array record ORVc arrORr)
+begin
+  Integer i,rwcnt,j;
+  record ORVc ORr;
+  row ORVc ORrw;
+  
+  for (i=0;i<arrORr.length;i=i+1) begin
+    ORr = arrORr[i];
+    rwcnt = MatRowCnt(ORr);
+    for (j=0;j<rwcnt;j=j+1) begin
+      MatRowGet(ORr,j,ORrw);
+      LogText(0,"DEBUG:: artcode=" & ORrw.ArtCode & ":sum=" & ORrw.Sum & ":RecordNr=" & ORrw.GroupOrdRow & ":priority=" & ORr.BuildOn & ":paid=" & ORrw.Price);
+    end;
   end;
 
   return;
@@ -170,12 +191,16 @@ begin
   array record ORVc arrORr;
   Integer i,j,rwcnt,priority;
   val paid;
+  Boolean debugf;
 
   BlockLoad(IPb);
+
+  debugf = true;
 
 //Get all history record that are unpaid
   CredHistr.CustCode = cucode;
   CredHistr.PaidFlag = 0;
+  TrHs = true;
   while (LoopKey("CustPaid",CredHistr,2,TrHs)) begin
     if (CredHistr.CustCode!=cucode or CredHistr.PaidFlag!=0) then begin
       TrHs = false;
@@ -188,10 +213,10 @@ begin
   end;
 
   SortRecordArray(arrORr,"BuildOn");
-
 //get all paid amounts for each CredHistr
   for (i=0;i<arrORr.length;i=i+1) begin
     ORr = arrORr[i];
+    rwcnt = MatRowCnt(ORr);
     for (j=0;j<rwcnt;j=j+1) begin
       MatRowGet(ORr,j,ORrw);
       paid = GetLoanItemPaidAmount(ORrw.CUServiceHistNr);
@@ -199,6 +224,9 @@ begin
       MatRowPut(ORr,j,ORrw);
     end;
     arrORr[i] = ORr;
+  end;
+  if (debugf) then begin
+    OutputPaymentArr(arrORr);
   end;
 
 //Insert into receipts
@@ -211,12 +239,12 @@ begin
       if (remsum>0) then begin
         AddCredHistToIP(ORrw,IPr,RecName,CurncyCode,remsum,cucode,cufnd,instr,origcomm,invused);
       end else begin
-        goto lout;
+        goto LGetCustomerLoanAmounts;
       end;
     end;
   end;
 
-lout:;
+LGetCustomerLoanAmounts:;
   k = MatRowCnt(IPr);
   return;
 end;
@@ -228,16 +256,16 @@ end;
 3. sort in priority and make payments history records
 */
 global
-updating procedure FindUnpaidCredHist(record ItemPriorityBlock IPb,record IPVc IPr,row IPVc IPrw)
+updating procedure FindUnpaidCredHist(record ItemPriorityBlock IPb,record IPVc IPr,row IPVc IPrw,var array val arrCredManr)
 begin
   record CredHistVc CredHistr;
   Boolean TrHs;
-  Integer i,j,rwcnt,priority;
-  val paid,remsum;
+  Integer i,j,rwcnt,priority,mainf;
+  val paid,remsum,recval;
   record ORVc ORr;
   row ORVc ORrw;
   array record ORVc arrORr;
-  Longint histnr;
+  Longint histnr,credmannr;
   
   TrHs = true;
   CredHistr.RecordNr = IPrw.InvoiceNr;
@@ -246,43 +274,68 @@ begin
     if (CredHistr.RecordNr!=IPrw.InvoiceNr or CredHistr.RecordType!=0) then begin
       TrHs = false;
     end else begin
-      if (CredHistr.RecordType==0) then begin
-        priority = GetItemPriority(IPb,CredHistr.ArtCode);
-        InsertCredHistInArray(CredHistr,arrORr,priority);
-      end;
+      priority = GetItemPriority(IPb,CredHistr.ArtCode);
+      InsertCredHistInArray(CredHistr,arrORr,priority);
     end;
   end;
 
   SortRecordArray(arrORr,"BuildOn");
+ 
+ //get all paid amounts for each CredHistr
+  for (i=0;i<arrORr.length;i=i+1) begin
+    ORr = arrORr[i];
+    rwcnt = MatRowCnt(ORr);
+    for (j=0;j<rwcnt;j=j+1) begin
+      MatRowGet(ORr,j,ORrw);
+      paid = GetLoanItemPaidAmount(ORrw.CUServiceHistNr);
+      ORrw.Price = paid;
+      MatRowPut(ORr,j,ORrw);
+    end;
+    arrORr[i] = ORr;
+  end;
 
+ remsum = IPrw.RecVal;
 //we could do this more efficiently 
   for (i=0;i<arrORr.length;i=i+1) begin
     ORr = arrORr[i];
+    rwcnt = MatRowCnt(ORr);
     for (j=0;j<rwcnt;j=j+1) begin
       MatRowGet(ORr,j,ORrw);
-      paid = ORrw.Sum;
-      if (remsum<paid) then begin
-        paid = remsum;
+      paid = ORrw.Sum-ORrw.Price;
+      if (paid>0) then begin
+        if (remsum<paid) then begin
+          paid = remsum;
+        end;
+        remsum = remsum - paid;
+        mainf = 0;
+        recval = 0;
+        credmannr = ORrw.TAX2Reb;
+        if (arrCredManr[credmannr]>0) then begin
+          recval = arrCredManr[credmannr];
+          arrCredManr[credmannr] = 0;
+          mainf = 1;
+        end;
+        CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,1,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval);
       end;
-      remsum = remsum - paid;
-      CreateCredHist(IPr.SerNr,-1,ORrw.VECode,paid,1,"","",ORrw.TAX2Reb,"",histnr,"","",0,ORrw.CUServiceHistNr,0);
       if (remsum<=0) then begin
-        goto lout;
+        goto LFindUnpaidCredHist;
       end;
     end;
   end;
 
-lout:;
+LFindUnpaidCredHist:;
   return;
 end;
 
 global
-procedure SplitLoanPaymentsInReceipt(record IPVc IPr)
+updating procedure SplitLoanPaymentsInReceipt(record IPVc IPr)
 begin
   record ItemPriorityBlock IPb;
   Boolean TrHs;
   Integer i,rwcnt;
   row IPVc IPrw;
+  record IVVc IVr;
+  array val arrCredManr;
 
   BlockLoad(IPb);
 
@@ -290,7 +343,17 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(IPr,i,IPrw);
     if (IPrw.InvoiceNr>-1) then begin
-      qupdating.FindUnpaidCredHist(IPb,IPr,IPrw);
+      IVr.SerNr = IPrw.InvoiceNr;
+      if (ReadFirstMain(IVr,1,true)) then begin
+        arrCredManr[IVr.CustCredManNr] = arrCredManr[IVr.CustCredManNr] + IPrw.RecVal;
+      end;
+    end;
+  end;
+
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IPr,i,IPrw);
+    if (IPrw.InvoiceNr>-1) then begin
+      FindUnpaidCredHist(IPb,IPr,IPrw,arrCredManr);
     end;
   end;
 

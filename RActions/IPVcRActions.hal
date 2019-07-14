@@ -1,4 +1,4 @@
-external procedure SplitLoanPaymentsInReceipt(record IPVc);
+external updating procedure SplitLoanPaymentsInReceipt(record IPVc);
 
 global
 updating function LongInt IPVcRecordUpdateAfter(var record IPVc IPr,record IPVc IP2r,LongInt stat,LongInt long4)

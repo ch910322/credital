@@ -212,17 +212,43 @@ begin
   return;
 end;
 
-procedure AddInstalment(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Boolean linearf,Integer monthtypef,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
+
+global
+function val FIN_PMT(val monthly_rate, integer payments, val total_sum)
 begin
+  val t, t2;
+  t = monthly_rate / (power(1 + monthly_rate, payments) - 1) * (total_sum * power(1 + monthly_rate, payments));
+
+  FIN_PMT = t;
+  return;
+end;
+
+function val FIN_PPMT(val monthly_rate, integer payments, val total_sum, integer payment_nr)
+begin
+  val res, t, c;
+
+  c = -FIN_PMT(monthly_rate, payments, total_sum);
+  res = c + (c * (power(1 + monthly_rate, payment_nr-1) - 1) / monthly_rate + total_sum * power(1 + monthly_rate, payment_nr-1)) * monthly_rate;
+  FIN_PPMT = -res;
+  return;
+end;
+
+procedure AddInstalment(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Integer type,Integer monthtypef,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate,Integer month)
+begin
+  val sum;
   
-  if (linearf) then begin
-    if (monthtypef==kMonthTypeLast) then begin
-      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1);
-    end else begin
-      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,(CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths,0,acumint,calcbal,frdate,todate,-1);
-    end;
-  end else begin
-    AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate,-1);
+  switch (type) begin
+    case 0:
+      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate,-1);
+    case 1:
+      if (monthtypef==kMonthTypeLast) then begin
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1);
+      end else begin
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,(CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths,0,acumint,calcbal,frdate,todate,-1);
+      end;
+    case 2:
+      sum = FIN_PPMT(CredManr.IntRate/100, CredManr.InstalmentMonths, (CredManr.InvSum4-CredManr.DepositSum), month);
+      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,sum,0,acumint,calcbal,frdate,todate,-1);
   end;
  return;
 end;
@@ -404,6 +430,17 @@ begin
       monthtype = GetMonthType(i,months);
       switch (inCredManr.InstalmentType) begin
         case 0://Annuity
+/*
+          monthtype2 = monthtype;
+          if (monthtype2==kMonthTypeLast) then begin
+            monthtype2 = kMonthTypeRegular;
+          end;
+*/
+          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype2,invdat,acumint,calcbal,frdat,todat);
+          AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeLast,invdat,acumint,calcbal,frdat,todat);
+          if (CredManIsPaused(inCredManr,invdat)==false) then begin
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,2,monthtype,invdat,acumint,calcbal,frdat,todat,i);
+          end;
         case 1://Linear
         case 2://Linear with Service Fee - bullet with linear or just Same, Same
           monthtype2 = monthtype;
@@ -413,19 +450,19 @@ begin
           AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype2,invdat,acumint,calcbal,frdat,todat);
           AddInterest(inCredManr,CredManPayPlanr,CredManSetb,monthtype2,invdat,acumint,calcbal,frdat,todat);
           if (CredManIsPaused(inCredManr,invdat)==false) then begin
-            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,true,monthtype,invdat,acumint,calcbal,frdat,todat);
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,1,monthtype,invdat,acumint,calcbal,frdat,todat,i);
           end;
         case 3://Bullet
           AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype,invdat,acumint,calcbal,frdat,todat);
           AddInterest(inCredManr,CredManPayPlanr,CredManSetb,monthtype,invdat,acumint,calcbal,frdat,todat);
           if (i==months-1) then begin
-            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,false,monthtype,invdat,acumint,calcbal,frdat,todat)
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,monthtype,invdat,acumint,calcbal,frdat,todat,i)
           end;
         case 4://Factoring
           AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
           AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
           AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesOneTime,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
-          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,false,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
+          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat,i);
         //case 5://Payment Guarantee
 
       end;

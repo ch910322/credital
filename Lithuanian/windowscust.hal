@@ -351,6 +351,10 @@ begin
   EditField(h,v+=vs,120,"CredManNr",Normal,CredManNr,false,0);
   EditField(h,v+=vs,120,"Start Date",Normal,CredFromDate,false,0);
   EditField(h,v+=vs,120,"End Date",Normal,CredToDate,false,0);
+  EditField(h,v+=vs,120,"Invoices Sum",Normal,InvSum,false,0);
+  EditField(h,v+=vs,120,"Paid Sum",Normal,PaidSum,false,0);
+  EditField(h,v+=vs,120,"Balance",Normal,Balance,false,0);
+  CheckBox(h,v+=vs,0,"Main Record",MainRecord);
   EndWindow;
 
   WindowBegin("Kredito sutart. fakt. sprecifikacija",GenLoanInvoicesVClass,CGMnt,RcType);
@@ -430,6 +434,59 @@ begin
   RadioButton(h,v+=16,1,0,"Prolong",ArtMode);
   RadioButton(h,v+=16,2,0,"Transfer to Surety Provider",ArtMode);  
   HalPushButton(h,v+=40,h+120,v+20,"RefinCredMan2WClassSubmit","Refinance");
+  EndWindow;
+
+  WindowBegin("Item Priority",ItemPriorityTClass,CGHBl,-);
+  SetWRect(80,80,400,280);
+  SetBlid(ItemPriorityBlock);
+  MatrixBegin(10,20,-30,-10,-,10);
+  MatCol(1,25,"Item",0,ArtCode,false,INSClass);
+  MatCol(1,100,"Name",0,Name,false,0);
+  MatCol(1,-50,"Priority",0,Priority,false,0);
+  EndMatrix;
+  EndWindow;
+
+  WindowBegin("SMS Reminders",SMSScheduleLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(SMSScheduleDClass);
+  UseView(SMSScheduleVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlCol   (101,101,"Type",Type,false);
+  RlCol   (201,201,"Name",Comment,false);
+  RlColKeyTL(-30,-30,"Act.",M4Mark,ActiveFlag,false,ActiveFlag);
+  EndWindow;
+
+  WindowBegin("SMS Reminder",SMSScheduleDClass,CGview,-);
+  SetWRect(20,80,760,380);
+  h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
+  UseView(SMSScheduleVc);
+  EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  CheckBox(h2,v,0,"Active",ActiveFlag);
+  EditField(h,v+=vs,250,"Name",Normal,Comment,false,0);
+  EditField(h,v+=vs,120,"Type",Normal,Type,false,0);
+  EditField(h,v+=vs,120,"Days",Normal,Days,false,0);
+  CheckBox(h,v+=vs,0,"Mondays",Day1);
+  EditField(h2,v,70,"Time",Normal,Time1,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Tuesday",Day2);
+  EditField(h2,v,70,"Time",Normal,Time2,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Wednesday",Day3);
+  EditField(h2,v,70,"Time",Normal,Time3,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Thursday",Day4);
+  EditField(h2,v,70,"Time",Normal,Time4,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Friday",Day5);
+  EditField(h2,v,70,"Time",Normal,Time5,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Saturday",Day6);
+  EditField(h2,v,70,"Time",Normal,Time6,false,PasteCurTime);
+  CheckBox(h,v+=vs,0,"Sunday",Day7);
+  EditField(h2,v,70,"Time",Normal,Time7,false,PasteCurTime);
+
+  CheckBox(h,v+=vs,0,"Bank Holidays",BankHolidays);
+
+  StaticText(420,v=26,"Text",false);
+  TextField(420,v+=10,-20,190,Message,0);
+
   EndWindow;
 
   return;

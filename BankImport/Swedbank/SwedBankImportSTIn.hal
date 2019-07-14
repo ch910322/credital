@@ -834,17 +834,14 @@ begin
 		
 	OwnID = XmlGet(xdata,"Document/BkToCstmrStmt/Stmt/Acct/Ownr/Id/OrgId/Othr/Id"); 
 	BankID = XmlGet(xdata,"Document/BkToCstmrStmt/Stmt/Acct/Svcr/FinInstnId/Othr/Id"); 
-logtext(0,"Importing 1");
 	cntchld = XmlCountChildren(xdata,"Document/BkToCstmrStmt/Stmt");
 	For(i=0;i<cntchld;i=i+1) begin
 	  NtryRef = XmlGet(xdata,"Document/BkToCstmrStmt/Stmt/Ntry[" & i & "]/NtryRef");
-logtext(0,"Importing 2");
 	  	
 		if(nonblank(OwnID) and nonblank(BankID) and nonblank(NtryRef))then begin
 			SWIr.OwnID = OwnID;
 			SWIr.BankID = BankID;
 			SWIr.NtryRef = NtryRef;
-logtext(0,"Importing 3");
 			if(readfirstmain(SWIr,3,true)==false)then begin
 				recordnew(SWIr);
 				SWIr.OwnID = OwnID;
