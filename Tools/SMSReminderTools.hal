@@ -1,0 +1,215 @@
+external procedure SendMessenteMessage(string,string);
+
+global
+function string 255 SMSReminderVcReplaceToken(record SMSReminderVc SMSReminder,record RcVc RepSpec,string token)
+begin
+  string 255 res;
+  
+  switch (token) begin
+    case "CustName":
+      res = RepSpec.searchstr;
+    case "InvAmount":
+      res = RepSpec.vals0;
+    case "InvDate":
+      res = DateToString(RepSpec.d1,"YYYY/MM/DD");;
+  end;
+
+  SMSReminderVcReplaceToken = res;
+  return;
+end;
+
+global
+procedure DoSendSMSReminder(record SMSReminderVc SMSReminder,record IVVc IVr)
+begin
+  record RcVc RepSpec;
+  area a;
+  string 255 text,tstr;
+  Integer i,lcnt;
+  record CUVc CUr;
+  
+  CUr.Code = IVr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    if (CUr.NoLetterPosting!=0) then begin
+      goto LSendSMSReminder;
+    end;
+    if (blank(CUr.Mobile)) then begin
+      LogText(0,"Skipping SMS reminder for contact " & CUr.Code & " - " & CUr.Name & ". No Mobile Phone specified");
+      goto LSendSMSReminder;
+    end;
+    
+    RepSpec.searchstr = CUr.Name;
+    RepSpec.vals0 = IVr.Sum4;
+    RepSpec.d1 = IVr.InvDate;
+    ParseTextField(a,SMSReminder,RepSpec,"SMSReminderVcReplaceToken");
+
+    lcnt = CountLinesInArea(a);
+    for (i=0;i<lcnt;i=i+1) begin
+      tstr = GetLineFromArea(a,i);
+      if (i>0) then begin
+        text = text & "\\n";
+      end;
+      text = text & tstr;
+    end;
+  
+    SendMessenteMessage(CUr.Mobile,text);
+
+  end;
+
+LSendSMSReminder:;
+  return;
+end;
+
+function Boolean ShouldTrigerSMSReminder(record SMSReminderVc SMSReminder)
+begin
+  Boolean res;
+  Integer day;
+  string 255 tstr;
+  Time t;
+  
+  if (SMSReminder.LastSentDate==CurrentDate) then begin
+    goto LShouldTrigerSMSReminder;
+  end;
+
+  day = GetDateID(CurrentDate);
+  tstr = GetFieldValueByName(SMSReminder,"Day" & day,-1);
+  if (tstr=="1") then begin
+    t = StringToTime(GetFieldValueByName(SMSReminder,"Time" & day,-1));
+    if (t<CurrentTime and AddMinutes(t,10)>CurrentTime) then begin
+      res = true;
+    end;
+  end;
+
+LShouldTrigerSMSReminder:;
+  ShouldTrigerSMSReminder = res;
+  return;
+end;
+
+global
+updating procedure UpdateReminderLastSentDate(record SMSReminderVc SMSReminder)
+begin
+  record SMSReminderVc oldSMSReminder;
+
+  if (ReadFirstMain(SMSReminder,1,true)) then begin
+    RecordCopy(oldSMSReminder,SMSReminder);
+    SMSReminder.LastSentDate = CurrentDate;
+    RecordUpdate(oldSMSReminder,SMSReminder,true);
+  end;
+
+  return;
+end;
+
+global
+updating procedure SendSMSReminder(record SMSReminderQueueVc SRQr,record SMSReminderVc SMSReminder,record IVVc IVr)
+begin
+  record SMSReminderQueueVc oldSRQr;
+
+  threadasync.DoSendSMSReminder(SMSReminder,IVr);
+
+  RecordCopy(oldSRQr,SRQr);
+  SRQr.SentFlag = 1;
+  RecordUpdate(oldSRQr,SRQr,true);
+
+  return;
+end;
+
+procedure FindAndSendInvoiceReminders(record SMSReminderVc SMSReminder)
+begin
+  record SMSReminderQueueVc SRQr;
+  record IVVc IVr;
+  Boolean TrHs;
+  record ARVc ARr;
+  Integer latedays;
+  Date td;
+  
+  td = AddDay(CurrentDate,SMSReminder.Days);
+  switch (SMSReminder.Type) begin
+    case 0:
+      TrHs = true;
+      SRQr.InvDate = td;
+      SRQr.SentFlag = 0;
+      while (LoopBackKey("SentFlag",SRQr,2,TrHs)) begin
+        if (SRQr.SentFlag!=0) then begin
+          TrHs = false;
+        end else begin
+          IVr.SerNr = SRQr.InvoiceNr;
+          if (ReadFirstMain(IVr,1,true)) then begin
+            queued.SendSMSReminder(SRQr,SMSReminder,IVr);
+          end;
+        end;
+      end;
+    case 1://due date
+      TrHs = true;
+      ARr.DueDate = td;
+      while (LoopKey("DueDate",ARr,2,TrHs)) begin
+        if (ARr.DueDate!=td) then begin 
+          TrHs = false;
+        end else begin
+          IVr.SerNr = ARr.InvoiceNr;
+          if (ReadFirstMain(IVr,1,true)) then begin
+            queued.SendSMSReminder(SRQr,SMSReminder,IVr);
+          end;
+        end;
+      end;
+  end;
+
+  qupdating.UpdateReminderLastSentDate(SMSReminder);
+  return;
+end;
+
+global
+procedure CheckSMSRemindersTask(string args)
+begin
+  Boolean TrHs;
+  record SMSReminderVc SMSReminder;
+  
+  TrHs = true;
+  SMSReminder.ActiveFlag = 1;
+  while (LoopKey("ActiveFlag",SMSReminder,1,TrHs)) begin
+    if (SMSReminder.ActiveFlag!=1) then begin
+      TrHs = false;
+    end else begin
+      if (ShouldTrigerSMSReminder(SMSReminder)) then begin
+        FindAndSendInvoiceReminders(SMSReminder);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure InitSMSReminderTask()
+begin
+  
+  NewPeriodicTask2("CheckSMSRemindersTask","CheckSMSRemindersTask","CheckSMSRemindersTask","",30,"");
+
+  return;
+end;
+
+global
+updating procedure UpdateSMSReminderQueue(record IVVc IVr,record IVVc IV2r)
+begin
+  record SMSReminderQueueVc SRQr;
+  
+  if (IVr.OKFlag==1 and IV2r.OKFlag==0) then begin
+    SRQr.InvoiceNr = IVr.SerNr;
+    if (ReadFirstKey("InvoiceNr",SRQr,1,true)==false) then begin
+      RecordNew(SRQr);
+      SRQr.SerNr = NextSerNr("SMSReminderQueueVc",CurrentDate,-1,false,"");
+      SRQr.InvoiceNr = IVr.SerNr;
+      SRQr.InvDate = IVr.InvDate;
+      RecordInsert(SRQr,true);
+    end;
+  end else begin
+    if (IVr.OKFlag==0 and IV2r.OKFlag==1) then begin
+      SRQr.InvoiceNr = IVr.SerNr;
+      if (ReadFirstKey("InvoiceNr",SRQr,1,true)) then begin
+        RecordRemove(SRQr);
+      end;
+    end;
+  end;
+
+
+  return;
+end;
+

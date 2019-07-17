@@ -446,11 +446,11 @@ begin
   EndMatrix;
   EndWindow;
 
-  WindowBegin("SMS Reminders",SMSScheduleLClass,CGmList,-);
+  WindowBegin("SMS Reminders",SMSReminderLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
-  SpawnClass(SMSScheduleDClass);
-  UseView(SMSScheduleVc);
+  SpawnClass(SMSReminderDClass);
+  UseView(SMSReminderVc);
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
   RlCol   (101,101,"Type",Type,false);
@@ -458,10 +458,10 @@ begin
   RlColKeyTL(-30,-30,"Act.",M4Mark,ActiveFlag,false,ActiveFlag);
   EndWindow;
 
-  WindowBegin("SMS Reminder",SMSScheduleDClass,CGview,-);
+  WindowBegin("SMS Reminder",SMSReminderDClass,CGview,-);
   SetWRect(20,80,760,380);
   h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
-  UseView(SMSScheduleVc);
+  UseView(SMSReminderVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
   CheckBox(h2,v,0,"Active",ActiveFlag);
   EditField(h,v+=vs,250,"Name",Normal,Comment,false,0);

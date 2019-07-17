@@ -1,4 +1,5 @@
 external updating procedure UpdateCredHistInvoice(var record IVVc,record IVVc);
+external updating procedure UpdateSMSReminderQueue(record IVVc,record IVVc);
 
 
 global
@@ -23,5 +24,30 @@ begin
   UpdateCredHistInvoice(IVr,IV3r);
   
   IVVcRecordSave = res; 
+  return;
+end;
+
+global
+updating function LongInt IVVcRecordUpdateAfter(var record IVVc IVr,record IVVc IV2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = inner.IVVcRecordUpdateAfter(IVr,IV2r,stat,long4);
+  UpdateSMSReminderQueue(IVr,IV2r);
+
+  IVVcRecordUpdateAfter = res; 
+  return;
+end;
+
+global
+updating function LongInt IVVcRecordSaveAfter(var record IVVc IVr,record IVVc IV2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record IVVc IV3r;
+
+  res = inner.IVVcRecordSaveAfter(IVr,IV2r,stat,long4);
+  UpdateSMSReminderQueue(IVr,IV2r);
+  
+  IVVcRecordSaveAfter = res; 
   return;
 end;

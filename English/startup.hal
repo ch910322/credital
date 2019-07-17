@@ -16,7 +16,8 @@ begin
   Setting("Item Priority",ItemPriorityTClass,modCredMan);
   Setting("Credit History Support",CredHistLClass,modCredMan);
   Setting("Contact Credit Limits",CreditLimitLClass,modCredMan);
-  Setting("SMS Reminders",SMSScheduleLClass,modCredMan);
+  Setting("SMS Reminders",SMSReminderLClass,modCredMan);
+  Setting("SMS Reminder Queue",SMSReminderQueueLClass,modDBMain);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);

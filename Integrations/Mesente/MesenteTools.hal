@@ -32,7 +32,7 @@ begin
       LogText(0,"MessageID::" & messageid);;
     end;
   end else begin
-    WriteAreaToFile(reply,"sms_fail.txt",0);
+    WriteAreaToFile(request,"sms_fail.txt",0);
   end;
 
   return;

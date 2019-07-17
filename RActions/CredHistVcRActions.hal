@@ -44,7 +44,7 @@ begin
     end;
 
   end;
-  /*
+/*
     TrHs = true;
     pCredHistr.PreviousNr = prevnr;
     while (LoopKey("PreviousNr",pCredHistr,1,TrHs)) begin
