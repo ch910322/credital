@@ -181,7 +181,7 @@ global
 procedure InitSMSReminderTask()
 begin
   
-  NewPeriodicTask2("CheckSMSRemindersTask","CheckSMSRemindersTask","CheckSMSRemindersTask","",30,"");
+  NewPeriodicTask2("CheckSMSRemindersTask","CheckSMSRemindersTask","CheckSMSRemindersTask","",60,"");
 
   return;
 end;
