@@ -501,6 +501,74 @@ begin
   RlColKeyTL(-30,-30,"Sent",M4Mark,SentFlag,false,SentFlag);
   EndWindow;
 
+  WindowBegin("Campaigns",WebCampaignLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(WebCampaignDClass);
+  UseView(WebCampaignVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlCol   (101,101,"Type",Type,false);
+  RlCol   (201,201,"Name",Comment,false);
+  RlCol   (-160,-160,"Start Date",StartDate,false);
+  RlCol   (-80,-80,"End Date",EndDate,false);
+  EndWindow;
+
+  WindowBegin("Campaign",WebCampaignDClass,CGview,-);
+  SetWRect(20,80,760,380);
+  h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
+  UseView(WebCampaignVc);
+  EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h,v+=vs,250,"Name",Normal,Comment,false,0);
+  EditField(h,v+=vs,120,"Type",Normal,Type,false,SetSClass);
+  EditField(h,v+=vs,120,"Start Date",Normal,StartDate,false,PasteCurDate);
+  EditField(h,v+=vs,120,"End Date",Normal,EndDate,false,PasteCurDate);
+  EditField(h,v+=vs,120,"Image",Normal,Image,false,WebCampaignImageSClass);
+
+  EndWindow;
+
+  WindowBegin("Paste Image",WebCampaignImageSClass,CGother,HBlRecType);
+  SetWRect(240,80,600,348);
+  StringList(9,9,-19,-19);
+  EndWindow;
+
+  WindowBegin("Partners",WebPartnerTClass,CGHBl,-);
+  SetWRect(80,80,400,280);
+  SetBlid(WebPartnerBlock);
+  MatrixBegin(10,20,-30,-10,-,10);
+  MatCol(1,25,"Classification",0,Classification,false,CClassSClass);
+  EndMatrix;
+  EndWindow;
+
+  WindowBegin("Slide-bars",WebSlideBarTClass,CGSbl,-);
+  SetBlid(WebSlideBarBlock);
+  SetWRect(20,80,570,448);
+  Sizeable(-1,-1,0,0);
+  h = 100;
+  ButtonFrame(h-70,v=26,480,1,"Verslo Paskola Amount");
+  EditField(h,v,70,"Minimum",Normal,VersloAmountMin,false,0);
+  EditField(h2=250,v,70,"Maximum",Normal,VersloAmountMax,false,0);
+  EditField(h3=400,v,70,"Step",Normal,VersloAmountStep,false,0);
+  ButtonFrame(h-70,v=v+50,480,1,"Verslo Paskola Term");
+  EditField(h,v,70,"Minimum",Normal,VersloTermMin,false,0);
+  EditField(h2,v,70,"Maximum",Normal,VersloTermMax,false,0);
+  EditField(h3,v,70,"Step",Normal,VersloTermStep,false,0);
+
+  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Amount");
+  EditField(h,v,70,"Minimum",Normal,FaktAmountMin,false,0);
+  EditField(h2,v,70,"Maximum",Normal,FaktAmountMax,false,0);
+  EditField(h3,v,70,"Step",Normal,FaktAmountStep,false,0);
+  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Term");
+  EditField(h,v,70,"Minimum",Normal,FaktTermMin,false,0);
+  EditField(h2,v,70,"Maximum",Normal,FaktTermMax,false,0);
+  EditField(h3,v,70,"Step",Normal,FaktTermStep,false,0);
+
+  ButtonFrame(h-70,v=v+50,480,1,"Atsiskaitymo Garantija Amount");
+  EditField(h,v,70,"Minimum",Normal,GarAmountMin,false,0);
+  EditField(h2,v,70,"Maximum",Normal,GarAmountMax,false,0);
+  EditField(h3,v,70,"Step",Normal,GarAmountStep,false,0);
+ 
+  EndWindow;
 
   return;
 end;
@@ -843,5 +911,94 @@ begin
   CheckBox(h,v+=30,0,"Not OK'ed",flags[4]);
   CheckBox(h,v+=30,0,"Include Completed",flags[5]);
   
+  EndWindow;
+end;
+
+window WebFAQLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("FAQ",WebFAQLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(WebFAQDClass);
+  UseView(WebFAQVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
+  RlCol   (101,101,"Name",Question,false);
+  RlCol   (-90,-90,"Class.",Class,false);
+  EndWindow;
+end;
+
+window WebFAQDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real f,h,hs,hw,v,vs;
+  WindowBegin("FAQ",WebFAQDClass,CGview,-);
+  SetWRect(20,80,760,380);
+  h = 120; v = 6; vs=20;
+  UseView(WebFAQVc);
+  EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebNGProductCatSClass);//really should be a new setting
+  EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
+
+  v = v + 30;
+  TextField(0,v,-1,-1,Answer,0);
+
+  EndWindow;
+end;
+window HtmlWebFAQDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real f,h,hs,hw,v,vs;
+  WindowBegin("FAQ",HtmlWebFAQDClass,CGview,-);
+  SetWRect(20,80,760,380);
+  h = 120; v = 6; vs=20;
+  UseView(WebFAQVc);
+  EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebNGProductCatSClass);//really should be a new setting
+  EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
+
+  v = v + 30;
+  if (GuiType==kGuiCocoa or GuiType==kGuiWPF) then begin
+    v = v + 2 + 2;
+    hs = 0;
+    hw = 30;
+    h = 20;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditBold,"Bold",kButtonStyleTest,1070);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditItalic,"Italic",kButtonStyleTest,1078);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditUndeline,"Underline",kButtonStyleTest,1087);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditStrikeThrough,"Strikethrough",kButtonStyleTest,1085);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditUnorderedList,"U.L.",kButtonStyleTest,1081);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditOrderedList,"O.L.",kButtonStyleTest,1080);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditLeft,"Left",kButtonStyleTest,1088);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditCenter,"#Centre#",kButtonStyleTest,1071);
+    // fill??
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditRight,"Right",kButtonStyleTest,1089);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditCopy,"Copy",kButtonStyleTest,1072);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditCut,"Cut",kButtonStyleTest,1073);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditPaste,"Paste",kButtonStyleTest,1074);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditFontColor,"Font Color",kButtonStyleTest,1075);
+    if (GuiType==kGuiWPF) then begin
+      PushButton2(h+=hs,v,h+=hw,22,ToolEditTextBg,"Text Bg.",kButtonStyleTest,1086);
+    end;
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditLink,"Link",kButtonStyleTest,1076);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditImage,"Image",kButtonStyleTest,1077);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditOutdent,"Outdent",kButtonStyleTest,1082);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditIndent,"Indent",kButtonStyleTest,1079);
+    h = h + 8;
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditUndo,"Undo",kButtonStyleTest,1084);
+    PushButton2(h+=hs,v,h+=hw,22,ToolEditRedo,"Redo",kButtonStyleTest,1083);
+    v = v + 10 + vs;
+    h = 20;
+  end;
+
+  TextField(0,v,-1,-1,Answer,0);
+
   EndWindow;
 end;

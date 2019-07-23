@@ -1090,12 +1090,13 @@ begin
   if (blank(link)) then begin
     addcls = "empty_image";
   end;
-
-  WebOutString("<div class='content_image " & typecls & " " & addcls &"'>");
-  if (nonblank(link)) then begin
-    WebOutString("<img src='" & link & "'>");
-  end;
-  WebOutString("</div>");
+  if ((type==1 and nonblank(WCr.ThumbnailImage)) or (type==2 and nonblank(WCr.ThumbnailImage))) then begin//CUST
+    WebOutString("<div class='content_image " & typecls & " " & addcls &"'>");
+    if (nonblank(link)) then begin
+      WebOutString("<img src='" & link & "'>");
+    end;
+    WebOutString("</div>");
+  end;//CUST
   return;
 end;
 

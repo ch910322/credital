@@ -1,0 +1,15 @@
+global
+function LongInt WebFAQVcRecordDefaults(var record WebFAQVc WFr,record WebFAQVc WF2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+
+  res = 1;  
+
+  if (SingleUserMode) then begin
+    WFr.SerNr = NextSerNr("WebFAQVc",CurrentDate,-1,false,"");
+  end;
+  WFr.HtmlFlag = 1;
+  
+  WebFAQVcRecordDefaults = res; 
+  return;
+end;

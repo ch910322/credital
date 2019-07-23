@@ -1,5 +1,6 @@
 remote inner procedure GetWebNGContentAttachedImages(record WebNGContentVc,var array string);
 external inner procedure PasteFromSysList(Integer ,Integer);
+remote procedure GetWebCampaignAttachedImages(record WebCampaignVc,var array string);
 
 global
 function Boolean WebNGContentImageSClassOnOpenWindow(Integer wn)
@@ -23,5 +24,30 @@ function Boolean WebNGContentImageSClassOnOKWindow(Integer wn)
 begin
   PasteFromSysList(wn,0);
   WebNGContentImageSClassOnOKWindow = false;
+  return;
+end;
+
+global
+function Boolean WebCampaignImageSClassOnOpenWindow(Integer wn)
+begin
+  Integer i;
+  record WebCampaignVc WCr;
+  array string 255 aName;
+
+  GetWindowRecord(MotherWindow(wn),WCr);
+  threadremote.GetWebCampaignAttachedImages(WCr,aName);
+  for (i=0;i<aName.length;i=i+1) begin
+    SetListString(wn,i,aName[i],false);
+  end;
+
+  WebCampaignImageSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+function Boolean WebCampaignImageSClassOnOKWindow(Integer wn)
+begin
+  PasteFromSysList(wn,0);
+  WebCampaignImageSClassOnOKWindow = false;
   return;
 end;

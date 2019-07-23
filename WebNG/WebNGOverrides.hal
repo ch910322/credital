@@ -5,6 +5,10 @@ This supports adding new web texts, adding new special elements, new structure t
 external procedure ShowSmartIDIdentification(record WebNGElementVc);
 external procedure SmartIDWebActions(string);
 external inner function string 255 removenextlistitem(var string,string);
+external procedure ShowPartnerList();
+external procedure ShowBannerList(record WebNGElementVc);
+external procedure ShowFAQList();
+external procedure ShowLoanApplicationOnWeb(record WebNGElementVc);
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -17,6 +21,14 @@ begin
       //ShowLoanApp(WEr);
     case 121:
       ShowSmartIDIdentification(WEr);
+    case 122:
+      ShowPartnerList;
+    case 123:
+      ShowBannerList(WEr);
+    case 124:
+      ShowFAQList;
+    case 125:
+      ShowLoanApplicationOnWeb(WEr);
     otherwise
       res = false;
   end;
@@ -58,8 +70,25 @@ function string 255 CheckInternalStrings(Longint strno)
 begin
   string 255 res;
 
+  SetLangMode(LangLithuanian,"LIT",0);
+
   switch (strno) begin
     case 70000: res = "test";
+    case 70001: res = "Jðs÷ °mon˜s pavadinimas";
+    case 70002: res = "¯veskite °mon˜s pavadinimˆ";
+    case 70003: res = "Jðs÷ el. paäto adresas";
+    case 70004: res = "¯veskite el.paäto adresˆ";
+    case 70005: res = "Telefonas";
+    case 70006: res = "¯veskite telefono numer°";
+    case 70007: res = "Finansavimo poreikis";
+    case 70008: res = "Faktoringo terminas";
+    case 70009: res = "Aä sutinku, kad äioje paraiäkoje pateikti mano duomenys bðt÷ tvarkomi ãCredital versluiÒ (UAB ã¯moka lengvaiÒ) verslo paskolos sudarymo tikslais.";
+    case 70010: res = "Aä sutinku, kad mano nurodytu el. paätu susisiektum˜te su manimi tiesiogin˜s rinkodaros tikslais";
+    case 70011: res = "Si÷sti uìklausˆ";
+    case 70012: res = "Partneriai";
+    case 70013: res = uchr(128);
+    case 70014: res = "m˜n.";
+    
   end;
 
   CheckInternalStrings = res;

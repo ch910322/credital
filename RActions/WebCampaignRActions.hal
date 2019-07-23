@@ -1,0 +1,47 @@
+
+global
+function LongInt WebCampaignVcRecordDuplicate(var record WebCampaignVc WCr,record WebCampaignVc WC2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;
+  
+  WCr.SerNr = -1;
+
+  WebCampaignVcRecordDuplicate = res;
+  return;
+end;
+
+global
+function LongInt WebCampaignVcRecordCheck(var record WebCampaignVc WCr,record WebCampaignVc WC2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record WebCampaignVc tWCr;
+  Boolean TrHs;
+
+  res = 0;
+  
+  if (WCr.SerNr==-1) then begin
+    WCr.SerNr = NextSerNr("WebCampaignVc",CurrentDate,-1,false,"");
+  end;
+
+  TrHs = true;
+  tWCr.Type = WCr.Type;
+  while (LoopKey("TypeStartDate",tWCr,1,TrHs)) begin
+    if (tWCr.Type!=WCr.Type) then begin
+      TrHs = false;
+    end else begin
+      if (DateInRange(WCr.StartDate,tWCr.StartDate,tWCr.EndDate) or DateInRange(WCr.EndDate,tWCr.StartDate,tWCr.EndDate)) then begin
+        if (WCr.SerNr!=tWCr.SerNr) then begin
+          RecordCheckError(200100,"",-1,"SerNr");
+          res = -1;
+          goto LWebCampaignVcRecordCheck;    
+        end;
+      end;
+    end;
+  end;
+
+LWebCampaignVcRecordCheck:;
+  WebCampaignVcRecordCheck = res;
+  return;
+end;

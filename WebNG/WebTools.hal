@@ -1,0 +1,275 @@
+external inner procedure SetContentTypeForExtension(string);
+external inner function string 255 ToolWebNGTranslateText2(Longint);
+
+global
+procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
+begin
+  Integer i;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+
+  i = 1;
+  while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
+    aName[aName.length] = Attachr.FileName;
+    i = i + 1;
+  end;
+
+  return;
+end;
+
+
+global
+procedure ShowPartnerList()
+begin
+  record WebPartnerBlock WPb;
+  row WebPartnerBlock WPbrw;
+  record CClassVc CClassr;
+  record CUVc CUr;
+  Integer i,rwcnt,cnt;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  
+  BlockLoad(WPb);
+  
+  WebOutString("<div class='col-auto'>" & ToolWebNGTranslateText2(70012) & "</div>");
+
+  rwcnt = MatRowCnt(WPb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(WPb,i,WPbrw);
+    CClassr.Code = WPbrw.Classification;
+    if (ReadFirstMain(CClassr,1,true)) then begin    
+      ResetLoop(CUr);
+      RecordClear(CUr);
+      cnt = 0;
+      while (LoopKey("Classification:" & WPbrw.Classification,CUr,1,true)) begin
+        if (ReadRecordLink(CUr,1,Attachr,RLr)) then begin
+          cnt = cnt + 1;
+          WebOutString("<div class='col-auto'>");
+          if (nonblank(CUr.wwwAddr)) then begin
+            WebOutString("<a href='" & CUr.wwwAddr & "' target='_blank'>");        
+          end;
+          WebOutString("<div><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
+          if (nonblank(CUr.wwwAddr)) then begin
+            WebOutString("</a>");
+          end;
+          
+          WebOutString("</div>");
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global webpublic
+procedure WebShowPartnerImage()
+begin
+  record CUVc CUr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  string 255 ext;
+
+  CUr.UUID = StringToUUID(WebGetArg("id"));
+  if (ReadFirstKey("UUID",CUr,1,true)) then begin
+    if (CUr.Code==WebGetArg("code")) then begin
+      if (ReadRecordLink(CUr,1,Attachr,RLr)) begin
+        ext = right(Attachr.FileName,4);
+        SetContentTypeForExtension(ext);
+        WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+        WebOutAttachment(Attachr.SerNr);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global webpublic
+procedure WebShowCampaignImage()
+begin
+  record WebCampaignVc WCr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  string 255 ext;
+  Integer i;
+
+  WCr.SerNr = StringToLongint(WebGetArg("id"));//this should be fine. we don't have anything to hide here
+  if (ReadFirstMain(WCr,1,true)) then begin
+    i = 1;
+    while (ReadRecordLink(WCr,1,Attachr,RLr)) begin
+      if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
+        ext = right(Attachr.FileName,4);
+        SetContentTypeForExtension(ext);
+        WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+        WebOutAttachment(Attachr.SerNr);
+        goto LWebShowCampaignImage;
+      end;
+      i = i + 1;
+    end;
+  end;
+LWebShowCampaignImage:;
+  return;
+end;
+
+
+procedure ShowSingleBanner(record WebCampaignVc WCr)
+begin
+  Integer i;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  
+  i = 1;
+  while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
+    if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
+      WebOutString("<div class='web-campaign'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div>");
+      goto LShowSingleBanner;
+    end;
+    i = i + 1;
+  end;
+
+LShowSingleBanner:;
+  return;
+end;
+
+global
+procedure ShowBannerList(record WebNGElementVc WEr)
+begin
+  record WebCampaignVc WCr;
+  Integer type;
+  
+  type = StringToInt(WEr.HALFunc);
+  WCr.Type = type;
+  WCr.EndDate = CurrentDate;
+  if (ReadFirstKey("TypeEndDate",WCr,2,false)) then begin
+    if (WCr.Type==type) then begin
+      if (WCr.StartDate<=CurrentDate and WCr.EndDate>=CurrentDate) then begin
+        ShowSingleBanner(WCr);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure ShowFAQList()
+begin
+  record WebFAQVc WFr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  area a;
+  Longint asz;
+
+  while (LoopMain(WFr,1,true)) begin
+    if (ReadRecordLink(WFr,1,Attachr,RLr)) begin
+      SetAreaZeroSize(a);
+      asz = AttachFileSize(Attachr);    
+      LoadAttachFilePartToArea(Attachr,0,asz,a);
+
+      WebOutString("<div class='faq-item'>");
+      WebOutString("<div class='faq-q'>" & WFr.Question & "</div>");
+      WebOutString("<div class='faq-answer'>");
+      WebOutArea2(a);
+      WebOutString("</div>");
+      WebOutString("</div>");
+    end;
+  end;
+
+  return;
+end;
+
+procedure ShowSimpleField(string type,string name,string label,string placeholder)
+begin
+  
+  WebOutString("<div class='app_textfield'><div class='label'>" & label & "</div><div class='field'><input type='" & type & "' placeholder='" & placeholder & "'></div></div>");
+
+
+  return;
+end;
+
+procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add)
+begin
+  
+//70007,70008
+  WebOutString("<div class='slider_label'>" & label & "</div>");
+  WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div><div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
+
+  WebOutString("<script>$('input[name=\"" & name & "\"]').change()</script>");
+  return;
+end;
+
+procedure ShowCheckBox(string name,string text)
+begin
+
+  WebOutString("<div class='app_checkbox'><div class='field'><input type='checkbox' name='" & name & "'></div><div class='label'>" & text & "</div></div>");
+
+  return;
+end;
+
+global
+procedure ShowLoanApplicationOnWeb(record WebNGElementVc WEr)
+begin
+  record WebSlideBarBlock SSb;
+  Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
+  Boolean verslof,faktf,garantf;
+
+  BlockLoad(SSb);
+
+  verslof = (WEr.HALFunc=="Verslo");
+  faktf = (WEr.HALFunc=="Faktoringas");
+  garantf = (WEr.HALFunc=="Atsiskaitymo");
+  
+  if (verslof) then begin
+    amount_min = SSb.VersloAmountMin;
+    amount_max = SSb.VersloAmountMax;
+    amount_step = SSb.VersloAmountStep;
+    term_min = SSb.VersloTermMin;
+    term_max = SSb.VersloTermMax;
+    term_step = SSb.VersloTermStep;
+  end;
+  if (faktf) then begin
+    amount_min = SSb.FaktAmountMin;
+    amount_max = SSb.FaktAmountMax;
+    amount_step = SSb.FaktAmountStep;
+    term_min = SSb.FaktTermMin;
+    term_max = SSb.FaktTermMax;
+    term_step = SSb.FaktTermStep;
+  end;
+  if (garantf) then begin
+    amount_min = SSb.GarAmountMin;
+    amount_max = SSb.GarAmountMax;
+    amount_step = SSb.GarAmountStep;
+  end;
+
+  WebOutString("<div class='loan_app'><form method='POST'>");
+  ShowSimpleField("text","compname",ToolWebNGTranslateText2(70001),ToolWebNGTranslateText2(70002));
+  ShowSimpleField("email","email",ToolWebNGTranslateText2(70003),ToolWebNGTranslateText2(70004));
+  ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
+
+  if (amount_min>0) then begin
+    ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013));
+
+  end;
+  if (term_min>0) then begin
+    ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014));
+  end;
+
+  ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
+  ShowCheckBox("newsletter",ToolWebNGTranslateText2(70010));
+  
+  WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+
+  WebOutString("</form></div>");
+
+  return;
+end;
+
+global
+procedure ShowNewsLetterSignup()
+begin
+  
+  
+
+  return;
+end;

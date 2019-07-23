@@ -1,0 +1,53 @@
+
+function Boolean ShouldUseHtmlEditor(record WebFAQVc WFr,Boolean newf)
+begin
+  Boolean res;
+  res = false;
+  
+  if (SystemSupportsHTMLLetters()==false) then begin
+    goto LShouldUseHtmlEditor;
+  end;
+    
+  if (newf) then begin
+    res = true;
+  end;
+  
+  if (WFr.HtmlFlag!=0) then begin
+    res = true;
+  end;
+
+LShouldUseHtmlEditor:;
+  ShouldUseHtmlEditor = res;
+end;
+
+global
+function string 255 WebFAQDClassOverrideClass(record WebFAQVc WFr,Boolean newf)
+begin
+  string 255 res;
+  Boolean htmlf;
+  
+  htmlf = ShouldUseHtmlEditor(WFr,newf);
+  if (htmlf==true) then begin
+    res = "HtmlWebFAQDClass";
+  end;
+  
+LWebFAQDClassOverrideClass:
+  WebFAQDClassOverrideClass = res;
+  return;
+end;
+
+global
+function string 255 HtmlWebFAQDClassOverrideClass(record WFr WebFAQr,Boolean newf)
+begin
+  string 255 res;
+  Boolean htmlf;
+  
+  htmlf = ShouldUseHtmlEditor(WebFAQr,newf);
+  if (htmlf==false) then begin
+    res = "WebFAQDClass";
+  end;
+
+LHtmlWebFAQDClassOverrideClass:
+  HtmlWebFAQDClassOverrideClass = res;
+  return;
+end;
