@@ -476,6 +476,42 @@ begin
 end;
 
 global
+function val GetMonthlyPaymentAmount(record CredManVc inCredManr,Integer type)
+begin
+  record CredManSetBlock CredManSetb;
+  record CredManPayPlanVc CredManPayPlanr;
+  row CredManPayPlanVc CredManPayPlanrw;
+  val acumint,res,bal;
+  Date td;
+  Integer i,rwcnt;
+
+  BlockLoad(CredManSetb);
+  td = inCredManr.startDate;
+
+  if (BitAnd(type,2)) then begin
+    bal = inCredManr.InvSum4-inCredManr.DepositSum;
+    AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,td,acumint,bal,"","");
+  end;
+  if (BitAnd(type,4)) then begin
+    bal = inCredManr.InvSum4-inCredManr.DepositSum;
+    AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,kMonthTypeRegular,td,acumint,bal,"","");
+  end;
+  if (BitAnd(type,8)) then begin
+    bal = inCredManr.InvSum4-inCredManr.DepositSum;
+    AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,1,kMonthTypeRegular,td,acumint,bal,"","",1);//first month
+  end;
+
+  rwcnt = MatRowCnt(CredManPayPlanr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
+    res = res + CredManPayPlanrw.Sum;
+  end;
+
+  GetMonthlyPaymentAmount = res;
+  return;
+end;
+
+global
 function string 255 GetPlanTypeTextCust(Integer plantype)
 begin
   string 255 res;

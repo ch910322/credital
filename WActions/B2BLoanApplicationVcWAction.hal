@@ -382,16 +382,24 @@ function Boolean B2BLoanApp_ContactSClassOnOpenWindow(Integer wn)
 begin
   Integer mwn;
   record B2BLoanApplicationVc LAr;
+  record CredManVc CredManr;
   Array string 60 acontact;
   Integer i,acnt;
   longint pos;
-  string 255 namestr,titlestr,code;
+  string 255 namestr,titlestr,code,custcode;
 
   mwn = MotherWindow(wn);
 
-  GetWindowRecord(mwn,LAr);
+  switch (GetWindowFileName(mwn)) begin
+    case "CredManVc":
+      GetWindowRecord(mwn,CredManr);
+      custcode = CredManr.CustCode;
+    case "B2BLoanApplicationVc":
+      GetWindowRecord(mwn,LAr);
+      custcode = LAr.CustCode;
+  end;
   ClearStringList(wn);
-  B2BLoanApp_ContactSClassOnOpenRemote(LAr.CustCode,acontact,acnt);
+  B2BLoanApp_ContactSClassOnOpenRemote(custcode,acontact,acnt);
   for (i=0;i<acnt;i=i+1) begin
     pos = 0;
     GetNextSubstring(acontact[i],pos,"#",code);

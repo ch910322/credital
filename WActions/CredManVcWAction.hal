@@ -11,6 +11,7 @@ remote procedure DoPauseCredMan(var record CredManVc,Longint);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
+external inner procedure ContactSClassOnOpen(Integer,string,var Array string,var Integer);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -710,49 +711,43 @@ begin
   return;
 end;
 
-/*
 global
-function string 255 CredManComment(var record CredHistVc CredHistr)
-begin
-  if (CredHistr.RecordType==0 and nonblank(CredHistr.CredFromDate)) then begin
-    CredManComment = CredHistr.CredFromDate & ":" & CredHistr.CredToDate;
-  end else begin
-    CredManComment = "";
+procedure CredManVc_ContactSClass(Integer wn,Integer mwn)
+BEGIN
+  record CredManVc CredManr;
+  Array string 60 acontact;
+  Integer i,acnt;
+  LongInt pos;
+  string 255 namestr,titlestr,custcode;
+
+  GetWindowRecord(mwn,CredManr);
+  ContactSClassOnOpen(wn,CredManr.CustCode,acontact,acnt);
+  for (i=0;i<acnt;i=i+1) begin
+//     SetListString(wn,80,acontact[i],false);
+    pos = 0;    
+    GetNextSubstring(acontact[i],pos,"#",namestr);
+    GetNextSubstring(acontact[i],pos,"#",titlestr);
+    GetNextSubstring(acontact[i],pos,"#",custcode);
+    AddListRow(wn,"DLPasteContact",1,custcode,0);
+    AddListData(wn,"DLPasteContact","DLContactName",namestr);
+    AddListData(wn,"DLPasteContact","DLContactTitle",titlestr);    
   end;
-  return;
-end;
-
-global
-function string 255 CredManInvSum(var record CredHistVc CredHistr)
-begin
-  record ORVc ORr;
-//ah, we should redo this back to DataList when that is fixed
-  GetCredManEventList2(CredHistr.CredManNr,ORr);
-
-  CredManInvSum = GetCredHistDetail(ORr,CredHistr.RecordNr,"Sum");
-  return;
-end;
+  RETURN;
+END;
 
 
 global
-function string 255 CredManPaidSum(var record CredHistVc CredHistr)
+function Boolean ContactSClassOnOpenWindow(Integer wn)
 begin
-  record ORVc ORr;
-//ah, we should redo this back to DataList when that is fixed
-  GetCredManEventList2(CredHistr.CredManNr,ORr);
+  Integer mwn;
+  Boolean res;
 
-  CredManPaidSum = GetCredHistDetail2(ORr,CredHistr.RecordNr);
+  mwn = MotherWindow(wn);
+  switch (GetWindowFileName(mwn)) begin
+    case "CredManVc": CredManVc_ContactSClass(wn,mwn);
+    otherwise
+      res = inner.ContactSClassOnOpenWindow(wn);
+  end;
+  ContactSClassOnOpenWindow = false;
   return;
 end;
-
-global
-function string 255 CredManBal(var record CredHistVc CredHistr)
-begin
-  record ORVc ORr;
-//ah, we should redo this back to DataList when that is fixed
-  GetCredManEventList2(CredHistr.CredManNr,ORr);
-
-  CredManBal = GetCredHistDetail(ORr,CredHistr.RecordNr,"rowGP");
-  return;
-end;
-*/
