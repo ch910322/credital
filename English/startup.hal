@@ -35,6 +35,7 @@ begin
   Setting("Partners",WebPartnerTClass,modWebShopNG);
   Setting("FAQ",WebFAQLClass,modWebShopNG);
   Setting("Slide-bars",WebSlideBarTClass,modWebShopNG);
+  Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");

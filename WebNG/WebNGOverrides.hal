@@ -9,6 +9,8 @@ external procedure ShowPartnerList();
 external procedure ShowBannerList(record WebNGElementVc);
 external procedure ShowFAQList();
 external procedure ShowLoanApplicationOnWeb(record WebNGElementVc);
+external procedure ShowNewsLetterSignup(record WebNGElementVc);
+external procedure ShowEmployeesOnWeb();
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -29,6 +31,10 @@ begin
       ShowFAQList;
     case 125:
       ShowLoanApplicationOnWeb(WEr);
+    case 126:
+      ShowNewsLetterSignup(WEr);
+    case 127:
+      ShowEmployeesOnWeb;
     otherwise
       res = false;
   end;
@@ -88,6 +94,11 @@ begin
     case 70012: res = "Partneriai";
     case 70013: res = uchr(128);
     case 70014: res = "m˜n.";
+    case 70015: res = "Uìsisakykite naujienlaiäk°!";
+    case 70016: res = "Gaukite aktualiausias verslo finansavimo naujienas, °ìvalgas ir specialius pasiðlymus tiesiai ° el. paätˆ.";
+    case 70017: res = "Prenumeruoti";
+    case 70018: res = "Added to News Letters successfully";
+    case 70019: res = "Paieäka";
     
   end;
 

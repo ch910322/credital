@@ -286,9 +286,9 @@ begin
       if (lastd!=CredManPayPlanrw.TransDate) then begin
         //Setup new invoice
         if (nonblank(lastd)) then begin
-          if (IVr.InvDate==CredManr.startDate) then begin
+          //if (IVr.InvDate==CredManr.startDate) then begin
             MergeItemsInInvoice(IVr);
-          end;
+          //end;
           GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
           AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
           if (IVr.SerNr>-1) then begin
@@ -316,6 +316,7 @@ begin
     end;
   end;
   if (nonblank(lastd)) then begin
+    MergeItemsInInvoice(IVr);
     GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
     if (IVr.SerNr>-1) then begin
@@ -352,9 +353,9 @@ begin
       if (lastd!=CredManPayPlanrw.TransDate) then begin
         //Setup new invoice
         if (nonblank(lastd)) then begin
-          if (IVr.InvDate==CredManr.startDate) then begin
+          //if (IVr.InvDate==CredManr.startDate) then begin
             MergeItemsInInvoice(IVr);
-          end;
+          //end;
           GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
           aIVr[aIVr.length] = IVr;
         end;

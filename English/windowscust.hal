@@ -938,7 +938,7 @@ begin
   h = 120; v = 6; vs=20;
   UseView(WebFAQVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
-  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebNGProductCatSClass);//really should be a new setting
+  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebFAQCategorySClass);
   EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
 
   v = v + 30;
@@ -955,7 +955,7 @@ begin
   h = 120; v = 6; vs=20;
   UseView(WebFAQVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
-  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebNGProductCatSClass);//really should be a new setting
+  EditField(h,v+=vs,120,"Class",Normal,Class,false,WebFAQCategorySClass);
   EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
 
   v = v + 30;
@@ -1000,5 +1000,48 @@ begin
 
   TextField(0,v,-1,-1,Answer,0);
 
+  EndWindow;
+end;
+
+window WebFAQCategoryLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("FAQ Categories",WebFAQCategoryLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(WebFAQCategoryDClass);
+  UseView(WebFAQCategoryVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Code",Code,false,Code);
+  RlCol(134,134,"Comment",Comment,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window WebFAQCategorySClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Paste FAQ Category",WebFAQCategorySClass,CGslist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(WebFAQCategoryDClass);
+  UseView(WebFAQCategoryVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Code",Code,false,Code);
+  RlCol(134,134,"Comment",Comment,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window WebFAQCategoryDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("FAQ Category",WebFAQCategoryDClass,CGview,-);
+  SetWRect(20,80,400,239);
+  UseView(WebFAQCategoryVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,100,"Code",Normal,Code,false,);
+  EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
   EndWindow;
 end;

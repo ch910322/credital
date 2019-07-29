@@ -1,5 +1,6 @@
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
+external inner function Boolean GetNextCustNr(var string);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -97,7 +98,7 @@ begin
   WCr.SerNr = StringToLongint(WebGetArg("id"));//this should be fine. we don't have anything to hide here
   if (ReadFirstMain(WCr,1,true)) then begin
     i = 1;
-    while (ReadRecordLink(WCr,1,Attachr,RLr)) begin
+    while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
       if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
         ext = right(Attachr.FileName,4);
         SetContentTypeForExtension(ext);
@@ -159,22 +160,57 @@ begin
   record Attach2Vc Attachr;
   record RLinkVc RLr;
   area a;
-  Longint asz;
+  Longint asz,pos,l;
+  xml x;
+  string 255 tstr;
+  record WebFAQCategoryVc FCr;
 
+  //Show categories
+  WebOutString("<div class='row faq_cat_list_wrap'>");
+  WebOutString("<div class='col faq_cat_list'>");
+  WebOutString("<div class='row'>");
+  while (LoopMain(FCr,1,true)) begin
+    WebOutString("<div class='faq_cat col-auto' id='" & FCr.Code & "'>" & FCr.Comment & "</div>");//possibly we should do a translation, but not yet
+  end;
+  WebOutString("</div>");
+  WebOutString("</div>");
+  WebOutString("<div class='col-6'>");
+  WebOutString("<div class='searchbox'><input type='text' placeholder='" & ToolWebNGTranslateText2(70019) & "'></div>");
+  WebOutString("</div>");
+  WebOutString("</div>");
+
+
+  WebOutString("<div class='row'>");
   while (LoopMain(WFr,1,true)) begin
     if (ReadRecordLink(WFr,1,Attachr,RLr)) begin
       SetAreaZeroSize(a);
       asz = AttachFileSize(Attachr);    
       LoadAttachFilePartToArea(Attachr,0,asz,a);
 
-      WebOutString("<div class='faq-item'>");
+      WebOutString("<div class='faq-item' category='" & WFr.Class & "'>");
       WebOutString("<div class='faq-q'>" & WFr.Question & "</div>");
       WebOutString("<div class='faq-answer'>");
-      WebOutArea2(a);
+      tstr = "";
+      pos = FindStringInArea("<body",a);
+      if (pos>0) then begin
+        pos = pos + 6;
+        l = GetAreaLength(a)-pos-13;
+        tstr = GetStringFromArea(a,pos,l);
+        SetAreaZeroSize(a);
+        AddTextToArea(tstr,a);
+        pos = FindStringInArea(">",a);
+        if (pos>0) then begin
+          pos = pos + 1;
+          tstr = GetStringFromArea(a,pos,GetAreaLength(a)-pos-1);
+        end;
+      end;
+  
+      WebOutString(tstr);
       WebOutString("</div>");
       WebOutString("</div>");
     end;
   end;
+  WebOutString("</div>");
 
   return;
 end;
@@ -266,10 +302,113 @@ begin
 end;
 
 global
-procedure ShowNewsLetterSignup()
+procedure ShowNewsLetterSignup(record WebNGElementVc WEr)
 begin
   
-  
+  WebOutString("<div class='newsletter'>");
+  WebOutString("<div class='newsletter-title'>" & ToolWebNGTranslateText2(70015) & "</div>");
+  WebOutString("<div class='newsletter-descr'>" & ToolWebNGTranslateText2(70016) & "</div>");
+  WebOutString("<div class='newsletter-form'><form><input type='hidden' name='id' value='" & WEr.HALFunc & "'><input type='email' name='email'><input type='button' class='button' value='" & ToolWebNGTranslateText2(70017) & "'></div>");
+  WebOutString("</div>");
+
+  return;
+end;
+
+updating procedure AddContactToMailingList(record PersColVc PersColr,record CUVc CUr)
+begin
+  record PersColListVc PersColListr;
+
+  RecordNew(PersColListr);
+  PersColListr.Code = CUr.Code;
+  if (nonblank(CUr.Person)) then begin
+    PersColListr.Name = CUr.Person;
+  end else begin
+    PersColListr.Name = CUr.Name;
+  end;
+  PersColListr.PersColCode = PersColr.Code;
+  PersColListr.FileName = "CUVc";
+  if (RecordInsert(PersColListr,true)) then begin 
+
+  end;
+
+  return;
+end;
+
+global webpublic
+updating procedure WebSubmitNewsLetter()
+begin
+  record PersColVc PersColr;
+  record CUVc CUr; 
+  string 255 tstr,email;
+
+  PersColr.Code = WebGetArg("id");
+  if (ReadFirstMain(PersColr,1,true)) then begin
+    email = WebGetArg("email");
+    CUr.eMail = email;
+    if (ReadFirstKey("eMail",Cur,1,true)) then begin
+      AddContactToMailingList(PersColr,CUr);
+    end else begin
+      RecordNew(CUr);
+      GetNextCustNr(tstr);//
+      CUr.Code = tstr;
+      CUr.eMail = email;
+      if (RecordInsert(CUr,true)) then begin
+        AddContactToMailingList(PersColr,CUr);
+      end;
+    end;
+  end;
+
+  WebOutString("<res msg='" & ToolWebNGTranslateText2(70018) & "'></res>");
+
+  return;
+end;
+
+global webpublic
+procedure WebShowEmpPic()
+begin 
+  record UserVc Userr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  string 255 ext;
+  Integer i;
+
+  Userr.Code = WebGetArg("emp");
+  if (ReadFirstMain(Userr,1,true)) then begin
+    if (ReadRecordLink(Userr,1,Attachr,RLr)) begin
+      ext = right(Attachr.FileName,4);
+      SetContentTypeForExtension(ext);
+      WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+      WebOutAttachment(Attachr.SerNr);
+    end;
+  end;
+  return;
+end;
+
+procedure ShowSingleUserOnWeb(record UserVc Userr)
+begin
+   
+  WebOutString("<div class='col-3 single_emp justify-content-center'>");
+  WebOutString("<div class='emp_pic'><img src='/WebShowEmpPic.hal?emp=" & Userr.Code & "'></div>")
+  WebOutString("<div class='emp_name'>" & Userr.Name & "</div>")
+  WebOutString("<div class='emp_descr'>" & Userr.Job & "</div>")
+  WebOutString("</div>");
+
+  return;
+end;
+
+global
+procedure ShowEmployeesOnWeb()
+begin
+  record UserVc Userr;
+  Boolean TrHs;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+
+  while (LoopKey("ActCode",Userr,1,true)) begin
+    if (ReadRecordLink(Userr,1,Attachr,RLr)) then begin
+      ShowSingleUserOnWeb(Userr);
+    end;
+  end;
 
   return;
 end;

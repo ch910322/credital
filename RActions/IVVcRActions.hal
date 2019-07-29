@@ -45,8 +45,10 @@ begin
   LongInt res;
   record IVVc IV3r;
 
+  RecordCopy(IV3r,IVr);
+  IV3r.OKFlag = 0;
   res = inner.IVVcRecordSaveAfter(IVr,IV2r,stat,long4);
-  UpdateSMSReminderQueue(IVr,IV2r);
+  UpdateSMSReminderQueue(IVr,IV3r);
   
   IVVcRecordSaveAfter = res; 
   return;
