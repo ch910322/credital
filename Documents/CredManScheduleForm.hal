@@ -42,7 +42,7 @@ begin
     OutFormField("F_CREDBAL",SMrw.CurCredVal);//Balance
     OutFormField("F_CREDINVTOT",SMrw.CredVal+SMrw.DebVal2+SMrw.DebVal);//Balance
     OutFormField("F_ROWNR",i+1);
-    OutFormImage(Docr);
+    OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
     EndFormRow;
     totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
     totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
