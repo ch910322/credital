@@ -47,6 +47,7 @@ begin
     totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
     totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
   end;
+  OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
 
   OutFormField("F_CREDTOTINT",totinterest);
   OutFormField("F_CREDTOTPAY",totpayment);

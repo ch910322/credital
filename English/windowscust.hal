@@ -30,6 +30,7 @@ begin
   RlCol   (-70,-70,"Total Sum",Sum,true);
   SpecialMenu("Customer status",'e',1,"CUStatusB2BLoanAppLsm");
   SpecialMenu("Evaluation report",' ',2,"DoEvalReportLsm");
+  SearchField("Search");
   EndWindow;
 
   WindowBegin("Paste B2B Loan Application",B2BLoanApplicationSClass,CGsList,-);

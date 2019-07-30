@@ -67,7 +67,8 @@ begin
     invday = CredManSetb.InvDay;
   end;
   startd = CredManr.startDate;
-  finv = AddMonth(startd,1);
+  //finv = AddMonth(startd,1); //CUST-CHANGED
+  finv = AddDay(startd,25);
   finv = AddDay(finv,invday - GetDay(finv));
   if (startd.day>invday) then begin
     finv = AddMonth(finv,1);
