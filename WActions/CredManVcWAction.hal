@@ -728,7 +728,7 @@ BEGIN
     GetNextSubstring(acontact[i],pos,"#",namestr);
     GetNextSubstring(acontact[i],pos,"#",titlestr);
     GetNextSubstring(acontact[i],pos,"#",custcode);
-    AddListRow(wn,"DLPasteContact",1,custcode,0);
+    AddListRow(wn,"DLPasteContact",1,namestr,0);
     AddListData(wn,"DLPasteContact","DLContactName",namestr);
     AddListData(wn,"DLPasteContact","DLContactTitle",titlestr);    
   end;

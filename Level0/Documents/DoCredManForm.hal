@@ -21,24 +21,25 @@ external procedure ValToText(val,Integer,string,string,var string);
 //external procedure CredManSetFax(record CUVc,record CredManVc);
 //CUST-BEGIN
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
+external function Boolean FindCustomerRelation(string,string,var record CUVc);
 
-function string 255 GetCredManCustContact(record CredManVc CredManr)
+procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
-  record CUVc CUr;
-  string 255 res;
+  record CUVc ContactCUr;
 
-  CUr.Code = CredManr.ClientContact;
-  if (ReadFirstMain(CUr,1,true)) then begin
-    res = CUr.Name;
+  if (nonblank(CredManr.ClientContact)) then begin
+    if (FindCustomerRelation(CredManr.CustCode,CredManr.ClientContact,ContactCUr)) then begin
+      contactid = ContactCUr.RegNr1;
+      contactname = ContactCUr.Name;
+    end;
   end;
 
-  GetCredManCustContact = res;
   return;
 end;
 
 procedure PrintCustomDetails(record CredManVc CredManr,record CUVc CUr)
 begin
-  string 255 tstr,contact;
+  string 255 tstr,contactname,contactid;
   record BankVc Bankr;
   val amt,fees,prolong;
   row CredManVc CredManrw;
@@ -48,9 +49,9 @@ begin
   OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
   OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
   OutFormField("F_MOBILE",CUr.Mobile);//Mobile
-  contact = GetCredManCustContact(CredManr);
-  OUTFORMFIELD("F_KONTAKT",contact);
-  OUTFORMFIELD("F_ID",CUr.PassportNr);
+  GetCredManCustContact(CredManr,contactid,contactname);
+  OUTFORMFIELD("F_KONTAKT",contactname);
+  OUTFORMFIELD("F_ID",contactid);
   OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
   OUTFORMFIELD("F_DATEDAY",CredManr.MonthlyPaymentDay);
     if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
