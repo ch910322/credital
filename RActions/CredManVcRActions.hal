@@ -143,6 +143,12 @@ BEGIN
     end;
   end;
 
+  if (CredManr.MonthlyPaymentDay<=0) then begin
+    RecordCheckError(1058,"",-1,"MonthlyPaymentDay");
+    res = -1;
+    goto LCredManVcRecordCheck;
+  end;
+
   res = inner.CredManVcRecordCheck(CredManr,CredMan2r,stat,long4);
   
 LCredManVcRecordCheck:;

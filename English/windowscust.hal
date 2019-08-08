@@ -235,6 +235,7 @@ begin
   TileButton(tilenr,"Creditable"); tilenr = tilenr + 1;  
   Tile(1,95,false,"1",CompAgeStep);
   EditField(h=250,v=6,100,"Company Age Step (Years)",Normal,CompAgeStep,true,0);
+  CheckBox(h,v+=vs,0,"Debug",Debug);
   EditField(h,v+=vs,100,"Annual Profit LOW",Normal,AnnualProfitLow,true,0);
   EditField(h,v+=vs,100,"Annual profit HIGH",Normal,AnnualProfitHigh,true,0);
   EditField(h,v+=vs,100,"Minimum Salary",Normal,MininumSalary,true,0);

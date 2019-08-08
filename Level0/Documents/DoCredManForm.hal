@@ -103,9 +103,16 @@ begin
 
   prolong = CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100));
   OUTFORMFIELD("F_PROLONG",prolong);
-
+  if (FIELDINFORM("F_PROLONGINTEXT")) then begin
+    ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    OUTFORMFIELD("F_PROLONGINTEXT",tstr);
+  end;
+  OUTFORMFIELD("F_OVERDUEPRC",CredManr.OverduePercentage);
+  OUTFORMFIELD("F_OTHERCONDITIONS",CredManr.OtherConditions);
+  
   return;
 end;
+
 //CUST-END
 
 procedure PrintCredManRows(record RcVc RepSpec,record CredManVc CredManr,record LangNrVc LangNrr)

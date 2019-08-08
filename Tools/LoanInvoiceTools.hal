@@ -41,7 +41,7 @@ enum begin
   kMonthTypeLast = 2
 end;
 
-procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate,Date fromdate,Date todate,Boolean sernrf)
+procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate,Date fromdate,Date todate,Boolean sernrf,Boolean forcecustf)
 begin
   record LocalMachineBlock LMb;
   string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
@@ -56,7 +56,11 @@ begin
   IVr.TransDate = invdate;//or current date?
   IVr.InvDate = invdate;//from seting?
 
-  IVr.CustCode = CredManr.CustCode;
+  if (CredManr.InstalmentType==4 and forcecustf==false) then begin
+    IVr.CustCode = CredManr.FactBuyer;
+  end else begin
+    IVr.CustCode = CredManr.CustCode;
+  end;
   PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
   IVr.PayDeal = CredManr.PayDeal;
   IVVc_PastePayDeal(IVr,"",LMb.DefReturnLocation);
@@ -305,7 +309,7 @@ begin
         end;
         lastd2 = AddDay(lastd,1);//to get the start date for penalty calculation.
         lastd = CredManPayPlanrw.TransDate;
-        SetupLoanInvoice(CredManr,CMb,IVr,lastd,CredManPayPlanrw.FromDate,CredManPayPlanrw.ToDate,true);
+        SetupLoanInvoice(CredManr,CMb,IVr,lastd,CredManPayPlanrw.FromDate,CredManPayPlanrw.ToDate,true,false);
 
       end;
       SetupInvoiceRowAndAdd(IVr,CredManPayPlanrw.ArtCode,CredManPayPlanrw.Spec,1,CredManPayPlanrw.Sum,CredManPayPlanrw.Reb,CredManPayPlanrw.PlanType);
@@ -361,7 +365,7 @@ begin
         end;
         lastd2 = AddDay(lastd,1);//to get the start date for penalty calculation.
         lastd = CredManPayPlanrw.TransDate;
-        SetupLoanInvoice(CredManr,CMb,IVr,lastd,CredManPayPlanrw.FromDate,CredManPayPlanrw.ToDate,false);
+        SetupLoanInvoice(CredManr,CMb,IVr,lastd,CredManPayPlanrw.FromDate,CredManPayPlanrw.ToDate,false,false);
 
       end;
       SetupInvoiceRowAndAdd(IVr,CredManPayPlanrw.ArtCode,CredManPayPlanrw.Spec,1,CredManPayPlanrw.Sum,CredManPayPlanrw.Reb,CredManPayPlanrw.PlanType);
@@ -423,7 +427,7 @@ begin
   end;
   
   if (balance>0) then begin
-    SetupLoanInvoice(CredManr,CMb,IVr,td,lastinv,td,true);
+    SetupLoanInvoice(CredManr,CMb,IVr,td,lastinv,td,true,false);
     AddInstalmentFixed(CredManr,CredManPayPlan2r,CMb,balance,td,cumint,calcbal,lastinv,td);
     AddInterest(CredManr,CredManPayPlan2r,CMb,kMonthTypeFirst,td,cumint,calcbal,lastinv,td);
     AddPlannedFees(CredManr,CredManPayPlan2r,CMb,kPlannedFeesMonthly,kMonthTypeFirst,td,cumint,calcbal,lastinv,td);
@@ -781,6 +785,82 @@ begin
   if (ReadFirstMain(CredManr,1,true)) then begin
     GetCredManEventList(CredManr,ORr);
   end;  
+
+  return;
+end;
+
+function Boolean BuyerPaidInvoice(record CredManVc CredManr,var Longint ivnr)
+begin
+  record CredHistVc CredHistr;
+  Boolean res,TrHs;
+  
+//in first version we will assume this invoice has only one item therefore we can check record history only
+  TrHs = true;
+  while (LoopKey("CredManTransDate:" & CredManr.SerNr,CredHistr,1,TrHs)) begin
+    if (CredHistr.RecordType==0 and CredHistr.PaidFlag==1) then begin
+      res = true;
+      ivnr = CredHistr.RecordNr;
+      TrHs = false;
+    end;
+  end;
+
+  BuyerPaidInvoice = res;
+  return;
+end;
+
+function Boolean GetFactoringDays(record CredManVc CredManr,var date paydate,var Integer factdays)
+begin
+  record CredHistVc CredHistr;
+  Boolean res;
+
+  paydate = "";
+  while (LoopKey("CredManTransDate:" & CredManr.SerNr,CredHistr,1,true)) begin
+    if (CredHistr.RecordType==1) then begin
+      if (CredHistr.TransDate>paydate) then begin
+        paydate = CredHistr.TransDate;
+      end;
+    end;
+  end;
+
+  if (nonblank(paydate)) then begin
+    factdays = DateDiff(paydate,CredManr.startDate);
+    res = true;
+  end;
+
+  GetFactoringDays = res;
+  return;
+end; 
+
+global
+updating procedure CreateFactoringFinalInvoice(record CredManVc CredManr)
+begin
+  record CMApplicationSetBlock ASb;
+  record CredManSetBlock CMSb;
+
+  val prc_perday;
+  record IVVc IVr;
+  Longint ivnr;
+  Date paydate;
+  Integer factdays;
+  
+  //calculate %
+  //calculate days from full payment
+  //setup loan invoice
+  
+  BlockLoad(ASb);
+  BlockLoad(CMSb);
+  if (BuyerPaidInvoice(CredManr,ivnr)) then begin
+    if (GetFactoringDays(CredManr,paydate,factdays)) then begin
+      prc_perday = CredManr.InvSum4*(CredManr.IntRate*12/ASb.DaysInYear/100);
+      SetupLoanInvoice(CredManr,CMSb,IVr,CurrentDate,CredManr.startDate,paydate,true,true);
+      SetupInvoiceRowAndAdd(IVr,CMSb.RateItem,"",1,prc_perday*factdays,0,2);
+      IVr.OKFlag = 1;
+      if (RecordInsert(IVr,true)==false) then begin
+        LogText(0,"Failed to store Factoring Invoice " & RecordCheckLastErrorNo);
+      end;
+    end;
+  end;
+
 
   return;
 end;

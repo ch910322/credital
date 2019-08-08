@@ -376,6 +376,7 @@ begin
   RecordField(FactInsured,M4Int,0,0);
   RecordField(FactComment,M4Str,250,0);
 /*Factoring end*/
+  RecordField(OtherConditions,M4Str,250,0);
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -473,6 +474,7 @@ begin
   RecordField(SecondJobCoef2,M4Val,0,0);
   RecordField(IICompType,M4Str,20,0);
   RecordField(VSICompType,M4Str,20,0);
+  RecordField(Debug,M4Int,0,0);
   EndBlock;
 
   BlockBegin(EvalRiskClassBlock,-,"");

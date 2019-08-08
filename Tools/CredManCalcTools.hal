@@ -424,7 +424,7 @@ begin
   for(i=calculatedmonths;i<months;i=i+1) begin
     if (calcbal>0) then begin
       CalcCredManCurrentPeriod(inCredManr,i-1,frdat,todat,invdat); //sets dates, frdat, todat and invdat
-      if (i==0 and firstinvf==false) then begin
+      if (i==0 and firstinvf==false and inCredManr.InstalmentType!=4) then begin//Not for factoring
         AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,"","");
       end;
       monthtype = GetMonthType(i,months);
@@ -459,12 +459,9 @@ begin
             AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,monthtype,invdat,acumint,calcbal,frdat,todat,i)
           end;
         case 4://Factoring
-          AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
-          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
-          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesOneTime,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat);
-          AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat,i);
-        //case 5://Payment Guarantee
-
+          if (i==0) then begin
+            AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,kMonthTypeRegular,invdat,acumint,calcbal,frdat,todat,i);
+          end;
       end;
       if (i==0) then begin
         AddDeposit(inCredManr,CredManPayPlanr,CredManSetb,invdat,acumint,calcbal,frdat,todat);
