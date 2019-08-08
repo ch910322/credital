@@ -615,6 +615,7 @@ begin
   EnterSkip(InvSum4);
   EditField(h2,v,-40,"Pavadinimas",Normal,Addr0,false,0);
   EditField(h,v+=vs,82,"Pardav˜jas",Normal,SalesMan,false,UserSClass);
+  EditField(h,v+=vs,-40,"Kitos salygos",Normal,OtherConditions,false,0);
   EditField(h2,v,-40,"Kont.",Normal,ClientContact,false,ContactSClass);
   EditField(h,vm=(v+=vs),82,"Viso suma",Normal,InvSum4,true,0);
   EditField(h,v+=vs,30,"Delspinigi÷ %",Normal,IntRate,false,0);//CUST changed label
@@ -630,7 +631,7 @@ begin
   EditField(h2,v+=vs,82,"Pabaigos data",ViewOnly,endDate,false,PasteCurDate);
   EditField(h2,v+=vs,82,"Sukðrimo data",ViewOnly,TransDate,false,PasteCurDate);
 //CUST-BEGIN
-  EditField(h2,v+=vs,82,"Monthly Paym. Day",ViewOnly,MonthlyPaymentDay,false,0);
+  EditField(h2,v+=vs,82,"Monthly Paym. Day",Normal,MonthlyPaymentDay,false,0);
 //CUST-END
   EditField(h3,v=vm,82,"M˜nesiniai °naäai",ViewOnly,MonthlySum,false,0);
 //CUST-BEGIN

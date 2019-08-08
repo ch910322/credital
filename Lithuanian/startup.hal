@@ -25,6 +25,19 @@ begin
 
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
 
+/*DB Maint*/
+
+  Setting("SMS Reminder Queue",SMSReminderQueueLClass,modDBMain);
+
+/*Webshop*/
+
+  Setting("Campaigns",WebCampaignLClass,modWebShopNG);
+  Setting("Partners",WebPartnerTClass,modWebShopNG);
+  Setting("FAQ",WebFAQLClass,modWebShopNG);
+  Setting("Slide-bars",WebSlideBarTClass,modWebShopNG);
+  Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
+
+
   SString(200000,"Evaluation report");
   SString(200001,"Company");
   SString(200002,"Name: ");
@@ -108,6 +121,10 @@ begin
 
   SString(200100,"Invoice Number already used");
   SString(200101,"Amount is over the Credit Limit");
+
+/*Web Codes 200100-200130*/
+  SString(200100,"Banner with this type already registered in these days");
+
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
@@ -203,6 +220,13 @@ begin
   SetBegin(2012);
   SetText(0,"Invoice");
   SetText(1,"Due Invoice");
+  EndSet;
+
+  SetBegin(2013);
+  SetText(0,"Main");
+  SetText(1,"Business Loan");
+  SetText(2,"Factoring");
+  SetText(3,"Billing Guarantee");
   EndSet;
 
   return;
