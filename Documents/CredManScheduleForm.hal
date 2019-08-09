@@ -30,7 +30,10 @@ begin
   OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
   OutFormField("F_MOBILE",CUr.Mobile);//Mobile
 
-
+  OutFormField("F_CREDBAL",CredManr.InvSum4);//Balance
+  OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
+  EndFormRow;
+  
   rwcnt = MatRowCnt(SMr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(SMr,i,SMrw);
