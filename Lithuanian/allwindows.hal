@@ -615,8 +615,10 @@ begin
   EnterSkip(InvSum4);
   EditField(h2,v,-40,"Pavadinimas",Normal,Addr0,false,0);
   EditField(h,v+=vs,82,"Pardav˜jas",Normal,SalesMan,false,UserSClass);
-  EditField(h,v+=vs,-40,"Kitos salygos",Normal,OtherConditions,false,0);
   EditField(h2,v,-40,"Kont.",Normal,ClientContact,false,ContactSClass);
+//CUST-BEGIN
+  EditField(h,v+=vs,-40,"Kitos salygos",Normal,OtherConditions,false,0);
+//CUST-END
   EditField(h,vm=(v+=vs),82,"Viso suma",Normal,InvSum4,true,0);
   EditField(h,v+=vs,30,"Delspinigi÷ %",Normal,IntRate,false,0);//CUST changed label
   EditField(h,v+=vs,30,"M˜nesiai",Normal,InstalmentMonths,false,0);
