@@ -29,10 +29,6 @@ begin
   OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
   OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
   OutFormField("F_MOBILE",CUr.Mobile);//Mobile
-
-  OutFormField("F_CREDBAL",CredManr.InvSum4);//Balance
-  OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
-  EndFormRow;
   
   rwcnt = MatRowCnt(SMr);
   for (i=0;i<rwcnt;i=i+1) begin
