@@ -1012,3 +1012,18 @@ begin
 
   return;
 end;
+
+global
+procedure B2BLoanApplicationDClassOnWindowRecordChange(Integer wn)
+begin
+  record B2BLoanApplicationVc LAr;
+  string 255 f;
+
+  f = WindowActiveField(wn);
+  RerunWindowDef(wn);
+  GetWindowRecord(wn,LAr);
+  WindowFieldGoto(wn,LAr,-1,f,true);
+
+  return;
+end;
+
