@@ -665,13 +665,15 @@ begin
   CheckBox(h3,v=6,0,"Request Direct Debit",RequestDirectDebit);
   
   v = vm + v;
-  ButtonFrame(h,v=v+40,500,1,"Owner");
+  ButtonFrame(h,v=v+40,700,1,"Owner");
   EditField(h+100,v,100,"Contact Code",Normal,OwnerCustCode,false,B2BLoanApp_CUSClass);
-  EditField(h2+100,v,100,"Owner Name",Normal,OwnerName,false,0);
-  ButtonFrame(h,v=v+40,500,1,"CEO");
+  EditField(h2+50,v,100,"Owner Name",Normal,OwnerName,false,0);
+  EditField(h2+280,v,100,"Owner Represent.",Normal,OwnerRep,false,0);
+  ButtonFrame(h,v=v+40,700,1,"CEO");
   EditField(h+100,v,100,"Contact Code",Normal,CEOCustCode,false,B2BLoanApp_CUSClass);
-  EditField(h2+100,v,100,"CEO Name",Normal,CEOName,false,0);
-  
+  EditField(h2+50,v,100,"CEO Name",Normal,CEOName,false,0);
+  EditField(h2+280,v,100,"CEO Represent.",Normal,CEORep,false,0);
+ 
   Tile(tilenr,290,true,tilenr,MajorityOwner1); tilenr = tilenr + 1;  
   
   StaticText(h,v=26,"Surety Provider 1",false);
@@ -797,7 +799,11 @@ begin
   CheckBox(h2,v,0,"Bankruptcy",BankruptcyFlag);
   CheckBox(h3,v,0,"Liquidation",LiquidationFlag);
   CheckBox(h,v+=vs,0,"Ownership Changes",OwnershipChanges);
- 
+  CheckBox(h2,v,0,"Publicity Information",Publicity);
+  CheckBox(h3,v,0,"Being Sued",BeingSued);
+  CheckBox(h,v+=vs,0,"Ongoing Debt Collections",DebtCollections);
+  CheckBox(h2,v,0,"Unreliable Company",UnreliableComp);
+
 //  EditField(h,v+=vs,100,"Long Term Asset Value",Normal,AssetValue,false,0);
   EditField(h,v+=vs,100,"50% Rev. Customers",Normal,HalfRevenueCustomers,true,0);
   EditField(h2,v,100,"Equity",Normal,Equity,true,0);
@@ -878,6 +884,7 @@ begin
   SpecialMenu("Get Surety Provider Data",' ',4,"");
   SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
   SpecialMenu("Customer Status",'e',6,"CUStatusB2BLoanAppDsm");
+  SpecialMenu("Creditinfo.lt",'e',6,"GetCreditinfoStatDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 

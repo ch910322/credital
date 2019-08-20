@@ -11,6 +11,7 @@ remote updating function Boolean B2BLoanAppCreateCredMan(record B2BLoanApplicati
 external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
+remote updating procedure GetCreditInfo(var record B2BLoanApplicationVc);
 
 function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
 begin
@@ -1027,3 +1028,19 @@ begin
   return;
 end;
 
+global
+procedure GetCreditinfoStatDsm()
+begin
+  Integer wn;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+
+  GetCreditInfo(LAr);
+
+  PutWindowRecord(wn,LAr);
+  WindowDoOK(wn,0);
+  
+  return;
+end;

@@ -1,0 +1,9 @@
+begin
+  
+  BlockBegin(CreditinfoBlock,-,"");
+  RecordField(APIUser,M4Str,50,0);
+  RecordField(APIPassword,M4Str,50,0);
+  EndBlock;
+
+  return;
+end;

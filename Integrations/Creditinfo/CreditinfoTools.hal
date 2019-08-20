@@ -1,0 +1,165 @@
+external inner function val ValFromString(string,string,string);
+external inner function Date DateFromString(string,string);
+
+global
+updating procedure GetCreditInfo(var record B2BLoanApplicationVc LAr)
+begin
+  record CreditinfoBlock CIb;
+  Boolean debugf;
+  area reply,request;
+  string 255 lang,params,url,path,root,tstr,fn;
+  record CUVc CUr,oldCUr;
+  xml axml;
+  Date courtdate;
+
+  BlockLoad(CIb);
+  CUr.Code = LAr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+  
+    lang = "0";
+    if (debugf) then begin
+      lang = "1";
+    end;
+    params = "username=" & CIb.APIUser & "&password=" & CIb.APIPassword & "&idnum=" & CUr.RegNr1 & "&lang=" & lang & "&productNumber=6202";
+    url = "new.infobankas.lt";
+    path = "/creditinfogroup_lt/SAIS/WebServices/getsais.asmx";
+
+    if (SendWebRequest(url,443,-1,true,"POST",path & "?" & params,"text/plain","",false,request,reply,10)) then begin
+      RecordCopy(oldCUr,CUr);
+      axml = ParseXmlArea(reply);
+      root = "/BasicInfo";
+      if (nonblank(XmlGet(axml,root & "/Registered"))) then begin
+        LAr.Established = DateFromString(XmlGet(axml,root & "/Registered"),"YYYY-MM-DD");//TODO
+        CUr.BirthDate = LAr.Established;
+      end;
+      LAr.CEORep = XmlGet(axml,root & "/Atstovavimas");
+      CUr.Region = XmlGet(axml,root & "/Region");
+      root = "/BankruptcyInfo/tr";
+      if (XmlCountChildren(axml,root)>0) then begin
+        LAr.BankruptcyFlag = 1;
+        //lets take the first row now.
+        tstr = XmlGetAttribute(axml,root & "[0]","CourtDate");
+        if (nonblank(tstr)) then begin
+          courtdate = DateFromString(tstr,"YYYY-MM-DD");
+          if (courtdate>CurrentDate) then begin
+            LAr.OngoingCourtCases = 1;
+          end else begin
+            LAr.HistoricalCourtCases = 1;
+          end;
+        end;
+        if (nonblank(XmlGetAttribute(axml,root & "[0]","NutarimasLikviduoti"))) then begin
+          LAr.LiquidationFlag = 1;
+        end;
+      end;
+      root = "/Capital/tr";
+      LAr.Equity = ValFromString(XmlGetAttribute(axml,root & "[0]","IstatKap"),",","");
+      LAr.CapitalCurncyCode = XmlGetAttribute(axml,root & "[0]","Valiuta");
+      root = "/SpaudosPranesimai/SpaudosInformacijaNera";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.Publicity = 0;
+      end else begin
+        LAr.Publicity = 1;
+      end;
+      root = "/Teismai/TeismaiNera";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.BeingSued = 0;
+      end else begin
+        LAr.BeingSued = 1;
+      end;
+      LAr.DebtCollections = 0;
+      root = "/PretenzijosBendraInfo/PretenzijosBendraInfoPretenzijuNeraText";
+      if (XmlNodeExists(axml,root)==false) then begin
+        LAr.DebtCollections = 1;
+      end;
+      root = "/Vekseliai/VekseliaiNeraInfo";
+      if (XmlNodeExists(axml,root)==false) then begin
+        LAr.DebtCollections = 1;
+      end;
+      root = "/NepatikimiBendraInfo/NepatikimiBendraInfoDuomenuNeraText";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.UnreliableComp = 0;
+      end else begin
+        LAr.UnreliableComp = 1;
+      end;
+      root = "/TurtoArestaiIreg/TurtoArestaiInfoNera";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.OngoingAssetArrests = 0;
+      end else begin
+        LAr.OngoingAssetArrests = 1;
+      end;
+      root = "/TurtoArestaiIsreg/TurtoArestaiInfoNera";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.HistoricalAssetArrests = 0;
+      end else begin
+        LAr.HistoricalAssetArrests = 1;
+      end;
+      root = "/IkeitimasAndTARInfo/IkeitimasAndTARInfoNera";
+      if (XmlNodeExists(axml,root)) then begin
+        LAr.HistoricalAssetArrests = 0;
+      end else begin
+        LAr.HistoricalAssetArrests = 1;
+      end;
+
+      RecordUpdate(oldCUr,CUr,true);
+      fn = CUr.RegNr1  & "_creditinfo.pdf";
+      WriteAreaToFile(reply,fn,0);
+      RecordLinkFile(fn,0,LAr,CurrentCompany);
+      Delete_File(fn);
+    /*
+      "/BasicInfo";
+      //ManagersPersonalCodeValue,Registered,Atstovavimas,Region
+      "/BankruptcyInfo";
+      //CourtDate,Isk_data,NutarimasLikviduoti,NUTAR_SPREND_ISREG_DATA,Likvidavimas,Administrator,Admin,Court,Teismas
+      "/Capital/Header/tr";
+      //IstatKap,TvirData,Pavad,Valiuta
+      "/SpaudosPranesimai/tr";
+      //SpaudosInformacijaBendraInfoID,,SpaudosInformacijaBendraInfoText,SpaudosInformacijaIDText,SpaudosInformacijaID,SpaudosInformacijaDataText,SpaudosInformacijaData,SpaudosInformacijaTitleText,SpaudosInformacijaTitle
+      "/Teismai";
+      //TeismaiBendraInfoID,TeismaiBendraInfoText,TeismaiIDText,TeismaiID,TeismaiJarKodasText,TeismaiJarKodas,TeismaiPavadText,TeismaiPavad,TeismaiDataText,TeismaiData,TeismaiVadovasText,TeismaiVadovas,TeismaiKreditoriusText,TeismaiKreditorius,TeismaiSumaText,TeismaiSuma,TeismaiPastabosText,TeismaiPastabos
+      "/TeismaiWeb/Header";
+      //TeismaiDataBylosText,,TeismaiPavadinimasText,TeismaiDalyviaiText,TeismaiEsmeText
+      "/TeismaiWeb/tr";
+      //TeismaiData,TeismaiEsme,TeismaiTipas,TeismaiBylosNr,TeismaiPavadinimas,TeismaiDalyviai
+      "/PretenzijosBendraInfo/tr";
+      //PretenzijosBendraInfoID,PretenzijosBendraInfoText
+      "/Pretenzijos/tr";
+      "/Vekseliai/tr";
+      "/NepatikimiBendraInfo/tr";
+      "/TurtoArestaiIreg";
+      "/TurtoArestaiIsreg";
+      "/IkeitimasAndTARInfo";
+      "/SkolosBendraInfo/tr";
+      "/Debts2/tr";
+      "/ApmoketosSkolosBendraInfo/tr";
+      "/Debts2History/tr";
+      "/VMINurodymai";
+      "/SodraSkolos";
+      "/JARAtaskaitos";
+      "/SHAREHOLDERS";
+      "/DraudimoSprendimas/tr";
+      "/FinansiniaiImonesRodikliai";
+      "/CompanyRatingWithHistory";
+      "/RevenueChartBendraInfo";
+      "/RevenueChart";
+      "/VehiclesChartBendraInfo";
+      "/VehiclesChart";
+      "/EmployeesChart";
+      "/AvgSalaryInfo";
+      "/InfoPazymos";
+      "/FinansiniaiImonesRodikliaiIstorija";
+      "/StatisticsBySectors";
+      "/LicensedActivities";
+      "/RestrictionsOfTheActivities";
+      "/ImonesJarVeiklosInfo";
+      "/SodraSkolosIstorija";
+      "/Transport";
+      "/Antstoliai";
+      "/BailiffUrge";
+      "/VptInfo";
+  */
+
+    end;
+  end;
+
+  return;
+end;

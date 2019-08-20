@@ -143,6 +143,15 @@ begin
   RecordField(MaxValSurety,M4Val,0,0);
   RecordField(MaxValCompany,M4Val,0,0);
   RecordField(Creditable,M4Int,0,0);
+
+  RecordField(Publicity,M4Int,0,0);
+  RecordField(BeingSued,M4Int,0,0);
+  RecordField(DebtCollections,M4Int,0,0);
+  RecordField(UnreliableComp,M4Int,0,0);
+  RecordField(OwnerRep,M4Str,200,0);
+  RecordField(CEORep,M4Str,200,0);
+  RecordField(CapitalCurncyCode,M4Code,5,CurncyCodeVc);
+
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
   ArrayField(LateRating,M4Int,0,0);
@@ -741,6 +750,10 @@ begin
 /*SmartID*/
   Exec_file("halcust\\Integrations\\SmartID\\datadef.hal");
   SourceFile("halcust\\Integrations\\SmartID", 3);
+
+/*Creditinfo*/
+  Exec_file("halcust\\Integrations\\Creditinfo\\datadef.hal");
+  SourceFile("halcust\\Integrations\\Creditinfo", 3);
 
 /*Bank import*/
   Exec_file("halcust\\BankImport\\datadef.hal");
