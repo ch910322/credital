@@ -9,6 +9,7 @@ external procedure ShowPartnerList();
 external procedure ShowBannerList(record WebNGElementVc);
 external procedure ShowFAQList();
 external procedure ShowLoanApplicationOnWeb(record WebNGElementVc);
+external procedure ShowLoanApplicationOnWeb2(record WebNGElementVc);
 external procedure ShowNewsLetterSignup(record WebNGElementVc);
 external procedure ShowEmployeesOnWeb();
 
@@ -35,6 +36,8 @@ begin
       ShowNewsLetterSignup(WEr);
     case 127:
       ShowEmployeesOnWeb;
+    case 128:
+      ShowLoanApplicationOnWeb2(WEr);
     otherwise
       res = false;
   end;

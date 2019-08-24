@@ -226,13 +226,18 @@ begin
   return;
 end;
 
-procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add)
+procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add,Boolean inputf)
 begin
   
 //70007,70008
   WebOutString("<div class='slider_label'>" & label & "</div>");
-  WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div><div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
-
+  if (inputf) then begin
+    WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
+    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div>");
+  end else begin
+    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div>");
+    WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
+  end;
   WebOutString("<script>$('input[name=\"" & name & "\"]').change()</script>");
   return;
 end;
@@ -286,22 +291,78 @@ begin
   ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
 
   if (amount_min>0) then begin
-    ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013));
+    ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),false);
 
   end;
   if (term_min>0) then begin
-    ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014));
+    ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),false);
   end;
 
   ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
   ShowCheckBox("newsletter",ToolWebNGTranslateText2(70010));
-  
+    
   WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
 
   WebOutString("</form></div>");
 
   return;
 end;
+
+global
+procedure ShowLoanApplicationOnWeb2(record WebNGElementVc WEr)
+begin
+  record WebLoanCalcVc WLCr;
+  row WebLoanCalcVc WLCrw;
+  Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
+  Boolean verslof,faktf,garantf;
+  Integer type,i,rwcnt;
+
+  switch (WEr.HALFunc) begin
+    case "Verslo": type = 0;
+    case "Faktoringas": type = 1;
+    case "Atsiskaitymo": type = 2;
+  end;
+
+  WLCr.Type = type;
+  if (ReadFirstMain(WLCr,1,true)) then begin
+  
+    amount_min = WLCr.AmountMin;
+    amount_max = WLCr.AmountMax;
+    amount_step = WLCr.AmountStep;
+    term_min = WLCr.TermMin;
+    term_max = WLCr.TermMax;
+    term_step = WLCr.TermStep;
+
+    rwcnt = MatRowCnt(WLCr);
+    WebOutString("<script>");
+    WebOutString("var rates = {};");
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(WLCr,i,WLCrw);
+      WebOutString("rates['" & WLCrw.Months & "'] = " & WLCrw.Rate & ";");
+    end;
+    WebOutString("</script>");
+
+    WebOutString("<div class='loan_app'><form method='POST'>");
+    WebOutString("<div class='row'><div class='col'>")
+    if (amount_min>0) then begin
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
+    end;
+    if (term_min>0) then begin
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),true);
+    end;
+    WebOutString("</div><div class='col'>")
+    //show selection box
+    WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+    WebOutString("</div>");
+    WebOutString("<div class='calc_summary'>");
+    WebOutString("<div class='outer_circle'><div class='mid_circle'><div class='inner_circle'><div class='summ_content'></div></div></div></div>");
+    WebOutString("</div></div>");
+    WebOutString("</form></div>");
+  end;
+
+  return;
+end;
+
 
 global
 procedure ShowNewsLetterSignup(record WebNGElementVc WEr)

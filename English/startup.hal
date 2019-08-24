@@ -36,6 +36,7 @@ begin
   Setting("FAQ",WebFAQLClass,modWebShopNG);
   Setting("Slide-bars",WebSlideBarTClass,modWebShopNG);
   Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
+  Setting("Loan Calculators",WebLoanCalcLClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");

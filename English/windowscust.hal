@@ -1054,3 +1054,54 @@ begin
   EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
   EndWindow;
 end;
+
+window WebLoanCalcLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Loan Calculators",WebLoanCalcLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(WebLoanCalcDClass);
+  UseView(WebLoanCalcVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Type",Type,false,Type);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window WebLoanCalcSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Paste Loan Calculator",WebLoanCalcSClass,CGslist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(WebLoanCalcDClass);
+  UseView(WebLoanCalcVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Type",Type,false,Type);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window WebLoanCalcDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Loan Calculator",WebLoanCalcDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  Sizeable(-1,-1,0,0);
+  UseView(WebLoanCalcVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,50,"Type",Normal,Type,false,);
+  EditField(h,v+=vs,50,"AmountMin",Normal,AmountMin,false,0);
+  EditField(h,v+=vs,50,"AmountMax",Normal,AmountMax,false,0);
+  EditField(h,v+=vs,50,"AmountStep",Normal,AmountStep,false,0);
+  EditField(h,v+=vs,50,"TermMin",Normal,TermMin,false,0);
+  EditField(h,v+=vs,50,"TermMax",Normal,TermMax,false,0);
+  EditField(h,v+=vs,50,"TermStep",Normal,TermStep,false,0);
+  MatrixBegin(10,v+=vs+40,-40,-20,-,99);
+  MatCol(1,24,"Months",0,Months,false,0);
+  MatCol(1,74,"Rate",0,Rate,false,0);
+  EndMatrix;
+  EndWindow;
+end;

@@ -728,6 +728,23 @@ begin
 
   EndBlock;
 
+  RecordBegin(WebLoanCalcVc,-,"");
+  RecordField(Type,M4Set,2013,0);
+  RecordField(AmountMin,M4Int,0,0);
+  RecordField(AmountMax,M4Int,0,0);
+  RecordField(AmountStep,M4Int,0,0);
+  RecordField(TermMin,M4Int,0,0);
+  RecordField(TermMax,M4Int,0,0);
+  RecordField(TermStep,M4Int,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Months,M4Int,0,0);
+  ArrayField(Rate,M4Val,0,0);
+  EndArray;
+  MainKeyBegin(Type,0);
+  KeySegment(Type);
+  EndRecord;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Documents", 3);

@@ -1029,7 +1029,7 @@ begin
 end;
 
 global
-procedure GetCreditinfoStatDsm()
+updating procedure GetCreditinfoStatDsm()
 begin
   Integer wn;
   record B2BLoanApplicationVc LAr;
