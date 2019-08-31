@@ -1,0 +1,183 @@
+external inner procedure IVVc_PastePayDeal(var record IVVc,string,string);
+external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBlock,var Integer,var Integer);
+external inner function Boolean PasteCust2InInv(var record IVVc,record LocalMachineBlock,string,Boolean,var string,var string,var string,var string,var string);
+external inner function Boolean IVVc_PasteArtCode(var record IVVc,Integer,var string,var string,Boolean,var Integer);
+external inner function Boolean IVVc_PasteQuantity(var record IVVc,Integer);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner procedure VIVc_PasteInvDate(var record VIVc);
+external inner procedure VIDDefault(Integer,string,var record VIVc);
+external inner function Boolean VIVc_PasteAccNumber(var record VIVc,string,Boolean,Integer);
+external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean,Boolean,var string);
+external inner procedure VIVc_PastePayDeal(var record VIVc);
+external inner procedure VICalcVals(var record VIVc);
+external inner procedure VISumup(record VIVc,var val);
+
+updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc CMIr)
+begin
+  record FactoringBlock Fb;
+  record CredManFactInvoiceVc oldCMIr;
+  record IVVc IVr;
+  record VIVc VIr;
+  row IVVc IVrw;
+  row VIVc VIrw;
+  Integer sernrf;
+  Integer err1,err2;
+  string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
+  record LocalMachineBlock LMb;
+  val ct;
+  record CredManVc CredManr;
+  
+  CredManr.SerNr = CMIr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    BlockLoad(Fb);
+    RecordCopy(oldCMIr,CMIr);
+
+    RecordNew(IVr);
+    IVr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    IVr.TransDate = CurrentDate;
+    IVr.InvDate = CurrentDate;
+    IVVc_PasteInvDate(IVr,LMb,err1,err2);
+    IVr.CustCode = CMIr.CustCode;
+    PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn)
+    IVr.PayDeal = Fb.BuyerPayDeal;
+    IVVc_PastePayDeal(IVr,"","");
+    IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
+    ClearRow(IVr,IVrw,1);
+    IVrw.ArtCode = Fb.BuyerItem;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Quant = 1;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Price = CMIr.TotalSum;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+    IVr.OKFlag = 1;
+    if (RecordInsert(IVr,true)) then begin
+      CMIr.SellerIVNr = IVr.SerNr;
+      CMIr.InitSLInvFlag = 1;
+    end;
+
+    RecordNew(VIr);
+    VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    VIr.TransDate = CurrentDate;
+    VIr.InvDate = CurrentDate;
+    VIVc_PasteInvDate(VIr);    
+    VIr.VECode = CredManr.CustCode;
+    VIVc_PasteVECode(VIr,0,true,true,warning)
+    VIr.PayDeal = Fb.SellerPayDeal;
+    VIVc_PastePayDeal(VIr);
+    VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
+    VIr.PayVal = (CMIr.TotalSum*CredManr.LoanToValue/100);
+    ClearRow(VIr,VIrw,1);
+    VIrw.AccNumber = Fb.SellerAccount;
+    MatRowPut(VIr,0,VIrw);
+    VIVc_PasteAccNumber(VIr,"",true,0);
+    MatRowGet(VIr,0,VIrw);
+    VIrw.VATCode = Fb.SellerVATCode;
+    MatRowPut(VIr,0,VIrw);
+    VIDDefault(0,"VATCode",VIr);
+    MatRowGet(VIr,0,VIrw);
+    VIrw.Sum = (CMIr.TotalSum*CredManr.LoanToValue/100);
+    MatRowPut(VIr,0,VIrw);
+    VICalcVals(VIr);
+    VISumup(VIr,ct);
+    VIr.OKFlag = 1;
+    if (RecordInsert(VIr,true)) then begin
+      CMIr.InitPLInvFlag = 1;
+    end; 
+
+    RecordUpdate(oldCMIr,CMIr,true);
+  end;
+
+  return;
+end;
+
+global
+updating procedure AddFactoringIVAndGenerateRecords(record RcVc RepSpec)
+begin
+  record CredManFactInvoiceVc CMIr;
+  
+  RecordNew(CMIr);
+  CMIr.SerNr = NextSerNr("CredManFactInvoiceVc",CurrentDate,-1,false,"");
+  CMIr.CredManNr = RepSpec.long1;
+  CMIr.CustCode = RepSpec.f1;
+  CMIr.CustName = RepSpec.searchstr;
+  CMIr.InvDate = RepSpec.d1;
+  CMIr.DueDate = RepSpec.d2;
+  CMIr.InvoiceNr = RepSpec.ObjStr;
+  CMIr.TotalSum = RepSpec.vals0;
+  if (RecordInsert(CMIr,true)) then begin
+    GenerateSLAndPLInvoices(CMIr);
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoice(record IPVc IPr,Boolean setf)
+begin
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+  row IPVc IPrw;
+  Integer i,rwcnt;
+  val due;
+  record ARVc ARr;
+  
+  rwcnt = MatRowCnt(IPr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IPr,i,IPrw);
+    if (IPrw.InvoiceNr>-1) then begin
+      CMIr.SellerIVNr = IPrw.InvoiceNr;
+      if (ReadFirstKey("SellerIVNr",CMIr,1,true)) then begin
+        RecordCopy(oldCMIr,CMIr);
+        if (setf) then begin
+          CMIr.CustPaidFlag = 1;
+          ARr.InvoiceNr = IPrw.InvoiceNr;
+          if (ReadFirstMain(ARr,1,true)) begin
+            due = ARr.RVal;
+          end;
+          if (due==0) then begin
+            CMIr.PaymentDate = IPrw.PayDate;
+          end;
+        end else begin
+          CMIr.CustPaidFlag = 0;
+          CMIr.PaymentDate = "";
+        end;
+        RecordUpdate(oldCMIr,CMIr,true);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoices(record IVVc IVr,Boolean setf)
+begin
+  Integer i,rwcnt;
+  row IVVc IVrw;
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+
+  if (IVr.CustCredManNr>-1) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.FactoringInvoice>-1) then begin
+        CMIr.SerNr = IVrw.FactoringInvoice;
+        if (ReadFirstMain(CMIr,1,true)) then begin
+          RecordCopy(oldCMIr,CMIr);
+          if (setf) then begin
+            CMIr.FeeGenFlag = 1;
+          end else begin
+            CMIr.FeeGenFlag = 0;
+          end;
+          RecordUpdate(oldCMIr,CMIr,true);
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;

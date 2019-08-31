@@ -1,0 +1,162 @@
+remote updating procedure AddFactoringIVAndGenerateRecords(record RcVc);
+
+global
+procedure CustCredManFactInvoiceAddSm()
+begin
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+
+  if (GetWindowClass(MotherWindow(CurWindow))=="CredManDClass") then begin
+    GetWindowRecord(MotherWindow(CurWindow),CredManr);
+    
+    RepSpec.long1 = CredManr.SerNr;
+    OpenWindow("NewCredManFactInvoiceWClass",1,CurWindow,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure NewCredManFactInvoiceWClassProceed()
+begin
+  record RcVc RepSpec;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,RepSpec);
+  AddFactoringIVAndGenerateRecords(RepSpec);
+  UpdateBrowses("CustCredManFactInvoiceWClass");
+  CloseWindow(wn);
+
+  return;
+end;
+
+global
+function Boolean CustCredManFactInvoiceWClassUpdateWindowSubset(Integer wn,var string subsetname)
+begin
+  record CredManVc CredManr;
+  
+  GetWindowRecord(MotherWindow(wn),CredManr);
+  if (CredManr.SerNr>0) then begin
+    subsetname = CredManr.SerNr;
+  end else begin
+    subsetname = -9999999;
+  end;
+
+  CustCredManFactInvoiceWClassUpdateWindowSubset = true;
+  return;
+end;
+
+function Boolean NewCredManFactInvoiceWClassf1EFAfter(Integer wn,Boolean changedf)
+begin
+  record RcVc RepSpec;
+  record CUVc CUr;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    CUr.Code = RepSpec.f1;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      RepSpec.searchstr = CUr.Name;
+    end;
+    PutWindowRecord(wn,RepSpec);   
+  end; 
+  NewCredManFactInvoiceWClassf1EFAfter = true;
+  return;
+end;
+
+
+global
+function Boolean NewCredManFactInvoiceWClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "f1": res = NewCredManFactInvoiceWClassf1EFAfter(wn,changed!=0);
+  end;
+  
+  NewCredManFactInvoiceWClassAfterEditField = res;
+  return;
+end;
+
+function Boolean CredManFactDClassCustCodeEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManFactVc CMFr;
+  row CredManFactVc CMFrw;
+  record CUVc CUr;
+
+  if (changedf and rownr>-1) then begin  
+    GetWindowRecord(wn,CMFr);
+    MatRowGet(CMFr,rownr,CMFrw);
+    CUr.Code = CMFrw.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      CMFrw.CustName = CUr.Name;
+      MatRowPut(CMFr,rownr,CMFrw);
+    end;
+    PutWindowRecord(wn,CMFr);   
+  end; 
+  CredManFactDClassCustCodeEFAfter = true;
+  return;
+end;
+
+procedure SumupFactoringLimits(var record CredManFactVc CMFr)
+begin
+  row CredManFactVc CMFrw;
+  Integer i,rwcnt;
+  val tot;
+
+  rwcnt = MatRowCnt(CMFr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CMFr,i,CMFrw);
+    tot = tot + CMFrw.MaxLimit;
+  end;
+
+  CMFr.Total = tot;
+
+  return;
+end;
+
+function Boolean CredManFactDClassMaxLimitEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManFactVc CMFr;
+  row CredManFactVc CMFrw;
+  record CUVc CUr;
+
+  if (changedf and rownr>-1) then begin  
+    GetWindowRecord(wn,CMFr);
+    SumupFactoringLimits(CMFr);
+    PutWindowRecord(wn,CMFr);   
+  end; 
+  CredManFactDClassMaxLimitEFAfter = true;
+  return;
+end;
+
+
+
+global
+function Boolean CredManFactDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "CustCode": res = CredManFactDClassCustCodeEFAfter(wn,rownr,changed!=0);
+    case "MaxLimit": res = CredManFactDClassMaxLimitEFAfter(wn,rownr,changed!=0);
+  end;
+  
+  CredManFactDClassAfterEditField = res;
+  return;
+end;
+
+global
+function Boolean CredManFactDClassSwitchRow(Integer wn,Integer rownr)
+begin
+  Boolean res;
+
+  res = true;
+  CredManFactDClassMaxLimitEFAfter(wn,rownr,true);
+
+  CredManFactDClassSwitchRow = res;
+  return;
+end;
+
+
+

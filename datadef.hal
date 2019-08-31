@@ -516,6 +516,7 @@ begin
   RecordField(InvSum,M4Val,0,0);
   RecordField(Balance,M4Val,0,0);
   RecordField(Comment2,M4Str,255,0);
+  RecordField(FactoringInvoice,M4Long,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(CredManTypeDate);
@@ -566,7 +567,8 @@ begin
   RecordField(CredFromDate,M4Date,0,0);
   RecordField(CredToDate,M4Date,0,0);
   ArrayField(ChargeType,M4Set,2010,0);
-  ArrayField(CredHistNr,M4Long,0,CredHistVc);  
+  ArrayField(CredHistNr,M4Long,0,CredHistVc);
+  ArrayField(FactoringInvoice,M4Long,0,CredManFactInvoiceVc);  
   EndRecordAdd;
 
   BlockBegin(ItemPriorityBlock,-,"");
@@ -602,6 +604,7 @@ begin
   ArrayField(ToDate,M4Date,0,0);
   ArrayField(Spec,M4Str,200,0);
   ArrayField(Reb,M4Val,0,0);
+  ArrayField(FactoringInvoice,M4Long,0,0);
   EndRecordAdd;
 
   BlockBegin(ItemPriorityBlock,-,"");
@@ -709,25 +712,6 @@ begin
   KeySegment(Code);
   EndRecord;
 
-  BlockBegin(WebSlideBarBlock,-,"");
-  RecordField(VersloAmountMin,M4Int,0,0);
-  RecordField(VersloAmountMax,M4Int,0,0);
-  RecordField(VersloAmountStep,M4Int,0,0);
-  RecordField(VersloTermMin,M4Int,0,0);
-  RecordField(VersloTermMax,M4Int,0,0);
-  RecordField(VersloTermStep,M4Int,0,0);
-  RecordField(FaktAmountMin,M4Int,0,0);
-  RecordField(FaktAmountMax,M4Int,0,0);
-  RecordField(FaktAmountStep,M4Int,0,0);
-  RecordField(FaktTermMin,M4Int,0,0);
-  RecordField(FaktTermMax,M4Int,0,0);
-  RecordField(FaktTermStep,M4Int,0,0);
-  RecordField(GarAmountMin,M4Int,0,0);
-  RecordField(GarAmountMax,M4Int,0,0);
-  RecordField(GarAmountStep,M4Int,0,0);
-
-  EndBlock;
-
   RecordBegin(WebLoanCalcVc,-,"");
   RecordField(Type,M4Set,2013,0);
   RecordField(AmountMin,M4Int,0,0);
@@ -744,6 +728,63 @@ begin
   MainKeyBegin(Type,0);
   KeySegment(Type);
   EndRecord;
+
+  RecordBegin(CredManFactVc,-,"");
+  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(Total,M4Val,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(CustCode,M4Code,20,CUVc);
+  ArrayField(CustName,M4Str,255,0);
+  ArrayField(MaxLimit,M4Val,0,0);
+  EndArray;
+  MainKeyBegin(CredManNr,0);
+  KeySegment(CredManNr);
+  EndRecord;
+
+  RecordBegin(CredManFactInvoiceVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(InvoiceNr,M4Str,250,0);
+  RecordField(InvDate,M4Date,0,0);
+  RecordField(DueDate,M4Date,0,0);
+  RecordField(TotalSum,M4Val,0,0);
+  RecordField(TransferredAmount,M4Val,0,0);
+  RecordField(ReceivedAmount,M4Val,0,0);
+  RecordField(InitSLInvFlag,M4Int,0,0);
+  RecordField(InitPLInvFlag,M4Int,0,0);
+  RecordField(CustPaidFlag,M4Int,0,0);
+  RecordField(FeeGenFlag,M4Int,0,0);
+  RecordField(CustName,M4Str,255,0);
+  RecordField(SellerIVNr,M4Long,0,0);
+  RecordField(PaymentDate,M4Date,0,0);
+  MainKeyBegin(SerNr,1);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(SellerIVNr);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(SellerIVNr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(CustPaidFlag);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(CustPaidFlag);
+  KeySegment(FeeGenFlag);
+  KeySegment(SerNr);
+  EndRecord;
+
+  BlockBegin(FactoringBlock,-,"");
+  RecordField(SellerPayDeal,M4Code,5,PDVc);
+  RecordField(SellerAccount,M4Code,10,AccVc);
+  RecordField(SellerVATCode,M4Code,10,0);
+  RecordField(SellerObject,M4Code,20,ObjVc);
+  RecordField(BuyerItem,M4Code,20,INVc);
+  RecordField(BuyerPayDeal,M4Code,5,PDVc);
+  RecordField(BuyerObject,M4Code,20,ObjVc);
+  EndBlock;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

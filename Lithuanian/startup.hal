@@ -34,7 +34,6 @@ begin
   Setting("Campaigns",WebCampaignLClass,modWebShopNG);
   Setting("Partners",WebPartnerTClass,modWebShopNG);
   Setting("FAQ",WebFAQLClass,modWebShopNG);
-  Setting("Slide-bars",WebSlideBarTClass,modWebShopNG);
   Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
 
 

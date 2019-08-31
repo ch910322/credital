@@ -542,36 +542,6 @@ begin
   EndMatrix;
   EndWindow;
 
-  WindowBegin("Slide-bars",WebSlideBarTClass,CGSbl,-);
-  SetBlid(WebSlideBarBlock);
-  SetWRect(20,80,570,448);
-  Sizeable(-1,-1,0,0);
-  h = 100;
-  ButtonFrame(h-70,v=26,480,1,"Verslo Paskola Amount");
-  EditField(h,v,70,"Minimum",Normal,VersloAmountMin,false,0);
-  EditField(h2=250,v,70,"Maximum",Normal,VersloAmountMax,false,0);
-  EditField(h3=400,v,70,"Step",Normal,VersloAmountStep,false,0);
-  ButtonFrame(h-70,v=v+50,480,1,"Verslo Paskola Term");
-  EditField(h,v,70,"Minimum",Normal,VersloTermMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,VersloTermMax,false,0);
-  EditField(h3,v,70,"Step",Normal,VersloTermStep,false,0);
-
-  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Amount");
-  EditField(h,v,70,"Minimum",Normal,FaktAmountMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,FaktAmountMax,false,0);
-  EditField(h3,v,70,"Step",Normal,FaktAmountStep,false,0);
-  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Term");
-  EditField(h,v,70,"Minimum",Normal,FaktTermMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,FaktTermMax,false,0);
-  EditField(h3,v,70,"Step",Normal,FaktTermStep,false,0);
-
-  ButtonFrame(h-70,v=v+50,480,1,"Atsiskaitymo Garantija Amount");
-  EditField(h,v,70,"Minimum",Normal,GarAmountMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,GarAmountMax,false,0);
-  EditField(h3,v,70,"Step",Normal,GarAmountStep,false,0);
- 
-  EndWindow;
-
   return;
 end;
 

@@ -263,3 +263,19 @@ begin
   DoRefinCredMan = res;
   return;
 end;
+
+global
+updating procedure GetFactoringRecord(record CredManVc CredManr,var record CredManFactVc CMFr)
+begin
+  record CredManFactVc tCMFr;
+
+  tCMFr.CredManNr = CredManr.SerNr;
+  if (ReadFirstMain(tCMFr,1,true)) then begin
+    RecordCopy(CMFr,tCMFr);
+  end else begin
+    RecordNew(CMFr);
+    CMFr.CredManNr = CredManr.SerNr;
+  end;
+
+  return;
+end;

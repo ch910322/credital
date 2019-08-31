@@ -824,12 +824,14 @@ begin
   Tile(6,290,true,"6",LoanToValue); 
 
   EditField(h,v=6,100,"Loan to Value %",Normal,LoanToValue,false,0);
-  EditField(h,v+=vs,100,"Buyer",Normal,FactBuyer,false,B2BLoanApp_CUSClass);
-  EditField(h2,v,230,"Buyer Name",Normal,FactBuyerName,false,0);
-  EditField(h,v+=vs,100,"Invoice Amount",Normal,FactInvAmount,false,0);
-  EditField(h,v+=vs,100,"Invoice Number",Normal,FactInvNumber,false,0);
+  //EditField(h,v+=vs,100,"Invoice Amount",Normal,FactInvAmount,false,0);
+  //EditField(h,v+=vs,100,"Invoice Number",Normal,FactInvNumber,false,0);
   EditField(h,v+=vs,430,"Comment",Normal,FactComment,false,0);
   CheckBox(h,v+=vs,0,"Insured",FactInsured);
+  v = v + vs;
+  HalPushButton(h,v,h+100,v+20,"OpenCredManFactoringBtn","Buyers");v = v + 30;
+  HalPushButton(h,v,h+100,v+20,"OpenCredManFactoringInvoicesBtn","Invoices");v = v + 30;
+  
 
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");

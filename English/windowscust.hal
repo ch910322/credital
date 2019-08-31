@@ -356,6 +356,7 @@ begin
   EditField(h,v+=vs,120,"Invoices Sum",Normal,InvSum,false,0);
   EditField(h,v+=vs,120,"Paid Sum",Normal,PaidSum,false,0);
   EditField(h,v+=vs,120,"Balance",Normal,Balance,false,0);
+  EditField(h,v+=vs,120,"Factoring Inv.",Normal,FactoringInvoice,false,0);
   CheckBox(h,v+=vs,0,"Main Record",MainRecord);
   EndWindow;
 
@@ -540,36 +541,6 @@ begin
   MatrixBegin(10,20,-30,-10,-,10);
   MatCol(1,25,"Classification",0,Classification,false,CClassSClass);
   EndMatrix;
-  EndWindow;
-
-  WindowBegin("Slide-bars",WebSlideBarTClass,CGSbl,-);
-  SetBlid(WebSlideBarBlock);
-  SetWRect(20,80,570,448);
-  Sizeable(-1,-1,0,0);
-  h = 100;
-  ButtonFrame(h-70,v=26,480,1,"Verslo Paskola Amount");
-  EditField(h,v,70,"Minimum",Normal,VersloAmountMin,false,0);
-  EditField(h2=250,v,70,"Maximum",Normal,VersloAmountMax,false,0);
-  EditField(h3=400,v,70,"Step",Normal,VersloAmountStep,false,0);
-  ButtonFrame(h-70,v=v+50,480,1,"Verslo Paskola Term");
-  EditField(h,v,70,"Minimum",Normal,VersloTermMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,VersloTermMax,false,0);
-  EditField(h3,v,70,"Step",Normal,VersloTermStep,false,0);
-
-  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Amount");
-  EditField(h,v,70,"Minimum",Normal,FaktAmountMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,FaktAmountMax,false,0);
-  EditField(h3,v,70,"Step",Normal,FaktAmountStep,false,0);
-  ButtonFrame(h-70,v=v+50,480,1,"Faktoringas Term");
-  EditField(h,v,70,"Minimum",Normal,FaktTermMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,FaktTermMax,false,0);
-  EditField(h3,v,70,"Step",Normal,FaktTermStep,false,0);
-
-  ButtonFrame(h-70,v=v+50,480,1,"Atsiskaitymo Garantija Amount");
-  EditField(h,v,70,"Minimum",Normal,GarAmountMin,false,0);
-  EditField(h2,v,70,"Maximum",Normal,GarAmountMax,false,0);
-  EditField(h3,v,70,"Step",Normal,GarAmountStep,false,0);
- 
   EndWindow;
 
   return;
@@ -1103,5 +1074,145 @@ begin
   MatCol(1,24,"Months",0,Months,false,0);
   MatCol(1,74,"Rate",0,Rate,false,0);
   EndMatrix;
+  EndWindow;
+end;
+
+window CredManFactLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Factoring Limits",CredManFactLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManFactDClass);
+  UseView(CredManFactVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Credit Agreement",CredManNr,false,CredManNr);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CredManFactDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Factoring Limits",CredManFactDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  UseView(CredManFactVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  MatrixBegin(0,16,-16,-50,-,30);
+  MatCol(1,24,"Customer",0,CustCode,false,CUSClass);
+  MatCol(1,120,"Name",0,CustName,false,0);
+  MatCol(1,-80,"Max Limit",0,MaxLimit,true,0);
+  InsertRowTest;
+  DeleteRowTest;
+  EndMatrix;
+  EditField(-120,-30,80,"Total",ViewOnly,Total,true,0);
+  EndWindow;
+end;
+
+window CredManFactInvoiceLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Factoring Invoices",CredManFactInvoiceLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManFactInvoiceDClass);
+  UseView(CredManFactInvoiceVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"SerNr",SerNr,false,SerNr);
+  RlCol(100,100,"Agreement",CredManNr,false);
+  RlCol(196,196,"Customer",CustCode,false);
+  RlCol(196,196,"Invoice Nr.",InvoiceNr,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CustCredManFactInvoiceWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Factoring Invoices",CustCredManFactInvoiceWClass,CGOther,RcType);
+  SetWRect(20,80,760,298);
+  UseView(RcVc);
+  EditField(h=100,v=55,50,"Dummy",Normal,f1,false,0);
+  RecordList2(4,17,-21,-1,"CredManFactInvoiceVc");
+  RlColKey(4,4,"Ser Nr.",SerNr,false,SerNr);
+  RlCol(100,100,"Agreement",CredManNr,false);
+  RlCol(170,170,"Customer",CustCode,false);
+  RlCol(250,250,"Invoice Nr.",InvoiceNr,false);
+  RlCol(-330,-330,"Due Date",DueDate,false);
+  RlCol(-240,-240,"Total",TotalSum,false);
+  RlCol(-180,-180,"Received",ReceivedAmount,false);
+  RlColTL(-120,-120,"SL",M4Mark,InitSLInvFlag,false);
+  RlColTL(-90,-90,"PL",M4Mark,InitPLInvFlag,false);
+  RlColTL(-60,-60,"Paid",M4Mark,CustPaidFlag,false);
+  RlColTL(-30,-30,"Fee",M4Mark,FeeGenFlag,false);
+  //SpecialMenu("Regress",'',1,"CUStatusB2BLoanAppLsm");
+  SpecialMenu("Add Invoice",'',1,"CustCredManFactInvoiceAddSm");
+  SpecialMenu("Generate Fee Invoice",'',1,"CustCredManFactInvoiceCreateFeeInvSm");
+  EndWindow;
+end;
+
+window CredManFactInvoiceDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Factoring Invoice",CredManFactInvoiceDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  UseView(CredManFactInvoiceVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,50,"SerNr",Normal,SerNr,false,0);
+  EditField(h,v+=vs,50,"Cred. Agr.",Normal,CredManNr,false,CredManSClass);
+  EditField(h,v+=vs,50,"Customer",Normal,CustCode,false,CUSClass);
+  EditField(h,v+=vs,50,"InvoiceNr",Normal,InvoiceNr,false,0);
+  EditField(h,v+=vs,50,"Inv. Date",Normal,InvDate,false,0);
+  EditField(h,v+=vs,50,"Due Date",Normal,DueDate,false,0);
+  EditField(h,v+=vs,50,"Total Sum",Normal,TotalSum,false,0);
+  EditField(h,v+=vs,50,"Received Amount",Normal,ReceivedAmount,false,0);
+  CheckBox(h,v+=20,0,"Buyer Invoice",InitSLInvFlag);
+  CheckBox(h,v+=20,0,"Customer Invoice",InitPLInvFlag);
+  CheckBox(h,v+=20,0,"Buyer has Paid",CustPaidFlag);
+  CheckBox(h,v+=20,0,"Fee Invoice",FeeGenFlag);
+  EndWindow;
+end;
+
+window NewCredManFactInvoiceWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2;
+  WindowBegin("Factoring Invoice",NewCredManFactInvoiceWClass,CGOther,RcType);
+  SetWRect(20,80,600,259);
+  UseView(RcVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v+=vs,100,"Customer",Normal,f1,false,CUSClass);
+  EditField(h2=300,v,-40,"Name",Normal,searchstr,false,0);
+  EditField(h,v+=vs,100,"Invoice Nr.",Normal,ObjStr,false,0);
+  EditField(h,v+=vs,90,"Inv. Date",Normal,d1,false,PasteCurDate);
+  EditField(h,v+=vs,90,"Due Date",Normal,d2,false,PasteCurDate);
+  EditField(h,v+=vs,90,"Total Sum",Normal,vals0,false,0);
+  HalPushButton(h,v+=vs,h+150,v+=20,"NewCredManFactInvoiceWClassProceed","Add and Create Invoices");
+  EndWindow;
+end;
+
+
+window FactoringTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Factoring Settings",FactoringTClass,CGSbl,-);
+  SetBlid(FactoringBlock);
+  SetWRect(20,80,500,298);
+  vs=20; h=160; vs2=16; hm=-100;
+  ButtonFrame(h-100,v=30,250,4,"Buyer's Invoice");
+  EditField(h,v,100,"Payment Terms",Normal,BuyerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Object",Normal,BuyerObject,false,ObjSClass);
+  EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
+
+  ButtonFrame(h-100,v+=50,250,5,"Seller's Invoice");
+  EditField(h,v,100,"Payment Terms",Normal,SellerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Account",Normal,SellerAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
+  EditField(h,v+=vs,100,"Object",Normal,SellerObject,false,ObjSClass);
+
   EndWindow;
 end;

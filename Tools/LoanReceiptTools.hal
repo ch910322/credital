@@ -8,7 +8,7 @@ external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var 
 external inner procedure IPVc_PasteRecCurncy(var record IPVc,Integer);
 external inner procedure IPVc_PasteRecVal(var record IPVc,Integer);
 external inner procedure IPVc_PasteBankCurncy(var record IPVc,Integer);
-external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint,val);
+external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint,val,Longint);
 
 
 /*Invoicing tools*/
@@ -315,7 +315,7 @@ begin
           arrCredManr[credmannr] = 0;
           mainf = 1;
         end;
-        CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,1,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval);
+        CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,1,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval,-1);
       end;
       if (remsum<=0) then begin
         goto LFindUnpaidCredHist;

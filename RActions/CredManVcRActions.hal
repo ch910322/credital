@@ -111,36 +111,6 @@ BEGIN
         end;
       end;
     end;
-    CUr.Code = CredManr.FactBuyer;
-    credf = false;
-    if (ReadFirstMain(CUr,1,true)) then begin
-      CUCreditLimit(CUr,CredManr.startDate,"sales",crlimit,crlimitdays);
-      if (crlimit>CredManr.FactInvAmount) then begin
-        totworth = GetFactoringTotalAgreementWorth(CredManr.FactBuyer,CredManr.endDate,CredManr.SerNr);
-        if (totworth+CredManr.FactInvAmount>crlimit) then begin
-          credf = true;
-        end else begin
-          if (AddDay(CredManr.startDate,crlimitdays)<CredManr.endDate) then begin
-            credf = true;
-          end;
-        end;
-      end else begin
-        credf = true;
-      end;
-      if (credf) then begin        
-        if ((CredManr.OKFlag==1 and CredMan2r.OKFlag!=1) or (CredManr.Approved==1 and CredMan2r.Approved!=1)) then begin
-          RecordCheckError(200101,"",-1,"FactBuyer");
-          res = -1;
-          goto LCredManVcRecordCheck;
-        end else begin
-          MessageBox(200101,"");
-        end;
-      end;
-    end else begin
-      RecordCheckError(1058,"",-1,"FactBuyer");
-      res = -1;
-      goto LCredManVcRecordCheck;
-    end;
   end;
 
   if (CredManr.MonthlyPaymentDay<=0) then begin
@@ -155,3 +125,25 @@ LCredManVcRecordCheck:;
   CredManVcRecordCheck = res;
   return;
 END;
+
+global
+function LongInt CredManFactVcRecordCheck(var record CredManFactVc CMFr,record CredManFactVc CMF2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+  record CredManVc CredManr;
+
+  res = 0;
+  
+  CredManr.SerNr = CMFr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    if (CMFr.Total>CredManr.InvSum4) then begin
+      RecordCheckError(200101,"",-1,"Total");
+      res = -1;
+      goto LCredManFactVcRecordCheck;
+    end;
+  end;
+
+LCredManFactVcRecordCheck:;
+  CredManFactVcRecordCheck = res;
+  return;
+end;

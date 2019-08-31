@@ -176,13 +176,13 @@ begin
   end;
   WebOutString("</div>");
   WebOutString("</div>");
-  WebOutString("<div class='col-6'>");
+  WebOutString("<div class='col-4'>");
   WebOutString("<div class='searchbox'><input type='text' placeholder='" & ToolWebNGTranslateText2(70019) & "'></div>");
   WebOutString("</div>");
   WebOutString("</div>");
 
 
-  WebOutString("<div class='row'>");
+  WebOutString("<div class='row faq_item_list'>");
   while (LoopMain(WFr,1,true)) begin
     if (ReadRecordLink(WFr,1,Attachr,RLr)) begin
       SetAreaZeroSize(a);
@@ -253,57 +253,48 @@ end;
 global
 procedure ShowLoanApplicationOnWeb(record WebNGElementVc WEr)
 begin
-  record WebSlideBarBlock SSb;
+  record WebLoanCalcVc WLCr;
+  row WebLoanCalcVc WLCrw;
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
-  Boolean verslof,faktf,garantf;
+  Integer type;
 
-  BlockLoad(SSb);
+  switch (WEr.HALFunc) begin
+    case "Verslo": type = 0;
+    case "Faktoringas": type = 1;
+    case "Atsiskaitymo": type = 2;
+  end;
 
-  verslof = (WEr.HALFunc=="Verslo");
-  faktf = (WEr.HALFunc=="Faktoringas");
-  garantf = (WEr.HALFunc=="Atsiskaitymo");
+  WLCr.Type = type;
+  if (ReadFirstMain(WLCr,1,true)) then begin
   
-  if (verslof) then begin
-    amount_min = SSb.VersloAmountMin;
-    amount_max = SSb.VersloAmountMax;
-    amount_step = SSb.VersloAmountStep;
-    term_min = SSb.VersloTermMin;
-    term_max = SSb.VersloTermMax;
-    term_step = SSb.VersloTermStep;
-  end;
-  if (faktf) then begin
-    amount_min = SSb.FaktAmountMin;
-    amount_max = SSb.FaktAmountMax;
-    amount_step = SSb.FaktAmountStep;
-    term_min = SSb.FaktTermMin;
-    term_max = SSb.FaktTermMax;
-    term_step = SSb.FaktTermStep;
-  end;
-  if (garantf) then begin
-    amount_min = SSb.GarAmountMin;
-    amount_max = SSb.GarAmountMax;
-    amount_step = SSb.GarAmountStep;
-  end;
+    amount_min = WLCr.AmountMin;
+    amount_max = WLCr.AmountMax;
+    amount_step = WLCr.AmountStep;
+    term_min = WLCr.TermMin;
+    term_max = WLCr.TermMax;
+    term_step = WLCr.TermStep;
 
-  WebOutString("<div class='loan_app'><form method='POST'>");
-  ShowSimpleField("text","compname",ToolWebNGTranslateText2(70001),ToolWebNGTranslateText2(70002));
-  ShowSimpleField("email","email",ToolWebNGTranslateText2(70003),ToolWebNGTranslateText2(70004));
-  ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
 
-  if (amount_min>0) then begin
-    ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),false);
+    WebOutString("<div class='loan_app'><form method='POST'>");
+    ShowSimpleField("text","compname",ToolWebNGTranslateText2(70001),ToolWebNGTranslateText2(70002));
+    ShowSimpleField("email","email",ToolWebNGTranslateText2(70003),ToolWebNGTranslateText2(70004));
+    ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
 
+    if (amount_min>0) then begin
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),false);
+
+    end;
+    if (term_min>0) then begin
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),false);
+    end;
+
+    ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
+    ShowCheckBox("newsletter",ToolWebNGTranslateText2(70010));
+      
+    WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+
+    WebOutString("</form></div>");
   end;
-  if (term_min>0) then begin
-    ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),false);
-  end;
-
-  ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
-  ShowCheckBox("newsletter",ToolWebNGTranslateText2(70010));
-    
-  WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
-
-  WebOutString("</form></div>");
 
   return;
 end;

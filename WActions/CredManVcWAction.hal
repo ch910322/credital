@@ -12,6 +12,7 @@ remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
 external inner procedure ContactSClassOnOpen(Integer,string,var Array string,var Integer);
+remote updating procedure GetFactoringRecord(record CredManVc,var record CredManFactVc);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -749,5 +750,34 @@ begin
       res = inner.ContactSClassOnOpenWindow(wn);
   end;
   ContactSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+updating procedure OpenCredManFactoringBtn()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record CredManFactVc CMFr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  GetFactoringRecord(CredManr,CMFr);
+  OpenWindow("CredManFactDClass",1,wn,"","",CMFr);
+
+  return;
+end;
+
+global
+updating procedure OpenCredManFactoringInvoicesBtn()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record RcVc RepSpec;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  OpenWindow("CustCredManFactInvoiceWClass",1,wn,"","",RepSpec);
+
   return;
 end;
