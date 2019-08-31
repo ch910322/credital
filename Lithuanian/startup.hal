@@ -17,6 +17,8 @@ begin
   Setting("Credit History Support",CredHistLClass,modCredMan);
   Setting("Kontakto kredito limitas",CreditLimitLClass,modCredMan);
   Setting("SMS Reminders",SMSReminderLClass,modCredMan);
+  Setting("Factoring Settings",FactoringTClass,modCredMan);
+  Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -35,6 +37,7 @@ begin
   Setting("Partners",WebPartnerTClass,modWebShopNG);
   Setting("FAQ",WebFAQLClass,modWebShopNG);
   Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
+  Setting("Loan Calculators",WebLoanCalcLClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");
