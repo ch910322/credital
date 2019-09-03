@@ -104,14 +104,6 @@ begin
   return;
 end;
 
-procedure CalculateFactoringValue(var record CredManVc CredManr)
-begin
-  
-  CredManr.InvSum4 = CredManr.FactInvAmount*(CredManr.LoanToValue/100);
-
-  return;
-end;
-
 function Boolean CredManDClassLoanToValueEFAfter(Integer wn,Boolean changedf,Integer num)
 begin
   record CredManVc CredManr;
@@ -124,45 +116,12 @@ begin
     if (CredManr.LoanToValue>100) then begin
       CredManr.LoanToValue = 100;
     end;
-    CalculateFactoringValue(CredManr);
+    //CalculateFactoringValue(CredManr);
     PutWindowRecord(wn,CredManr);   
   end; 
   CredManDClassLoanToValueEFAfter = true;
   return;
 end;
-
-function Boolean CredManDClassFactBuyerEFAfter(Integer wn,Boolean changedf,Integer num)
-begin
-  record CredManVc CredManr;
-  record CUVc CUr;
-
-  if (changedf) then begin  
-    GetWindowRecord(wn,CredManr);
-    CUr.Code = CredManr.FactBuyer;
-    if (ReadFirstMain(CUr,1,true)) then begin
-      CredManr.FactBuyerName = CUr.Name;
-    end;
-    PutWindowRecord(wn,CredManr);   
-  end; 
-  CredManDClassFactBuyerEFAfter = true;
-  return;
-end;
-
-function Boolean CredManDClassFactInvAmountEFAfter(Integer wn,Boolean changedf,Integer num)
-begin
-  record CredManVc CredManr;
-
-  if (changedf) then begin  
-    GetWindowRecord(wn,CredManr);
-    if (CredManr.FactInvAmount>0) then begin
-      CalculateFactoringValue(CredManr);
-    end;
-    PutWindowRecord(wn,CredManr);   
-  end; 
-  CredManDClassFactInvAmountEFAfter = true;
-  return;
-end;
-
 
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
@@ -182,8 +141,6 @@ begin
     case "SuretyProvider2":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,2);
     case "SuretyProvider3":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,3);
     case "LoanToValue":       res = CredManDClassLoanToValueEFAfter(wn,changed!=0,3);
-    case "FactBuyer":         res = CredManDClassFactBuyerEFAfter(wn,changed!=0,3);
-    case "FactInvAmount":     res = CredManDClassFactInvAmountEFAfter(wn,changed!=0,3);
     otherwise 
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
