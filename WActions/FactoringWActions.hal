@@ -159,4 +159,20 @@ begin
 end;
 
 
+global
+function Boolean CredManFactDClassOnOpenWindow(Integer wn)
+begin
+  record CredManFactVc CMFr;
+  record CredManVc CredManr;
+   
+  GetWindowRecord(wn,CMFr);
+  CredManr.SerNr = CMFr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    PutWindowString(wn,"credmanlimit",CredManr.InvSum4);
+  end;
+
+  CredManFactDClassOnOpenWindow = false;
+  return;
+end;
+
 

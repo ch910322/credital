@@ -83,10 +83,12 @@ BEGIN
   Longint crlimitdays;
   val crlimit,totworth;
   record CUVc CUr;
+  record CredManFactVc CMFr;
 
   res = 0;
 
   if (CredManr.InstalmentType==4) then begin
+/*
     if (CredManr.FactInvAmount<=0) then begin
       RecordCheckError(1058,"",-1,"FactInvAmount");
       res = -1;
@@ -109,6 +111,15 @@ BEGIN
             goto LCredManVcRecordCheck;
           end;
         end;
+      end;
+    end;
+  */
+    CMFr.CredManNr = CredManr.SerNr;
+    if (ReadFirstMain(CMFr,1,true)) then begin
+      if (CMFr.Total>CredManr.InvSum4) then begin
+        RecordCheckError(200101,"",-1,"InvSum4");
+        res = -1;
+        goto LCredManVcRecordCheck;
       end;
     end;
   end;

@@ -1106,6 +1106,7 @@ begin
   InsertRowTest;
   DeleteRowTest;
   EndMatrix;
+  SoftEditField(-280,-30,80,"Limit Total",ViewOnly,"credmanlimit",true,0,M4Val,0);
   EditField(-120,-30,80,"Total",ViewOnly,Total,true,0);
   EndWindow;
 end;

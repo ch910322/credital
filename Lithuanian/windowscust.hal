@@ -894,7 +894,7 @@ begin
 end;
 
 window WebFAQLClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("FAQ",WebFAQLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
@@ -909,7 +909,7 @@ begin
 end;
 
 window WebFAQDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real f,h,hs,hw,v,vs;
   WindowBegin("FAQ",WebFAQDClass,CGview,-);
@@ -926,7 +926,7 @@ begin
   EndWindow;
 end;
 window HtmlWebFAQDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real f,h,hs,hw,v,vs;
   WindowBegin("FAQ",HtmlWebFAQDClass,CGview,-);
@@ -983,7 +983,7 @@ begin
 end;
 
 window WebFAQCategoryLClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("FAQ Categories",WebFAQCategoryLClass,CGmlist,-);
   SetWRect(20,80,660,298);
@@ -998,7 +998,7 @@ begin
 end;
 
 window WebFAQCategorySClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("Paste FAQ Category",WebFAQCategorySClass,CGslist,-);
   SetWRect(20,80,660,298);
@@ -1013,7 +1013,7 @@ begin
 end;
 
 window WebFAQCategoryDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("FAQ Category",WebFAQCategoryDClass,CGview,-);
@@ -1026,7 +1026,7 @@ begin
 end;
 
 window WebLoanCalcLClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("Loan Calculators",WebLoanCalcLClass,CGmlist,-);
   SetWRect(20,80,660,298);
@@ -1040,7 +1040,7 @@ begin
 end;
 
 window WebLoanCalcSClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("Paste Loan Calculator",WebLoanCalcSClass,CGslist,-);
   SetWRect(20,80,660,298);
@@ -1054,7 +1054,7 @@ begin
 end;
 
 window WebLoanCalcDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Loan Calculator",WebLoanCalcDClass,CGview,-);
@@ -1077,7 +1077,7 @@ begin
 end;
 
 window CredManFactLClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("Factoring Limits",CredManFactLClass,CGmlist,-);
   SetWRect(20,80,660,298);
@@ -1091,7 +1091,7 @@ begin
 end;
 
 window CredManFactDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Factoring Limits",CredManFactDClass,CGview,-);
@@ -1110,7 +1110,7 @@ begin
 end;
 
 window CredManFactInvoiceLClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   WindowBegin("Factoring Invoices",CredManFactInvoiceLClass,CGmlist,-);
   SetWRect(20,80,660,298);
@@ -1127,7 +1127,7 @@ begin
 end;
 
 window CustCredManFactInvoiceWClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Factoring Invoices",CustCredManFactInvoiceWClass,CGOther,RcType);
@@ -1153,7 +1153,7 @@ begin
 end;
 
 window CredManFactInvoiceDClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Factoring Invoice",CredManFactInvoiceDClass,CGview,-);
@@ -1176,7 +1176,7 @@ begin
 end;
 
 window NewCredManFactInvoiceWClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm,h2;
   WindowBegin("Factoring Invoice",NewCredManFactInvoiceWClass,CGOther,RcType);
@@ -1194,7 +1194,7 @@ begin
 end;
 
 window FactoringTClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Factoring Settings",FactoringTClass,CGSbl,-);
