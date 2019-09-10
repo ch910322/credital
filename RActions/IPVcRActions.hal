@@ -1,5 +1,5 @@
 external updating procedure SplitLoanPaymentsInReceipt(record IPVc);
-external updating procedure UpdateFactoringInvoice(record IPVc,Boolean);
+external updating procedure UpdateFactoringInvoiceReceipt(record IPVc,Boolean);
 
 global
 updating function LongInt IPVcRecordUpdateAfter(var record IPVc IPr,record IPVc IP2r,LongInt stat,LongInt long4)
@@ -10,10 +10,10 @@ BEGIN
 
   if (IPr.OKFlag==1 and IP2r.OKFlag==0) then begin
     SplitLoanPaymentsInReceipt(IPr);
-    UpdateFactoringInvoice(IPr,true);
+    UpdateFactoringInvoiceReceipt(IPr,true);
   end;
   if (IPr.OKFlag==0 and IP2r.OKFlag==1) then begin
-    UpdateFactoringInvoice(IPr,false);
+    UpdateFactoringInvoiceReceipt(IPr,false);
   end;
 
   IPVcRecordUpdateAfter = res;
@@ -29,7 +29,7 @@ BEGIN
 
   if (IPr.OKFlag==1) then begin
     SplitLoanPaymentsInReceipt(IPr);
-    UpdateFactoringInvoice(IPr,true);
+    UpdateFactoringInvoiceReceipt(IPr,true);
   end;
 
   IPVcRecordSaveAfter = res;

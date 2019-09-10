@@ -75,7 +75,7 @@ begin
   res = 0;
 
   //if this is payment then we have to check invoice records and if it is fully paid
-  if (CredHistr.RecordType==1) then begin
+  if (CredHistr.RecordType==1 or CredHistr.RecordType==2) then begin
     UpdateInvoicedCredHist(CredHistr.PreviousNr);
   end;
 
@@ -91,7 +91,7 @@ begin
   res = 0;
 
   //if this is payment then we have to update invoice history as well
-  if (CredHistr.RecordType==1) then begin
+  if (CredHistr.RecordType==1 or CredHistr.RecordType==2) then begin
     UpdateInvoicedCredHist(CredHistr.PreviousNr);
   end;
 

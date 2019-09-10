@@ -1,0 +1,384 @@
+external inner function string 255 ToolWebNGTranslateText2(Longint);
+external inner procedure LoadWebPage(string,var record WebNGPageVc);
+external inner procedure ShowWebAppPageStart(record WebNGPageVc,string);
+external inner procedure ShowWebAppPageEnd(record WebNGPageVc);
+external function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc);
+external function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
+external inner function string 255 removenextnode(var string);
+external inner function string 255 GetLinkToStruct(LongInt,boolean);
+external inner function Boolean GetNextCustNr(var string);
+
+procedure LoadSession(var vector string vSess)
+begin
+  
+  vSess["LoanType"] = GetSessionString("WebLoanType");
+  vSess["LoanAmount"] = GetSessionString("WebLoanAmount");
+  vSess["LoanTerm"] = GetSessionString("WebLoanTerm");
+  if (blank(vSess["LoanType"])) then begin
+    vSess["LoanType"] = 0;
+    vSess["LoanAmount"] = 0;
+    vSess["LoanTerm"] = 0;
+  end;
+
+  return;
+end;
+
+procedure ClearSession(var vector string vSess)
+begin
+  
+  vSess["LoanType"] = "";
+  vSess["LoanAmount"] = "";
+  vSess["LoanTerm"] = "";
+
+  return;
+end;
+
+procedure StoreSessionLoan(Longint sernr)
+begin
+   
+  PutSessionString("WebLoanNr",sernr);
+
+  return;
+end;
+
+procedure ShowLoanType(string num,string cls,string text,Integer type,Integer seltype)
+begin
+  string 255 addcls;
+
+  addcls = cls;
+  if (type==seltype) then begin
+    addcls = addcls & " selected";
+  end;
+  WebOutString("<div class='col-4 " & addcls & "' type='" & type & "'><div class='loan_num'><div class='loan_num_inner'>" & num & "</div></div><div class='loan_text'>" & text & "</div></div>");
+
+  return;
+end;
+
+procedure DisplayLoanTypes(string selectedtype)
+begin
+  Integer st;
+
+  WebOutString("<div class='row loan-types'>")
+  st = StringToInt(selectedtype);
+  ShowLoanType("A","blue",ToolWebNGTranslateText2(70101),0,st);
+  ShowLoanType("B","blue",ToolWebNGTranslateText2(70102),1,st);
+  ShowLoanType("C","blue",ToolWebNGTranslateText2(70103),2,st);
+  ShowLoanType("D","orange",ToolWebNGTranslateText2(70104),3,st);
+  ShowLoanType("E","orange",ToolWebNGTranslateText2(70105),4,st);
+  WebOutString("</div>")
+
+  return;
+end;
+
+procedure DisplayLoanSlideBars()
+begin
+   
+  WebOutString("<form><div class='row sliders'>");
+  WebOutString("<div class='single_slider col'>");
+  WebOutString("<div class='slider_label'>" & ToolWebNGTranslateText2(70106) & "</div>");
+  WebOutString("<div class='slider-update'><input type='text' name='amount_inp' add='" & ToolWebNGTranslateText2(70013) & "'></div>");
+  WebOutString("<div class='slider-input'><input type='range' name='amount'></div>");// min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'
+  WebOutString("</div>");
+
+  WebOutString("<div class='single_slider col'>");
+  WebOutString("<div class='slider_label'>" & ToolWebNGTranslateText2(70107) & "</div>");
+  WebOutString("<div class='slider-update'><input type='text' name='term_inp' add='" & ToolWebNGTranslateText2(70014) & "'></div>");
+  WebOutString("<div class='slider-input'><input type='range' name='term'></div>");// min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'
+  WebOutString("</div>");
+  WebOutString("</div></form>");
+
+
+  return;
+end;
+
+procedure DisplayLoanPayments()
+begin
+  
+  WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70108) & "</h2></div>");
+  WebOutString("<div class='row loan-payments'>")
+  WebOutString("<div class='col monthly-payment'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70109) & "</div></div>");
+  WebOutString("<div class='col deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
+  WebOutString("<div class='col percentage'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70111) & "</div></div>");
+
+  WebOutString("</div>");
+
+  return;
+end;
+
+procedure ShowInputField(string name,string label,string ph)
+begin
+  
+  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><input type='text' placeholder='" & ph & "'></div></div>");
+
+  return;
+end;
+
+procedure ShowCheckBox(string name,string label)
+begin
+  
+  WebOutString("<div class='loan_checkbox " & name & "'><div class='input_checkbox'><input type='checkbox'><span class='checkmark'></span></div><div class='loan_label'>" & label & "</div></div>");
+
+  return;
+end;
+
+procedure DisplayLoanFooter()
+begin
+  
+  ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113));
+  ShowInputField("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115));
+
+  ShowCheckBox("datasec",ToolWebNGTranslateText2(70116));
+  ShowCheckBox("datause",ToolWebNGTranslateText2(70117));
+
+  WebOutString("<div class='loan_submit'><div class='hl_button'>" & ToolWebNGTranslateText2(70118) & "</div></div>");
+  return;
+end;
+
+procedure ShowAllLoanTypeScript(vector string vSess)
+begin
+  record WebLoanCalcVc WLCr;
+  row WebLoanCalcVc WLCrw;
+  Integer i,rwcnt;
+
+  WebOutString("<script>");
+  WebOutString("var deftype = " & vSess["LoanType"] & ";");
+  WebOutString("var defamount = " & vSess["LoanAmount"] & ";");
+  WebOutString("var defterm = " & vSess["LoanTerm"] & ";");
+  WebOutString("var loantypes = {};");
+
+  while (LoopMain(WLCr,1,true)) begin
+    rwcnt = MatRowCnt(WLCr);
+    WebOutString("var t = {};");
+    WebOutString("t['amount-min'] = " & WLCr.AmountMin & ";");
+    WebOutString("t['amount-max'] = " & WLCr.AmountMax & ";");
+    WebOutString("t['amount-step'] = " & WLCr.AmountStep & ";");
+    WebOutString("t['term-min'] = " & WLCr.TermMin & ";");
+    WebOutString("t['term-max'] = " & WLCr.TermMax & ";");
+    WebOutString("t['term-step'] = " & WLCr.TermStep & ";");
+    WebOutString("t['rates'] = {};");
+    
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(WLCr,i,WLCrw);
+      WebOutString("t['rates']['" & WLCrw.Months & "'] = " & WLCrw.Rate & ";");
+    end;
+    WebOutString("loantypes['" & WLCr.Type & "'] = t;");
+  end;
+  WebOutString("</script>");
+
+  return;
+end;
+
+procedure ShowStep(Integer step,Integer activestep)
+begin
+  string 255 cls;
+  
+  if (activestep>=step) then begin
+    cls = " active";
+  end;
+  WebOutString("<div class='col" & cls & "'>");
+  WebOutString("<div class='step_count'>" & step & "</div>");
+  WebOutString("<div class='step_text'>" & ToolWebNGTranslateText2(70118+step) & "</div>");
+  if (step<3) then begin
+    cls = "";
+    if (activestep>=step) then begin
+      cls = " activeline";
+    end;
+    WebOutString("<div class='step_line" & cls & "'></div>");
+  end;
+  WebOutString("</div>");
+
+  return;
+end;
+
+procedure ShowLoanSteps(Integer activestep)
+begin
+  
+  WebOutString("<div class='loan_app_steps row'>");
+  ShowStep(1,activestep);
+  ShowStep(2,activestep);
+  ShowStep(3,activestep);
+  WebOutString("</div>");
+
+  return;
+end;
+
+procedure ShowLoanAppStepOne()
+begin
+  vector string 255 vSess;
+  
+  LoadSession(vSess);
+  
+  WebOutString("<div class='loan_app_wrap'>");
+  ShowLoanSteps(1);
+
+  WebOutString("<div class='loan_app_content'>");
+  WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70100) & "</h2></div>");
+  DisplayLoanTypes(vSess["LoanType"]);
+
+  DisplayLoanSlideBars;
+
+  DisplayLoanPayments;
+
+  DisplayLoanFooter;
+
+  ShowAllLoanTypeScript(vSess);
+
+  WebOutString("</div>");
+  WebOutString("</div>");
+  return;
+end;
+
+procedure ShowLoanAppStepTwo()
+begin
+  vector string 255 vSess;
+  
+  LoadSession(vSess);
+  
+  WebOutString("<div class='loan_app_wrap'>");
+  ShowLoanSteps(2);
+
+  WebOutString("<div class='loan_app_content'>");
+
+
+  WebOutString("</div>");
+  WebOutString("</div>");
+  return;
+end;
+
+global
+procedure ShowLoanApp(record WebNGStructVc WSr,string path)
+begin
+  record WebNGPageVc WPr;
+  string 255 mpath,node;
+
+  LoadWebPage(WSr.WebPage,WPr);
+  ShowWebAppPageStart(WPr,"my_account");
+
+  mpath = path;
+  node = removenextnode(mpath);
+
+  switch (node) begin
+    case "2"://step 2
+      ShowLoanAppStepTwo;
+    otherwise
+      ShowLoanAppStepOne;
+  end;
+
+  ShowWebAppPageEnd(WPr);
+
+  return;
+end;
+
+function string 255 GetLinkToLoanApp()
+begin
+  record WebNGStructVc WSr;
+  string 255 res;
+
+  WSr.Type = 200;
+  if (ReadFirstKey("Type",WSr,1,true)) then begin
+   res = GetLinkToStruct(WSr.SerNr,false);
+  end;
+
+  GetLinkToLoanApp = res;
+  return;
+end;
+
+updating function Boolean GetCustomer(string regnr,string name,string email,var record CUVc CUr)
+begin
+  string 255 tstr;
+  Boolean res;
+
+  CUr.RegNr1 = regnr;
+  if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+    res = true;
+  end else begin
+    RecordNew(CUr);
+    if (GetNextCustNr(tstr)) then begin end;
+    CUr.Code = tstr;
+    CUr.RegNr1 = regnr;
+    CUr.eMail = email;
+    CUr.Name = name;
+    if (RecordInsert(CUr,true)) then begin
+      res = true;
+      ReadFirstMain(CUr,1,true);
+    end;
+  end;
+
+  GetCustomer = res;
+  return;
+end;
+
+global
+updating procedure LoanApplicationStoreStep1()
+begin
+  Integer type,err;
+  Longint amount,term;
+  string 255 regnr,email,datasec,datause,link,name,errstr;  
+  record B2BLoanApplicationVc LAr;
+  record CredManTypeVc CMTr;
+  record WebLoanCalcVc WLCr;
+  record CUVc CUr;
+
+  type = StringToLongInt(WebGetArg("type"));
+  amount = StringToLongInt(WebGetArg("amount"));
+  term = StringToLongInt(WebGetArg("term"));
+  regnr = WebGetArg("regnr");
+  name = WebGetArg("name");//maybe we want this to be taken from the server instead
+  email = WebGetArg("email");
+  datasec = WebGetArg("datasec");
+  datause = WebGetArg("datause");
+
+  if (type<0) then begin
+    err = err + 2;
+  end;
+  if (amount<0) then begin
+    err = err + 4;
+  end;
+  if (term<0) then begin
+    err = err + 8;
+  end;
+  if (blank(regnr)) then begin
+    err = err + 16;
+  end;
+  if (blank(email)) then begin
+    err = err + 32;
+  end;
+  if (datasec!="1") then begin
+    err = err + 64;
+  end;
+  if (GetCustomer(regnr,name,email,CUr)==false) then begin//should we even store the customer??
+    err = err + 128;    
+  end;
+  WLCr.Type = type;
+  if (ReadFirstMain(WLCr,1,true)==false) then begin
+    err = err + 256;    
+  end;
+
+  if (err==0) then begin
+    RecordNew(LAr);
+    LAr.SerNr = NextSerNr("B2BLoanApplicationVc",CurrentDate,-1,false,"");
+    LAr.TransDate = CurrentDate;
+    LAr.CustCode = CUr.Code;
+    InsertCustomerInB2BApplication(LAr);
+
+    LAr.Manager = WLCr.Manager;
+    InsertManagerInB2BApplication(LAr);
+
+    LAr.Type = WLCr.CredManType;
+    if (ReadFirstMain(CMTr,1,true)) then begin
+      LAr.InterestRate = CMTr.IntRate;
+    end;
+    LAr.Sum = amount;
+    LAr.Months = term;
+    if (RecordInsert(LAr,true)) then begin
+      StoreSessionLoan(LAr.SerNr);
+    end;
+    link = GetLinkToLoanApp;
+    link = link & "2";
+  end else begin
+    errstr = ToolWebNGTranslateText2(70122);
+  end;
+  WebOutString("<res err='" & errstr & "' redir='" & link & "'></res>");
+
+  return;
+end;

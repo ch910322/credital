@@ -11,7 +11,9 @@ external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean
 external inner procedure VIVc_PastePayDeal(var record VIVc);
 external inner procedure VICalcVals(var record VIVc);
 external inner procedure VISumup(record VIVc,var val);
+external function val GetCustomerOpenInvoices(string);
 
+global
 updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc CMIr)
 begin
   record FactoringBlock Fb;
@@ -35,12 +37,13 @@ begin
     RecordNew(IVr);
     IVr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
     IVr.TransDate = CurrentDate;
-    IVr.InvDate = CurrentDate;
+    IVr.InvDate = CMIr.InvDate;
     IVVc_PasteInvDate(IVr,LMb,err1,err2);
     IVr.CustCode = CMIr.CustCode;
     PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn)
     IVr.PayDeal = Fb.BuyerPayDeal;
     IVVc_PastePayDeal(IVr,"","");
+    IVr.PayDate = CMIr.DueDate;
     IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
     ClearRow(IVr,IVrw,1);
     IVrw.ArtCode = Fb.BuyerItem;
@@ -86,6 +89,7 @@ begin
     VISumup(VIr,ct);
     VIr.OKFlag = 1;
     if (RecordInsert(VIr,true)) then begin
+      CMIr.BuyerVINr = VIr.SerNr;
       CMIr.InitPLInvFlag = 1;
     end; 
 
@@ -96,28 +100,56 @@ begin
 end;
 
 global
-updating procedure AddFactoringIVAndGenerateRecords(record RcVc RepSpec)
+updating procedure AddFactoringIVAndGenerateRecords(record RcVc RepSpec,var Longint errno)
 begin
   record CredManFactInvoiceVc CMIr;
+  record CredManFactVc CMFr;
+  row CredManFactVc CMFrw;
+  Boolean foundf;
+  Integer i,rwcnt;
+  val openval;
   
-  RecordNew(CMIr);
-  CMIr.SerNr = NextSerNr("CredManFactInvoiceVc",CurrentDate,-1,false,"");
-  CMIr.CredManNr = RepSpec.long1;
-  CMIr.CustCode = RepSpec.f1;
-  CMIr.CustName = RepSpec.searchstr;
-  CMIr.InvDate = RepSpec.d1;
-  CMIr.DueDate = RepSpec.d2;
-  CMIr.InvoiceNr = RepSpec.ObjStr;
-  CMIr.TotalSum = RepSpec.vals0;
-  if (RecordInsert(CMIr,true)) then begin
-    GenerateSLAndPLInvoices(CMIr);
+  errno = -1;
+  CMFr.CredManNr = RepSpec.long1;
+  if (ReadFirstMain(CMFr,1,true)) then begin
+    rwcnt = MatRowCnt(CMFr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(CMFr,i,CMFrw);
+      if (CMFrw.CustCode==RepSpec.f1) then begin
+        foundf = true;
+        openval = GetCustomerOpenInvoices(RepSpec.f1);
+        if (openval+RepSpec.vals0>CMFrw.MaxLimit) then begin
+          errno = 200103;
+          goto LAddFactoringIVAndGenerateRecords;
+        end;
+      end;
+    end;
+  end;
+  if (!foundf) then begin
+    errno = 200102;
+    goto LAddFactoringIVAndGenerateRecords;
   end;
 
+  if (errno==-1) then begin
+    RecordNew(CMIr);
+    CMIr.SerNr = NextSerNr("CredManFactInvoiceVc",CurrentDate,-1,false,"");
+    CMIr.CredManNr = RepSpec.long1;
+    CMIr.CustCode = RepSpec.f1;
+    CMIr.CustName = RepSpec.searchstr;
+    CMIr.InvDate = RepSpec.d1;
+    CMIr.DueDate = RepSpec.d2;
+    CMIr.InvoiceNr = RepSpec.ObjStr;
+    CMIr.TotalSum = RepSpec.vals0;
+    if (RecordInsert(CMIr,true)) then begin
+      GenerateSLAndPLInvoices(CMIr);
+    end;
+  end;
+LAddFactoringIVAndGenerateRecords:;
   return;
 end;
 
 global
-updating procedure UpdateFactoringInvoice(record IPVc IPr,Boolean setf)
+updating procedure UpdateFactoringInvoiceReceipt(record IPVc IPr,Boolean setf)
 begin
   record CredManFactInvoiceVc CMIr,oldCMIr;
   row IPVc IPrw;
@@ -132,18 +164,20 @@ begin
       CMIr.SellerIVNr = IPrw.InvoiceNr;
       if (ReadFirstKey("SellerIVNr",CMIr,1,true)) then begin
         RecordCopy(oldCMIr,CMIr);
+        ARr.InvoiceNr = IPrw.InvoiceNr;
+        if (ReadFirstMain(ARr,1,true)) begin
+          due = ARr.RVal;
+        end;
         if (setf) then begin
-          CMIr.CustPaidFlag = 1;
-          ARr.InvoiceNr = IPrw.InvoiceNr;
-          if (ReadFirstMain(ARr,1,true)) begin
-            due = ARr.RVal;
-          end;
           if (due==0) then begin
+            CMIr.CustPaidFlag = 1;
             CMIr.PaymentDate = IPrw.PayDate;
           end;
+          CMIr.ReceivedAmount = CMIr.TotalSum - ARr.RVal;
         end else begin
           CMIr.CustPaidFlag = 0;
           CMIr.PaymentDate = "";
+          CMIr.ReceivedAmount = due;//blank value
         end;
         RecordUpdate(oldCMIr,CMIr,true);
       end;
@@ -154,12 +188,80 @@ begin
 end;
 
 global
-updating procedure UpdateFactoringInvoices(record IVVc IVr,Boolean setf)
+updating procedure UpdateFactoringInvoicePayment(record OPVc OPr,Boolean setf)
+begin
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+  row OPVc OPrw;
+  Integer i,rwcnt;
+  val due;
+  record APVc APr;
+  
+  rwcnt = MatRowCnt(OPr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(OPr,i,OPrw);
+    if (OPrw.VISerNr>-1) then begin
+      CMIr.BuyerVINr = OPrw.VISerNr;
+      if (ReadFirstKey("BuyerVINr",CMIr,1,true)) then begin
+        RecordCopy(oldCMIr,CMIr);
+        if (setf) then begin
+          APr.SerNr = OPrw.VISerNr;
+          if (ReadFirstMain(APr,1,true)) begin
+            due = APr.RVal;
+          end;
+          if (due==0) then begin
+            CMIr.CustPaid2Flag = 1;
+          end;
+        end else begin
+          CMIr.CustPaid2Flag = 0;
+        end;
+        RecordUpdate(oldCMIr,CMIr,true);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoicesPL(record VIVc VIr,Boolean setf)
+begin
+  Integer i,rwcnt;
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+  
+//first check if this invoice was the initial factoring invoice
+  
+  CMIr.BuyerVINr = VIr.SerNr;
+  if (ReadFirstKey("BuyerVINr",CMIr,1,true)) then begin
+    if (!setf) then begin
+      RecordCopy(oldCMIr,CMIr);
+      CMIr.BuyerVINr = -1;
+      CMIr.InitPLInvFlag = 0;
+      RecordUpdate(oldCMIr,CMIr,true);
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoicesSL(record IVVc IVr,Boolean setf)
 begin
   Integer i,rwcnt;
   row IVVc IVrw;
   record CredManFactInvoiceVc CMIr,oldCMIr;
+  
+//first check if this invoice was the initial factoring invoice
+  CMIr.SellerIVNr = IVr.SerNr;
+  if (ReadFirstKey("SellerIVNr",CMIr,1,true)) then begin
+    if (!setf) then begin
+      RecordCopy(oldCMIr,CMIr);
+      CMIr.SellerIVNr = -1;
+      CMIr.InitSLInvFlag = 0;
+      RecordUpdate(oldCMIr,CMIr,true);
+    end;
+  end;
 
+//second - check if this was a fee invoice
   if (IVr.CustCredManNr>-1) then begin
     rwcnt = MatRowCnt(IVr);
     for (i=0;i<rwcnt;i=i+1) begin
@@ -177,6 +279,45 @@ begin
         end;
       end;
     end;
+  end;
+
+  return;
+end;
+
+global
+procedure GetFactoringCustomers(Longint credmannr,var array string acode,var array string aname)
+begin
+  record CredManFactVc CMFr;
+  row CredManFactVc CMFrw;
+  Integer i,rwcnt;
+
+  CMFr.CredManNr = credmannr;
+  if (ReadFirstMain(CMFr,1,true)) then begin
+    rwcnt = MatRowCnt(CMFr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(CMFr,i,CMFrw);
+      acode[acode.length] = CMFrw.CustCode;
+      aname[aname.length] = CMFrw.CustName;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure FillCredManBuyers(var record CredManFactVc CMFr,var val credmanlimit)
+begin
+  Integer i,rwcnt;
+  row CredManFactVc CMFrw;
+  
+  rwcnt = MatRowCnt(CMFr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CMFr,i,CMFrw);
+    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode);
+    MatRowPut(CMFr,i,CMFrw);
+  end;
+  if (rwcnt>0) then begin
+    RecordStore(CMFr,true);
   end;
 
   return;

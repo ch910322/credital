@@ -12,6 +12,7 @@ external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote updating procedure GetCreditInfo(var record B2BLoanApplicationVc);
+external inner function LongInt DateDiff(Date,Date);
 
 function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
 begin
@@ -129,6 +130,53 @@ begin
   end;
   
   B2BLoanApplicationDClassSuretyProviderEFAfter = res;
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassSuretyIDEFAfter(Integer wn,Integer changed,Integer num)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  Integer y,agegroup;
+  Longint diff;
+  Date age,td;
+  string 255 tstr;
+  
+  GetWindowRecord(wn,LAr);
+
+  tstr = GetFieldValueByName(LAr,"Surety" & num & "ID",-1);
+  y = StringToInt(mid(tstr,1,2));
+  if (y<15) then begin
+    y = 2000 + y;
+  end else begin
+    y = 1900 + y;
+  end;
+  age.year = y;
+  age.month = StringToInt(mid(tstr,3,2));
+  age.day = StringToInt(mid(tstr,5,2));
+  td = CurrentDate;
+  
+  diff = td.year-age.year;
+  if (td.month<age.month) then begin
+    diff = diff - 1;
+  end;
+  if (diff<21) then begin
+    agegroup = 0;
+  end;
+  if (diff>=21 and diff<=27) then begin
+    agegroup = 1;
+  end;
+  if (diff>=28 and diff<=64) then begin
+    agegroup = 2;
+  end;
+  if (diff>=65) then begin
+    agegroup = 3;
+  end;
+
+  SetFieldValueByName(LAr,"Surety" & num & "AgeGroup",agegroup,-1);
+  PutWindowRecord(wn,LAr);    
+  
+  B2BLoanApplicationDClassSuretyIDEFAfter = res;
   return;
 end;
 
@@ -346,6 +394,12 @@ begin
         res = B2BLoanApplicationDClassSuretyProviderEFAfter(wn,changed,2);
       case "SuretyProvider3": 
         res = B2BLoanApplicationDClassSuretyProviderEFAfter(wn,changed,3);
+      case "Surety1ID": 
+        res = B2BLoanApplicationDClassSuretyIDEFAfter(wn,changed,1);
+      case "Surety2ID": 
+        res = B2BLoanApplicationDClassSuretyIDEFAfter(wn,changed,2);
+      case "Surety3ID": 
+        res = B2BLoanApplicationDClassSuretyIDEFAfter(wn,changed,3);
       case "LateRating": 
         res = B2BLoanApplicationDClassLateRatingEFAfter(wn,changed);
       case "BankruptcyRating": 

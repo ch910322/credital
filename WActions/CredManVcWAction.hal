@@ -441,6 +441,11 @@ begin
       end;
     case "1":
       IPr.SerNr = CredHistr.RecordNr;
+    case "2":
+      IVr.SerNr = CredHistr.RecordNr;
+      if (ReadFirstMain(IVr,1,true)) then begin
+        OpenWindow("IVDClass",1,0,"","",IVr);
+      end;
   end;
 
   return;
@@ -720,7 +725,7 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   GetFactoringRecord(CredManr,CMFr);
-  OpenWindow("CredManFactDClass",1,wn,"","",CMFr);
+  OpenWindow("CredManFactDClass",1,0,"","",CMFr);
 
   return;
 end;

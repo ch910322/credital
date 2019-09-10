@@ -10,11 +10,14 @@ external procedure AddPlannedFees(record CredManVc,record CredManPayPlanVc,recor
 external procedure AddInterest(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,Integer,Date,var val,var val,Date,Date,Longint);
 external procedure AddInstalmentFixed(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,val,Date,var val,var val,Date,Date);
 forward procedure GetCredManEventList2(Longint,var record ORVc);
+external inner procedure PasteARPayInIV(record IVVc,row IVVc,Integer);
+external updating procedure FindUnpaidCredHist(record ItemPriorityBlock,record IPVc,row IPVc,var array val,Integer);
 
 
 enum begin
   kCredHistRecTypeInvoice = 0,
-  kCredHistRecTypeReceipt = 1
+  kCredHistRecTypeReceipt = 1,
+  kCredHistRecTypePrepayment = 2
 end;
 
 enum begin
@@ -275,6 +278,34 @@ begin
   return;
 end;
 
+procedure AddPrepayments(var record IVVc IVr,record CMApplicationSetBlock ASb)
+begin
+  record ARPayVc ARPayr;
+  val remval;
+  Boolean TrHs;
+  row IVVc IVrw;
+  
+  if (ASb.AddPrepayments) then begin
+    remval = IVr.Sum4;
+    TrHs = true;
+    ARPayr.CustCode = IVr.CustCode;
+    while (LoopKey("CustCode",ARPayr,1,TrHs) and remval>0) begin
+      if (ARPayr.CustCode!=IVr.CustCode) then begin
+        TrHs = false;
+      end else begin
+        ClearRow(IVr,IVrw,kInvoiceRowTypePrepayment);
+        IVrw.Spec = USetStr(1288);
+        IVrw.CUPNr = ARPayr.CUPNr;
+        PasteARPayInIV(IVr,IVrw,-1);
+        MatRowInsert(IVr,MatRowCnt(IVr),IVrw);
+        remval = remval - IVrw.BasePrice;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
 updating procedure CreateInvoicesFromPlan(record CredManVc CredManr,record CredManSetBlock CMb,record CredManPayPlanVc CredManPayPlanr,Date ed,var record IVVc firstIVr)
 begin
   Integer i,rwcnt;
@@ -284,7 +315,9 @@ begin
   Boolean firstf;
   Integer latedays;
   val lateamount;
+  record CMApplicationSetBlock ASb;
   
+  BlockLoad(ASb);
   lastd2 = CredManr.FirstInvDate;
   rwcnt = MatRowCnt(CredManPayPlanr);
   for (i=0;i<rwcnt;i=i+1) begin
@@ -298,6 +331,7 @@ begin
           //end;
           GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
           AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+          AddPrepayments(IVr,ASb);
           if (IVr.SerNr>-1) then begin
             IVr.OKFlag = 1;
             RecordInsert(IVr,true);
@@ -326,6 +360,7 @@ begin
     MergeItemsInInvoice(IVr);
     GetCredManOverdueInvoices(CredManr,CMb,lastd,lastd2,latedays,lateamount);
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+    AddPrepayments(IVr,ASb);
     if (IVr.SerNr>-1) then begin
       IVr.OKFlag = 1;
       RecordInsert(IVr,true);
@@ -667,6 +702,27 @@ begin
   return;
 end;
 
+updating procedure MakeFakeReceiptHist(record IVVc IVr,row IVVc IVrw)
+begin
+  record ItemPriorityBlock IPb;
+  Boolean TrHs;
+  row IPVc IPrw;
+  array val arrCredManr;
+  record IPVc IPr;
+
+  BlockLoad(IPb);
+  IPr.SerNr = IVr.SerNr;
+  IPr.TransDate = IVr.InvDate;
+  ClearRow(IPr,IPrw,1);
+  IPrw.InvoiceNr = IVr.SerNr;
+  IPrw.RecVal = IVrw.BasePrice;
+  arrCredManr[IVr.CustCredManNr] = IVrw.BasePrice;
+  MatRowPut(IPr,0,IPrw);
+  FindUnpaidCredHist(IPb,IPr,IPrw,arrCredManr,2);
+
+  return;
+end;
+
 global
 updating procedure UpdateCredHistInvoice(var record IVVc IVr,record IVVc IV2r)
 begin
@@ -686,6 +742,7 @@ begin
   end else begin
     if (IVr.OKFlag==0 and IV2r.OKFlag!=0) then begin
       RemoveCredHist(IVr.SerNr,kCredHistRecTypeInvoice);
+      RemoveCredHist(IVr.SerNr,kCredHistRecTypePrepayment);
     end;
     
     if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
@@ -697,6 +754,11 @@ begin
           IVrw.CredHistNr = histnr;
           MatRowPut(IVr,i,IVrw);
           firstf = 0;
+        end;
+        if (IVrw.stp==kInvoiceRowTypePrepayment and firstf==0) then begin
+          if (IVrw.BasePrice>0) then begin
+            MakeFakeReceiptHist(IVr,IVrw);
+          end;
         end;
       end;
     end;

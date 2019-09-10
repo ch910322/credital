@@ -214,6 +214,7 @@ begin
   RecordField(TerminatedOrderClass,M4Code,5,OrderClassVc);
   RecordField(InvoiceCommentStr,M4Str,255,0);
   RecordField(RefinClass,M4Code,5,OrderClassVc);
+  RecordField(AddPrepayments,M4Int,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -691,6 +692,7 @@ begin
   RecordField(Math,M4Matrix,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(Classification,M4Code,10,CClassVc);
+  ArrayField(Type,M4Set,2014,0);
   EndArray;
   EndBlock;
 
@@ -721,6 +723,8 @@ begin
   RecordField(TermMax,M4Int,0,0);
   RecordField(TermStep,M4Int,0,0);
   RecordField(Math,M4Matrix,0,0);
+  RecordField(Manager,M4Code,20,UserVc);
+  RecordField(CredManType,M4Code,20,CredManTypeVc);
   ArrayBegin(Math,-,1);
   ArrayField(Months,M4Int,0,0);
   ArrayField(Rate,M4Val,0,0);
@@ -737,6 +741,9 @@ begin
   ArrayField(CustCode,M4Code,20,CUVc);
   ArrayField(CustName,M4Str,255,0);
   ArrayField(MaxLimit,M4Val,0,0);
+  ArrayField(Type,M4Set,2015,0);
+  ArrayField(EvalLimit,M4Val,0,0);
+  ArrayField(Used,M4Val,0,0);
   EndArray;
   MainKeyBegin(CredManNr,0);
   KeySegment(CredManNr);
@@ -759,6 +766,8 @@ begin
   RecordField(CustName,M4Str,255,0);
   RecordField(SellerIVNr,M4Long,0,0);
   RecordField(PaymentDate,M4Date,0,0);
+  RecordField(BuyerVINr,M4Long,0,0);
+  RecordField(CustPaid2Flag,M4Int,0,0);
   MainKeyBegin(SerNr,1);
   StoreInBaseKey;
   AppendFieldToKeyName(CredManNr);
@@ -767,6 +776,11 @@ begin
   StoreInBaseKey;
   AppendFieldToKeyName(CredManNr);
   KeySegment(SellerIVNr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(BuyerVINr);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(BuyerVINr);
   KeySegment(SerNr);
   SubsetKeyBegin2(CustPaidFlag);
   StoreInBaseKey;

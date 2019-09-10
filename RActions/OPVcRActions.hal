@@ -1,0 +1,34 @@
+external updating procedure UpdateFactoringInvoicePayment(record OPVc,Boolean);
+
+global
+updating function LongInt OPVcRecordUpdateAfter(var record OPVc OPr,record OPVc OP2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+
+  res = inner.OPVcRecordUpdateAfter(OPr,OP2r,stat,long4);
+
+  if (OPr.DoneFlag==1 and OP2r.DoneFlag==0) then begin
+    UpdateFactoringInvoicePayment(OPr,true);
+  end;
+  if (OPr.DoneFlag==0 and OP2r.DoneFlag==1) then begin
+    UpdateFactoringInvoicePayment(OPr,false);
+  end;
+
+  OPVcRecordUpdateAfter = res;
+  return;
+end;
+
+global
+updating function LongInt OPVcRecordSaveAfter(var record OPVc OPr,record OPVc OP2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+
+  res = inner.OPVcRecordSaveAfter(OPr,OP2r,stat,long4);
+
+  if (OPr.DoneFlag==1) then begin
+    UpdateFactoringInvoicePayment(OPr,true);
+  end;
+
+  OPVcRecordSaveAfter = res;
+  return;
+end;

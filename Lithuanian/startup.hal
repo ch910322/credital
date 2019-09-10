@@ -7,7 +7,7 @@ begin
   Register("B2B Loan Applications","B2B Loan Applications",B2BLoanApplicationVc,modCredMan);
 
   Setting("Number Series - B2B Loan Applications",B2BLoanAppSerTClass,modCredMan);
-  Setting("Application Settings",CMApplicationSetTClass,modCredMan);
+  Setting("Credit Management Settings",CMApplicationSetTClass,modCredMan);
   Setting("Scoring Support",ScoringSupLClass,modCredMan);
   Setting("Order Classes",OrderClassLClass,modCredMan);
   Setting("Order Class Colors",OrderClassColorTClass,modCredMan);
@@ -125,7 +125,7 @@ begin
   SString(200101,"Amount is over the Credit Limit");
 
 /*Web Codes 200100-200130*/
-  SString(200100,"Banner with this type already registered in these days");
+  SString(200200,"Banner with this type already registered in these days");
 
 
   StrSetAdd(584);
@@ -217,6 +217,7 @@ begin
   SetBegin(2011);
   SetText(0,"Invoice");
   SetText(1,"Receipt");
+  SetText(2,"Prepayment");
   EndSet;
 
   SetBegin(2012);

@@ -20,7 +20,7 @@ end;
 
 
 global
-procedure ShowPartnerList()
+procedure ShowPartnerList(record WebNGElementVc WEr)
 begin
   record WebPartnerBlock WPb;
   row WebPartnerBlock WPbrw;
@@ -29,33 +29,43 @@ begin
   Integer i,rwcnt,cnt;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
+  Integer type;
   
   BlockLoad(WPb);
   
-  WebOutString("<div class='col-2'>" & ToolWebNGTranslateText2(70012) & "</div>");
-  WebOutString("<div class='col-10'><div class='partner-full-list owl-carousel'>");
+  type = StringToInt(WEr.HALFunc);
+
+  if (type==1) then begin
+    WebOutString("<div class='row about-partner-head'><div class='col'>" & ToolWebNGTranslateText2(70020) & "</div></div>");
+    WebOutString("<div class='row about-partner-list'><div class='col partner-media-list owl-carousel'>");
+  end else begin
+    WebOutString("<div class='col-2'>" & ToolWebNGTranslateText2(70012) & "</div>");
+    WebOutString("<div class='col-10'><div class='partner-full-list owl-carousel'>");
+  end;
 
   rwcnt = MatRowCnt(WPb);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(WPb,i,WPbrw);
-    CClassr.Code = WPbrw.Classification;
-    if (ReadFirstMain(CClassr,1,true)) then begin    
-      ResetLoop(CUr);
-      RecordClear(CUr);
-      cnt = 0;
-      while (LoopKey("Classification:" & WPbrw.Classification,CUr,1,true)) begin
-        if (ReadRecordLink(CUr,1,Attachr,RLr)) then begin
-          cnt = cnt + 1;
-          WebOutString("<div>");
-          if (nonblank(CUr.wwwAddr)) then begin
-            WebOutString("<a href='" & CUr.wwwAddr & "' target='_blank'>");        
+    if (type==WPbrw.Type or type==3) then begin
+      CClassr.Code = WPbrw.Classification;
+      if (ReadFirstMain(CClassr,1,true)) then begin    
+        ResetLoop(CUr);
+        RecordClear(CUr);
+        cnt = 0;
+        while (LoopKey("Classification:" & WPbrw.Classification,CUr,1,true)) begin
+          if (ReadRecordLink(CUr,1,Attachr,RLr)) then begin
+            cnt = cnt + 1;
+            WebOutString("<div>");
+            if (nonblank(CUr.wwwAddr)) then begin
+              WebOutString("<a href='" & CUr.wwwAddr & "' target='_blank'>");        
+            end;
+            WebOutString("<div><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
+            if (nonblank(CUr.wwwAddr)) then begin
+              WebOutString("</a>");
+            end;
+            
+            WebOutString("</div>");
           end;
-          WebOutString("<div><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
-          if (nonblank(CUr.wwwAddr)) then begin
-            WebOutString("</a>");
-          end;
-          
-          WebOutString("</div>");
         end;
       end;
     end;
@@ -451,17 +461,74 @@ begin
 end;
 
 global
-procedure ShowEmployeesOnWeb()
+procedure ShowEmployeesOnWeb(record WebNGElementVc WEr)
 begin
   record UserVc Userr;
   Boolean TrHs;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
+  record EGVc EGr;
 
-  while (LoopKey("ActCode",Userr,1,true)) begin
-    if (ReadRecordLink(Userr,1,Attachr,RLr)) then begin
-      ShowSingleUserOnWeb(Userr);
+  EGr.Code = WEr.HALFunc;
+  if (ReadFirstMain(EGr,1,true)) then begin
+    WebOutString("<div class='emplist_head'>" & EGr.Comment & "</div>");
+    WebOutString("<div class='row'>");
+    while (LoopKey("ActCode",Userr,1,true)) begin
+      if (Userr.JobGroup==WEr.HALFunc) then begin
+        if (ReadRecordLink(Userr,1,Attachr,RLr)) then begin
+          ShowSingleUserOnWeb(Userr);
+        end;
+      end;
     end;
+    WebOutString("</div>");
+  end;
+
+  return;
+end;
+
+procedure ShowContactLine(string cls,string text)
+begin
+  string 255 tstr;
+  
+  WebOutString("<div class='contactline " & cls & "'>" & text & "</div>");
+
+  return;
+end;
+
+function string 255 GetWorkingHours(record CYBlock CYb)
+begin
+  
+
+  GetWorkingHours = "";
+  return;
+end;
+
+global
+procedure ShowContactInfo(record WebNGElementVc WEr)
+begin
+  record CYBlock CYb;
+
+  BlockLoad(CYb);
+
+  switch (WEr.HALFunc) begin
+    case "contactus":
+      //show content 1
+      ShowContactLine("location",CYb.CompName);
+      ShowContactLine("blank",CYb.Addr0);
+      ShowContactLine("empty","");
+      ShowContactLine("blank",ToolWebNGTranslateText2(70024) & CYb.OrgNr);
+      ShowContactLine("empty","");
+      ShowContactLine("hours",ToolWebNGTranslateText2(70021));
+      ShowContactLine("blank",GetWorkingHours(CYb));
+      ShowContactLine("empty","");
+      ShowContactLine("phone",ToolWebNGTranslateText2(70022) & CYb.Phone);
+      ShowContactLine("email",ToolWebNGTranslateText2(70023) & CYb.emailAddr);
+
+    case "footer":
+      //show content 2
+      ShowContactLine("blank",CYb.Addr0);
+      ShowContactLine("phone",CYb.Phone);
+      ShowContactLine("email",CYb.emailAddr);
   end;
 
   return;

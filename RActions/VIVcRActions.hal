@@ -1,0 +1,29 @@
+external updating procedure UpdateFactoringInvoicesPL(record VIVc,Boolean);
+
+global
+updating function LongInt VIVcRecordUpdateAfter(var record VIVc VIr,record VIVc VI2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = inner.VIVcRecordUpdateAfter(VIr,VI2r,stat,long4);
+  if (VIr.OKFlag==0 and VI2r.OKFlag==1) then begin
+    UpdateFactoringInvoicesPL(VIr,false);
+  end;
+
+  VIVcRecordUpdateAfter = res; 
+  return;
+end;
+
+global
+updating function LongInt VIVcRecordSaveAfter(var record VIVc VIr,record VIVc VI2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = inner.VIVcRecordSaveAfter(VIr,VI2r,stat,long4);
+  if (VIr.OKFlag==0) then begin
+    UpdateFactoringInvoicesPL(VIr,false);
+  end;
+
+  VIVcRecordSaveAfter = res; 
+  return;
+end;

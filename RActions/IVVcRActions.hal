@@ -1,6 +1,6 @@
 external updating procedure UpdateCredHistInvoice(var record IVVc,record IVVc);
 external updating procedure UpdateSMSReminderQueue(record IVVc,record IVVc);
-external updating procedure UpdateFactoringInvoices(record IVVc,Boolean);
+external updating procedure UpdateFactoringInvoicesSL(record IVVc,Boolean);
 
 
 global
@@ -36,10 +36,10 @@ begin
   res = inner.IVVcRecordUpdateAfter(IVr,IV2r,stat,long4);
   UpdateSMSReminderQueue(IVr,IV2r);
   if (IVr.OKFlag==1 and IV2r.OKFlag==0) then begin
-    UpdateFactoringInvoices(IVr,true);
+    UpdateFactoringInvoicesSL(IVr,true);
   end;
   if (IVr.OKFlag==0 and IV2r.OKFlag==1) then begin
-    UpdateFactoringInvoices(IVr,false);
+    UpdateFactoringInvoicesSL(IVr,false);
   end;
 
   IVVcRecordUpdateAfter = res; 
@@ -57,7 +57,7 @@ begin
   res = inner.IVVcRecordSaveAfter(IVr,IV2r,stat,long4);
   UpdateSMSReminderQueue(IVr,IV3r);
   if (IVr.OKFlag==1) then begin
-    UpdateFactoringInvoices(IVr,true);
+    UpdateFactoringInvoicesSL(IVr,true);
   end;
 
   IVVcRecordSaveAfter = res; 

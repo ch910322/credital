@@ -1,4 +1,8 @@
-remote updating procedure AddFactoringIVAndGenerateRecords(record RcVc);
+remote updating procedure AddFactoringIVAndGenerateRecords(record RcVc,var Longint);
+remote procedure GetFactoringCustomers(Longint,var array string,var array string);
+external inner procedure PasteFromSysList(Integer,Integer);
+remote updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc);
+remote updating procedure FillCredManBuyers(var record CredManFactVc,var val);
 
 global
 procedure CustCredManFactInvoiceAddSm()
@@ -17,16 +21,103 @@ begin
 end;
 
 global
+procedure CustCredManFactInvoiceOpenSLSm()
+begin
+  record CredManFactInvoiceVc CMIr;
+  record IVVc IVr;
+  Integer wn;
+
+  wn = CurWindow;
+  if (GetRecordFromBrowse(CMIr,wn,1)) begin
+    IVr.SerNr = CMIr.SellerIVNr;
+    if (ReadFirstMain(IVr,1,true)) then begin
+      OpenWindow("IVDClass",0,CurWindow,"","",IVr);
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure CustCredManFactInvoiceOpenPLSm()
+begin
+  record CredManFactInvoiceVc CMIr;
+  record VIVc VIr;
+  Integer wn;
+
+  wn = CurWindow;
+  if (GetRecordFromBrowse(CMIr,wn,1)) begin
+    VIr.SerNr = CMIr.BuyerVINr;
+    if (ReadFirstMain(VIr,1,true)) then begin
+      OpenWindow("VIDClass",0,CurWindow,"","",VIr);
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure CustCredManFactInvoiceRecreateSm()
+begin
+  Integer wn;
+  record CredManFactInvoiceVc CMIr;
+  
+  wn = CurWindow;
+  if (GetRecordFromBrowse(CMIr,wn,1)) begin
+    if (CMIr.InitSLInvFlag==0 and CMIr.InitPLInvFlag==0) then begin
+      GenerateSLAndPLInvoices(CMIr);
+      UpdateBrowses("CustCredManFactInvoiceWClass");
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure CustCredManFactInvoiceDeleteSm()
+begin
+  Integer wn;
+  record CredManFactInvoiceVc CMIr;
+  
+  wn = CurWindow;
+  if (GetRecordFromBrowse(CMIr,wn,1)) begin
+    if (CMIr.InitSLInvFlag==0 and CMIr.InitPLInvFlag==0) then begin
+      RecordDelete(CMIr);
+      UpdateBrowses("CustCredManFactInvoiceWClass");
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure CredManFactCreateContactDsm()
+begin
+  record CUVc CUr;
+
+  RecordNew(CUr);
+  OpenWindow("CUDClass",1,CurWIndow,"","",CUr);
+
+  return;
+end;
+
+global
 updating procedure NewCredManFactInvoiceWClassProceed()
 begin
   record RcVc RepSpec;
   Integer wn;
+  Longint errno;
 
   wn = CurWindow;
+  DeselectWindow(wn,true);
   GetWindowRecord(wn,RepSpec);
-  AddFactoringIVAndGenerateRecords(RepSpec);
-  UpdateBrowses("CustCredManFactInvoiceWClass");
-  CloseWindow(wn);
+  AddFactoringIVAndGenerateRecords(RepSpec,errno);
+  if (errno>-1) then begin
+    MessageBox(errno,"");
+  end else begin
+    UpdateBrowses("CustCredManFactInvoiceWClass");
+    CloseWindow(wn);
+  end;
 
   return;
 end;
@@ -107,7 +198,9 @@ begin
   rwcnt = MatRowCnt(CMFr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CMFr,i,CMFrw);
-    tot = tot + CMFrw.MaxLimit;
+    if (CMFrw.Type==0) then begin
+      tot = tot + CMFrw.MaxLimit;
+    end;
   end;
 
   CMFr.Total = tot;
@@ -140,6 +233,7 @@ begin
   switch (fieldname) begin
     case "CustCode": res = CredManFactDClassCustCodeEFAfter(wn,rownr,changed!=0);
     case "MaxLimit": res = CredManFactDClassMaxLimitEFAfter(wn,rownr,changed!=0);
+    case "Type": res = CredManFactDClassMaxLimitEFAfter(wn,rownr,changed!=0);
   end;
   
   CredManFactDClassAfterEditField = res;
@@ -163,8 +257,12 @@ global
 function Boolean CredManFactDClassOnOpenWindow(Integer wn)
 begin
   record CredManFactVc CMFr;
+  val credmanlimit;
+  Integer oldstate;
   record CredManVc CredManr;
-   
+  array val aopen;
+  Integer i;
+
   GetWindowRecord(wn,CMFr);
   CredManr.SerNr = CMFr.CredManNr;
   if (ReadFirstMain(CredManr,1,true)) then begin
@@ -175,4 +273,72 @@ begin
   return;
 end;
 
+/*
+global
+updating procedure FillCredManBuyersTask(string wnstr)
+begin
+  Integer wn;
+  record CredManFactVc CMFr;
+  val credmanlimit;
+  Integer oldstate;
 
+  wn = StringToInt(wnstr);
+  if (GetWindowClass(wn)=="CredManFactDClass") then begin
+    oldstate = WindowState(wn);
+    GetWindowRecord(wn,CMFr);
+    FillCredManBuyers(CMFr,credmanlimit);
+    PutWindowRecord(wn,CMFr);
+    //SetWindowState(wn,oldstate);
+  end;
+  
+  return;
+end;
+
+global
+function LongInt CredManFactVcRecordProtectFields(var record CredManFactVc CMFr,record CredManFactVc CMF2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+  row CredManFactVc CMFrw,CMF2rw;
+  Integer i,rwcnt;
+
+  rwcnt = MatRowCnt(CMFr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CMFr,i,CMFrw);
+    MatRowGet(CMF2r,i,CMF2rw);
+    CMF2rw.Used = CMFrw.Used;
+    MatRowPut(CMF2r,i,CMF2rw);
+  end;
+  CredManFactVcRecordProtectFields = res;
+  return;
+end;
+*/
+
+
+global
+function Boolean FactoringBuyersSClassOnOpenWindow(Integer wn)
+begin
+  array string 255 acode,aname;
+  record RcVc RepSpec;
+  Integer i;
+
+  GetWindowRecord(MotherWindow(wn),RepSpec);
+  GetFactoringCustomers(RepSpec.long1,acode,aname);
+
+  ClearStringList(wn);
+  for (i=0;i<acode.length;i=i+1) begin
+    AddListRow(wn,"customers",1,acode[i],0);
+    AddListData(wn,"customers","custcode",acode[i]);
+    AddListData(wn,"customers","custname",aname[i]);
+  end;
+
+  FactoringBuyersSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+function Boolean FactoringBuyersSClassOnOKWindow(Integer wn)
+begin
+  PasteFromSysList(wn,-1);
+  FactoringBuyersSClassOnOKWindow = false;
+  return;
+end;

@@ -5,13 +5,16 @@ This supports adding new web texts, adding new special elements, new structure t
 external procedure ShowSmartIDIdentification(record WebNGElementVc);
 external procedure SmartIDWebActions(string);
 external inner function string 255 removenextlistitem(var string,string);
-external procedure ShowPartnerList();
+external procedure ShowPartnerList(record WebNGElementVc);
 external procedure ShowBannerList(record WebNGElementVc);
 external procedure ShowFAQList();
 external procedure ShowLoanApplicationOnWeb(record WebNGElementVc);
 external procedure ShowLoanApplicationOnWeb2(record WebNGElementVc);
 external procedure ShowNewsLetterSignup(record WebNGElementVc);
-external procedure ShowEmployeesOnWeb();
+external procedure ShowEmployeesOnWeb(record WebNGElementVc);
+external procedure ShowContactInfo(record WebNGElementVc);
+external procedure ShowLoanApp(record WebNGStructVc,string);
+external updating procedure LoanApplicationStoreStep1();
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -25,7 +28,7 @@ begin
     case 121:
       ShowSmartIDIdentification(WEr);
     case 122:
-      ShowPartnerList;
+      ShowPartnerList(WEr);
     case 123:
       ShowBannerList(WEr);
     case 124:
@@ -35,9 +38,11 @@ begin
     case 126:
       ShowNewsLetterSignup(WEr);
     case 127:
-      ShowEmployeesOnWeb;
+      ShowEmployeesOnWeb(WEr);
     case 128:
       ShowLoanApplicationOnWeb2(WEr);
+    case 129:
+      ShowContactInfo(WEr);
     otherwise
       res = false;
   end;
@@ -52,6 +57,7 @@ begin
 
   //res = true;
   switch (lasttype) begin
+    case 200: ShowLoanApp(WSr,mpath); res = true;
   otherwise
     res = false;
   end;
@@ -64,11 +70,9 @@ function Boolean InternalNodeIsApplication(Integer nodetype)
 begin
   Boolean res;
   
-  /*
-  if (nodetype==kStructTypeWatchpointApp) then begin
-      res = true;
+  if (nodetype==200) then begin
+    res = true;
   end;
-  */
 
   InternalNodeIsApplication = res;
   return;
@@ -102,6 +106,37 @@ begin
     case 70017: res = "Prenumeruoti";
     case 70018: res = "Added to News Letters successfully";
     case 70019: res = "Paieäka";
+    case 70020: res = "Apie mus raäo";
+    case 70021: res = "Darbo laikas: ";
+    case 70022: res = "Tel. ";
+    case 70023: res = "El. paäto adresas: ";
+    case 70024: res = "¯mon˜s kodas. ";
+    
+  /*Loan Application*/
+
+    case 70100: res = "Finansavimo tipas";
+    case 70101: res = "Verslo paskola su grafiku";
+    case 70102: res = "Paskola su atid˜tu grˆìinimu";
+    case 70103: res = "Paskola su likutine verte";
+    case 70104: res = "Sˆskait÷ finansavimas (faktoringas)";
+    case 70105: res = "Atsiskaitymo garantija";
+    case 70106: res = "Pageidaujama suma";
+    case 70107: res = "Terminas";
+    case 70108: res = "Preliminari kaina";
+    case 70109: res = "paslaugos m˜n. mokestis";
+    case 70110: res = "preliminari °moka";
+    case 70111: res = "palðkan÷ (netaikomos)";
+    case 70112: res = "¯mon˜s kodas";
+    case 70113: res = "¯veskite °mon˜s kodas";
+    case 70114: res = "Jðs÷ el. paäto adresas";
+    case 70115: res = "¯veskite el.paäto adresˆ";
+    case 70116: res = "Aä sutinku, kad äioje paraiäkoje pateikti mano duomenys bðt÷ tvarkomi ãNovitiÒ (UAB ã¯moka lengvaiÒ) verslo paskolos sudarymo tikslais.";
+    case 70117: res = "Aä sutinku, kad mano nurodytu telefonu susisiektum˜te su manimi tiesiogin˜s rinkodaros tikslais.";
+    case 70118: res = "T«sti";
+    case 70119: res = "Paskolos uìklausa";
+    case 70120: res = "¯mon˜s duomenys ir laiduotojai";
+    case 70121: res = "Pasiraäymas";
+    case 70122: res = "Failed to store Application";
     
   end;
 
@@ -115,13 +150,14 @@ updating function Boolean InternalUpdatingActions(string action)
 begin
   Boolean res;
 
-/*
+
   switch (action) begin
-    case "aa":
+    case "StoreStep1":
+      LoanApplicationStoreStep1;
       res = true;
 
   end;
-*/
+
   InternalUpdatingActions = res;
   return;
 end;

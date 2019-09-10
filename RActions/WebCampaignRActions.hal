@@ -33,7 +33,7 @@ begin
     end else begin
       if (DateInRange(WCr.StartDate,tWCr.StartDate,tWCr.EndDate) or DateInRange(WCr.EndDate,tWCr.StartDate,tWCr.EndDate)) then begin
         if (WCr.SerNr!=tWCr.SerNr) then begin
-          RecordCheckError(200100,"",-1,"SerNr");
+          RecordCheckError(200200,"",-1,"SerNr");
           res = -1;
           goto LWebCampaignVcRecordCheck;    
         end;

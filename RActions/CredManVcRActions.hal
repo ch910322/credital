@@ -138,10 +138,34 @@ LCredManVcRecordCheck:;
 END;
 
 global
+function val GetCustomerOpenInvoices(string custcode)
+begin
+  record ARVc ARr;
+  val res;
+  Boolean TrHs;
+
+  TrHs = true;
+  ARr.CustCode = custcode;
+  while (LoopKey("CustCode",ARr,1,TrHs)) begin
+    if (ARr.CustCode!=custcode) then begin
+      TrHs = false;
+    end else begin
+      res = res + ARr.RVal;
+    end;
+  end;
+
+  GetCustomerOpenInvoices = res;
+  return;
+end;
+
+global
 function LongInt CredManFactVcRecordCheck(var record CredManFactVc CMFr,record CredManFactVc CMF2r,LongInt stat,LongInt long4)
 begin
   Longint res;
   record CredManVc CredManr;
+  row CredManFactVc CMFrw;
+  Integer i,rwcnt;
+  val openval;
 
   res = 0;
   
@@ -149,6 +173,16 @@ begin
   if (ReadFirstMain(CredManr,1,true)) then begin
     if (CMFr.Total>CredManr.InvSum4) then begin
       RecordCheckError(200101,"",-1,"Total");
+      res = -1;
+      goto LCredManFactVcRecordCheck;
+    end;
+  end;
+  rwcnt = MatRowCnt(CMFr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CMFr,i,CMFrw);
+    openval = GetCustomerOpenInvoices(CMFrw.CustCode);
+    if (openval>CMFrw.MaxLimit) then begin
+      RecordCheckError(200104,openval,i,"MaxLimit");
       res = -1;
       goto LCredManFactVcRecordCheck;
     end;

@@ -256,7 +256,7 @@ end;
 3. sort in priority and make payments history records
 */
 global
-updating procedure FindUnpaidCredHist(record ItemPriorityBlock IPb,record IPVc IPr,row IPVc IPrw,var array val arrCredManr)
+updating procedure FindUnpaidCredHist(record ItemPriorityBlock IPb,record IPVc IPr,row IPVc IPrw,var array val arrCredManr,Integer rectype)
 begin
   record CredHistVc CredHistr;
   Boolean TrHs;
@@ -315,7 +315,7 @@ begin
           arrCredManr[credmannr] = 0;
           mainf = 1;
         end;
-        CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,1,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval,-1);
+        CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,rectype,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval,-1);
       end;
       if (remsum<=0) then begin
         goto LFindUnpaidCredHist;
@@ -353,7 +353,7 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(IPr,i,IPrw);
     if (IPrw.InvoiceNr>-1) then begin
-      FindUnpaidCredHist(IPb,IPr,IPrw,arrCredManr);
+      FindUnpaidCredHist(IPb,IPr,IPrw,arrCredManr,1);
     end;
   end;
 
@@ -361,7 +361,7 @@ begin
 end;
 
 global
-updating procedure FindPaidCredHist(Longint recordnr)
+updating procedure FindPaidCredHist(Longint recordnr,Integer rectype)
 begin
   record CredHistVc CredHistr;
   Boolean TrHs;
@@ -374,9 +374,9 @@ begin
   
   TrHs = true;
   CredHistr.RecordNr = recordnr;
-  CredHistr.RecordType = 1;
+  CredHistr.RecordType = rectype;
   while (LoopKey("RecordNr",CredHistr,2,TrHs)) begin
-    if (CredHistr.RecordNr!=recordnr or CredHistr.RecordType!=1) then begin
+    if (CredHistr.RecordNr!=recordnr or CredHistr.RecordType!=rectype) then begin
       TrHs = false;
     end else begin
       RecordRemove(CredHistr);
@@ -401,7 +401,7 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(IPr,i,IPrw);
     if (IPrw.InvoiceNr>-1) then begin
-      qupdating.FindPaidCredHist(IPr.SerNr);
+      qupdating.FindPaidCredHist(IPr.SerNr,1);
     end;
   end;
 

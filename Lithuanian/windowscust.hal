@@ -84,6 +84,8 @@ begin
   RadioButton(h,v+=16,1,0,"Faktinis",DaysInMonth); 
   
   CheckBox(h,v+=30,0,"Faktðros detal˜s",DetailedInvoice);
+  CheckBox(h,v+=20,0,"Automatically connect Prepayments to Invoices",AddPrepayments);
+
   EditField(h,v+=vs,100,"Papildomi komentarai",Normal,InvoiceCommentStr,false,0);
 
   EndWindow;
@@ -309,15 +311,6 @@ begin
   EndMatrix;
   EndWindow;
 
-  WindowBegin("Prek˜s prioritetas",ItemPriorityTClass,CGHBl,-);
-  SetWRect(80,80,400,280);
-  SetBlid(ItemPriorityBlock);
-  MatrixBegin(10,20,-30,-10,-,10);
-  MatCol(1,25,"Prek˜",0,ArtCode,false,INSClass);
-  MatCol(1,150,"Prioritetas",0,Priority,true,0);
-  EndMatrix;
-  EndWindow;
-
   WindowBegin("Verslo paskol÷ paraiäk÷ vertinimas",B2BLoanEvalRClass,CGRcW,RcType);
   SetWRect(20,80,400,200);
   h = 150; v=6; vs=20;
@@ -442,7 +435,7 @@ begin
   WindowBegin("Item Priority",ItemPriorityTClass,CGHBl,-);
   SetWRect(80,80,400,280);
   SetBlid(ItemPriorityBlock);
-  MatrixBegin(10,20,-30,-10,-,10);
+  MatrixBegin(10,20,-30,-10,-,99);
   MatCol(1,25,"Item",0,ArtCode,false,INSClass);
   MatCol(1,100,"Name",0,Name,false,0);
   MatCol(1,-50,"Priority",0,Priority,false,0);
@@ -1183,7 +1176,7 @@ begin
   SetWRect(20,80,600,259);
   UseView(RcVc);
   vs=20; h=120; vs2=16; hm=-100;
-  EditField(h,v+=vs,100,"Customer",Normal,f1,false,CUSClass);
+  EditField(h,v+=vs,100,"Customer",Normal,f1,false,FactoringBuyersSClass);
   EditField(h2=300,v,-40,"Name",Normal,searchstr,false,0);
   EditField(h,v+=vs,100,"Invoice Nr.",Normal,ObjStr,false,0);
   EditField(h,v+=vs,90,"Inv. Date",Normal,d1,false,PasteCurDate);
