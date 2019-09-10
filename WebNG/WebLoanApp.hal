@@ -105,11 +105,16 @@ begin
   return;
 end;
 
-procedure ShowInputField(string name,string label,string ph)
+procedure ShowInputField(string name,string label,string ph,Boolean colf)
 begin
   
+  if (colf) then begin
+    WebOutString("<div class='col-md-4'>");
+  end;
   WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><input type='text' placeholder='" & ph & "'></div></div>");
-
+  if (colf) then begin
+    WebOutString("</div>");
+  end;
   return;
 end;
 
@@ -121,11 +126,24 @@ begin
   return;
 end;
 
+procedure ShowRadioButton(string name,string value,string label,Boolean colf)
+begin
+  if (colf) then begin
+    WebOutString("<div class='col-md-4'>");
+  end;
+  WebOutString("<div class='loan_radio " & name & "'><div class='input_radio'><input type='radio' value='" & value & "' name='" & name  & "'></div><div class='loan_label'>" & label & "</div></div>");//<span class='checkmark'></span>
+  if (colf) then begin
+    WebOutString("</div>");
+  end;
+  
+  return;
+end;
+
 procedure DisplayLoanFooter()
 begin
   
-  ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113));
-  ShowInputField("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115));
+  ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),false);
+  ShowInputField("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115),false);
 
   ShowCheckBox("datasec",ToolWebNGTranslateText2(70116));
   ShowCheckBox("datause",ToolWebNGTranslateText2(70117));
@@ -238,24 +256,62 @@ begin
   ShowLoanSteps(2);
 
   WebOutString("<div class='loan_app_content'>");
+  WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70123) & "</h2></div>");
 
+  WebOutString("<div class='row'>")
+  ShowInputField("compname",ToolWebNGTranslateText2(70125),ToolWebNGTranslateText2(70126),true);
+  ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),true);
+  WebOutString("</div>");
 
+  WebOutString("<div class='row'>")
+  ShowInputField("address",ToolWebNGTranslateText2(70127),ToolWebNGTranslateText2(70128),true);
+  WebOutString("</div>");
+
+//radio buttons
+  WebOutString("<div class='loan_subhead'><h3>" & ToolWebNGTranslateText2(70129) & "</h3></div>");
+  WebOutString("<div class='row'>")
+  ShowRadioButton("contacttype","0",ToolWebNGTranslateText2(70130),true);
+  ShowRadioButton("contacttype","1",ToolWebNGTranslateText2(70131),true);
+  WebOutString("</div>");
+
+  WebOutString("<div class='row'>")
+  ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),true);
+  ShowInputField("persname",ToolWebNGTranslateText2(70134),ToolWebNGTranslateText2(70135),true);
+  WebOutString("</div>");
+
+  WebOutString("<div class='row'>")
+  ShowInputField("perssurname",ToolWebNGTranslateText2(70136),ToolWebNGTranslateText2(70137),true);
+  ShowInputField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),true);
+  WebOutString("</div>");
+
+  WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70124) & "</h2></div>");
+//Surety providers
+  WebOutString("<div class='surety_block'>");
+  WebOutString("<div class='surety_text'>" & ToolWebNGTranslateText2(70140) & "</div>");
+  ShowCheckBox("datause",ToolWebNGTranslateText2(70141));
+  WebOutString("</div>");
+
+//70142 for adding extra surety providers
+  
+  WebOutString("<div class='loan_back'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
+  WebOutString("<div class='loan_submit'><div class='hl_button'>" & ToolWebNGTranslateText2(70118) & "</div></div>");
+  
   WebOutString("</div>");
   WebOutString("</div>");
   return;
 end;
 
 global
-procedure ShowLoanApp(record WebNGStructVc WSr,string path)
+procedure ShowLoanApp(record WebNGStructVc WSr,string mpath)
 begin
   record WebNGPageVc WPr;
-  string 255 mpath,node;
+  string 255 path,node;
 
   LoadWebPage(WSr.WebPage,WPr);
-  ShowWebAppPageStart(WPr,"my_account");
+  ShowWebAppPageStart(WPr,"");
 
-  mpath = path;
-  node = removenextnode(mpath);
+  path = mpath;
+  node = removenextnode(path);
 
   switch (node) begin
     case "2"://step 2

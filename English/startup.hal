@@ -151,6 +151,7 @@ begin
   SetText(3,"Bullet Loan");
   SetText(4,"Factoring");
   SetText(5,"Payment Guarantee");
+  SetText(6,"Linear with Delay");
   EndSet;
 
   SetBegin(2002);

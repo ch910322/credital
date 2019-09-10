@@ -3,6 +3,7 @@ remote procedure GetFactoringCustomers(Longint,var array string,var array string
 external inner procedure PasteFromSysList(Integer,Integer);
 remote updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc);
 remote updating procedure FillCredManBuyers(var record CredManFactVc,var val);
+remote procedure CredManFactInsertCustCode(var record CredManFactVc,Integer);
 
 global
 procedure CustCredManFactInvoiceAddSm()
@@ -172,17 +173,10 @@ end;
 function Boolean CredManFactDClassCustCodeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
   record CredManFactVc CMFr;
-  row CredManFactVc CMFrw;
-  record CUVc CUr;
 
   if (changedf and rownr>-1) then begin  
     GetWindowRecord(wn,CMFr);
-    MatRowGet(CMFr,rownr,CMFrw);
-    CUr.Code = CMFrw.CustCode;
-    if (ReadFirstMain(CUr,1,true)) then begin
-      CMFrw.CustName = CUr.Name;
-      MatRowPut(CMFr,rownr,CMFrw);
-    end;
+    CredManFactInsertCustCode(CMFr,rownr);
     PutWindowRecord(wn,CMFr);   
   end; 
   CredManFactDClassCustCodeEFAfter = true;
@@ -268,12 +262,14 @@ begin
   if (ReadFirstMain(CredManr,1,true)) then begin
     PutWindowString(wn,"credmanlimit",CredManr.InvSum4);
   end;
+  if (WindowState(wn)==Rs_Normal) then begin
+    NewTimedTask("FillCredManBuyersTask","FillCredManBuyersTask","FillCredManBuyersTask",wn,CurrentDate,CurrentTime,"","");
+  end;
 
   CredManFactDClassOnOpenWindow = false;
   return;
 end;
 
-/*
 global
 updating procedure FillCredManBuyersTask(string wnstr)
 begin
@@ -284,15 +280,17 @@ begin
 
   wn = StringToInt(wnstr);
   if (GetWindowClass(wn)=="CredManFactDClass") then begin
-    oldstate = WindowState(wn);
-    GetWindowRecord(wn,CMFr);
-    FillCredManBuyers(CMFr,credmanlimit);
-    PutWindowRecord(wn,CMFr);
-    //SetWindowState(wn,oldstate);
+    if (WindowState(wn)==Rs_Normal) then begin
+      GetWindowRecord(wn,CMFr);
+      FillCredManBuyers(CMFr,credmanlimit);
+      PutWindowRecord(wn,CMFr);
+      WindowDoOK(wn,0);
+    end;
   end;
   
   return;
 end;
+/*
 
 global
 function LongInt CredManFactVcRecordProtectFields(var record CredManFactVc CMFr,record CredManFactVc CMF2r,LongInt long3,LongInt long4)

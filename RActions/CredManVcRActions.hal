@@ -130,6 +130,19 @@ BEGIN
     goto LCredManVcRecordCheck;
   end;
 
+  if (CredManr.InstalmentType==6) then begin
+    if (CredManr.PrincipleDelayMonths<=0) then begin
+      RecordCheckError(1058,"",-1,"PrincipleDelayMonths");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
+    if (CredManr.PrincipleDelayInterest<=0) then begin
+      RecordCheckError(1058,"",-1,"PrincipleDelayInterest");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
+  end;
+
   res = inner.CredManVcRecordCheck(CredManr,CredMan2r,stat,long4);
   
 LCredManVcRecordCheck:;

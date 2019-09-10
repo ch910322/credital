@@ -642,6 +642,10 @@ begin
   EditField(h3,v+=vs,82,"Std Prolongation Fee %",Normal,StdProlongPrc,false,0);
 
   EditField(h4,v=vm,-40,"Money Transfer Date",Normal,MoneyTransferDate,false,PasteCurDate);
+  EditField(h4,v+=vs,-40,"Max Monthly Payment",Normal,MaxMonthlyPayment,false,0);
+  EditField(h4,v+=vs,-40,"Princ. Delay Months",Normal,PrincipleDelayMonths,false,0);
+  EditField(h4,v+=vs,-40,"Princ. Delay Interest %",Normal,PrincipleDelayInterest,false,0);
+
 //  ButtonFrame(h4,v=vm+20,150,2,"Charge Method");
 //  RadioButton(h4,v,0,0,"Running Balance",ChargeMethod);
 //  RadioButton(h4,v+=16,1,0,"Monthly Invoices",ChargeMethod);
@@ -882,7 +886,9 @@ begin
   EditField(h2,v,82,"Loan to Value %",Normal,LoanToValue,false,0);//CUST added
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Months to Settle For Free",Normal,SettleLimit,false,0);
-  EditField(h,vm2=(v+=vs),82,"Fixed Deposit",Normal,DepositSum,true,0);
+  EditField(h2,v,82,"Princ. Delay Months",Normal,PrincipleDelayMonths,false,0);//CUST added
+  EditField(h,vm2=(v+=vs),40,"Fixed Deposit",Normal,DepositSum,true,0);//CUST 82>>40
+  EditField(h2,v,82,"Princ. Delay Interest %",Normal,PrincipleDelayInterest,false,0);//CUST added
   //CUST-BEGIN
   h2 = h2 + 110;
   //CUST-END

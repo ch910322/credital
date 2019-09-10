@@ -316,8 +316,22 @@ begin
     CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode);
     MatRowPut(CMFr,i,CMFrw);
   end;
-  if (rwcnt>0) then begin
-    RecordStore(CMFr,true);
+
+  return;
+end;
+
+global
+procedure CredManFactInsertCustCode(var record CredManFactVc CMFr,Integer rownr)
+begin
+  row CredManFactVc CMFrw;
+  record CUVc CUr;
+
+  MatRowGet(CMFr,rownr,CMFrw);
+  CUr.Code = CMFrw.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    CMFrw.CustName = CUr.Name;
+    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode);
+    MatRowPut(CMFr,rownr,CMFrw);
   end;
 
   return;

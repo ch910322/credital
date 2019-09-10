@@ -388,6 +388,10 @@ begin
 /*Factoring end*/
   RecordField(OtherConditions,M4Str,250,0);
 
+  RecordField(PrincipleDelayMonths,M4Qty,0,0);
+  RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(MaxMonthlyPayment,M4Val,0,0);
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -420,6 +424,8 @@ begin
   RecordField(StdProlongFee,M4Qty,0,0);
   RecordField(StdProlongPrc,M4Qty,0,0);
   RecordField(LoanToValue,M4Qty,0,0);
+  RecordField(PrincipleDelayMonths,M4Qty,0,0);
+  RecordField(PrincipleDelayInterest,M4Qty,0,0);
   EndRecordAdd;
 
   BlockBegin(EvalConstBlock,0,"");

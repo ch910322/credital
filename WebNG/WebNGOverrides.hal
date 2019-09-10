@@ -137,6 +137,27 @@ begin
     case 70120: res = "¯mon˜s duomenys ir laiduotojai";
     case 70121: res = "Pasiraäymas";
     case 70122: res = "Failed to store Application";
+    case 70123: res = "Finansavimo tipas";
+    case 70124: res = "Laiduotojai";
+    case 70125: res = "¯mon˜s pavadinimas";
+    case 70126: res = "¯veskite °mon˜s pavadinimˆ";
+    case 70127: res = "Adresas";
+    case 70128: res = "¯veskite adresˆ";
+    case 70129: res = "Adresas korespondencijai";
+    case 70130: res = "Sutampa su °mon˜s adresu";
+    case 70131: res = "Sutampa su °mon˜s adresu";
+    case 70132: res = "Banko sˆskaitos numeris paskolai gauti";
+    case 70133: res = "¯veskite banko sˆs. numer°";
+    case 70134: res = "Vardas";
+    case 70135: res = "¯veskite savo vardˆ";
+    case 70136: res = "Pavard˜";
+    case 70137: res = "¯veskite savo pavard«";
+    case 70138: res = "Pirmosios °mokos data";
+    case 70139: res = "¯veskite pirmosios °mokos datˆ";
+    case 70140: res = "Laiduotoju praäome bðti °mon˜s savininkˆ (ar kelis), turint° ne maìiau nei 1/3 °mon˜s dalies. Jei äio laiduotojo mokumas ìemas, - siðlome papildomu laiduotoju taip pat °traukti °mon˜s vadovˆ paskolˆ pasirengus° laiduoti asmen°.";
+    case 70141: res = "Esu äios sutarties laiduotojas";
+    case 70142: res = "Prid˜ti papildomˆ laiduotojˆ";
+    case 70143: res = "Gr°ìti";
     
   end;
 
