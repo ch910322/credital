@@ -15,6 +15,7 @@ external procedure ShowEmployeesOnWeb(record WebNGElementVc);
 external procedure ShowContactInfo(record WebNGElementVc);
 external procedure ShowLoanApp(record WebNGStructVc,string);
 external updating procedure LoanApplicationStoreStep1();
+external updating procedure LoanApplicationStoreStep2();
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -158,7 +159,12 @@ begin
     case 70141: res = "Esu äios sutarties laiduotojas";
     case 70142: res = "Prid˜ti papildomˆ laiduotojˆ";
     case 70143: res = "Gr°ìti";
-    
+    case 70144: res = "Skai‹iuokl˜";
+    case 70145: res = "Pateik paraiäkˆ";
+    case 70146: res = "Pateik paraiäkˆ";
+    case 70147: res = "Finansavimo kaina";
+    case 70148: res = "Vis÷ °mok÷ suma";
+   
   end;
 
   CheckInternalStrings = res;
@@ -175,6 +181,9 @@ begin
   switch (action) begin
     case "StoreStep1":
       LoanApplicationStoreStep1;
+      res = true;
+    case "StoreStep2":
+      LoanApplicationStoreStep2;
       res = true;
 
   end;

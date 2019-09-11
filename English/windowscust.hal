@@ -1058,6 +1058,7 @@ begin
   UseView(WebLoanCalcVc);
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,150,"Type",Normal,Type,false,SetSClass);
+  EditField(h,v+=vs,-40,"Text on Web",Normal,WebText,false,0);
   EditField(h,v+=vs,100,"Credit Agr. Type",Normal,CredManType,false,CredManTypeSClass);
   EditField(h,v+=vs,100,"Manager",Normal,Manager,false,UserSClass);
   EditField(h,v+=vs,100,"Amount Min",Normal,AmountMin,false,0);
@@ -1140,7 +1141,11 @@ begin
   SetWRect(20,80,760,298);
   UseView(RcVc);
   EditField(h=100,v=55,50,"Dummy",Normal,f1,false,0);
-  RecordList2(4,17,-21,-1,"CredManFactInvoiceVc");
+  if (GuiType==kGuiCocoa) then begin
+    RecordList2(4,17,-21,-1,"CredManFactInvoiceVc");
+  end else begin
+    RecordList2(4,17,-21,-35,"CredManFactInvoiceVc");    
+  end;
   RlColKey(4,4,"Ser Nr.",SerNr,false,SerNr);
   RlCol(170,170,"Customer",CustName,false);
   RlCol(290,290,"Invoice Nr.",InvoiceNr,false);
@@ -1234,8 +1239,6 @@ begin
   SetWRect(40,80,350,298);
   Sizeable(-1,-1,-1,0);
   v=6;
-  ToolBar;
-  EndToolBar;
   DataList(0,0,-1,-1,"customers");
   DataListColumn(1,6,120,AdjLeft,"custcode","Code",M4Str);
   DataListColumn(1,130,-1,AdjLeft,"custname","Name",M4Str);

@@ -240,6 +240,7 @@ procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string l
 begin
   
 //70007,70008
+  WebOutString("<div class='single_small_slider'>");
   WebOutString("<div class='slider_label'>" & label & "</div>");
   if (inputf) then begin
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
@@ -249,6 +250,7 @@ begin
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
   end;
   WebOutString("<script>$('input[name=\"" & name & "\"]').change()</script>");
+  WebOutString("</div>");
   return;
 end;
 
@@ -286,22 +288,31 @@ begin
 
 
     WebOutString("<div class='loan_app'><form method='POST'>");
+    WebOutString("<div class='loan_small_title'>" & ToolWebNGTranslateText2(70144) & "</div>");
+    WebOutString("<div class='loan_small_descr'>" & WLCr.WebText & "</div>");
+/*
     ShowSimpleField("text","compname",ToolWebNGTranslateText2(70001),ToolWebNGTranslateText2(70002));
     ShowSimpleField("email","email",ToolWebNGTranslateText2(70003),ToolWebNGTranslateText2(70004));
     ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
-
+*/
     if (amount_min>0) then begin
-      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),false);
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
 
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),false);
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),true);
     end;
-
+/*
     ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
     ShowCheckBox("newsletter",ToolWebNGTranslateText2(70010));
-      
-    WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+*/
+    WebOutString("<div class='loan_small_bottom gradient'>");
+    WebOutString("<div class='loan_small_totals'>");
+    WebOutString("<div class='loan_small_totals_val'></div>");
+    WebOutString("<div class='loan_small_totals_text'>" & ToolWebNGTranslateText2(70147) & "</div>");
+    WebOutString("</div>");
+    WebOutString("<div class='submit'><div class='hl_button' type='" & WLCr.Type & "'>" & ToolWebNGTranslateText2(70145) & "</div></div>");
+    WebOutString("</div>");
 
     WebOutString("</form></div>");
   end;
@@ -353,10 +364,10 @@ begin
     end;
     WebOutString("</div><div class='col'>")
     //show selection box
-    WebOutString("<div class='submit'><div class='button'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+    WebOutString("<div class='submit'><div class='hl_button' type='" & WLCr.Type & "'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
     WebOutString("</div>");
     WebOutString("<div class='calc_summary'>");
-    WebOutString("<div class='outer_circle'><div class='mid_circle'><div class='inner_circle'><div class='summ_content'></div></div></div></div>");
+    WebOutString("<div class='outer_circle'><div class='mid_circle'><div class='inner_circle'><div class='summ_content'></div><div class='summ_text'>" & ToolWebNGTranslateText2(70148) & "</div></div></div></div>");
     WebOutString("</div></div>");
     WebOutString("</form></div>");
   end;
