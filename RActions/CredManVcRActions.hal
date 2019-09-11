@@ -1,5 +1,6 @@
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner procedure CUCreditLimit(record CUVc,Date,string,var val,var LongInt);
+external function val GetMonthlyPaymentAmount(record CredManVc,Integer);
 
 
 global
@@ -138,6 +139,13 @@ BEGIN
     end;
     if (CredManr.PrincipleDelayInterest<=0) then begin
       RecordCheckError(1058,"",-1,"PrincipleDelayInterest");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
+  end;
+  if (CredManr.MaxMonthlyPayment>0) then begin
+    if (CredManr.MaxMonthlyPayment<GetMonthlyPaymentAmount(CredManr,6)) then begin
+      RecordCheckError(200105,"",-1,"MaxMonthlyPayment");
       res = -1;
       goto LCredManVcRecordCheck;
     end;
