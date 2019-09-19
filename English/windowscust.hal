@@ -73,6 +73,8 @@ begin
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Unfinished Application Class",Normal,WebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Letter for Surety Email",Normal,SuretyLetter,false,0);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
@@ -520,6 +522,8 @@ begin
   EditField(h,v+=vs,120,"Start Date",Normal,StartDate,false,PasteCurDate);
   EditField(h,v+=vs,120,"End Date",Normal,EndDate,false,PasteCurDate);
   EditField(h,v+=vs,120,"Image",Normal,Image,false,WebCampaignImageSClass);
+  EditField(h,v+=vs,120,"Style",Normal,Style,false,0);
+  
 
   EndWindow;
 
@@ -1094,15 +1098,16 @@ begin
   real h,v,vs,v2,vs2,hm;
 
   WindowBegin("Factoring Limits",CredManFactDClass,CGview,-);
-  SetWRect(20,80,700,339);
+  SetWRect(20,80,760,339);
   DynamicWindow;
   UseView(CredManFactVc);
   vs=20; h=120; vs2=16; hm=-100;
   MatrixBegin(0,16,-16,-50,-,30);
   MatCol(1,24,"Customer",0,CustCode,false,CUSClass);
   MatCol(1,120,"Name",0,CustName,false,0);
-  MatCol(1,-300,"Type",0,Type,false,SetSClass);
-  MatCol(1,-240,"Used",0,Used,true,0);
+  MatCol(1,-360,"Type",0,Type,false,SetSClass);
+  MatCol(1,-300,"Used",0,Used,true,0);
+  MatCol(1,-240,"Open",0,OpenTotal,true,0);
   MatCol(1,-160,"Eval. Limit",0,EvalLimit,true,0);
   MatCol(1,-80,"Max Limit",0,MaxLimit,true,0);
   InsertRowTest;
@@ -1221,9 +1226,10 @@ begin
   EditField(h,v+=vs,100,"Object",Normal,BuyerObject,false,ObjSClass);
   EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
 
-  ButtonFrame(h-100,v+=50,250,5,"Seller's Invoice");
+  ButtonFrame(h-100,v+=50,250,6,"Seller's Invoice");
   EditField(h,v,100,"Payment Terms",Normal,SellerPayDeal,false,PDSClass);
   EditField(h,v+=vs,100,"Account",Normal,SellerAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"Fee Account",Normal,SellerFeeAccount,false,AccSClass);
   EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
   EditField(h,v+=vs,100,"Object",Normal,SellerObject,false,ObjSClass);
 
@@ -1243,5 +1249,17 @@ begin
   DataListColumn(1,6,120,AdjLeft,"custcode","Code",M4Str);
   DataListColumn(1,130,-1,AdjLeft,"custname","Name",M4Str);
   SearchField("Search");
+  EndWindow;
+end;
+
+window WebInvoicingPartnerTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Search Partner Settings",WebInvoicingPartnerTClass,CGSbl,-);
+  SetBlid(WebInvoicingPartnerBlock);
+  SetWRect(20,80,500,298);
+  vs=20; h=160; vs2=16; hm=-100;
+  EditField(h,v=6,100,"Classification List",Normal,PartnerClass,false,CClassSClass);
   EndWindow;
 end;

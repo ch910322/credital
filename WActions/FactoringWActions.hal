@@ -4,6 +4,7 @@ external inner procedure PasteFromSysList(Integer,Integer);
 remote updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc);
 remote updating procedure FillCredManBuyers(var record CredManFactVc,var val);
 remote procedure CredManFactInsertCustCode(var record CredManFactVc,Integer);
+remote updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 
 global
 procedure CustCredManFactInvoiceAddSm()
@@ -16,6 +17,27 @@ begin
     
     RepSpec.long1 = CredManr.SerNr;
     OpenWindow("NewCredManFactInvoiceWClass",1,CurWindow,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure CustCredManFactInvoiceCreateFeeInvSm()
+begin
+  record CredManVc CredManr;
+  record IVVc IVr;
+  Integer wn;
+
+  wn = MotherWindow(CurWindow);
+
+  if (GetWindowClass(wn)=="CredManDClass") then begin
+    GetWindowRecord(wn,CredManr);
+    
+    CreateSingleAgreementInvoice(CredManr,CurrentDate,IVr);
+    if (IVr.SerNr>-1) then begin
+      OpenWindow("IVDClass",1,CurWindow,"","",IVr);
+    end;
   end;
 
   return;

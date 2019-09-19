@@ -11,7 +11,7 @@ external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean
 external inner procedure VIVc_PastePayDeal(var record VIVc);
 external inner procedure VICalcVals(var record VIVc);
 external inner procedure VISumup(record VIVc,var val);
-external function val GetCustomerOpenInvoices(string);
+external function val GetCustomerOpenInvoices(string,Longint,var val);
 
 global
 updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc CMIr)
@@ -45,6 +45,7 @@ begin
     IVVc_PastePayDeal(IVr,"","");
     IVr.PayDate = CMIr.DueDate;
     IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
+    IVr.CustCredManNr = CMIr.CredManNr;
     ClearRow(IVr,IVrw,1);
     IVrw.ArtCode = Fb.BuyerItem;
     MatRowPut(IVr,0,IVrw);
@@ -107,7 +108,7 @@ begin
   row CredManFactVc CMFrw;
   Boolean foundf;
   Integer i,rwcnt;
-  val openval;
+  val openval,usedval;
   
   errno = -1;
   CMFr.CredManNr = RepSpec.long1;
@@ -117,8 +118,8 @@ begin
       MatRowGet(CMFr,i,CMFrw);
       if (CMFrw.CustCode==RepSpec.f1) then begin
         foundf = true;
-        openval = GetCustomerOpenInvoices(RepSpec.f1);
-        if (openval+RepSpec.vals0>CMFrw.MaxLimit) then begin
+        usedval = GetCustomerOpenInvoices(RepSpec.f1,RepSpec.long1,openval);
+        if (usedval+RepSpec.vals0>CMFrw.MaxLimit) then begin
           errno = 200103;
           goto LAddFactoringIVAndGenerateRecords;
         end;
@@ -309,11 +310,13 @@ updating procedure FillCredManBuyers(var record CredManFactVc CMFr,var val credm
 begin
   Integer i,rwcnt;
   row CredManFactVc CMFrw;
+  val open;
   
   rwcnt = MatRowCnt(CMFr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CMFr,i,CMFrw);
-    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode);
+    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode,CMFr.CredManNr,open);
+    CMFrw.OpenTotal = open;
     MatRowPut(CMFr,i,CMFrw);
   end;
 
@@ -325,13 +328,78 @@ procedure CredManFactInsertCustCode(var record CredManFactVc CMFr,Integer rownr)
 begin
   row CredManFactVc CMFrw;
   record CUVc CUr;
+  val open;
 
   MatRowGet(CMFr,rownr,CMFrw);
   CUr.Code = CMFrw.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
     CMFrw.CustName = CUr.Name;
-    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode);
+    CMFrw.Used = GetCustomerOpenInvoices(CMFrw.CustCode,CMFr.CredManNr,open);
+    CMFrw.OpenTotal = open;
     MatRowPut(CMFr,rownr,CMFrw);
+  end;
+
+  return;
+end;
+
+global
+updating procedure CheckAndCreateFactoringFeeInvoicePL(record IVVc IVr)
+begin
+  val amount;
+  row IVVc IVrw;
+  Integer i,rwcnt;
+  record VIVc VIr;
+  row VIVc VIrw;
+  record FactoringBlock Fb;
+  record CredManFactInvoiceVc CMIr;
+  record CredManVc CredManr;
+  string 255 warning;
+  val ct;
+
+  if (IVr.CustCredManNr>-1) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.FactoringInvoice>-1) then begin
+        if (IVrw.ChargeType==2) then begin
+          CMIr.SerNr = IVrw.FactoringInvoice;
+          if (ReadFirstMain(CMIr,1,true)) then begin
+            CredManr.SerNr = CMIr.CredManNr;
+            if (ReadFirstMain(CredManr,1,true)) then begin
+              BlockLoad(Fb);
+              amount = CMIr.TotalSum - (CMIr.TotalSum*CredManr.LoanToValue/100) - IVrw.Sum;
+              RecordNew(VIr);
+              VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+              VIr.TransDate = CurrentDate;
+              VIr.InvDate = CurrentDate;
+              VIVc_PasteInvDate(VIr);    
+              VIr.VECode = CredManr.CustCode;
+              VIVc_PasteVECode(VIr,0,true,true,warning)
+              VIr.PayDeal = Fb.SellerPayDeal;
+              VIVc_PastePayDeal(VIr);
+              VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
+              VIr.PayVal = amount;
+              ClearRow(VIr,VIrw,1);
+              VIrw.AccNumber = Fb.SellerFeeAccount;
+              MatRowPut(VIr,0,VIrw);
+              VIVc_PasteAccNumber(VIr,"",true,0);
+              MatRowGet(VIr,0,VIrw);
+              VIrw.VATCode = Fb.SellerVATCode;
+              MatRowPut(VIr,0,VIrw);
+              VIDDefault(0,"VATCode",VIr);
+              MatRowGet(VIr,0,VIrw);
+              VIrw.Sum = amount;
+              MatRowPut(VIr,0,VIrw);
+              VICalcVals(VIr);
+              VISumup(VIr,ct);
+              VIr.OKFlag = 1;
+              if (RecordInsert(VIr,true)) then begin
+              end; 
+            end;
+          end;
+        end;
+      end;
+    end;
   end;
 
   return;

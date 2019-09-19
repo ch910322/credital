@@ -309,6 +309,8 @@ begin
     CredManr.IntRate = CredManTyper.IntRate;
     CredManr.ChargeMethod = CredManTyper.ChargeMethod;
 //CUST-BEGIN
+    CredManr.PrincipleDelayMonths = CredManTyper.PrincipleDelayMonths;
+    CredManr.PrincipleDelayInterest = CredManTyper.PrincipleDelayInterest;
     CredManr.OverduePercentage = CredManTyper.OverduePercentage;
     CredManr.SuretyInterestRate = CredManTyper.SuretyInterestRate;
     CredManr.StdProlongFee = CredManTyper.StdProlongFee;

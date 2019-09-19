@@ -1,6 +1,11 @@
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function Boolean GetNextCustNr(var string);
+external inner procedure SendTextParameter(string,var Area);
+external inner procedure SendFunctionVersion(string,string,var Area);
+external inner function boolean SendServiceRequestNonUpdating(string,Boolean,Boolean,area,var Area,Boolean,Boolean,LongInt,string);
+external inner updating function Boolean SendServiceRequest(string,Boolean,area,var Area);
+external inner procedure ReadTXServiceReply(var record TXServiceReplyVc,var Area,Boolean);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -136,6 +141,9 @@ begin
   while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
     if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
       WebOutString("<div class='web-campaign'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div>");
+      if (nonblank(WCr.Style)) then begin
+        WebOutString("<style>" & WCr.Style & "</style>");
+      end;
       goto LShowSingleBanner;
     end;
     i = i + 1;
@@ -271,9 +279,9 @@ begin
   Integer type;
 
   switch (WEr.HALFunc) begin
-    case "Verslo": type = 0;
-    case "Faktoringas": type = 1;
-    case "Atsiskaitymo": type = 2;
+    case "Verslo": type = 1;
+    case "Faktoringas": type = 2;
+    case "Atsiskaitymo": type = 3;
   end;
 
   WLCr.Type = type;
@@ -347,10 +355,10 @@ begin
 
     rwcnt = MatRowCnt(WLCr);
     WebOutString("<script>");
-    WebOutString("var rates = {};");
+    WebOutString("var rates = [];");
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(WLCr,i,WLCrw);
-      WebOutString("rates['" & WLCrw.Months & "'] = " & WLCrw.Rate & ";");
+      WebOutString("rates.push({months:" & WLCrw.Months & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
     end;
     WebOutString("</script>");
 
@@ -364,7 +372,12 @@ begin
     end;
     WebOutString("</div><div class='col'>")
     //show selection box
-    WebOutString("<div class='submit'><div class='hl_button' type='" & WLCr.Type & "'>" & ToolWebNGTranslateText2(70011) & "</div></div>");
+    WebOutString("<div class='payment_info'>");
+    WebOutString("<div class='total_repayment'><div class='payment_ind'></div><div class='payment_val'></div><div class='payment_text'>" & ToolWebNGTranslateText2(70232) & "</div></div>");
+    WebOutString("<div class='monthly_repayment'><div class='payment_ind'></div><div class='payment_val'></div><div class='payment_text'>" & ToolWebNGTranslateText2(70233) & "</div></div>");
+    
+    WebOutString("</div>");
+    WebOutString("<div class='submit main_submit'><div class='hl_button' type='" & WLCr.Type & "'>" & ToolWebNGTranslateText2(70145) & "</div></div>");
     WebOutString("</div>");
     WebOutString("<div class='calc_summary'>");
     WebOutString("<div class='outer_circle'><div class='mid_circle'><div class='inner_circle'><div class='summ_content'></div><div class='summ_text'>" & ToolWebNGTranslateText2(70148) & "</div></div></div></div>");
@@ -544,3 +557,248 @@ begin
 
   return;
 end;
+
+procedure OutputContactHTMLNote(record CUVc CUr)
+begin
+  record WebFAQVc WFr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  area a;
+  Longint asz,pos,l;
+  xml x;
+  string 255 tstr;
+  Integer i;
+  
+  //if (CUr.HtmlFlag==0) then begin
+    WebOutText(CUr,false,"");
+/*
+  end else begin
+    i = 1;
+    while (ReadRecordLink(CUr,i,Attachr,RLr)) begin
+      i = i + 1;
+      if (Attachr.FileName == "body.html") then begin
+        SetAreaZeroSize(a);
+        asz = AttachFileSize(Attachr);    
+        LoadAttachFilePartToArea(Attachr,0,asz,a);
+
+        tstr = "";
+        pos = FindStringInArea("<body",a);
+        if (pos>0) then begin
+          pos = pos + 6;
+          l = GetAreaLength(a)-pos-13;
+          tstr = GetStringFromArea(a,pos,l);
+          SetAreaZeroSize(a);
+          AddTextToArea(tstr,a);
+          pos = FindStringInArea(">",a);
+          if (pos>0) then begin
+            pos = pos + 1;
+            tstr = GetStringFromArea(a,pos,GetAreaLength(a)-pos-1);
+          end;
+        end;
+        WebOutString(tstr);
+      end;
+    end;
+  end;
+*/
+  return;
+end;
+
+global
+procedure PartnerSearchForm(record WebNGElementVc WEr)
+begin
+  record WebInvoicingPartnerBlock IPb;
+  Longint pos;
+  string 255 tstr;
+  record CClassVc CCr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  record CUVc CUr;
+
+  BlockLoad(IPb);
+
+  WebOutString("<div class='partner_search'>");
+  WebOutString("<div class='loan_small_title'>" & ToolWebNGTranslateText2(70149) & "</div>");
+  WebOutString("<div class='cat_wrap'>");
+  while (GetNextSubstring(IPb.PartnerClass,pos,",",tstr)) begin
+    CCr.Code = tstr;
+    if (ReadFirstMain(CCr,1,true)) then begin
+      WebOutString("<div class='single_cat' id='" & tstr & "'>" & CCr.Comment & "</div>");
+    end;
+  end;
+  WebOutString("</div>");
+
+  pos = -1;
+  WebOutString("<div class='partner-search-title'><div class='partner-search-text'>" & ToolWebNGTranslateText2(70152) & "</div><div class='partner-search-count'></div></div>");
+  WebOutString("<div class='partner-list-wrap'>");
+  while (GetNextSubstring(IPb.PartnerClass,pos,",",tstr)) begin
+    ResetLoop(CUr);
+    RecordClear(Cur);
+    while (LoopKey("Classification:" & tstr,CUr,1,true)) begin
+      if (ReadRecordLink(CUr,1,Attachr,RLr)) then begin
+        WebOutString("<div class='single-partner' category='" & tstr & "'><div class='partner-image-wrap'><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
+        WebOutString("<div class='description'>");
+        OutputContactHTMLNote(CUr);
+        WebOutString("</div>");
+        WebOutString("</div>");
+      end;
+    end;
+  end;
+  WebOutString("</div>")
+  WebOutString("<div class='partner-search'><input type='text' placeholder='" & ToolWebNGTranslateText2(70153) & "'></div>");
+  WebOutString("<div class='partner_bottom gradient'>");
+  WebOutString("<div class='submit'><div class='hl_button' type='3'>" & ToolWebNGTranslateText2(70145) & "</div></div>");
+  WebOutString("<div class='partner_bottom_text'>" & ToolWebNGTranslateText2(70150) & "</div>");
+  WebOutString("<div class='partner_bottom_link'><a href=''>" & ToolWebNGTranslateText2(70151) & "</a></div>");
+  WebOutString("</div>");
+  WebOutString("</div>");
+
+  return;
+end;
+
+global
+procedure ShowNormalWebStrings()
+begin
+  
+  WebOutString("<script>");
+  WebOutString("var web_strings = {};");
+  WebOutString("web_strings['EnterCompName'] = '" & ToolWebNGTranslateText2(70154) & "';");
+  WebOutString("web_strings['EnterRegNr'] = '" & ToolWebNGTranslateText2(70155) & "';");
+  WebOutString("web_strings['EnterNameSurname'] = '" & ToolWebNGTranslateText2(70156) & "';");
+  WebOutString("web_strings['EnterEmail'] = '" & ToolWebNGTranslateText2(70157) & "';");
+  WebOutString("web_strings['EnterPhone'] = '" & ToolWebNGTranslateText2(70158) & "';");
+  WebOutString("web_strings['EnterPassword'] = '" & ToolWebNGTranslateText2(70159) & "';");
+  WebOutString("web_strings['EnterName'] = '" & ToolWebNGTranslateText2(70160) & "';");
+  WebOutString("web_strings['EnterComment'] = '" & ToolWebNGTranslateText2(70161) & "';");
+  WebOutString("</script>");
+
+  return;
+end;
+
+function Boolean FileNameIsImage(string fn)
+begin
+  
+
+  FileNameIsImage = true;//for now
+  return;
+end;
+
+global
+procedure DisplayContentGallery(string code,Integer filename)
+begin
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  Integer i;
+  Boolean galf;
+  vector Integer vImages;
+  array string 255 aImages;
+  string 255 link;
+  record WebNGContentVc WCr;
+  
+  if (filename==1) then begin
+    WCr.SerNr = StringToLongint(code);
+    if (ReadFirstMain(WCr,1,true)) then begin
+      i = 1;
+      while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
+        if (FileNameIsImage(Attachr.FileName)) then begin
+          if (WCr.ThumbnailImage!=Attachr.FileName and WCr.CoverImage!=Attachr.FileName) then begin
+            galf = true;
+            vImages[Attachr.FileName] = i; 
+          end;
+        end;
+        i = i + 1;
+      end;
+
+      if (galf) then begin
+        GetVectorTags(vImages,aImages);
+        WebOutString("<div class='gallery_wrap'>");
+        WebOutString("<div class='gallery_content'>");
+        WebOutString("<div class='gallery_title'><span class='gallery_title_text'>" & ToolWebNGTranslateText2(70200) & "</span><span class='highlight'>" & aImages.length & "</span></div>")
+        for (i=0;i<aImages.length;i=i+1) begin
+          link = WebGetArg("path") & "/images?image=" & aImages[i];
+          WebOutString("<a class='fancybox' rel='group' href='" & link & "'><img src='" & link & "'></a>")
+        end;
+        WebOutString("</div>");
+        WebOutString("</div>");
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr)
+begin
+  area a_req,a_reply;
+  string 255 fres,err,tstr;
+  record TXServiceReplyVc TXSrvReplyr;
+  Boolean res;
+  
+  name = "";
+  SendFunctionVersion("54.0","",a_req);
+  SendTextParameter("web",a_req);
+  SendTextParameter(regnr,a_req);
+  SendTextParameter(0,a_req);
+  
+  res = SendServiceRequestNonUpdating("UPDATECOMPANYDATA",false,true,a_req,a_reply,true,false,60,"");      
+  ReadTXServiceReply(TXSrvReplyr,a_reply,true);
+  if (res) then begin
+    name  = GetTabTextFromArea(0,1,a_reply);
+
+    addr0  = GetTabTextFromArea(0,4,a_reply);
+    tstr  = GetTabTextFromArea(0,5,a_reply);
+    if (nonblank(tstr)) then begin
+      if (nonblank(addr0)) then begin
+        addr0 = addr0 & " ";
+      end;
+      addr0 = addr0 & tstr;
+    end;
+    tstr  = GetTabTextFromArea(0,6,a_reply);
+    if (nonblank(tstr)) then begin
+      if (nonblank(addr0)) then begin
+        addr0 = addr0 & " ";
+      end;
+      addr0 = addr0 & tstr;
+    end;
+    addr2  = GetTabTextFromArea(0,7,a_reply);
+    addr3  = GetTabTextFromArea(0,3,a_reply);
+    phone  = GetTabTextFromArea(0,9,a_reply);
+    mobile  = GetTabTextFromArea(0,10,a_reply);
+    fax  = GetTabTextFromArea(0,11,a_reply);
+    homepage  = GetTabTextFromArea(0,12,a_reply);
+    email  = GetTabTextFromArea(0,13,a_reply);
+    vatnr  = GetTabTextFromArea(0,14,a_reply);
+
+  end;
+
+  return;
+end;
+
+global webpublic
+procedure WebCheckCompanyName()
+begin
+  string 255 fres,compid,err,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr;
+  record CUVc CUr;
+
+  if (GetSessionString("LoanAppVer")==WebGetArg("scall")) then begin
+    compid = WebGetArg("regnr");
+
+    if (nonblank(compid) and len(compid)==9) then begin
+      CUr.RegNr1 = compid;
+      if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+        fres = CUr.Name;
+      end else begin
+        GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr);
+      end;
+    end;
+  end;
+
+  if (blank(fres)) then begin
+    err = "Could not find the name";
+  end;
+
+  WebOutString("<res err='" & err & "' name='" & fres & "' ></res>");
+
+  return;
+end;
+

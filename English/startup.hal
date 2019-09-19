@@ -38,6 +38,7 @@ begin
   Setting("FAQ",WebFAQLClass,modWebShopNG);
   Setting("FAQ Categories",WebFAQCategoryLClass,modWebShopNG);
   Setting("Loan Calculators",WebLoanCalcLClass,modWebShopNG);
+  Setting("Partner Search Settings",WebInvoicingPartnerTClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");

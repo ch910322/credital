@@ -215,6 +215,8 @@ begin
   RecordField(InvoiceCommentStr,M4Str,255,0);
   RecordField(RefinClass,M4Code,5,OrderClassVc);
   RecordField(AddPrepayments,M4Int,0,0);
+  RecordField(WebAppClass,M4Code,5,OrderClassVc);
+  RecordField(SuretyLetter,M4Str,255,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -682,6 +684,7 @@ begin
   RecordField(EndDate,M4Date,0,0);
   RecordField(Image,M4Str,200,0);
   RecordField(Type,M4Set,2013,0);
+  RecordField(Style,M4Str,255,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(TypeStartDate);
@@ -751,6 +754,7 @@ begin
   ArrayField(Type,M4Set,2015,0);
   ArrayField(EvalLimit,M4Val,0,0);
   ArrayField(Used,M4Val,0,0);
+  ArrayField(OpenTotal,M4Val,0,0);
   EndArray;
   MainKeyBegin(CredManNr,0);
   KeySegment(CredManNr);
@@ -805,6 +809,11 @@ begin
   RecordField(BuyerItem,M4Code,20,INVc);
   RecordField(BuyerPayDeal,M4Code,5,PDVc);
   RecordField(BuyerObject,M4Code,20,ObjVc);
+  RecordField(SellerFeeAccount,M4Code,10,AccVc);
+  EndBlock;
+
+  BlockBegin(WebInvoicingPartnerBlock,-,"");
+  RecordField(PartnerClass,M4UStr,255,0);
   EndBlock;
 
   SourceFile("halcust\\English", 0);
@@ -829,6 +838,10 @@ begin
 /*SmartID*/
   Exec_file("halcust\\Integrations\\SmartID\\datadef.hal");
   SourceFile("halcust\\Integrations\\SmartID", 3);
+
+/*Paysera*/
+  Exec_file("halcust\\Integrations\\Paysera\\datadef.hal");
+  SourceFile("halcust\\Integrations\\Paysera", 3);
 
 /*Creditinfo*/
   Exec_file("halcust\\Integrations\\Creditinfo\\datadef.hal");

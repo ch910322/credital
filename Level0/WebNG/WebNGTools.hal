@@ -17,6 +17,9 @@ external procedure SetCountryAllowedLanguage(string);
 external function string 255 ConvertXml(string);
 external function string 255 AddStr(string,string,string);
 external outer function Boolean InternalNodeIsApplication(Integer);
+//CUST-BEGIN
+external outer procedure DisplayContentGallery(string,Integer);
+//CUST-END
 
 global
 function boolean LoginState()
@@ -1187,6 +1190,9 @@ begin
       if (filename!=0) then begin
         WebOutTagClose("</div>");
       end;
+//CUST-BEGIN
+      DisplayContentGallery(code,filename);
+//CUST-END
     end;
     res = true;
   end;

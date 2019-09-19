@@ -1,0 +1,10 @@
+begin
+  
+  BlockBegin(PayseraBlock,-,"");
+  RecordField(ProjectID,M4Str,50,0);
+  RecordField(SignPassword,M4Str,50,0);
+  RecordField(Mode,M4Int,0,0);
+  EndBlock;
+
+  return;
+end;

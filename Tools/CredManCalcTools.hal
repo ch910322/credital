@@ -536,8 +536,11 @@ begin
             AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,0,monthtype,invdat,acumint,calcbal,frdat,todat,i)
           end;
         case 4://Factoring
-          AddFactoringInvoices(inCredManr,CredManPayPlanr,CredManSetb,invdat,acumint,calcbal,frdat,todat)
+          AddFactoringInvoices(inCredManr,CredManPayPlanr,CredManSetb,CurrentDate,acumint,calcbal,frdat,todat)
         case 6:
+          if (i==0) then begin
+            inCredManr.InstalmentMonths = inCredManr.InstalmentMonths-inCredManr.PrincipleDelayMonths;
+          end;
           monthtype2 = monthtype;
           if (monthtype2==kMonthTypeLast) then begin
             monthtype2 = kMonthTypeRegular;

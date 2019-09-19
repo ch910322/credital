@@ -59,11 +59,7 @@ begin
   IVr.TransDate = invdate;//or current date?
   IVr.InvDate = invdate;//from seting?
 
-  if (CredManr.InstalmentType==4 and forcecustf==false) then begin
-    IVr.CustCode = CredManr.FactBuyer;
-  end else begin
-    IVr.CustCode = CredManr.CustCode;
-  end;
+  IVr.CustCode = CredManr.CustCode;
   PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
   IVr.PayDeal = CredManr.PayDeal;
   IVVc_PastePayDeal(IVr,"",LMb.DefReturnLocation);
