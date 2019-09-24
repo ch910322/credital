@@ -13,7 +13,7 @@ begin
   return;
 end;
 
-function Boolean GetAuthenticationSession(record CUVc CUr,record SmartIDBlock SIb,var string token)
+function Boolean GetAuthenticationSession(record CUVc CUr,record SmartIDBlock SIb,var string token,var string control_code)
 begin
   string 255 url,path;
   json js;
@@ -24,7 +24,7 @@ begin
   Countryr.Code = CUr.CountryCode;
   if (ReadFirstMain(Countryr,1,true)) then begin
     url = GetSmartIDUrl(SIb);
-    path = "/smartid/login.json?access_token=" & SIb.AccessToken;
+    path = "/smartid/login.json?access_token=" & SIb.SmartIDAccessToken;
 
     AddTextToArea("code=" & CUr.RegNr1,request);
     AddTextToArea("&country=" & Countryr.ISOCode,request);
@@ -33,6 +33,7 @@ begin
       js = ParseJSONArea(reply);
       if (JSONGet(js,"status")=="ok") then begin
         token = JSONGet(js,"token");
+        control_code = JSONGet(js,"control_code");
         res = true;
       end;
     end;  
@@ -61,7 +62,7 @@ begin
       case "canceled":
         res = 2;
       case "error":
-        res = 2;
+        res = 3;
         //get the actual status
     end;
   end;
@@ -74,7 +75,7 @@ global
 function Boolean AuthenticateWithSmartID()
 begin
   Boolean res;
-  string 255 token;
+  string 255 token,control_code;
   record SmartIDBlock SIb;
   record CUVc CUr;
   Integer stat,tries;
@@ -83,7 +84,7 @@ begin
   CUr.Code = CurrentCust;
   if (ReadFirstMain(CUr,1,true)) begin
     BlockLoad(SIb);
-    if (GetAuthenticationSession(CUr,SIb,token)) then begin//send authentication request
+    if (GetAuthenticationSession(CUr,SIb,token,control_code)) then begin//send authentication request
       stat = GetSessionStatus(SIb,token);//wait for session result
       while (stat==0 and tries<100) begin
         sleep(1);
@@ -126,30 +127,27 @@ begin
 end;
 
 global
-function Boolean InitSmartIDAuthentication(var string token)
+function Boolean InitSmartIDAuthentication(record CUVc CUr,var string token,var string control_code)
 begin
   Boolean res;
   record SmartIDBlock SIb;
-  record CUVc CUr;
   
-  CUr.Code = CurrentCust;
-  if (ReadFirstMain(CUr,1,true)) begin
-    BlockLoad(SIb);
-    if (GetAuthenticationSession(CUr,SIb,token)) then begin//send authentication request
-      res = true;
-    end;
+  BlockLoad(SIb);
+  if (GetAuthenticationSession(CUr,SIb,token,control_code)) then begin//send authentication request
+    res = true;
   end;
 
   InitSmartIDAuthentication = res;
   return;
 end;
 
-function Integer CheckSmartIDStatus(string token)
+global
+function Integer CheckSmartIDStatus(record CUVc CUr,string token)
 begin
   Integer res;
   record SmartIDBlock SIb;
  
-  if (nonblank(CurrentCust) and nonblank(token)) then begin
+  if (nonblank(CUr.Code) and nonblank(token)) then begin
     BlockLoad(SIb);
     res = GetSessionStatus(SIb,token);//wait for session result
   end else begin
@@ -165,15 +163,19 @@ procedure SmartIDWebActions(string action)
 begin
   Boolean res;
   Integer stat;
-  string 255 token;
+  string 255 token,control_code;
+  record CUVc CUr;
 
-  switch (action) begin
-    case "init":
-      res = InitSmartIDAuthentication(token);
-      WebOutString("<res stat='" & res & "' token='" & token & "'></res>");
-    case "check":
-      stat = CheckSmartIDStatus(WebGetArg("token"));
-      WebOutString("<res stat='" & stat & "'></res>");
+  CUr.Code = CurrentCust;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    switch (action) begin
+      case "init":
+        res = InitSmartIDAuthentication(CUr,token,control_code);
+        WebOutString("<res stat='" & res & "' token='" & token & "'></res>");
+      case "check":
+        stat = CheckSmartIDStatus(CUr,WebGetArg("token"));
+        WebOutString("<res stat='" & stat & "'></res>");
+    end;
   end;
 
   return;

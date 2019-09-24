@@ -3,6 +3,7 @@ begin
   BlockBegin(SmartIDBlock,-,"");
   RecordField(AccessToken,M4Str,50,0);
   RecordField(Mode,M4Int,0,0);
+  RecordField(SmartIDAccessToken,M4Str,50,0);
   EndBlock;
 
   return;

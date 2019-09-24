@@ -6,6 +6,10 @@ external inner procedure SendFunctionVersion(string,string,var Area);
 external inner function boolean SendServiceRequestNonUpdating(string,Boolean,Boolean,area,var Area,Boolean,Boolean,LongInt,string);
 external inner updating function Boolean SendServiceRequest(string,Boolean,area,var Area);
 external inner procedure ReadTXServiceReply(var record TXServiceReplyVc,var Area,Boolean);
+external inner function string 255 FormatLink(string,string,boolean,boolean);
+external inner function LongInt DateDiff(Date,Date);
+external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
+external inner procedure ToolWebOutElementTextFormat(record WebNGElementVc);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -252,9 +256,9 @@ begin
   WebOutString("<div class='slider_label'>" & label & "</div>");
   if (inputf) then begin
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
-    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div>");
+    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & ((max-min)/2+min) & "' step='" & step & "'></div>");
   end else begin
-    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'></div>");
+    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & ((max-min)/2+min) & "' step='" & step & "'></div>");
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
   end;
   WebOutString("<script>$('input[name=\"" & name & "\"]').change()</script>");
@@ -277,6 +281,7 @@ begin
   row WebLoanCalcVc WLCrw;
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Integer type;
+  string 255 add;
 
   switch (WEr.HALFunc) begin
     case "Verslo": type = 1;
@@ -293,6 +298,10 @@ begin
     term_min = WLCr.TermMin;
     term_max = WLCr.TermMax;
     term_step = WLCr.TermStep;
+    add = ToolWebNGTranslateText2(70014);
+    if (WLCr.TermType==1) then begin
+      add = ToolWebNGTranslateText2(70073);
+    end;
 
 
     WebOutString("<div class='loan_app'><form method='POST'>");
@@ -308,7 +317,7 @@ begin
 
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),true);
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),add,true);
     end;
 /*
     ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
@@ -336,6 +345,7 @@ begin
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Boolean verslof,faktf,garantf;
   Integer type,i,rwcnt;
+  string 255 add;
 
   switch (WEr.HALFunc) begin
     case "Verslo": type = 0;
@@ -352,6 +362,10 @@ begin
     term_min = WLCr.TermMin;
     term_max = WLCr.TermMax;
     term_step = WLCr.TermStep;
+    add = ToolWebNGTranslateText2(70014);
+    if (WLCr.TermType==1) then begin
+      add = ToolWebNGTranslateText2(70073);
+    end;
 
     rwcnt = MatRowCnt(WLCr);
     WebOutString("<script>");
@@ -368,7 +382,7 @@ begin
       ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),ToolWebNGTranslateText2(70014),true);
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),add,true);
     end;
     WebOutString("</div><div class='col'>")
     //show selection box
@@ -380,7 +394,7 @@ begin
     WebOutString("<div class='submit main_submit'><div class='hl_button' type='" & WLCr.Type & "'>" & ToolWebNGTranslateText2(70145) & "</div></div>");
     WebOutString("</div>");
     WebOutString("<div class='calc_summary'>");
-    WebOutString("<div class='outer_circle'><div class='mid_circle'><div class='inner_circle'><div class='summ_content'></div><div class='summ_text'>" & ToolWebNGTranslateText2(70148) & "</div></div></div></div>");
+    WebOutString("<div class='outer_circle'><div class='mid_circle'><canvas id='main_loan_canvas' width=348 height=348>></canvas><div class='inner_circle'><div class='summ_content'></div><div class='summ_text'>" & ToolWebNGTranslateText2(70148) & "</div></div></div></div>");
     WebOutString("</div></div>");
     WebOutString("</form></div>");
   end;
@@ -669,6 +683,10 @@ begin
   WebOutString("web_strings['EnterPassword'] = '" & ToolWebNGTranslateText2(70159) & "';");
   WebOutString("web_strings['EnterName'] = '" & ToolWebNGTranslateText2(70160) & "';");
   WebOutString("web_strings['EnterComment'] = '" & ToolWebNGTranslateText2(70161) & "';");
+  WebOutString("web_strings['EnterEmailAddress'] = '" & ToolWebNGTranslateText2(70162) & "';");
+  WebOutString("web_strings['BlankPassword'] = '" & ToolWebNGTranslateText2(70163) & "';");
+  WebOutString("web_strings['SamePassword'] = '" & ToolWebNGTranslateText2(70164) & "';");
+  
   WebOutString("</script>");
 
   return;
@@ -794,7 +812,7 @@ begin
   end;
 
   if (blank(fres)) then begin
-    err = "Could not find the name";
+    err = ToolWebNGTranslateText2(70074);
   end;
 
   WebOutString("<res err='" & err & "' name='" & fres & "' ></res>");
@@ -802,3 +820,167 @@ begin
   return;
 end;
 
+
+global
+procedure ShowNewsLetterForm(record WebNGElementVc WEr)
+begin
+  
+  //WebOutString("<div class='")
+
+  return;
+end;
+
+global
+procedure ShowResetPasswordElement(record WebNGElementVc WEr)
+begin
+  
+  WebOutString("<div class='reset_password_form'>");
+  ToolWebOutElementTextFormat(WEr);
+
+  WebOutTagOpen("<form method=""post"" action=""" & FormatLink("/WebAction.hal","?action=createnewpasssess",true,true) & """>");
+
+  WebOutStringFormatNL("<div class='reset_password_line'><div class='reset_password_label'>" & ToolWebNGTranslateText2(70257) & "</div><div class='reset_password_input'><input type=""text"" name=""email"" placeholder='" & ToolWebNGTranslateText2(70258) & "'></div></div>");
+
+  WebOutString("<div class='reset_password_line submit'><div class='reset_password_submit'>" & ToolWebNGTranslateText2(70259) & "</div></div>");
+
+  WebOutString("</form></div>");
+  return;
+end;
+
+global
+updating procedure SendResetPasswordMail()
+begin
+  record PassSessVc PSr;
+  string 255 tstr;
+  record CUVc CUr;
+  Boolean foundf;
+  record RcVc RepSpec;
+  record CMApplicationSetBlock CMb;
+  string 255 msg;
+
+  
+  tstr = WebGetArg("email");
+  CUr.eMail = tstr;
+  if (ReadFirstKey("eMail",CUr,1,true)) then begin
+    foundf = true;
+  end;
+  if (!foundf) then begin
+    ResetLoop(CUr);
+    CUr.Code = tstr;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      foundf = true;
+    end;
+  end;
+
+  if (foundf) then begin
+    RecordNew(PSr);
+    PSr.UUID = MakeUUID;
+    PSr.CustCode = CUr.Code;
+    PSr.TransDate = CurrentDate;
+    PSr.TransTime = CurrentTime;
+    if (RecordInsert(PSr,true)) then begin
+      BlockLoad(CMb);
+      msg = ToolWebNGTranslateText2(70260);
+      RepSpec.f1 = CUr.Code;
+      RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
+      SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);
+    end;
+  end else begin
+    msg = ToolWebNGTranslateText2(70261);    
+  end;
+  if (blank(msg)) then begin
+    msg = ToolWebNGTranslateText2(70262);
+  end;
+
+  WebOutString("<res msg='" & msg & "'></res>");
+
+  return;
+end;
+
+global
+procedure ShowUpdatePasswordElement(record WebNGElementVc WEr) 
+begin
+  record PassSessVc PSr;
+  Boolean expf,showf;
+   
+  PSr.UUID = StringToUUID(WebGetArg("sess"));
+  if (ReadFirstMain(PSr,1,true)) then begin
+    if (PSr.CustCode==WebGetArg("cc")) then begin
+      showf = true;
+      if (PSr.UsedFlag==1 or DateDiff(PSr.TransDate,CurrentDate)>2) then begin
+        expf = true;
+        showf = false;
+      end;
+      if (showf) then begin
+        WebOutString("<div class='update_password_form'>");
+        ToolWebOutElementTextFormat(WEr);
+        WebOutTagOpen("<form method=""post"" action=""" & FormatLink("/WebUpdatingAction.hal","?action=updatepasssess",true,true) & """>");
+        WebOutString("<input type='hidden' name='sess' value='" & PSr.UUID & "'><input type='hidden' name='cc' value='" & PSr.CustCode & "' >");
+        WebOutStringFormatNL("<div class='reset_password_line'><div class='reset_password_label'>" & ToolWebNGTranslateText2(70266) & "</div><div class='reset_password_input'><input type=""password"" name=""passw1"" placeholder='" & ToolWebNGTranslateText2(70267) & "'></div></div>");
+
+        WebOutStringFormatNL("<div class='reset_password_line'><div class='reset_password_label'>" & ToolWebNGTranslateText2(70268) & "</div><div class='reset_password_input'><input type=""password"" name=""passw2"" placeholder='" & ToolWebNGTranslateText2(70269) & "'></div></div>");
+
+        WebOutString("<div class='reset_password_line submit'><div class='reset_password_submit'>" & ToolWebNGTranslateText2(70270) & "</div></div>");
+
+        WebOutString("</form></div>");
+      end;
+    end;
+  end;  
+
+  if (expf) then begin
+    WebOutString("<div class='reset_err'>" & ToolWebNGTranslateText2(70271) & "</div>");
+  end;
+
+  return;
+end;
+
+
+global
+updating procedure UpdatePasswordSession()
+begin
+  record PassSessVc PSr,oldPSr;
+  record CUVc CUr,oldCUr;
+  string 255 passw1,passw2,msg;
+  Boolean showf,expf;
+  Boolean res;
+  
+  PSr.UUID = StringToUUID(WebGetArg("sess"));
+  if (ReadFirstMain(PSr,1,true)) then begin
+    if (PSr.CustCode==WebGetArg("cc")) then begin
+      showf = true;
+      passw1 = WebGetArg("passw1");
+      passw2 = WebGetArg("passw2");
+      if (PSr.UsedFlag==1 or DateDiff(CurrentDate,PSr.TransDate)>2) then begin
+        expf = true;
+        showf = false;
+      end;
+      if (passw1!=passw2 or len(passw1)<6) then begin//maybe we want longer passwords
+        showf = false;
+      end;
+      if (showf) then begin
+        Cur.Code = PSr.CustCode;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          res = true;
+          RecordCopy(oldCUr,CUr);
+          CUr.Password = CalcPassword(passw1,CUr.Code,0);
+          RecordUpdate(oldCUr,CUr,true);
+          RecordCopy(oldPSr,PSr);
+          PSr.UsedFlag = 1;
+          RecordUpdate(oldPSr,PSr,true);
+        end;
+      end;
+    end;
+  end;
+
+  if (res==false) then begin
+    msg = ToolWebNGTranslateText2(70264);
+  end;
+
+  if (expf) then begin
+    msg = ToolWebNGTranslateText2(70263);
+  end;
+
+  WebOutString("<res msg='" & msg & "' stat='" & res & "'></res>");
+
+  return;
+end;

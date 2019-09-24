@@ -1,0 +1,10 @@
+global
+function string 255 LetVcDoReplaceTokenResetPassword(record RCVc RepSpec,string field)
+begin
+  string 255 res;
+  
+  res = RepSpec.searchstr;
+  
+  LetVcDoReplaceTokenResetPassword = res;
+  return;
+end;

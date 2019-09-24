@@ -217,6 +217,8 @@ begin
   RecordField(AddPrepayments,M4Int,0,0);
   RecordField(WebAppClass,M4Code,5,OrderClassVc);
   RecordField(SuretyLetter,M4Str,255,0);
+  RecordField(VerWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(OtherWebAppClass,M4Code,5,OrderClassVc);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -735,6 +737,7 @@ begin
   RecordField(Manager,M4Code,20,UserVc);
   RecordField(CredManType,M4Code,20,CredManTypeVc);
   RecordField(WebText,M4Str,255,0);
+  RecordField(TermType,M4Int,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(Months,M4Int,0,0);
   ArrayField(Rate,M4Val,0,0);
@@ -815,6 +818,17 @@ begin
   BlockBegin(WebInvoicingPartnerBlock,-,"");
   RecordField(PartnerClass,M4UStr,255,0);
   EndBlock;
+
+  RecordBegin(PassSessVc,-,"");
+  NewAutosyncRegister(kSyncDirectionToClient,true);
+  RecordField(TransDate,M4Date,0,0);
+  RecordField(TransTime,M4Time,0,0);
+  RecordField(CustCode,M4Code,20,0);
+  RecordField(UsedFlag,M4Int,0,0);
+  MainKeyBegin(MainKey,0);
+  KeySegment(UUID);
+  EndRecord;
+
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

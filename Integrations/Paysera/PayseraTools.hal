@@ -1,10 +1,12 @@
 external function string 255 GetLinkToLoanApp();
 external inner procedure ShowRedirectHtml(string,boolean);
 external inner function string 255 FormatLink(string,string,boolean,boolean);
-external function string 255 UrlEncodeCS(string);
-external procedure ShowRedirectHtmlFromArea(area,boolean);
+external inner function string 255 UrlEncodeCS(string);
+external inner procedure ShowRedirectHtmlFromArea(area,boolean);
+external updating procedure ProcessLoanAppVerificationPaysera(string);
+external procedure LoadLoanSession(var vector string);
 
-updating function string 255 StartPaymentSession(string custcode,string currency,val amount)
+updating function string 255 StartPaymentSession(string custcode,string currency,val amount,Longint recid)
 begin
   record WebNGPaySessionVc WPSr;
   string 255 res;
@@ -14,7 +16,8 @@ begin
   WPSr.CustCode    = custcode;
   WPSr.Currency    = currency;
   WPSr.InclAmount  = amount;
-  
+  WPSr.RecordNr    = recid;
+
   if (RecordStore(WPSr,true)) then begin
     res = WPSr.UUID;
   end;
@@ -54,16 +57,17 @@ begin
   record CYBlock CYb;
   record B2BLoanApplicationVc LAr;
   Longint fsz,lines,l;
+  vector string 255 vSess;
 
-
-  LAr.SerNr = StringToLongint(GetSessionString("WebLoanNr"));
+  LoadLoanSession(vSess)
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
     BlockLoad(Pb);
     BlockLoad(CYb);
     crncy = "EUR";
     GetCustomerPaymentDetails(LAr,custcode,firstname,lastname,email,addr1,addr2,addr3,postcode,country,amount);
 
-    paysessionid = StartPaymentSession(custcode,crncy,amount);
+    paysessionid = StartPaymentSession(custcode,crncy,amount,LAr.SerNr);
 
     accesscode = Pb.SignPassword;
     projectid = Pb.ProjectID;
@@ -84,7 +88,7 @@ begin
     tstr = CYb.BusinessName;
     
     md5base64str = Base64Encode("projectid=" & UrlEncodeCS(projectid) &
-                "&orderid=" & UrlEncodeCS(left(paysessionid,40))  &
+                "&orderid=" & UrlEncodeCS(left(projectid,40))  &
                 "&amount=" & UrlEncodeCS(amountstr) &
                 "&currency=" & UrlEncodeCS(crncy) &
                 "&paytext=" & UrlEncodeCS(tstr) &
@@ -106,7 +110,7 @@ begin
   //  logtext(0,md5base64str);
     AddTextToArea(tourl,areq);
     AddTextToArea("projectid=" & UrlEncodeCS(projectid),areq1);
-    AddTextToArea("&orderid=" & UrlEncodeCS(left(paysessionid,40)),areq1);
+    AddTextToArea("&orderid=" & UrlEncodeCS(left(projectid,40)),areq1);
     AddTextToArea("&amount=" & UrlEncodeCS(amountstr),areq1);
     AddTextToArea("&currency=" & UrlEncodeCS(crncy),areq1);
     if (nonblank(tstr)) then begin
@@ -182,6 +186,7 @@ begin
     
     md5base64str = md5area(areq3);
     AddTextToArea("&sign=" & LowerCase(md5base64str),areq);
+    writeareatofile(areq,"paysera_request.txt",0);
     ShowRedirectHtmlFromArea(areq,true);
   end else begin
     //redirect back
@@ -196,25 +201,21 @@ global
 updating procedure PayseraActions(string action)
 begin
   record WebNGPaySessionVc WPSr,oldWPSr;
-  string 255 md5base64str,base;
+  string 255 md5base64str,base,str;
   Boolean nextf;
   record PayseraBlock Pb;
+  record NotePadVc Noter;
+  record RLinkVc RLr;
+  record B2BLoanApplicationVc LAr;
   
   switch (action) begin
+    case "getinfo":
+      //get the document (allow to download) and show details
+      BlockLoad(Pb);
+      WebOutString("<res mode='" & Pb.Mode & "'></res>");
     case "proceed":
       //redirect the customer to step 3 or step 4 based on the status
-      WPSr.UUID = WebGetArg("session");
-      if (ReadFirstMain(WPSr,1,true)) then begin
-        if (WPSr.Status==10+kCCStatusPaymentOK) then begin
-          nextf = true;
-        end;
-      end;
-      base = GetLinkToLoanApp;
-      if (nextf) then begin
-        ShowRedirectHTML(base & "4",WebSecureMode);
-      end else begin
-        ShowRedirectHTML(base & "3",WebSecureMode);
-      end;
+      ProcessLoanAppVerificationPaysera(WebGetArg("session"));
     case "cancel":
       //redirect back to step 3
       base = GetLinkToLoanApp;
@@ -226,16 +227,35 @@ begin
         BlockLoad(Pb);
         md5base64str = LowerCase(md5string(WebGetArg("data") & Pb.SignPassword));
         if (md5base64str==WebGetArg("ss1")) then begin
+          if (WebGetArg("personcodestatus")=="1") then begin
+            str = "ID OK";
+          end else begin
+            str = "ID not OK";
+          end;
           RecordCopy(oldWPSr,WPSr);
           WPSr.Status = 10+kCCStatusPaymentOK;
-          RecordUpdate(oldWPSr,WPSr,false);        
+          RecordUpdate(oldWPSr,WPSr,false);    
+          LAr.SerNr = WPSr.RecordNr;
+          if (ReadFirstMain(LAr,1,true)) then begin
+            RecordNew(Noter);
+            Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
+            SetTextField(Noter,CurrentDate & " " & CurrentTime);
+            if (RecordStore(Noter,false)) then begin
+               CreateRecordLink(LAr,CurrentCompany,Noter,CurrentCompany);  
+              if (ReadRecordLink(LAr,1,Noter,RLr)) then begin
+                RLr.Comment = USetStr(200106) & " " & str;
+                if (RecordStore(RLr,true)) then begin
+                end;
+              end;
+            end;
+          end;
         end;
       end;
       WebOutString("OK");
     case "startpayment":
       RedirectPayseraPayment;
   end;
-
-
 end;
+
+
 

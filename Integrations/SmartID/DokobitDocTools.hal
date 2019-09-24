@@ -1,0 +1,284 @@
+external procedure LoadLoanSession(var vector string);
+external function Boolean GetLoanAppContact(string,string,var record CUVc);
+external inner function string 255 FormatLink(string,string,boolean,boolean);
+external inner function string 255 removenextlistitem(var string,string);
+external function string 255 GetLinkToLoanApp();
+external inner procedure BitSafeBase64EncodeAnArea(var area); 
+external inner function string 255 StrReplace(string,string,string);
+
+global
+updating procedure StartPaymentSessionDokobit(string custcode,Longint id,var string sessionid)
+begin
+  record WebNGPaySessionVc WPSr;
+  string 255 res;
+
+  WPSr.UUID        = MakeUUID;
+  WPSr.AppID       = 1;
+  WPSr.PayMethod   = "dokobit";
+  WPSr.CustCode    = custcode;
+  WPSr.RecordNr    = id;
+  
+  if (RecordStore(WPSr,true)) then begin
+    sessionid = WPSr.UUID;
+  end;
+    
+  return;
+end;
+
+function string 255 GetDokobitUrl(record SmartIDBlock SIb)
+begin
+  string 255 res;
+
+  if (SIb.Mode==0) then begin
+    res = "gateway-sandbox.dokobit.com";
+  end else begin
+    res = "gateway.dokobit.com";
+  end;
+
+  GetDokobitUrl = res;
+  return;
+end;
+
+function Boolean FileUploadedSuccessfully(record SmartIDBlock SIb,string token)
+begin
+  Boolean res;
+  area request,reply;
+  string 255 url;
+  JSON js;
+  Integer tries;
+
+  url = GetDokobitUrl(SIb);
+
+  while (tries<10) begin
+    if (SendWebRequest(url,443,-1,true,"GET","/api/file/upload/" & token & "/status.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
+      writeareatofile(reply,"dokobit_status.txt",0);
+      js = ParseJSONArea(reply);
+      if (JSONGet(js,"status")=="uploaded") then begin
+        res = true;
+        goto LFileUploadedSuccessfully;
+      end;
+    end;
+    Sleep(1);
+    tries = tries + 1;
+  end; 
+
+LFileUploadedSuccessfully:;
+  FileUploadedSuccessfully = res;
+  return;
+end;
+
+function Boolean OpenSigningSession(record SmartIDBlock SIb,string uploadtoken,string signerid,string signername,string signersurname,string signercode,Longint id,var string token,var string paysessionid,var string signertoken)
+begin
+  string 255 url,callback,returnurl;
+  area request,reply;
+  JSON js;
+  Boolean res;
+  
+  url = GetDokobitUrl(SIb);
+  qupdating.StartPaymentSessionDokobit(signerid,id,paysessionid);
+  returnurl = "http://" & Webhost;//should be https://
+  callback = FormatLink("/WebAction.hal","action=dokobit.callback&session=" & paysessionid,true,true);
+  callback = returnurl & callback;
+  AddTextToArea("type=pdf",request);
+  AddTextToArea("&name=Agreement",request);
+  AddTextToArea("&postback_url=" & UrlEncode(callback),request);
+  AddTextToArea("&signers[0][id]=" & signerid,request);
+  AddTextToArea("&signers[0][name]=" & signername,request);
+  AddTextToArea("&signers[0][surname]=" & signersurname,request);
+  AddTextToArea("&signers[0][code]=" & signercode,request);
+  
+  AddTextToArea("&signers[0][signing_purpose]=signature",request);
+  AddTextToArea("&files[0][token]=" & uploadtoken,request);
+  AddTextToArea("&language=lt",request);
+
+  if (SendWebRequest(url,443,-1,true,"POST","/api/signing/create.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
+    writeareatofile(reply,"dokobit_createsign.txt",0);
+    js = ParseJSONArea(reply);
+    if (JSONGet(js,"status")=="ok") then begin
+      res = true;
+      token = JSONGet(js,"token");
+      signertoken = JSONGet(js,"signers/" & signerid);
+    end;
+  end;
+
+  OpenSigningSession = res;
+  return;
+end;
+
+function Boolean StartSigningRequest(string tmethod,var string link,area afile,string filename,string signerid,string signername,string signersurname,string signercode,Longint id,var string sessionid)
+begin
+  string 255 method,token,sha1,url,uploadtoken,base64,signertoken;
+  record SmartIDBlock SIb;
+  JSON js;
+  Boolean res;
+  area request,reply,nfile,tmp;
+
+  BlockLoad(SIb);
+  method = tmethod;
+  if (blank(method)) then begin
+    method = "smartid";
+  end;
+  
+  url = GetDokobitUrl(SIb);
+  
+  sha1 = LowerCase(SHA1AreaHex(afile));
+  //sha1 = "338aeb8f899afa4b1e8fc58e8272967b4c4f1ae0";
+  AddTextToArea("file[name]=" & filename,request);
+  AddTextToArea("&file[digest]=" & UrlEncode(sha1),request);
+  //AddTextToArea("&file[content]=",request);
+  base64 = GetStringFromArea(afile,0,GetAreaLength(afile));
+  AddTextToArea("&file[content]=" & UrlEncode(Base64Encode(base64)),request);
+
+  AddTextToArea(base64,tmp);
+  WriteAreaToFile(tmp,"dokobit_file.txt",0);
+  logtext(0,"sha1 = " & sha1);
+
+ 
+  //BitSafeBase64EncodeAnArea(afile) 
+  //AddAreaToArea(afile,request);
+
+  if (SendWebRequest(url,443,-1,true,"POST","/api/file/upload.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
+    writeareatofile(reply,"dokobit_upload.txt",0);
+    js = ParseJSONArea(reply);
+    if (JSONGet(js,"status")=="ok") then begin
+      uploadtoken = JSONGet(js,"token");
+      if (FileUploadedSuccessfully(SIb,uploadtoken)) then begin
+        if (OpenSigningSession(SIb,uploadtoken,signerid,signername,signersurname,signercode,id,token,sessionid,signertoken)) then begin
+          link = "https://" & url & "/signing/" & token & "?access_token=" & signertoken & "&signing_option=" & method;// & method;
+          link = link & "&_locale=en";
+          res = true;
+        end;
+      end;
+    end;
+  end;
+
+  StartSigningRequest = res;
+  return;
+end;
+
+procedure ExtractFileUrl(string turl,var string base,var string path,var string name)
+begin
+  string 255 url,tmp;
+
+  url = turl;
+  url = right(url,len(url)-8);//https://
+  base = removenextlistitem(url,"/");
+  path = "/" & url;
+  tmp = url;
+  while (nonblank(tmp)) begin
+    name = removenextlistitem(tmp,"/");
+  end;
+
+  return;
+end;
+
+global
+updating procedure TreatDokobitCallBack(area post,string session)
+begin
+  area request,reply;
+  string 255 action,status,fn,url,path;
+  record B2BLoanApplicationVc LAr;
+  record WebNGPaySessionVc WPSr,oldWPSr;
+  JSON js;
+  record SmartIDBlock SIb;
+  
+  WPSr.UUID = session;
+  if (ReadFirstMain(WPSr,1,true)) then begin
+    if (WPSr.Status!=10+kCCStatusPaymentOK) then begin
+      js = ParseJSONArea(post);
+      status = JSONGet(js,"status");
+      action = JSONGet(js,"action");
+      if (status=="ok" and SetInSet(action,"signing_completed,signer_signed,signing_archived")) then begin      
+        RecordCopy(oldWPSr,WPSr);
+        WPSr.Status = 10+kCCStatusPaymentOK;
+        if (RecordUpdate(oldWPSr,WPSr,false)==0) then begin
+          LAr.SerNr = WPSr.RecordNr;
+          if (ReadFirstMain(LAr,1,true)) then begin
+            //download file and 
+            ExtractFileUrl(StrReplace(JSONGet(js,"file"),"\\",""),url,path,fn);
+            logtext(0,"get file " & url & ":" & path & ":" & fn);
+            fn = "Agreement_signed.pdf";
+            BlockLoad(SIb);
+            if (SendWebRequest(url,443,-1,true,"POST",path & "?access_token=" & SIb.AccessToken,"","",false,request,reply,30)) then begin
+              WriteAreaToFile(reply,fn,0);
+              RecordLinkFile(fn,0,LAr,CurrentCompany);
+              Delete_File(fn);
+              //delete file on dokobit as well
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure DokobitActions(string action)
+begin
+  string 255 link,base,errstr,name,surname,sessionid;
+  record B2BLoanApplicationVc LAr;
+  vector string 255 vSess;
+  record CUVc CUr;
+  Longint pos,fsz;
+  area afile;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  record WebNGPaySessionVc WPSr;
+  Boolean res;
+  area post;
+
+  switch (action) begin
+    case "getinfo":
+      //get all info, show file // file will come from a link
+
+    case "start":
+      //upload file and get upload session to use in the link
+      LoadLoanSession(vSess);
+      LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+      if (ReadFirstMain(LAr,1,true)) then begin
+        if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+          GetNextSubstring(CUr.Name,pos," ",name);
+          GetNextSubstring(CUr.Name,pos," ",surname);
+          if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
+            fsz = AttachFileSize(Attachr);
+            LoadAttachFilePartToArea(Attachr,0,fsz,afile);
+            if (StartSigningRequest(WebGetArg("method"),link,afile,"Agreement.pdf",CUr.Code,name,surname,CUr.RegNr1,LAr.SerNr,sessionid)==false) then begin
+              errstr = "Failed to initiate signing";
+            end else begin
+              res = true;
+            end;
+          end;
+        end;
+      end;
+      WebOutString("<res err='" & errstr & "' link='" & link & "' session='" & sessionid & "' stat='" & res & "'></res>");
+    case "callback":
+      WebGetRawPostData(post);
+      writeareatofile(post,"dokobit_callback.txt",0);
+      logtext(0,"ddd " & WebGetArg("session"));
+      qupdating.TreatDokobitCallBack(post,WebGetArg("session"));
+      //from dokobit
+    case "proceed":
+      //to check the signing
+      LoadLoanSession(vSess);
+      LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+      if (ReadFirstMain(LAr,1,true)) then begin
+        WPSr.UUID = WebGetArg("session");
+        if (ReadFirstMain(WPSr,1,true)) then begin
+          if (WPSr.Status== 10+kCCStatusPaymentOK) then begin
+            res = true;
+          end;
+        end;
+      end;
+      base = GetLinkToLoanApp;
+      if (res) then begin
+        link = base & "4";
+      end else begin
+        link = base & "3";
+      end;
+      WebOutString("<res stat='" & res & "' link='" & link & "'></res>");
+  end;
+
+  return;
+end;

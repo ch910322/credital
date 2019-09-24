@@ -15,6 +15,10 @@ external function Boolean InsertContactName(var record B2BLoanApplicationVc);
 external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
 external remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
 external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
+external function Integer CheckSmartIDStatus(record CUVc,string);
+external function Boolean InitSmartIDAuthentication(record CUVc,var string,var string);
+external inner procedure SetContentTypeForExtension(string);
+external inner function string 255 StrReplace(string,string,string);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -31,13 +35,14 @@ begin
   return;
 end;
 
-procedure LoadSession(var vector string vSess)
+global
+procedure LoadLoanSession(var vector string vSess)
 begin
   
   vSess["LoanType"] = GetSessionString("WebLoanType");
   vSess["LoanAmount"] = GetSessionString("WebLoanAmount");
   vSess["LoanTerm"] = GetSessionString("WebLoanTerm");
-  vSess["WebLoanNr"] = 190054;//GetSessionString("WebLoanNr");
+  vSess["WebLoanNr"] = 190058;//GetSessionString("WebLoanNr");//190058;//
   if (blank(vSess["LoanType"])) then begin
     vSess["LoanType"] = 0;
     vSess["LoanAmount"] = 0;
@@ -85,11 +90,11 @@ begin
 
   WebOutString("<div class='row loan-types'>")
   st = StringToInt(selectedtype);
-  ShowLoanType("A","blue",ToolWebNGTranslateText2(70101),0,st);
-  ShowLoanType("B","blue",ToolWebNGTranslateText2(70102),1,st);
-  ShowLoanType("C","blue",ToolWebNGTranslateText2(70103),2,st);
+  ShowLoanType("A","green",ToolWebNGTranslateText2(70101),0,st);
+  ShowLoanType("B","green",ToolWebNGTranslateText2(70102),1,st);
+  ShowLoanType("C","green",ToolWebNGTranslateText2(70103),2,st);
   ShowLoanType("D","orange",ToolWebNGTranslateText2(70104),3,st);
-  ShowLoanType("E","orange",ToolWebNGTranslateText2(70105),4,st);
+  ShowLoanType("E","blue",ToolWebNGTranslateText2(70105),4,st);
   WebOutString("</div>")
 
   return;
@@ -122,7 +127,7 @@ begin
   WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70108) & "</h2></div>");
   WebOutString("<div class='row loan-payments'>")
   WebOutString("<div class='col monthly-payment'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70109) & "</div></div>");
-  WebOutString("<div class='col deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
+  WebOutString("<div class='col-auto deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
   WebOutString("<div class='col percentage'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70111) & "</div></div>");
 
   WebOutString("</div>");
@@ -229,6 +234,7 @@ begin
   record WebLoanCalcVc WLCr;
   row WebLoanCalcVc WLCrw;
   Integer i,rwcnt;
+  string 255 add;
 
   WebOutString("<script>");
   WebOutString("var deftype = " & vSess["LoanType"] & ";");
@@ -236,7 +242,12 @@ begin
   WebOutString("var defterm = " & vSess["LoanTerm"] & ";");
   WebOutString("var loantypes = {};");
 
+
   while (LoopMain(WLCr,1,true)) begin
+    add = ToolWebNGTranslateText2(70014);
+    if (WLCr.TermType==1) then begin
+      add = ToolWebNGTranslateText2(70073);
+    end;
     rwcnt = MatRowCnt(WLCr);
     WebOutString("var t = {};");
     WebOutString("t['amount-min'] = " & WLCr.AmountMin & ";");
@@ -245,6 +256,7 @@ begin
     WebOutString("t['term-min'] = " & WLCr.TermMin & ";");
     WebOutString("t['term-max'] = " & WLCr.TermMax & ";");
     WebOutString("t['term-step'] = " & WLCr.TermStep & ";");
+    WebOutString("t['term-add'] = '" & add & "';");
     WebOutString("t['rates'] = [];");
     
     for (i=0;i<rwcnt;i=i+1) begin
@@ -299,7 +311,7 @@ procedure ShowLoanAppStepOne()
 begin
   vector string 255 vSess;
   
-  LoadSession(vSess);
+  LoadLoanSession(vSess);
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(1);
@@ -349,7 +361,7 @@ begin
   record B2BLoanApplicationVc LAr;
   record CUVc CUr;
   
-  LoadSession(vSess);
+  LoadLoanSession(vSess);
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(2);
@@ -422,8 +434,11 @@ begin
     ShowInputField2("sur_email",ToolWebNGTranslateText2(70250),ToolWebNGTranslateText2(70251),"","",true,"email");
     WebOutString("</div>");
 
-    WebOutString("<div class='row input_row block_end'>")
+    WebOutString("<div class='row input_row'>")
     ShowInputField("sur_phone",ToolWebNGTranslateText2(70252),ToolWebNGTranslateText2(70253),"","",true);
+    WebOutString("</div>");
+    WebOutString("<div class='row input_row block_end'>")
+    WebOutString("<div class='surety_remove_wrap'><div class='surety_remove hl_button'>" & ToolWebNGTranslateText2(70272) & "</div></div>");
     WebOutString("</div>");
 
     WebOutString("</div>");//single_surety_template
@@ -528,6 +543,7 @@ begin
   ShowVerificatonMethod("esig","esignature.svg",ToolWebNGTranslateText2(70225));
   ShowVerificatonMethod("ebank","ebank.svg",ToolWebNGTranslateText2(70226));
   ShowVerificatonMethod("smartid","esmartid.svg",ToolWebNGTranslateText2(70227));
+  ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70224));
   WebOutString("<div class='clear'></div>");
   return;
 end;
@@ -545,7 +561,7 @@ begin
   vector string 255 vSess;
   record B2BLoanApplicationVc LAr;
   
-  LoadSession(vSess);
+  LoadLoanSession(vSess);
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(3);
@@ -595,6 +611,32 @@ begin
   return;
 end;
 
+function string 255 MakeWebSafe(string tstr)
+begin
+  string 255 res;
+
+  res = StrReplace(tstr,"'","\\'");
+
+  MakeWebSafe = res;
+  return;
+end;
+
+
+procedure ShowWebStrings()
+begin
+
+  WebOutString("<script>");
+  WebOutString("var loan_str = {};");
+  WebOutString("loan_str['SmartID'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70075)) & "';");
+  WebOutString("loan_str['BankTrans'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70076)) & "';");
+  WebOutString("loan_str['ESIG'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70077)) & "';");
+  WebOutString("loan_str['DefAgrText'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70078)) & "';");
+  WebOutString("loan_str['OtherAgrText'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70079)) & "';");
+  WebOutString("loan_str['Close'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70080)) & "';");
+  WebOutString("loan_str['Proceed'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70081)) & "';");
+  WebOutString("</script>");
+
+end;
 
 global
 procedure ShowLoanApp(record WebNGStructVc WSr,string mpath)
@@ -607,7 +649,7 @@ begin
   node = removenextnode(path);
 
   if (nonblank(node)) then begin
-    LoadSession(vSess);
+    LoadLoanSession(vSess);
     if (vSess["WebLoanNr"]=="") then begin
       ShowRedirectHTML(GetLinkToLoanApp,WebSecureMode);
       goto LShowLoanApp;
@@ -627,6 +669,7 @@ begin
     otherwise
       ShowLoanAppStepOne;
   end;
+  ShowWebStrings;
 
   ShowWebAppPageEnd(WPr);
 
@@ -859,6 +902,32 @@ begin
   return;
 end;
 
+updating procedure PrepareLoanApplicationVerification(record B2BLoanApplicationVc LAr)
+begin
+  vector string 255 vSess;
+  string 255 md5,fn;
+  Longint fsz;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  
+  fn = "LoanApplication.pdf";
+  if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
+    if (Attachr.FileName==fn) then begin
+      RecordRemove(Attachr);
+    end;
+  end;
+  SetDocumentFilename(fn);
+  SetMedia(mtPdf);    
+  PrintDocument(LAr,"LoanAppForm",false);
+  SetDocumentFilename("");
+  if (FileExists(fn)) then begin
+    RecordLinkFile(fn,0,LAr,CurrentCompany);
+    Delete_File(fn);
+  end;
+
+  return;
+end;
+
 global
 updating procedure LoanApplicationStoreStep2()
 begin
@@ -883,7 +952,7 @@ begin
   end;
 
   if (err==0) then begin
-    LoadSession(vSess);
+    LoadLoanSession(vSess);
     LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
     if (ReadFirstMain(LAr,1,true)) then begin
       RecordCopy(oldLAr,LAr);
@@ -895,6 +964,7 @@ begin
       end;
       if (RecordUpdate(oldLAr,LAr,true)==0) then begin
         SendEmailsToSurety(LAr);
+        PrepareLoanApplicationVerification(LAr);
       end;
     end;
     link = GetLinkToLoanApp;
@@ -906,3 +976,136 @@ begin
 
   return;
 end;
+
+global
+updating procedure SetLoanAppStatus(Integer stat,vector string vSess)
+begin
+  record CMApplicationSetBlock CMb;
+  record B2BLoanApplicationVc LAr,oldLAr;
+  
+  BlockLoad(CMb);
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+  if (ReadFirstMain(LAr,1,true)) then begin
+    RecordCopy(oldLAr,LAr);
+    switch (stat) begin
+      case 1: LAr.OrderClass = CMb.VerWebAppClass;
+      case 2: LAr.OrderClass = CMb.OtherWebAppClass;
+    end;
+    RecordUpdate(oldLAr,LAr,true);
+  end;
+
+  return;
+end;
+
+global
+function Boolean GetLoanAppContact(string name,string custcode,var record CUVc CUr)
+begin
+  Boolean res;
+  record ContactRelVc CRr;
+
+  CRr.ContactName = name;
+  CRr.CustCode = custcode;
+  if (ReadFirstKey("Contact",CRr,2,true)) then begin
+    CUr.Code = CRr.ContactCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      res = true;
+    end;
+  end;
+
+  GetLoanAppContact = res;
+  return;
+end;
+
+global
+procedure ProcessOtherVerification()
+begin
+  vector string 255 vSess;
+  string 255 base,link;
+
+  LoadLoanSession(vSess);
+  qupdating.SetLoanAppStatus(2,vSess);
+  base = GetLinkToLoanApp;
+  link = base & "4";
+  WebOutString("<res stat='1' link='" & link & "'></res>");
+
+  return;
+end;
+
+global
+updating procedure ProcessLoanAppVerificationPaysera(string sess)
+begin
+  record WebNGPaySessionVc WPSr;
+  Boolean nextf;
+  string 255 base;
+  vector string 255 vSess;
+  
+  WPSr.UUID = sess;
+  if (ReadFirstMain(WPSr,1,true)) then begin
+    if (WPSr.Status==10+kCCStatusPaymentOK) then begin
+      nextf = true;
+      LoadLoanSession(vSess);
+      SetLoanAppStatus(1,vSess);
+    end;
+  end;
+  base = GetLinkToLoanApp;
+  if (nextf) then begin
+    ShowRedirectHTML(base & "4",WebSecureMode);
+  end else begin
+    ShowRedirectHTML(base & "3",WebSecureMode);
+  end;
+
+  return;
+end;
+
+global webpublic
+procedure WebShowLoanAppAgreement()
+begin
+  record B2BLoanApplicationVc LAr,oldLAr;
+  vector string 255 vSess;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  
+  LoadLoanSession(vSess);
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+  if (ReadFirstMain(LAr,1,true)) then begin
+    if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
+      SetContentTypeForExtension("pdf");
+      WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+      WebOutAttachment(Attachr.SerNr);
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure LoanAppSmartIDAction(string action)
+begin
+  Boolean res;
+  Integer stat;
+  string 255 token,control_code;
+  vector string 255 vSess;
+  record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+
+  LoadLoanSession(vSess);
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+  if (ReadFirstMain(LAr,1,true)) then begin
+    if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+      switch (action) begin
+        case "init":
+          res = InitSmartIDAuthentication(CUr,token,control_code);
+          WebOutString("<res stat='" & res & "' token='" & token & "' control_code='" & control_code & "'></res>");
+        case "check":
+          stat = CheckSmartIDStatus(CUr,WebGetArg("token"));
+          if (stat==1) then begin
+            qupdating.SetLoanAppStatus(1,vSess);
+          end;
+          WebOutString("<res stat='" & stat & "'></res>");
+      end;
+    end;
+  end;
+
+  return;
+end;
+

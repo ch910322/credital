@@ -19,7 +19,8 @@ begin
   SetBlid(SmartIDBlock);
   SetWRect(20,80,570,298);
   Sizeable(-1,-1,0,0);
-  EditField(h=150,v=6,200,"Access Token",Normal,AccessToken,false,0);
+  EditField(h=150,v=6,200,"E-Signature Access Token",Normal,AccessToken,false,0);
+  EditField(h=150,v+=vs,200,"Smart ID Access Token",Normal,SmartIDAccessToken,false,0);
   ButtonFrame(h,v=v+40,100,2,"Mode");
   RadioButton(h,v,0,0,"Test",Mode);
   RadioButton(h,v+=16,1,0,"Live",Mode);

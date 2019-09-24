@@ -1,0 +1,92 @@
+external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
+external inner function Integer NumberofDocumentPages(string,Integer);
+external inner procedure CommonDocumentFields(record RcVc);
+external function Boolean GetLoanAppContact(string,string,var record CUVc);
+
+
+global
+procedure DoLoanAppForm(record RcVc RepSpec,record B2BLoanApplicationVc LAr)
+BEGIN
+  record DocVc Docr;
+  record CUVc CUr;
+  record FormDefVc FDr;
+  row FormDefVc FDrw;
+  Integer i,rwcnt;
+  string 255 tstr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record UserVc Userr;
+    
+  FDr.repname = RepSpec.repname;
+  FDr.shortname = RepSpec.shortname;
+  if (ReadFirstMain(FDr,1,true)==false) then begin
+    MessageBox(1624, " " & USetStr(1623));
+    goto LDoLoanAppForm;
+  end;
+  rwcnt = MatRowCnt(FDr);
+  for (i=rwcnt-1;i>=0;i=i-1) begin
+    MatRowGet(FDr,i,FDrw);
+    if (FDrw.LangCode==langcode) then begin
+      i = -1;
+      langf = true;
+    end;
+  end;
+  if (langf==false) then begin langcode = ""; end;
+
+  intdocnr = 1;
+  printf = true;
+  while (printf) begin  
+    formcode = "";
+    for (i=rwcnt-1;i>=0;i=i-1) begin
+      MatRowGet(FDr,i,FDrw);
+      if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,LAr.SerNr,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
+      begin
+        goto LBREAK;
+      end;
+    end;
+LBREAK:;
+    if (nonblank(formcode)) then begin  
+      if (OpenForm(formcode)) then begin
+        CommonDocumentFields(RepSpec);
+        NumberofDocumentPages(formcode,MatRowCnt(LAr));
+        Docr.Code = formcode;
+        if (ReadFirstMain(Docr,1,true)) then begin
+        end;
+//rest of fields go here
+        if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+          OutFormField("F_CONTACTNAME",CUr.Name);
+          OutFormField("F_CONTACTID",CUr.RegNr1);
+          OutFormField("F_DATUM",CurrentDate);
+        end;
+
+        CloseForm;        
+      end else begin
+        printf = false;
+        MessageBox(1546,formcode);
+      end;
+    end else begin
+      printf = false;
+      if (intdocnr==1) then begin
+        MessageBox(1624, " " & USetStr(1623));
+      end;
+    end;
+    intdocnr = intdocnr + 1;
+  end;
+LDoLoanAppForm:;  
+  RETURN;  
+END;     
+ 
+
+global
+procedure LoanAppForm(record RcVc RepSpec)
+BEGIN
+  record B2BLoanApplicationVc LAr;
+  Boolean tmpf;
+  
+  LAr.SerNr = RepSpec.long1;
+  if (ReadFirstMain(LAr,1,true)) then begin
+    tmpf = PrintDocument(LAr,"LoanAppForm",false);    
+  end;
+  RETURN;
+END;
