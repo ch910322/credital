@@ -1,0 +1,136 @@
+//<halrule>server-only</halrule>
+external inner procedure ShowWebAppPageStart(record WebNGPageVc,string);
+external inner procedure ShowWebAppPageEnd(record WebNGPageVc);
+external inner function string 255 removenextnode(var string);
+external inner function string 255 ToolWebNGTranslateText2(Longint);
+external inner procedure LoadWebPage(string,var record WebNGPageVc);
+external inner procedure RedirectToLoginPage();
+external inner function string 255 GetMainCustomerCodeFromContact(string);
+
+procedure DisplayAccDataField(string cls,string label,string value) 
+begin
+  
+  WebOutString("<div class='acc-item-col " & cls & "'><div class='acc-item-label'>" & label & "</div><div class='acc-item-value'>" & value & "</div></div>");
+
+  return;
+end;
+
+procedure ShowCreditAccountReceipts()
+begin
+  string 255 custcode,tstr;
+  Boolean TrHs;
+  record IPrsVc IPrsr;
+  record IPVc IPr;
+  record IVVc IVr;
+  row IPVc IPrw;
+  Integer i,j,rwcnt;
+
+  WebOutString("<div class='record-list receipt-list'>");
+  custcode = GetMainCustomerCodeFromContact(CurrentCust);//we will have to redo this once we implement multiple companies
+  if (nonblank(custcode)) then begin
+    j = 1;
+    TrHs = true;
+    IPrsr.CustCode = custcode;
+    IPrsr.TransType = 1;
+    while (LoopKey("CustType",IPrsr,2,TrHs)) begin
+      if (IPrsr.CustCode!=custcode or IPrsr.TransType!=1) then begin
+        TrHs = false;
+      end else begin
+        IPr.SerNr = IPrsr.TransNr;
+        if (ReadFirstMain(IPr,1,true)) then begin
+          rwcnt = MatRowCnt(IPr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(IPr,i,IPrw);
+            if (IPrw.CustCode==custcode) then begin
+              tstr = ToolWebNGTranslateText2(70283);
+              if (IPrw.InvoiceNr>0) then begin
+                IVr.SerNr = IPrw.InvoiceNr;
+                if (ReadFirstMain(IVr,1,true)) then begin
+                  if (IVr.CustCredManNr>0) then begin
+                    tstr = IVr.CustCredManNr;
+                  end;
+                end;
+              end;
+              WebOutString("<div class='acc-item-line'><div class='item-cnt'>" & j & "</div>");
+              DisplayAccDataField("date",ToolWebNGTranslateText2(70280),IPr.TransDate);
+              DisplayAccDataField("amount",ToolWebNGTranslateText2(70281),IPrw.RecVal);
+              DisplayAccDataField("ref",ToolWebNGTranslateText2(70282),tstr);
+              WebOutString("</div>");
+              j = j + 1;
+            end;
+          end;
+        end;
+      end;  
+    end;
+  end;
+  WebOutString("</div>");
+
+  return;
+end;  
+
+procedure ShowCreditAccountInvoices()
+begin
+  string 255 custcode,tstr;
+  Boolean TrHs;
+  record IVVc IVr;
+  Integer i;
+
+  custcode = GetMainCustomerCodeFromContact(CurrentCust);//we will have to redo this once we implement multiple companies
+  i = 1;
+  WebOutString("<div class='record-list invoice-list'>");
+  if (nonblank(custcode)) then begin
+    TrHs = true;
+    IVr.CustCode = custcode;
+    while (LoopKey("CustCode",IVr,1,TrHs)) begin
+      if (IVr.CustCode!=custcode) then begin
+        TrHs = false;
+      end else begin
+        tstr = "";
+        if (IVr.CustCredManNr>0) then begin
+          tstr = IVr.CustCredManNr;
+        end;
+        WebOutString("<div class='acc-item-line'><div class='item-cnt'>" & i & "</div>");
+        DisplayAccDataField("date",ToolWebNGTranslateText2(70280),IVr.InvDate);
+        DisplayAccDataField("amount",ToolWebNGTranslateText2(70281),IVr.Sum4);
+        DisplayAccDataField("ref",ToolWebNGTranslateText2(70282),tstr);
+        WebOutString("</div>");
+        i = i + 1;
+      end;
+    end;
+  end;
+  WebOutString("</div>");
+
+  return;
+end;  
+
+global
+procedure CreditAccountApp(record WebNGStructVc WSr,string mpath)
+begin
+  string 255 path,node;
+  record WebNGPageVc WPr;
+
+  path = mpath;
+  
+  if (blank(CurrentCust)) then begin
+    RedirectToLoginPage;
+    goto LCreditAccountApp;
+  end;
+
+  LoadWebPage(WSr.WebPage,WPr);
+  ShowWebAppPageStart(WPr,"my_account");
+
+  node = removenextnode(path);
+  switch(node) begin
+    case "receipts":
+      ShowCreditAccountReceipts;
+    case "invoices":
+      ShowCreditAccountInvoices;
+    otherwise
+      ShowCreditAccountReceipts;
+  end;
+  
+  ShowWebAppPageEnd(WPr);
+
+LCreditAccountApp:;
+  return;
+end;

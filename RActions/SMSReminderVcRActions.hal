@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 
 function Boolean CheckTime(record SMSReminderVc SMSReminder,Integer num)
 begin

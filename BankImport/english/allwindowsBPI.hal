@@ -1,291 +1,20 @@
-window SwedBankImportSTIClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:53
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
 
-  WindowBegin("SwedBank import Statement ",SwedBankImportSTIClass,CGIcW,RcType); 
-  SetWRect(20,80,480,200);
-  h = 70;
-  v = 40;
-  vs = 20;
-  StaticText(h,v+=vs,"Import: SwedBank Bank To Customer Statement",false);
-  StaticText(h,v+=vs,"File format: XML",false);
-  StaticText(h,v+=vs,"Based on: Bank To Customer Statement V02 camt.053.001.02",false);
+event startup
+begin
+  SetLangMode(LangEnglish,"ENG",2);
 	
-  EndWindow;
+	Import("Bank Import - Lithuania",LitBankImportIClass,BankTRIn,modSL);
+
+	Setting("Banking Statement Import settings",BankImportSetTClass,modSL);
+	Setting("Receipt Connection",ReceiptConnectionWClass,modSL);
+  Setting("Bank Transactions",BankTRLClass,modSL);
+
+  Report("Bank Transactions",BankTRRClass,BankTRRn,0,modSL);
+
   return;
 end;
 
-
-window SwedbankImportLClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:48
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  WindowBegin("Swedbank Imports",SwedbankImportLClass,CGmlist,-);
-  SetWRect(20,80,1200,355);
-  Sizeable(-1,-1,0,0);
-  SpawnClass(SwedbankImportDClass);
-  UseView(SwedbankImportVc);
-  RecordList(4,17,-21,-39);
-  RlColKey(4,1,"NtryRef",NtryRef,false,NtryRef);
-  RlCol(140,140,"BankID",BankID,false);
-  RlCol(210,210,"OwnID",OwnID,false);
-  RlColKey(280,280,"Date",BookgDt,false,BookgDt);
-  RlCol(350,350,"IBAN",IBAN,false);
-  RlCol(460,460,"Name",RecName,false);
-  RlCol(660,660,"Cmt",Ustrd,false);
-  RlCol(-320,-320,"PrvtId",PrvtId,false);
-  RlCol(-250,-250,"OrgId",OrgId,false);
-  RlColKey(-180,-180,"D/C",CdtDbtInd,false,CdtDbtInd);
-  RlCol(-130,-130,"AmtCcy",AmtCcy,false);
-  RlCol(-60,-60,"Curncy",CurncyCode,true);
-  SearchField("Search");
-  EndWindow;
-end;
-
-window SwedbankImportDClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:45
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-	
-  WindowBegin("Swedbank Imports",SwedbankImportDClass,CGview,-);
-  SetWRect(20,80,250,250);
-  Sizeable(-1,-1,0,0);
-  UseView(SwedbankImportVc);
-  
-  vs = 20;
-  EditField(h=100,v=30,150,"NtryRef",ViewOnly,NtryRef,false,0);
-  EditField(h=100,v+=vs,150,"BankID",ViewOnly,BankID,false,0);
-  EditField(h=100,v+=vs,150,"OwnID",ViewOnly,OwnID,false,0);
-  EditField(h=100,v+=vs,150,"Date",ViewOnly,BookgDt,false,0);
-  EditField(h=100,v+=vs,150,"IBAN",ViewOnly,IBAN,false,0);
-  EditField(h=100,v+=vs,-20,"Name",ViewOnly,RecName,false,0);
-  EditField(h=100,v+=vs,-20,"Comment",ViewOnly,Ustrd,false,0);
-  EditField(h=100,v+=vs,150,"D/C",ViewOnly,CdtDbtInd,false,0);
-  EditField(h=100,v+=vs,150,"Ammount",ViewOnly,AmtCcy,false,0);
-  EditField(h=100,v+=vs,150,"Curncy",ViewOnly,CurncyCode,false,0); 
-  EditField(h=100,v+=vs,150,"OrgId",ViewOnly,OrgId,false,0); 
-  EditField(h=100,v+=vs,150,"PrvtId",ViewOnly,PrvtId,false,0);   
-  EndWindow;
-  
-end; 
-
-window SEBBankImportSTIClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:40
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-
-  WindowBegin("SEB Bank import Statement ",SEBBankImportSTIClass,CGIcW,RcType); 
-  SetWRect(20,80,480,200);
-  h = 70;
-  v = 40;
-  vs = 20;
-  StaticText(h,v+=vs,"Import: SEB Bank To Customer Statement",false);
-  StaticText(h,v+=vs,"File format: XML",false);
-  StaticText(h,v+=vs,"Based on: Bank To Customer Statement V02 camt.053.001.02",false);
-
-  EndWindow;
-  return;
-end;
-
-
-window SEBbankImportLClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:37
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  WindowBegin("SEB Bank Imports",SEBbankImportLClass,CGmlist,-);
-  SetWRect(20,80,1200,355);
-  Sizeable(-1,-1,0,0);
-  SpawnClass(SEBbankImportDClass);
-  UseView(SEBbankImportVc);
-  RecordList(4,17,-21,-39);
-  RlColKey(4,1,"NtryRef",NtryRef,false,NtryRef);
-  RlCol(140,140,"BankID",BankID,false);
-  RlCol(210,210,"OwnID",OwnID,false);
-  RlColKey(280,280,"Date",BookgDt,false,BookgDt);
-  RlCol(350,350,"IBAN",IBAN,false);
-  RlCol(460,460,"Name",RecName,false);
-  RlCol(660,660,"Cmt",Ustrd,false);
-  RlCol(-320,-320,"PrvtId",PrvtId,false);
-  RlCol(-250,-250,"OrgId",OrgId,false);
-  RlColKey(-180,-180,"D/C",CdtDbtInd,false,CdtDbtInd);
-  RlCol(-130,-130,"AmtCcy",AmtCcy,false);
-  RlCol(-60,-60,"Curncy",CurncyCode,true);
-  SearchField("Search");
-  EndWindow;
-end;
-
-window SEBbankImportDClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:34
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-	
-  WindowBegin("SEB Bank Imports",SEBbankImportDClass,CGview,-);
-  SetWRect(20,80,250,250);
-  Sizeable(-1,-1,0,0);
-  UseView(SEBbankImportVc);
-  
-  vs = 20;
-  EditField(h=100,v=30,150,"NtryRef",ViewOnly,NtryRef,false,0);
-  EditField(h=100,v+=vs,150,"BankID",ViewOnly,BankID,false,0);
-  EditField(h=100,v+=vs,150,"OwnID",ViewOnly,OwnID,false,0);
-  EditField(h=100,v+=vs,150,"Date",ViewOnly,BookgDt,false,0);
-  EditField(h=100,v+=vs,150,"IBAN",ViewOnly,IBAN,false,0);
-  EditField(h=100,v+=vs,-20,"Name",ViewOnly,RecName,false,0);
-  EditField(h=100,v+=vs,-20,"Comment",ViewOnly,Ustrd,false,0);
-  EditField(h=100,v+=vs,150,"D/C",ViewOnly,CdtDbtInd,false,0);
-  EditField(h=100,v+=vs,150,"Ammount",ViewOnly,AmtCcy,false,0);
-  EditField(h=100,v+=vs,150,"Curncy",ViewOnly,CurncyCode,false,0); 
-  EditField(h=100,v+=vs,150,"OrgId",ViewOnly,OrgId,false,0); 
-  EditField(h=100,v+=vs,150,"PrvtId",ViewOnly,PrvtId,false,0);  
-  EndWindow;
-end;  
-  
-  
-window LuminorImportSTIClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:31
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-
-  WindowBegin("Luminor import Statement ",LuminorImportSTIClass,CGIcW,RcType); 
-  SetWRect(20,80,480,200);
-  h = 70;
-  v = 40;
-  vs = 20;
-  StaticText(h,v+=vs,"Import: Luminor Bank To Customer Statement",false);
-  StaticText(h,v+=vs,"File format: XML",false);
-  StaticText(h,v+=vs,"Based on: Bank To Customer Statement V02 camt.053.001.02",false);
-
-  EndWindow;
-  return;
-end;
-
-
-window LuminorImportLClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:29
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  WindowBegin("Luminor Imports",LuminorImportLClass,CGmlist,-);
-  SetWRect(20,80,1200,355);
-  Sizeable(-1,-1,0,0);
-  SpawnClass(LuminorImportDClass);
-  UseView(LuminorImportVc);
-  RecordList(4,17,-21,-39);
-  RlColKey(4,1,"NtryRef",NtryRef,false,NtryRef);
-  RlCol(140,140,"BankID",BankID,false);
-  RlCol(210,210,"OwnID",OwnID,false);
-  RlColKey(280,280,"Date",BookgDt,false,BookgDt);
-  RlCol(350,350,"IBAN",IBAN,false);
-  RlCol(460,460,"Name",RecName,false);
-  RlCol(660,660,"Cmt",Ustrd,false);
-  RlCol(-320,-320,"PrvtId",PrvtId,false);
-  RlCol(-250,-250,"OrgId",OrgId,false);
-  RlColKey(-180,-180,"D/C",CdtDbtInd,false,CdtDbtInd);
-  RlCol(-130,-130,"AmtCcy",AmtCcy,false);
-  RlCol(-60,-60,"Curncy",CurncyCode,true);
-  SearchField("Search");
-  EndWindow;
-end;
-
-window LuminorImportDClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:26
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-	
-  WindowBegin("Luminor Bank Imports",LuminorImportDClass,CGview,-);
-  SetWRect(20,80,250,250);
-  Sizeable(-1,-1,0,0);
-  UseView(LuminorImportVc);
-  
-  vs = 20;
-  EditField(h=100,v=30,150,"NtryRef",ViewOnly,NtryRef,false,0);
-  EditField(h=100,v+=vs,150,"BankID",ViewOnly,BankID,false,0);
-  EditField(h=100,v+=vs,150,"OwnID",ViewOnly,OwnID,false,0);
-  EditField(h=100,v+=vs,150,"Date",ViewOnly,BookgDt,false,0);
-  EditField(h=100,v+=vs,150,"IBAN",ViewOnly,IBAN,false,0);
-  EditField(h=100,v+=vs,-20,"Name",ViewOnly,RecName,false,0);
-  EditField(h=100,v+=vs,-20,"Comment",ViewOnly,Ustrd,false,0);
-  EditField(h=100,v+=vs,150,"D/C",ViewOnly,CdtDbtInd,false,0);
-  EditField(h=100,v+=vs,150,"Ammount",ViewOnly,AmtCcy,false,0);
-  EditField(h=100,v+=vs,150,"Curncy",ViewOnly,CurncyCode,false,0); 
-  EditField(h=100,v+=vs,150,"OrgId",ViewOnly,OrgId,false,0); 
-  EditField(h=100,v+=vs,150,"PrvtId",ViewOnly,PrvtId,false,0);  
-  EndWindow;
-  
-end;  
-
-
-
-window SiauliuImportSTIClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:31
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-
-  WindowBegin("Siauliu import Statement ",SiauliuImportSTIClass,CGIcW,RcType); 
-  SetWRect(20,80,480,200);
-  h = 70;
-  v = 40;
-  vs = 20;
-  StaticText(h,v+=vs,"Import: Siauliu Bank To Customer Statement",false);
-  StaticText(h,v+=vs,"File format: XML",false);
-  StaticText(h,v+=vs,"Based on: Bank To Customer Statement V02 camt.053.001.02",false);
-
-  EndWindow;
-  return;
-end;
-
-
-window SiauliuImportLClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:29
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  WindowBegin("Siauliu Imports",SiauliuImportLClass,CGmlist,-);
-  SetWRect(20,80,1200,355);
-  Sizeable(-1,-1,0,0);
-  SpawnClass(SiauliuImportDClass);
-  UseView(SiauliuImportVc);
-  RecordList(4,17,-21,-39);
-  RlColKey(4,1,"NtryRef",NtryRef,false,NtryRef);
-  RlCol(140,140,"BankID",BankID,false);
-  RlCol(210,210,"OwnID",OwnID,false);
-  RlColKey(280,280,"Date",BookgDt,false,BookgDt);
-  RlCol(350,350,"IBAN",IBAN,false);
-  RlCol(460,460,"Name",RecName,false);
-  RlCol(660,660,"Cmt",Ustrd,false);
-  RlCol(-320,-320,"PrvtId",PrvtId,false);
-  RlCol(-250,-250,"OrgId",OrgId,false);
-  RlColKey(-180,-180,"D/C",CdtDbtInd,false,CdtDbtInd);
-  RlCol(-130,-130,"AmtCcy",AmtCcy,false);
-  RlCol(-60,-60,"Curncy",CurncyCode,true);
-  SearchField("Search");
-  EndWindow;
-end;
-
-window SiauliuImportDClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:26
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real f,h,v,vm,vs;
-	
-  WindowBegin("Siauliu Bank Imports",SiauliuImportDClass,CGview,-);
-  SetWRect(20,80,250,250);
-  Sizeable(-1,-1,0,0);
-  UseView(SiauliuImportVc);
-  
-  vs = 20;
-  EditField(h=100,v=30,150,"NtryRef",ViewOnly,NtryRef,false,0);
-  EditField(h=100,v+=vs,150,"BankID",ViewOnly,BankID,false,0);
-  EditField(h=100,v+=vs,150,"OwnID",ViewOnly,OwnID,false,0);
-  EditField(h=100,v+=vs,150,"Date",ViewOnly,BookgDt,false,0);
-  EditField(h=100,v+=vs,150,"IBAN",ViewOnly,IBAN,false,0);
-  EditField(h=100,v+=vs,-20,"Name",ViewOnly,RecName,false,0);
-  EditField(h=100,v+=vs,-20,"Comment",ViewOnly,Ustrd,false,0);
-  EditField(h=100,v+=vs,150,"D/C",ViewOnly,CdtDbtInd,false,0);
-  EditField(h=100,v+=vs,150,"Ammount",ViewOnly,AmtCcy,false,0);
-  EditField(h=100,v+=vs,150,"Curncy",ViewOnly,CurncyCode,false,0); 
-  EditField(h=100,v+=vs,150,"OrgId",ViewOnly,OrgId,false,0); 
-  EditField(h=100,v+=vs,150,"PrvtId",ViewOnly,PrvtId,false,0);  
-  EndWindow;
-  
-end;  
-
-
-window BankImportSetTClass:1// Edit ************************** BPI Ukraine - KramarAlexandr - Monday, 10 September 2018 15:50:21
+window BankImportSetTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vm,vs;
@@ -323,4 +52,58 @@ begin
 		
 	EndWindow;
 
+end;
+
+
+window ReceiptConnectionWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,h2,h3,h4,h5;
+
+  WindowBegin("Receipt Connection",ReceiptConnectionWClass,CGother,-);
+  UseView(IPConVc);
+  SetWRect(20,80,880,621);
+  h = 80; v = 27; h2 = 300; h3 = 480;
+  vs = 20;
+	EditField(h,v=6,120,"Period",Normal,Period,false,PerSClass);
+	EditField(h2,v,50,"Payment Mode",Normal,PMCode,false,PMSClass);
+	EditField(h,v+=vs,100,"Customer",Normal,CustCode,false,CUSClass);
+	EditField(h2,v,100,"Invoice No.",Normal,IVNr,false,IVSClass);
+	EditField(h3,v,120,"Comment",Normal,Comment,false,0);
+
+  MatrixBegin(h,v+=40,-30,-10,-,199);
+  MatTypedRow(stp);
+  MatCol(1,34,"Date",0,TransDate,false,0);
+  MatCol(1,124,"Customer",0,CustCodeRow,false,0);
+  MatCol(1,224,"Name",0,CustName,false,0);
+  MatCol(1,354,"Comment",0,CommentRow,false,0);
+  MatCol(1,-120,"Amount",0,Amount,false,0);
+  MatCol(1,-60,"Currency",0,CurncyCode,false,0);
+
+  MatCol(2,-420,"Invoice",0,IVNrRow,false,0);
+  MatCol(2,-270,"Prepayment",0,PrepayNr,false,0);
+  MatCol(2,-120,"Amount",0,Amount,false,0);
+  MatCol(2,-60,"Currency",0,CurncyCode,false,0);
+  RowMenuBegin("");
+  RowMenuItem(0,"OpenReceipt",'I','I',0,"ReceiptConnectionOpenReceiptDsm");
+  EndRowMenu;
+  EndMatrix;
+
+  EndWindow;
+  return;
+end;
+
+window LitBankImportIClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real f,h,v,vm,vs;
+  
+
+  WindowBegin("Specify Bank Transactions",LitBankImportIClass,CGIcW,RcType);
+  SetWRect(20,80,480,150);
+  vs = 20;
+  EditFieldTL(h=150,v=6,150,"Bank A/C",M4Str,Normal,60,f20,false,PayModeBankAccSClass);
+  EditFieldTL(h,v+=vs,140,"Bank",M4Set,Normal,26,flags[20],false,SetSClass);
+  EndWindow;
+  return;
 end;

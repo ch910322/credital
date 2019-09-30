@@ -226,11 +226,28 @@ begin
   EndSet;
 
   SetBegin(2013);
-  SetText(0,"Main");
-  SetText(1,"Business Loan");
-  SetText(2,"Factoring");
-  SetText(3,"Billing Guarantee");
+  SetText(0,"Business Loan with Schedule");
+  SetText(3,"Loan with Late Payment");
+  SetText(4,"Loan with Residual Value");
+  SetText(1,"Factoring");
+  SetText(2,"Invoice Guarantee");
   EndSet;
+
+  SetBegin(2014);
+  SetText(0,"Cooperation partner");
+  SetText(1,"Media Partner");
+  EndSet;
+
+  SetBegin(2015);
+  SetText(0,"Closed");
+  SetText(1,"Open");
+  EndSet;
+
+  SetBegin(2016);
+  SetText(0,"Naujas");
+  SetText(1,"Esamas");
+  EndSet;
+
 
   return;
 end;

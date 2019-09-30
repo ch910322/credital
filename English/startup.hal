@@ -27,6 +27,7 @@ begin
 
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
+  Document("Surety Agreement",SuretyAgreementRClass,SuretyAgreementForm,SuretyAgreementFClass,modCredMan);
 
 /*DB Maint*/
 
@@ -41,6 +42,7 @@ begin
   Setting("Loan Calculators",WebLoanCalcLClass,modWebShopNG);
   Setting("Partner Search Settings",WebInvoicingPartnerTClass,modWebShopNG);
   Setting("Password Sessions",PassSessLClass,modWebShopNG);
+  Setting("Agreement Type Links",WebLoanAppTypeTClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");
@@ -235,10 +237,11 @@ begin
   EndSet;
 
   SetBegin(2013);
-  SetText(0,"Main");
-  SetText(1,"Business Loan");
-  SetText(2,"Factoring");
-  SetText(3,"Billing Guarantee");
+  SetText(0,"Business Loan with Schedule");
+  SetText(3,"Loan with Late Payment");
+  SetText(4,"Loan with Residual Value");
+  SetText(1,"Factoring");
+  SetText(2,"Invoice Guarantee");
   EndSet;
 
   SetBegin(2014);
@@ -249,6 +252,11 @@ begin
   SetBegin(2015);
   SetText(0,"Closed");
   SetText(1,"Open");
+  EndSet;
+
+  SetBegin(2016);
+  SetText(0,"New");
+  SetText(1,"Existing");
   EndSet;
 
   return;

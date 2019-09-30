@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external function Boolean GetMajoritySuretyProvider(record B2BLoanApplicationVc,var record ScoringSupVc,var Integer);
 external inner function LongInt MonthDiff(Date,Date);
 external function Integer GetSuretyCnt(record B2BLoanApplicationVc);

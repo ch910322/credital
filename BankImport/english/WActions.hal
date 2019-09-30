@@ -1,0 +1,120 @@
+remote procedure FillBankTransactionsAndReceipts(var record IPConVc);
+
+
+global
+procedure LitBankImportIClassReportDefaults(Integer wn)
+begin
+  record RcVc RepSpec;
+  record SysFormatBlock SFb;
+
+  BlockLoad(SFb);
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"BankTRIClass");
+  RepSpec.flags[0] = 1;
+  RepSpec.AccStr = ";";
+  switch (SFb.dateOrder) begin
+    case 0:
+      RepSpec.Stext = "MM-DD-YYYY";
+    case 1:
+      RepSpec.Stext = "DD-MM-YYYY";
+    case 2:
+      RepSpec.Stext = "YYYY-MM-DD";
+  end;
+  RepSpec.FirstAcc = ",";
+  RepSpec.LastAcc = "";
+  RepSpec.ArtMode = 2;
+  RepSpec.flags[20] = kReceiptBankSwedBankLithuania;
+  RepSpec.f1 = StringFromSet(621,0); 
+  RepSpec.f2 = StringFromSet(621,0); 
+  RepSpec.f3 = StringFromSet(621,0); 
+  RepSpec.f4 = StringFromSet(621,0); 
+  RepSpec.f5 = StringFromSet(621,0); 
+  RepSpec.f6 = StringFromSet(621,0); 
+  RepSpec.f7 = StringFromSet(621,0); 
+  RepSpec.f8 = StringFromSet(621,0); 
+  RepSpec.f9 = StringFromSet(621,0); 
+  RepSpec.f10 = StringFromSet(621,0); 
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  return;
+end;
+
+global
+procedure ReceiptConnectionWClassOnOpenWindow(Integer wn)
+begin
+  record IPConVc PCr;
+
+  GetWindowRecord(wn,PCr);
+  FillBankTransactionsAndReceipts(PCr);
+  PutWindowRecord(wn,PCr);
+
+  return;
+end;
+
+function Boolean ReceiptConnectionWClassUpdateTransactions(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record IPConVc PCr;
+  
+  if (changed!=0) then begin
+    GetWindowRecord(wn,PCr);
+    FillBankTransactionsAndReceipts(PCr);
+    PutWindowRecord(wn,PCr);
+  end;
+
+  ReceiptConnectionWClassUpdateTransactions = res;
+  return;
+end;
+
+global
+function Boolean ReceiptConnectionWClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  if (changed) then begin
+    switch (fieldname) begin
+      case "Period": 
+        res = ReceiptConnectionWClassUpdateTransactions(wn,changed);
+      case "CustCode": 
+        res = ReceiptConnectionWClassUpdateTransactions(wn,changed);
+      case "Comment":
+        res = ReceiptConnectionWClassUpdateTransactions(wn,changed);
+      case "IVNr": 
+        res = ReceiptConnectionWClassUpdateTransactions(wn,changed);
+      case "PMCode": 
+        res = ReceiptConnectionWClassUpdateTransactions(wn,changed);
+    end;
+  end;
+    
+  ReceiptConnectionWClassAfterEditField = res;
+  return;
+end;
+
+global
+procedure ReceiptConnectionOpenReceiptDsm()
+begin
+  Integer wn,rw;
+  record IPConVc PCr;
+  row IPConVc PCrw;
+  record IPVc IPr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,PCr);
+  rw = WindowActiveRow(wn);
+  if (rw>-1) then begin
+    MatRowGet(PCr,rw,PCrw); 
+    if (PCrw.IPNr>0) then begin
+      IPr.SerNr = PCrw.IPNr;
+      if (ReadFirstMain(IPr,1,true)) then begin
+        OpenWindow("IPDClass",1,wn,"","",IPr);      
+      end;
+    end else begin
+      RecordNew(IPr);
+      IPr.TransDate = PCrw.TransDate;
+      OpenWindow("IPDClass",1,wn,"","",IPr);      
+    end;
+  end;
+
+  return;
+end;

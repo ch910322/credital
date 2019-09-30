@@ -133,16 +133,15 @@ begin
   return;
 end;
 
-function Boolean B2BLoanApplicationDClassSuretyIDEFAfter(Integer wn,Integer changed,Integer num)
+global
+procedure CalculateSuretyAge(record B2BLoanApplicationVc LAr,Integer num)
 begin
-  Boolean res;
-  record B2BLoanApplicationVc LAr;
   Integer y,agegroup;
   Longint diff;
   Date age,td;
   string 255 tstr;
+  Integer sex;
   
-  GetWindowRecord(wn,LAr);
 
   tstr = GetFieldValueByName(LAr,"Surety" & num & "ID",-1);
   y = StringToInt(mid(tstr,1,2));
@@ -172,8 +171,20 @@ begin
   if (diff>=65) then begin
     agegroup = 3;
   end;
+  
 
   SetFieldValueByName(LAr,"Surety" & num & "AgeGroup",agegroup,-1);
+
+  return;
+end;
+
+function Boolean B2BLoanApplicationDClassSuretyIDEFAfter(Integer wn,Integer changed,Integer num)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+
+  GetWindowRecord(wn,LAr);
+  CalculateSuretyAge(LAr,num);
   PutWindowRecord(wn,LAr);    
   
   B2BLoanApplicationDClassSuretyIDEFAfter = res;
@@ -538,8 +549,23 @@ begin
   return;
 end;
 
+function Integer GetSuretySex(record B2BLoanApplicationVc LAr,Integer num)
+begin
+  Integer res;
+  string 255 tstr;
+  
+  tstr = GetFieldValueByName(LAr,"Surety" & num & "ID",-1);
+  switch (left(tstr,1)) begin
+    case "4": res = 0;
+    case "3": res = 1;
+  end;
+
+  GetSuretySex = res;
+  return;
+end;
+
 global
-updating procedure OpenScoringWindow(Longint b2bapp,string surety)
+updating procedure OpenScoringWindow(record B2BLoanApplicationVc LAr,string surety,Integer num)
 begin
   record ScoringSupVc SSr;
   Integer i,wn;
@@ -548,13 +574,14 @@ begin
     goto LOpenScoringWindow;
   end;
 
-  SSr.B2BApp = b2bapp;
+  SSr.B2BApp = LAr.SerNr;
   SSr.SuretyCustCode = surety;
   if (ReadFirstKey("SuretyApp",SSr,2,true)==false) then begin
     RecordNew(SSr);
     SSr.SerNr = NextSerNr("ScoringSupVc",CurrentDate,-1,false,"");
-    SSr.B2BApp = b2bapp;
+    SSr.B2BApp = LAr.SerNr;
     SSr.SuretyCustCode = surety;
+    SSr.SexType = GetSuretySex(LAr,num);
     RecordStore(SSr,true);
   end;
   wn = OpenWindow("ScoringSupDClass",1,0,"","",SSr);
@@ -569,7 +596,7 @@ begin
   record B2BLoanApplicationVc LAr;
 
   GetWindowRecord(CurWindow,LAr);
-  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider1);
+  qupdating.OpenScoringWindow(LAr,LAr.SuretyProvider1,1);
 
   return;
 end;
@@ -580,7 +607,7 @@ begin
   record B2BLoanApplicationVc LAr;
 
   GetWindowRecord(CurWindow,LAr);
-  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider2);
+  qupdating.OpenScoringWindow(LAr,LAr.SuretyProvider2,2);
 
   return;
 end;
@@ -591,7 +618,7 @@ begin
   record B2BLoanApplicationVc LAr;
 
   GetWindowRecord(CurWindow,LAr);
-  qupdating.OpenScoringWindow(LAr.SerNr,LAr.SuretyProvider3);
+  qupdating.OpenScoringWindow(LAr,LAr.SuretyProvider3,3);
 
   return;
 end;
@@ -1096,5 +1123,39 @@ begin
   PutWindowRecord(wn,LAr);
   WindowDoOK(wn,0);
   
+  return;
+end;
+
+procedure PrintSuretyAgreement(Integer num)
+begin
+  Integer wn;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,LAr);
+  if (WindowState(wn)==Rs_Normal) then begin
+    LAr.SuretyCnt = num;
+    PrintDocument(LAr,"SuretyAgreementForm",false);
+  end;
+
+  return;
+end;
+
+global
+updating procedure PrintSurety1Dm()
+begin
+  PrintSuretyAgreement(1);
+  return;
+end;
+global
+updating procedure PrintSurety2Dm()
+begin
+  PrintSuretyAgreement(2);
+  return;
+end;
+global
+updating procedure PrintSurety3Dm()
+begin
+  PrintSuretyAgreement(3);
   return;
 end;

@@ -829,6 +829,18 @@ begin
   KeySegment(UUID);
   EndRecord;
 
+  BlockBegin(WebLoanAppTypeBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Type,M4Set,2013,0);
+  ArrayField(TermFrom,M4Int,0,0);
+  ArrayField(TermTo,M4Int,0,0);
+  ArrayField(AmountFrom,M4Val,0,0);
+  ArrayField(AmountTo,M4Val,20,0);
+  ArrayField(CustomerType,M4Set,2016,0);
+  ArrayField(CredManType,M4Code,20,CredManTypeVc);
+  EndArray;
+  EndBlock;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
@@ -866,7 +878,8 @@ begin
   SourceFile("halcust\\BankImport", 3);
   SourceFile("halcust\\BankImport\\english", 3);
   SourceFile("halcust\\BankImport\\lithuanian", 3);
-  SourceFile("halcust\\BankImport\\Swedbank", 3);
+  SourceFile("halcust\\BankImport\\Tools", 3);
+  SourceFile("halcust\\BankImport\\Level0", 0);
 
   return;
 end;

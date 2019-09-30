@@ -3,6 +3,7 @@ external inner procedure CUCreditLimit(record CUVc,Date,string,var val,var LongI
 external function val GetMonthlyPaymentAmount(record CredManVc,Integer);
 
 
+//<halrule>server-only</halrule>
 global
 function LongInt CredManVcRecordDefaults(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
 BEGIN

@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 remote inner procedure GetWebNGContentAttachedImages(record WebNGContentVc,var array string);
 external inner procedure PasteFromSysList(Integer ,Integer);
 remote procedure GetWebCampaignAttachedImages(record WebCampaignVc,var array string);

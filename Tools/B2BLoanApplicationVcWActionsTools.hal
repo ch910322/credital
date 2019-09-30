@@ -1,6 +1,7 @@
 remote inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function roundmode SetRoundModeD(Integer);
 external  procedure CredManSetDatesCust(var record CredManVc);
+external procedure CalculateSuretyAge(record B2BLoanApplicationVc,Integer);
 
 global
 function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
@@ -101,6 +102,8 @@ begin
     SetFieldValueByName(LAr,"Surety" & num & "Addr2",CUr.InvAddr2,-1);
     SetFieldValueByName(LAr,"Surety" & num & "Addr3",CUr.InvAddr3,-1);
     SetFieldValueByName(LAr,"Surety" & num & "Addr4",CUr.InvAddr4,-1);
+    CalculateSuretyAge(LAr,num);
+    //UpdateSuretyScoring(LAr,CUr.Code);
 
     res = true;
   end;

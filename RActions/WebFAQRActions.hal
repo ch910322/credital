@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 global
 function LongInt WebFAQVcRecordDefaults(var record WebFAQVc WFr,record WebFAQVc WF2r,LongInt long3,LongInt long4)
 begin

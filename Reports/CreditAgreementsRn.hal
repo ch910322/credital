@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
 
 

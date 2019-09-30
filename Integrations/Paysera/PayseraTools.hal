@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external function string 255 GetLinkToLoanApp();
 external inner procedure ShowRedirectHtml(string,boolean);
 external inner function string 255 FormatLink(string,string,boolean,boolean);

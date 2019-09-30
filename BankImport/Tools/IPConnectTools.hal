@@ -1,0 +1,285 @@
+external function string 255 BPI_ParseInvStr(string);
+external procedure BankFillIProws(var record IPVc,string,var string,var val,string,boolean,string,string);
+external procedure BankFillOProws(var record OPVc,string,string,var val,string,boolean,string,string);
+
+function Boolean FilterReceiptInBankTrans(record BankTRVc BTr,Longint ivnr)
+begin
+  record IPVc IPr;
+  row IPVc IPrw;
+  Integer i,rwcnt;
+  Boolean res;
+  
+  if (BTr.TransNr>0) then begin
+    IPr.SerNr = BTr.TransNr;
+    if (ReadFirstMain(IPr,1,true)) then begin
+      rwcnt = MatRowCnt(IPr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(IPr,i,IPrw);
+        if (ivnr>0 and ivnr==IPrw.InvoiceNr) then begin
+          res = true;
+        end;
+        if (res) then begin
+          goto LFilterReceiptInBankTrans;
+        end;
+      end;
+    end;
+  end;
+
+LFilterReceiptInBankTrans:;
+  FilterReceiptInBankTrans = res;
+  return;
+end;
+
+procedure FindCustomer(record BankTRVc BTr,record CUVc CUr)
+begin
+  Boolean foundf;
+
+  if (blank(BTr.PayCustCode)) then begin
+    if (nonblank(BTr.PayRegNr1)) then begin
+      CUr.RegNr1 = BTr.PayRegNr1;
+      if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf==false and nonblank(BTr.PayVATNr)) then begin
+      ResetLoop(CUr);    
+      CUr.VATNr = BTr.PayVATNr;
+      if (ReadFirstKey("VATNr",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf==false and nonblank(BTr.PayBankAcc)) then begin
+      ResetLoop(CUr);    
+      CUr.BankAccount = BTr.PayBankAcc;
+      if (ReadFirstKey("BankAccount",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf==false and nonblank(BTr.PayName)) then begin
+      ResetLoop(CUr);    
+      CUr.Name = BTr.PayName;
+      if (ReadFirstKey("Name",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+  end else begin
+    CUr.Code = BTr.PayCustCode;
+    ReadFirstMain(CUr,1,true);
+  end;
+  return;
+end;
+
+global
+procedure FillBankTransactionsAndReceipts(var record IPConVc PCr)
+begin
+  row IPConVc PCrw;
+  record BankTRVc BTr;
+  Boolean TrHs,testf;
+  Date from,to;
+  record CUVc CUr;
+  record IPVc IPr;
+  row IPVc IPrw;
+  Integer i,rwcnt;
+  
+  //should be a remote call to server
+
+  if (nonblank(PCr.Period)) then begin
+    rwcnt = MatRowCnt(PCr);
+    for (i=rwcnt-1;i>=0;i=i-1) begin
+      MatRowDelete(PCr,i);
+    end;
+
+    from = StringToDate(FirstInRange(PCr.Period,20));
+    to = StringToDate(LastInRange(PCr.Period,20));
+    TrHs = true;
+    BTr.TransDate = from;
+    while (LoopKey("TransDate",BTr,1,TrHs)) begin
+      if (BTr.TransDate>to) then begin
+        TrHs = false;
+      end else begin
+        testf = true;
+        /*
+        if (nonblank(PCr.PMCode) and PCr.PMCode!=BTr.) then begin
+          testf = false;
+        end;
+        */
+        if (BTr.TypeRef!="CRDT") then begin
+          testf = false;
+        end;
+        if (nonblank(PCr.Comment) and InString(BTr.PayReference,PCr.Comment)==0) then begin
+          testf = false;
+        end;
+        FindCustomer(BTr,CUr);
+        if (nonblank(PCr.CustCode) and CUr.Code!=PCr.CustCode) then begin
+          testf = false;
+        end;
+        if (testf) then begin
+          if (PCr.IVNr>0) then begin
+            testf = FilterReceiptInBankTrans(BTr,PCr.IVNr);
+          end;
+        end;
+
+        if (testf) then begin
+          ClearRow(PCr,PCrw,1);
+          PCrw.TransDate = BTr.TransDate;
+          PCrw.CustCodeRow = CUr.Code;
+          PCrw.CustName = CUr.Name;
+          PCrw.CommentRow = BTr.PayReference;
+          PCrw.Amount = BTr.Sum;
+          PCrw.CurncyCode = BTr.CurncyCode;
+          PCrw.BankTRNr = BTr.SerNr;
+          PCrw.IPNr = BTr.TransNr;
+          MatRowPut(PCr,MatRowCnt(PCr),PCrw);
+
+          if (BTr.TransNr>0) then begin
+            IPr.SerNr = BTr.TransNr;
+            if (ReadFirstMain(IPr,1,true)) then begin
+              rwcnt = MatRowCnt(IPr);
+              for (i=0;i<rwcnt;i=i+1) begin
+                MatRowGet(IPr,i,IPrw);
+                ClearRow(PCr,PCrw,2);
+                PCrw.IVNrRow = IPrw.InvoiceNr;
+                PCrw.PrepayNr = IPrw.CUPNr;
+                PCrw.Amount = IPrw.RecVal;
+                PCrw.CurncyCode = IPrw.RecCurncy;
+                PCrw.BankTRNr = BTr.SerNr;
+                PCrw.IPNr = BTr.TransNr;
+                MatRowPut(PCr,MatRowCnt(PCr),PCrw);
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+procedure SetBankTRPayCustCode(var record BankTRVc BankTRr)
+begin
+  record CUVc CUr;
+  Boolean foundf;
+ 
+  if (BankTRr.TypeRef!="CRDT" and blank(BankTRr.PayCustCode)) then begin
+    if (nonblank(BankTRr.PayRegNr1)) then begin
+      CUr.RegNr1 = BankTRr.PayRegNr1;
+      if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf==false and nonblank(BankTRr.PayVATNr)) then begin
+      ResetLoop(CUr);    
+      CUr.VATNr = BankTRr.PayVATNr;
+      if (ReadFirstKey("VATNr",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf==false and nonblank(BankTRr.PayName)) then begin
+      ResetLoop(CUr);    
+      CUr.Name = BankTRr.PayName;
+      if (ReadFirstKey("Name",CUr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+    if (foundf) then begin
+      BankTRr.PayCustCode = CUr.Code;
+    end;
+  end;
+
+  return;
+end;
+
+global
+function LongInt BankTRVcRecordSave(var record BankTRVc BankTRr,record BankTRVc BankTR2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  string 255 tstr;
+
+  res = 0;//inner.BankTRVcRecordSave(BankTRr,BankTR2r,stat,long4); no inner function
+  SetBankTRPayCustCode(BankTRr);
+
+  BankTRVcRecordSave = res;
+  RETURN;
+END;
+
+global
+function LongInt BankTRVcRecordUpdate(var record BankTRVc BankTRr,record BankTRVc BankTR2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  string 255 tstr;
+  record CUVc CUr;
+
+  res = inner.BankTRVcRecordUpdate(BankTRr,BankTR2r,stat,long4);
+  SetBankTRPayCustCode(BankTRr);
+ 
+  BankTRVcRecordUpdate = res;
+  RETURN;
+END;
+
+
+global
+updating procedure CustFillIPRecord(record BankTRVc BTr,var record IPVc IPr)
+begin
+  val remsum;
+  record CUVc CUr;
+  string 255 instr;
+  record BankImportSetBlock BISb;
+
+  BlockLoad(BISb);
+  if (BISb.ImpPaym==1) then begin  
+    RecordClear(IPr);
+    RecordNew(IPr);
+    IPr.TransDate = BTr.TransDate;
+    IPr.SerNr = NextSerNr("IPVc",IPr.TransDate,-1,false,"");
+    IPr.RegDate = CurrentDate;
+    IPr.OKFlag = 0;
+    IPr.Comment = BTr.Reference;
+
+    FindCustomer(BTr,CUr);
+    instr = BPI_ParseInvStr(BTr.PayReference);
+    remsum = BTr.Sum;
+    BankFillIProws(IPr,CUr.Name,BTr.CurncyCode,remsum,CUr.Code,nonblank(CUr.Code),instr,BTr.PayReference);
+    if (MatRowCnt(IPr)>0) then begin
+      RecordInsert(IPr,true);
+    end;
+  end;
+
+  return;
+end;
+
+
+global
+updating procedure CustFillOPRecord(record BankTRVc BTr,var record OPVc OPr)
+begin
+  val remsum;
+  record CUVc CUr;
+  string 255 instr;
+  record BankImportSetBlock BISb;
+
+  BlockLoad(BISb);
+  if (BISb.ImpPaymOrd==1) then begin
+    RecordClear(OPr);
+    RecordNew(OPr);
+    OPr.TransDate = BTr.TransDate;	 
+    OPr.PayDate = BTr.RcpTransDate;	 
+    OPr.SerNr = NextSerNr("OPVc",OPr.TransDate,-1,false,"");		
+
+    FindCustomer(BTr,CUr);
+    instr = BPI_ParseInvStr(BTr.RcpReference);
+    remsum = BTr.Sum;
+
+    BankFillOProws(OPr,CUr.Name,BTr.CurncyCode,remsum,CUr.Code,nonblank(CUr.Code),instr,BTr.RcpReference);
+    if (MatRowCnt(OPr)>0) then begin
+      RecordInsert(OPr,true);
+    end;
+  end;
+//to think about charges
+/*
+				if(blank(SWIr.RecName) and blank(SWIr.IBAN))then begin
+					SWIr.PayType = "BFIS";
+				end;
+*/
+
+  return;
+end;

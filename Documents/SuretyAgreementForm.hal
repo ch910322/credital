@@ -1,11 +1,26 @@
 external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
-external function Boolean GetLoanAppContact(string,string,var record CUVc);
+external inner procedure OutAddress(string,string,string,string,string,string,string);
 
+procedure GetSuretyValues(record B2BLoanApplicationVc LAr,Integer num,var string name,var string phone,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
+begin
+  
+  name = GetFieldValueByName(LAr,"Surety" & num & "Name",-1);
+  email = GetFieldValueByName(LAr,"Surety" & num & "eMail",-1);
+  phone = GetFieldValueByName(LAr,"Surety" & num & "Phone",-1);
+  id = GetFieldValueByName(LAr,"Surety" & num & "ID",-1);
+  addr0 = GetFieldValueByName(LAr,"Surety" & num & "Addr0",-1);
+  addr1 = GetFieldValueByName(LAr,"Surety" & num & "Addr1",-1);
+  addr2 = GetFieldValueByName(LAr,"Surety" & num & "Addr2",-1);
+  addr3 = GetFieldValueByName(LAr,"Surety" & num & "Addr3",-1);
+  addr4 = GetFieldValueByName(LAr,"Surety" & num & "Addr4",-1);
+
+  return;
+end;
 
 global
-procedure DoLoanAppForm(record RcVc RepSpec,record B2BLoanApplicationVc LAr)
+procedure DoSuretyAgreementForm(record RcVc RepSpec,record B2BLoanApplicationVc LAr)
 BEGIN
   record DocVc Docr;
   record CUVc CUr;
@@ -17,12 +32,14 @@ BEGIN
   Integer intdocnr;
   string 30 formcode,langcode;
   record UserVc Userr;
+  string 255 name,phone,email,id,addr0,addr1,addr2,addr3,addr4;
+  Integer surety;
     
   FDr.repname = RepSpec.repname;
   FDr.shortname = RepSpec.shortname;
   if (ReadFirstMain(FDr,1,true)==false) then begin
     MessageBox(1624, " " & USetStr(1623));
-    goto LDoLoanAppForm;
+    goto LDoSuretyAgreementForm;
   end;
   rwcnt = MatRowCnt(FDr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
@@ -54,22 +71,17 @@ LBREAK:;
         if (ReadFirstMain(Docr,1,true)) then begin
         end;
 //rest of fields go here
-        if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
-          OutFormField("F_CONTACTNAME",CUr.Name);
-          OutFormField("F_CONTACTID",CUr.RegNr1);
-          OutFormField("F_DATUM",CurrentDate);
+
+        surety = LAr.SuretyCnt;
+        if (surety>0) then begin
+          GetSuretyValues(LAr,surety,name,phone,email,id,addr0,addr1,addr2,addr3,addr4);
+          OUTFORMFIELD("F_CONTACTNAME",name)
+          OUTFORMFIELD("F_CONTACTPHONE",phone)
+          OUTFORMFIELD("F_CONTACTMAIL",email)
+          OUTFORMFIELD("F_CONTACTID",id)
+          OutAddress("F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
         end;
-        CUr.Code = LAr.CEOCustCode;
-        if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_CEONAME",CUr.Name);
-          OutFormField("F_CEOID",CUr.RegNr1);
-        end;
-        CUr.Code = LAr.SuretyProvider1;
-        if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_SURETY1NAME",CUr.Name);
-          OutFormField("F_SURETY1ID",CUr.RegNr1);
-        end;
-        
+
         CloseForm;        
       end else begin
         printf = false;
@@ -83,20 +95,21 @@ LBREAK:;
     end;
     intdocnr = intdocnr + 1;
   end;
-LDoLoanAppForm:;  
+LDoSuretyAgreementForm:;  
   RETURN;  
 END;     
  
 
 global
-procedure LoanAppForm(record RcVc RepSpec)
+procedure SuretyAgreementForm(record RcVc RepSpec)
 BEGIN
   record B2BLoanApplicationVc LAr;
   Boolean tmpf;
   
   LAr.SerNr = RepSpec.long1;
   if (ReadFirstMain(LAr,1,true)) then begin
-    tmpf = PrintDocument(LAr,"LoanAppForm",false);    
+    LAr.SuretyCnt = RepSpec.flags[0];
+    tmpf = PrintDocument(LAr,"SuretyAgreementForm",false);    
   end;
   RETURN;
 END;

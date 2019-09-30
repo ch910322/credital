@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function Boolean GetNextCustNr(var string);
@@ -10,6 +11,7 @@ external inner function string 255 FormatLink(string,string,boolean,boolean);
 external inner function LongInt DateDiff(Date,Date);
 external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
 external inner procedure ToolWebOutElementTextFormat(record WebNGElementVc);
+external function string 255 MakeWebSafe(string);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -382,7 +384,7 @@ begin
       ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),add,true);
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70107),add,true);
     end;
     WebOutString("</div><div class='col'>")
     //show selection box
@@ -396,6 +398,7 @@ begin
     WebOutString("<div class='calc_summary'>");
     WebOutString("<div class='outer_circle'><div class='mid_circle'><canvas id='main_loan_canvas' width=348 height=348>></canvas><div class='inner_circle'><div class='summ_content'></div><div class='summ_text'>" & ToolWebNGTranslateText2(70148) & "</div></div></div></div>");
     WebOutString("</div></div>");
+    WebOutString("<div class='row main_calc_buttom'><div class='col-auto'>" & ToolWebNGTranslateText2(70082) & "</div><div class='col-auto'>" & ToolWebNGTranslateText2(70083) & "</div></div>");
     WebOutString("</form></div>");
   end;
 
@@ -489,7 +492,7 @@ end;
 procedure ShowSingleUserOnWeb(record UserVc Userr)
 begin
    
-  WebOutString("<div class='col-3 single_emp justify-content-center'>");
+  WebOutString("<div class='col-auto single_emp justify-content-center'>");
   WebOutString("<div class='emp_pic'><img src='/WebShowEmpPic.hal?emp=" & Userr.Code & "'></div>")
   WebOutString("<div class='emp_name'>" & Userr.Name & "</div>")
   WebOutString("<div class='emp_descr'>" & Userr.Job & "</div>")
@@ -506,6 +509,8 @@ begin
   record Attach2Vc Attachr;
   record RLinkVc RLr;
   record EGVc EGr;
+  array record UserVc aUser;
+  Integer i;
 
   EGr.Code = WEr.HALFunc;
   if (ReadFirstMain(EGr,1,true)) then begin
@@ -514,9 +519,14 @@ begin
     while (LoopKey("ActCode",Userr,1,true)) begin
       if (Userr.JobGroup==WEr.HALFunc) then begin
         if (ReadRecordLink(Userr,1,Attachr,RLr)) then begin
-          ShowSingleUserOnWeb(Userr);
+          aUser[aUser.length] = Userr;
         end;
       end;
+    end;
+    SortRecordArray(aUser,"SortCode");
+    for (i=0;i<aUser.length;i=i+1) begin
+      Userr = aUser[i];
+      ShowSingleUserOnWeb(Userr);
     end;
     WebOutString("</div>");
   end;
@@ -675,17 +685,17 @@ begin
   
   WebOutString("<script>");
   WebOutString("var web_strings = {};");
-  WebOutString("web_strings['EnterCompName'] = '" & ToolWebNGTranslateText2(70154) & "';");
-  WebOutString("web_strings['EnterRegNr'] = '" & ToolWebNGTranslateText2(70155) & "';");
-  WebOutString("web_strings['EnterNameSurname'] = '" & ToolWebNGTranslateText2(70156) & "';");
-  WebOutString("web_strings['EnterEmail'] = '" & ToolWebNGTranslateText2(70157) & "';");
-  WebOutString("web_strings['EnterPhone'] = '" & ToolWebNGTranslateText2(70158) & "';");
-  WebOutString("web_strings['EnterPassword'] = '" & ToolWebNGTranslateText2(70159) & "';");
-  WebOutString("web_strings['EnterName'] = '" & ToolWebNGTranslateText2(70160) & "';");
-  WebOutString("web_strings['EnterComment'] = '" & ToolWebNGTranslateText2(70161) & "';");
-  WebOutString("web_strings['EnterEmailAddress'] = '" & ToolWebNGTranslateText2(70162) & "';");
-  WebOutString("web_strings['BlankPassword'] = '" & ToolWebNGTranslateText2(70163) & "';");
-  WebOutString("web_strings['SamePassword'] = '" & ToolWebNGTranslateText2(70164) & "';");
+  WebOutString("web_strings['EnterCompName'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70154)) & "';");
+  WebOutString("web_strings['EnterRegNr'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70155)) & "';");
+  WebOutString("web_strings['EnterNameSurname'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70156)) & "';");
+  WebOutString("web_strings['EnterEmail'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70157)) & "';");
+  WebOutString("web_strings['EnterPhone'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70158)) & "';");
+  WebOutString("web_strings['EnterPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70159)) & "';");
+  WebOutString("web_strings['EnterName'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70160)) & "';");
+  WebOutString("web_strings['EnterComment'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70161)) & "';");
+  WebOutString("web_strings['EnterEmailAddress'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70162)) & "';");
+  WebOutString("web_strings['BlankPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70163)) & "';");
+  WebOutString("web_strings['SamePassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70164)) & "';");
   
   WebOutString("</script>");
 
@@ -801,12 +811,14 @@ begin
   if (GetSessionString("LoanAppVer")==WebGetArg("scall")) then begin
     compid = WebGetArg("regnr");
 
-    if (nonblank(compid) and len(compid)==9) then begin
+    if (nonblank(compid) and (len(compid)==9 or len(compid)==12)) then begin
       CUr.RegNr1 = compid;
       if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
         fres = CUr.Name;
       end else begin
-        GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr);
+        if (len(compid)==9) then begin//only for companies (9 chars) not persons (12 chars)
+          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr);
+        end;
       end;
     end;
   end;
@@ -883,7 +895,7 @@ begin
       msg = ToolWebNGTranslateText2(70260);
       RepSpec.f1 = CUr.Code;
       RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
-      SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);
+      SendCustomerLetterWithDetails(RepSpec,"reset-password",CUr.LangCode,CUr.eMail);
     end;
   end else begin
     msg = ToolWebNGTranslateText2(70261);    

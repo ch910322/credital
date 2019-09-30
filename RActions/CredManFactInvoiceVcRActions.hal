@@ -1,0 +1,23 @@
+//<halrule>server-only</halrule>
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
+
+global
+updating function LongInt CredManFactInvoiceVcRecordUpdateAfter(var record CredManFactInvoiceVc CMIr,record CredManFactInvoiceVc CMI2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  record IVVc IVr;
+  record CredManVc CredManr;
+
+  res = 0;
+
+  if (CMIr.CustPaidFlag==1 and CMI2r.CustPaidFlag==0) then begin
+    CredManr.SerNr = CMIr.CredManNr;
+    if (ReadFirstMain(CredManr,1,true)) then begin
+      CreateSingleAgreementInvoice(CredManr,CurrentDate,IVr);
+    end;
+  end;
+
+  CredManFactInvoiceVcRecordUpdateAfter = res;
+  return;
+end;
+

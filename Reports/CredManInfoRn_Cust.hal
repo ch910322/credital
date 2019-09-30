@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 //This report should not be even compared with master code. It will be completely different
 
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);

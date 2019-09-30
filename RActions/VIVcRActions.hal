@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external updating procedure UpdateFactoringInvoicesPL(record VIVc,Boolean);
 
 global

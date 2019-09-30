@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure LoadLoanSession(var vector string);
 external function Boolean GetLoanAppContact(string,string,var record CUVc);
 external inner function string 255 FormatLink(string,string,boolean,boolean);
@@ -5,6 +6,17 @@ external inner function string 255 removenextlistitem(var string,string);
 external function string 255 GetLinkToLoanApp();
 external inner procedure BitSafeBase64EncodeAnArea(var area); 
 external inner function string 255 StrReplace(string,string,string);
+
+procedure LogDokobit(area a,string fn)
+begin
+
+  if (DirExists("Dokobit")==false) then begin
+    CreateFolder("Dokobit");
+  end;
+  WriteAreaToFile(a,"Dokobit/" & fn,0);
+  
+  return;
+end;
 
 global
 updating procedure StartPaymentSessionDokobit(string custcode,Longint id,var string sessionid)
@@ -51,7 +63,7 @@ begin
 
   while (tries<10) begin
     if (SendWebRequest(url,443,-1,true,"GET","/api/file/upload/" & token & "/status.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
-      writeareatofile(reply,"dokobit_status.txt",0);
+      LogDokobit(reply,"dokobit_status.txt");
       js = ParseJSONArea(reply);
       if (JSONGet(js,"status")=="uploaded") then begin
         res = true;
@@ -92,7 +104,7 @@ begin
   AddTextToArea("&language=lt",request);
 
   if (SendWebRequest(url,443,-1,true,"POST","/api/signing/create.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
-    writeareatofile(reply,"dokobit_createsign.txt",0);
+    LogDokobit(reply,"dokobit_createsign.txt");
     js = ParseJSONArea(reply);
     if (JSONGet(js,"status")=="ok") then begin
       res = true;
@@ -130,7 +142,7 @@ begin
   AddTextToArea("&file[content]=" & UrlEncode(Base64Encode(base64)),request);
 
   AddTextToArea(base64,tmp);
-  WriteAreaToFile(tmp,"dokobit_file.txt",0);
+  LogDokobit(tmp,"dokobit_file.txt");
   logtext(0,"sha1 = " & sha1);
 
  
@@ -138,7 +150,7 @@ begin
   //AddAreaToArea(afile,request);
 
   if (SendWebRequest(url,443,-1,true,"POST","/api/file/upload.json?access_token=" & SIb.AccessToken,"application/x-www-form-urlencoded","",false,request,reply,30)) then begin
-    writeareatofile(reply,"dokobit_upload.txt",0);
+    LogDokobit(reply,"dokobit_upload.txt");
     js = ParseJSONArea(reply);
     if (JSONGet(js,"status")=="ok") then begin
       uploadtoken = JSONGet(js,"token");
@@ -255,7 +267,7 @@ begin
       WebOutString("<res err='" & errstr & "' link='" & link & "' session='" & sessionid & "' stat='" & res & "'></res>");
     case "callback":
       WebGetRawPostData(post);
-      writeareatofile(post,"dokobit_callback.txt",0);
+      LogDokobit(post,"dokobit_callback.txt");
       logtext(0,"ddd " & WebGetArg("session"));
       qupdating.TreatDokobitCallBack(post,WebGetArg("session"));
       //from dokobit

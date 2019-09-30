@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 
 global
 function LongInt WebCampaignVcRecordDuplicate(var record WebCampaignVc WCr,record WebCampaignVc WC2r,LongInt stat,LongInt long4)
