@@ -228,10 +228,12 @@ begin
   Mailr.SerNr = NextSerNr("MailVc",CurrentDate,-1,false,"");
 
   if (RecordStore(Mailr,true)) then begin
+//CUST-BEGIN
+/*
     RecordCopy(oldMailr,Mailr);
     Mailr.SendFlag = 1;
     RecordUpdate(oldMailr,Mailr,true);
-//CUST-BEGIN
+*/
     OuterSetupAndSendContactUsEmail(Mailr,CFr);
 //CUST-END
   end;

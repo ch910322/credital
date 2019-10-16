@@ -1,4 +1,3 @@
-//<halrule>server-only</halrule>
 remote inner procedure GetWebNGContentAttachedImages(record WebNGContentVc,var array string);
 external inner procedure PasteFromSysList(Integer ,Integer);
 remote procedure GetWebCampaignAttachedImages(record WebCampaignVc,var array string);
@@ -50,5 +49,85 @@ function Boolean WebCampaignImageSClassOnOKWindow(Integer wn)
 begin
   PasteFromSysList(wn,0);
   WebCampaignImageSClassOnOKWindow = false;
+  return;
+end;
+
+
+global
+procedure WebMetaTagDClassAdd()
+begin
+  record WebMetaTagTransVc MTTr;
+  record WebMetaTagVc MTr;
+  Integer wn;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,MTr);
+  if (WindowState(wn)==Rs_Normal) then begin
+    RecordNew(MTTr);
+    MTTr.SerNr = MTr.SerNr;
+    OpenWindow("WebMetaTagTransDCLass",0,0,"","",MTTr);
+  end;
+  
+  return;
+end;
+
+global
+function Boolean WebMetaTagDClassUpdateWindowSubset(Integer wn,var string subsetname)
+begin
+  record WebMetaTagVc MTr;
+  
+  GetWindowRecord(wn,MTr);
+  if (MTr.SerNr>0) then begin
+    subsetname = MTr.SerNr;
+  end else begin
+    subsetname = -9999999;
+  end;
+
+  WebMetaTagDClassUpdateWindowSubset = true;
+  return;
+end;
+
+global
+function Boolean WebMetaTagDClassOnOpenWindow(Integer wn)
+begin
+  Boolean res;
+  record WebMetaTagVc MTr;
+
+  GetWindowRecord(wn,MTr);
+  SetWindowSubset(wn,MTr.SerNr);
+
+  WebMetaTagDClassOnOpenWindow = true;
+  return;
+end;
+
+global
+procedure WebMetaTagDClassOnWindowRecordChange(Integer wn)
+begin
+  record WebMetaTagVc MTr;
+
+  GetWindowRecord(wn,MTr);
+  SetWindowSubset(wn,MTr.SerNr);
+
+  return;
+end;
+
+
+global
+function Boolean WebMetaTagDClassListDblClick(Integer wn)
+begin
+  Integer line;
+  Longint pos,sernr;
+  record WebMetaTagTransVc MTTr;
+
+  ReadMarkedRecord(wn,MTTr);
+  OpenWindow("WebMetaTagTransDCLass",1,0,"","",MTTr);
+
+  return;
+end;
+
+global
+procedure WebMetaTagDClassButtonFlags(Integer wn,var Boolean duplOK,var Boolean newOK,var Boolean saveOK,var Boolean restOK)
+begin
+  saveOK = true;
   return;
 end;

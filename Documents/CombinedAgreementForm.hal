@@ -1,11 +1,12 @@
+//<halrule>server-only</halrule>
 external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external function Boolean GetLoanAppContact(string,string,var record CUVc);
-
+external inner function roundmode SetRoundModeD(Integer);
 
 global
-procedure DoLoanAppForm(record RcVc RepSpec,record B2BLoanApplicationVc LAr)
+procedure DoCombinedAgreementForm(record RcVc RepSpec,record B2BLoanApplicationVc LAr)
 BEGIN
   record DocVc Docr;
   record CUVc CUr;
@@ -17,7 +18,11 @@ BEGIN
   Integer intdocnr;
   string 30 formcode,langcode;
   record UserVc Userr;
-    
+  string 255 list;
+  Longint pos;
+  Integer ysize,height,xsize,lheight,xcnt;
+
+/*
   FDr.repname = RepSpec.repname;
   FDr.shortname = RepSpec.shortname;
   if (ReadFirstMain(FDr,1,true)==false) then begin
@@ -33,75 +38,66 @@ BEGIN
     end;
   end;
   if (langf==false) then begin langcode = ""; end;
-
+*/
   intdocnr = 1;
   printf = true;
-  while (printf) begin  
-    formcode = "";
-    if (nonblank(RepSpec.f12)) then begin
-      formcode = RepSpec.f12;
-      printf = false;
-    end else begin
-      for (i=rwcnt-1;i>=0;i=i-1) begin
-        MatRowGet(FDr,i,FDrw);
-        if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,LAr.SerNr,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
-        begin
-          goto LBREAK;
-        end;
-      end;
-    end;
-LBREAK:;
-    if (nonblank(formcode)) then begin  
+  //while (printf) begin  
+    list = "SIGNATURE,SIGNATURE";//,SURETY_AGREEMENT";
+
+    formcode = "SIGNATURE";
+    //while (GetNextSubstring(list,pos,",",formcode)) begin 
       if (OpenForm(formcode)) then begin
+        //SetPrinter("");
+        //FormLabelGrid(1,1,1,1);
+        logtext(0,"XXXXXXX " & formcode);
+        Docr.Code = formcode;
+        ReadFirstMain(Docr,1,true);
+        xcnt = 1;
+        ysize = 1;
+        height = 700/ysize;//GetDocHeight(Docr);
+        xsize = 580/xcnt;
+        lheight = Round(1.00*height/ysize+1,SetRoundMOdeD(2));
+
         CommonDocumentFields(RepSpec);
         NumberofDocumentPages(formcode,MatRowCnt(LAr));
-        Docr.Code = formcode;
-        if (ReadFirstMain(Docr,1,true)) then begin
-        end;
 //rest of fields go here
+
         if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
-          OutFormField("F_CONTACTNAME",CUr.Name);
-          OutFormField("F_CONTACTID",CUr.RegNr1);
+          OutFormField("F_CONTACTNAME",CUr.Name & ":" & formcode);
+          OutFormField("F_CONTACTID",CUr.RegNr1 & ":" & formcode);
           //OutFormField("F_DATUM",CurrentDate);
         end;
         CUr.Code = LAr.CEOCustCode;
         if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_CEONAME",CUr.Name);
-          OutFormField("F_CEOID",CUr.RegNr1);
+          OutFormField("F_CEONAME",CUr.Name & ":" & formcode);
+          OutFormField("F_CEOID",CUr.RegNr1 & ":" & formcode);
         end;
         CUr.Code = LAr.SuretyProvider1;
         if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_SURETY1NAME",CUr.Name);
-          OutFormField("F_SURETY1ID",CUr.RegNr1);
+          OutFormField("F_SURETY1NAME",CUr.Name & ":" & formcode);
+          OutFormField("F_SURETY1ID",CUr.RegNr1 & ":" & formcode);
         end;
-        
+
+//        EndFormLabel;
         CloseForm;        
-      end else begin
-        printf = false;
-        MessageBox(1546,formcode);
       end;
-    end else begin
-      printf = false;
-      if (intdocnr==1) then begin
-        MessageBox(1624, " " & USetStr(1623));
-      end;
-    end;
+    //end;
     intdocnr = intdocnr + 1;
-  end;
+  //end;
 LDoLoanAppForm:;  
   RETURN;  
 END;     
  
 
 global
-procedure LoanAppForm(record RcVc RepSpec)
+procedure CombinedAgreementForm(record RcVc RepSpec)
 BEGIN
   record B2BLoanApplicationVc LAr;
   Boolean tmpf;
   
   LAr.SerNr = RepSpec.long1;
   if (ReadFirstMain(LAr,1,true)) then begin
-    tmpf = PrintDocument(LAr,"LoanAppForm",false);    
+    tmpf = PrintDocument(LAr,"CombinedAgreementForm",false);    
   end;
   RETURN;
 END;

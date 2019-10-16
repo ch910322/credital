@@ -879,12 +879,31 @@ BEGIN
   
   DeselectWindow(wn,false);
   GetWindowRecord(wn,RepSpec);
-  ReportDefaults(RepSpec,"GenLoanInvoicesMn");  
+  ReportDefaults(RepSpec,"GenLoanInvoicesVClass");  
   RepSpec.d1 = CurrentDate;
   PutWindowRecord(wn,RepSpec);
   SelectWindow(wn);
   RETURN;
 END;
+
+global
+procedure PmtGrntInvoiceVClassReportDefaults(Integer wn)
+BEGIN
+  record RcVc RepSpec;
+  Date td;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"PmtGrntInvoiceVClass"); 
+  td = CurrentDate;
+  td.Day = 1; 
+  RepSpec.d1 = td;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  RETURN;
+END;
+
+
 
 global
 procedure DblB2BLoanAppVc(string dblstr,string l,Integer currepwn)
@@ -1157,5 +1176,28 @@ global
 updating procedure PrintSurety3Dm()
 begin
   PrintSuretyAgreement(3);
+  return;
+end;
+
+global
+procedure LoanAppRClassReportDefaults(Integer wn)
+begin
+  record RcVc RepSpec;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"LoanAppRClass");  
+  RepSpec.MultiPageJob = 1;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  return;
+end;
+
+global
+function Boolean LoanAppRClassOnOpenWindow(Integer wn)
+begin
+  
+  LoanAppRClassReportDefaults(wn);
+  LoanAppRClassOnOpenWindow = true;
   return;
 end;

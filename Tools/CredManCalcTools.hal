@@ -537,6 +537,8 @@ begin
           end;
         case 4://Factoring
           AddFactoringInvoices(inCredManr,CredManPayPlanr,CredManSetb,CurrentDate,acumint,calcbal,frdat,todat)
+        case 5://Payment guarantee
+
         case 6:
           if (i==0) then begin
             inCredManr.InstalmentMonths = inCredManr.InstalmentMonths-inCredManr.PrincipleDelayMonths;

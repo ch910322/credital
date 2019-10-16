@@ -76,9 +76,12 @@ begin
   EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Finished with Ident. Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Finished w/o Ident. Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
 
 
-  EditField(h,v+=vs,100,"Letter for Surety Email",Normal,SuretyLetter,false,0);
+  EditField(h,v+=vs,100,"Surety Email",Normal,SuretyLetter,false,0);
+  EditField(h,v+=vs,100,"Surety Email without Password",Normal,NoPassSuretyLetter,false,0);
+  EditField(h,v+=vs,100,"New Customer Email",Normal,NewCustLetter,false,0);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
@@ -141,7 +144,7 @@ begin
   RadioButton(h3,v,0,0,"Resident",ResidencyType);
   RadioButton(h3,v+=16,1,0,"Not Resident",ResidencyType);  
 
-  MatrixBegin(10,v+=vs+60,-40,-1,-,50);
+  MatrixBegin(10,v+=vs+60,-55,-1,-,50);
   Flip(0);
   MatCol(1,20,"Period",0,Period,false,0);
   Flip(1);
@@ -167,10 +170,10 @@ begin
   MatCol(1,430,"Leasing",0,Leasing,false,0);
   EndMatrix;
 
-  VTab(-50,v=15,-16,v+=vs,ToolFlip,1,"A");
-  VTab(-50,v,-6,v+=vs,ToolFlip,2,"B");
-  VTab(-50,v,-6,v+=vs,ToolFlip,3,"C");
-  VTab(-50,v,-16,v+=vs,ToolFlip,4,"D");
+  VTab(-40,v,-6,v+=vs,ToolFlip,1,"A");
+  VTab(-40,v,-6,v+=vs,ToolFlip,2,"B");
+  VTab(-40,v,-6,v+=vs,ToolFlip,3,"C");
+  VTab(-40,v,-6,v+=vs,ToolFlip,4,"D");
 
   EndWindow;
  
@@ -367,6 +370,13 @@ begin
   EditFieldTL(h,v+=vs,153,"Customer",M4Code,Normal,20,f1,false,CUSClass);
   EditFieldTL(h,v+=vs,153,"Manager",M4Code,Normal,10,f2,false,UserSClass);
   EndWindow;
+
+  WindowBegin("Specify Payment Guarantee Invoices",PmtGrntInvoiceVClass,CGMnt,RcType);
+  SetWRect(64,80,445,95);
+  h = 150; v = 6; vs = 20;
+  EditFieldTL(h,v,120,"Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EndWindow;
+
 
   WindowBegin("Additional Bank Accounts",CUBankAccDClass,CGView,-);
   SetWRect(20,80,400,250);
@@ -585,6 +595,7 @@ begin
   SetWRect(64,80,859,300);
   UseView(B2BLoanApplicationVc);
   DynamicWindow;
+  FormName(LoanAppForm);
   vs = 20; h=135; h2=375; h3=595;
   Tile(0,95,false,"",SerNr);
   EditField(h,v=6,100,"Ser. No.",Normal,SerNr,false,TSerSClass);
@@ -604,8 +615,8 @@ begin
   EditField(h,v+=vs,100,"Total Sum",Normal,Sum,true,0);
   EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
   EditField(h,v+=vs,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
-  EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
+  //EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
+  //EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
   v = vm;
   EditField(h3=h3+30,v,-40,"Monthly Rate %",Normal,InterestRate,true,0);
   EditField(h3,v+=vs,-40,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
@@ -1144,6 +1155,50 @@ begin
   EndWindow;
 end;
 
+window CredManPmtGrntLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Sellers",CredManPmtGrntLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManPmtGrntDClass);
+  UseView(CredManPmtGrntVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Credit Agreement",CredManNr,false,CredManNr);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CredManPmtGrntDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+
+  WindowBegin("Sellers",CredManPmtGrntDClass,CGview,-);
+  SetWRect(20,80,760,339);
+  DynamicWindow;
+  UseView(CredManPmtGrntVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  MatrixBegin(0,16,-16,-50,-,30);
+  MatCol(1,24,"Supplier",0,CustCode,false,VESClass);
+  MatCol(1,120,"Name",0,CustName,false,0);
+  MatCol(1,-420,"Used",0,Used,true,0);
+  MatCol(1,-360,"Open",0,OpenTotal,true,0);
+  MatCol(1,-300,"Eval. Limit",0,EvalLimit,true,0);
+  MatCol(1,-220,"Max Limit",0,MaxLimit,true,0);
+  MatCol(1,-140,"Delay Days",0,DelayDays,true,0);
+  MatCol(1,-70,"Delay Days",0,DelayMonths,true,0);
+  InsertRowTest;
+  DeleteRowTest;
+  EndMatrix;
+  SoftEditField(-280,-30,80,"Limit Total",ViewOnly,"credmanlimit",true,0,M4Val,0);
+  EditField(-120,-30,80,"Total",ViewOnly,Total,true,0);
+  //SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
+  //SpecialMenu("Contact",'',1,"CredManFactCreateContactDsm");
+
+  EndWindow;
+end;
+
 window CredManFactInvoiceLClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
@@ -1236,6 +1291,93 @@ begin
   EndWindow;
 end;
 
+/*pmt grnt report*/
+window CredManGrntReportLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Payment Guarantee Reports",CredManGrntReportLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManGrntReportDClass);
+  UseView(CredManGrntReportVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"SerNr",SerNr,false,SerNr);
+  RlCol(100,100,"Agreement",CredManNr,false);
+  RlCol(196,196,"Supplier",CustCode,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CredManGrntReportWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Payment Guarantee Reports",CredManGrntReportWClass,CGOther,RcType);
+  SetWRect(20,80,760,298);
+  UseView(RcVc);
+  EditField(h=100,v=55,50,"Dummy",Normal,f1,false,0);
+  if (GuiType==kGuiCocoa) then begin
+    RecordList2(4,17,-21,-1,"CredManGrntReportVc");
+  end else begin
+    RecordList2(4,17,-21,-35,"CredManGrntReportVc");    
+  end;
+  RlColKey(4,4,"Ser Nr.",SerNr,false,SerNr);
+  RlCol(100,100,"Supplier",CustName,false);
+  RlCol(-450,-450,"Report Date",ReportDate,false);
+  RlCol(-360,-360,"Due Date",DueDate,false);
+  RlCol(-270,-270,"Total",TotalSum,false);
+  RlCol(-210,-210,"Received",ReceivedAmount,false);
+  RlColTL(-150,-150,"SL",M4Mark,InitSLInvFlag,false);
+  RlColTL(-120,-120,"Paid",M4Mark,CustPaidFlag,false);
+  RlColTL(-90,-90,"PL",M4Mark,InitPLInvFlag,false);
+  RlColTL(-60,-60,"Paid",M4Mark,CustPaid2Flag,false);
+  RlColTL(-30,-30,"Fee",M4Mark,FeeGenFlag,false);
+  SpecialMenu("Add Amount",'',1,"CredManGrntReportAddSm");
+  SpecialMenu("Open Sales Invoice",'',1,"CredManGrntReportOpenSLSm");
+  SpecialMenu("Open Purchase Invoice",'',1,"CredManGrntReportOpenPLSm");
+  SpecialMenu("Delete Total Amount",'',1,"CredManGrntReportDeleteSm");
+  EndWindow;
+end;
+
+window CredManGrntReportDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Payment Guarantee Report",CredManGrntReportDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  UseView(CredManGrntReportVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,50,"SerNr",Normal,SerNr,false,0);
+  EditField(h,v+=vs,50,"Cred. Agr.",Normal,CredManNr,false,CredManSClass);
+  EditField(h,v+=vs,50,"Customer",Normal,CustCode,false,CUSClass);
+  EditField(h,v+=vs,50,"Inv. Date",Normal,ReportDate,false,0);
+  EditField(h,v+=vs,50,"Due Date",Normal,DueDate,false,0);
+  EditField(h,v+=vs,50,"Total Sum",Normal,TotalSum,false,0);
+  EditField(h,v+=vs,50,"Received Amount",Normal,ReceivedAmount,false,0);
+  CheckBox(h,v+=20,0,"Buyer Invoice",InitSLInvFlag);
+  CheckBox(h,v+=20,0,"Seller Invoice",InitPLInvFlag);
+  CheckBox(h,v+=20,0,"Buyer has Paid",CustPaidFlag);
+  CheckBox(h,v+=20,0,"Fee Invoice",FeeGenFlag);
+  EndWindow;
+end;
+
+window NewCredManGrntReportWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2;
+  WindowBegin("Amount Report",NewCredManGrntReportWClass,CGOther,RcType);
+  SetWRect(20,80,600,259);
+  UseView(RcVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v+=vs,100,"Supplier",Normal,f1,false,PmtGrntSellerSClass);
+  EditField(h2=300,v,-40,"Name",Normal,f3,false,0);
+  EditField(h,v+=vs,90,"Report Date",Normal,d1,false,PasteCurDate);
+  EditField(h,v+=vs,90,"Due Date",Normal,d2,false,PasteCurDate);
+  EditField(h,v+=vs,90,"Total Sum",Normal,vals0,false,0);
+  HalPushButton(h,v+=vs,h+150,v+=20,"NewCredManGrntReportWClassProceed","Add");
+  EndWindow;
+end;
+
 window FactoringTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
@@ -1274,6 +1416,45 @@ begin
   SearchField("Search");
   EndWindow;
 end;
+
+window PmtGrntSellerSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v;
+  WindowBegin("Paste Seller",PmtGrntSellerSClass,CGother,RcType);
+  UseView(RcVc);
+  SetWRect(40,80,350,298);
+  Sizeable(-1,-1,-1,0);
+  v=6;
+  DataList(0,0,-1,-1,"customers");
+  DataListColumn(1,6,120,AdjLeft,"custcode","Code",M4Str);
+  DataListColumn(1,130,-1,AdjLeft,"custname","Name",M4Str);
+  SearchField("Search");
+  EndWindow;
+end;
+
+
+window PmtGrntTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Payment Guarantee Settings",PmtGrntTClass,CGSbl,-);
+  SetBlid(PmtGrntBlock);
+  SetWRect(20,80,500,298);
+  vs=20; h=160; vs2=16; hm=-100;
+  ButtonFrame(h-100,v=30,250,5,"Buyer's Invoice");
+  EditField(h,v,100,"Security Item",Normal,BuyerSecurityItem,false,INSClass);
+  EditField(h,v+=vs,100,"Security Prc",Normal,BuyerSecurityPrc,false,0);
+  EditField(h,v+=vs,100,"PayDeal",Normal,BuyerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
+
+  ButtonFrame(h-100,v+=50,250,6,"Seller's Invoice");
+  EditField(h,v,100,"Account",Normal,SellerAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
+
+  EndWindow;
+end;
+
 
 window WebInvoicingPartnerTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
@@ -1338,6 +1519,144 @@ begin
   MatCol(1,-230,"Amount to",0,AmountTo,false,0);
   MatCol(1,-150,"Cust. Type",0,CustomerType,false,SetSClass);
   MatCol(1,-70,"Type",0,CredManType,false,CredManTypeSClass);
+  EndMatrix;
+  EndWindow;
+end;
+
+window CreditalWebSetTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  vs = 20;
+  WindowBegin("Credital Web Settings",CreditalWebSetTClass,CGSbl,SRType);
+  SetBlid(CreditalWebSetBlock);
+  SetWRect(20,80,570,298);
+  Sizeable(-1,-1,0,0);
+  ButtonFrame(h=180,v=40,300,4,"Invoice Guarantee Form");
+  EditField(h+100,v+=5,150,"Activity Comment",Normal,ContactActComment,false,0);
+  EditField(h+100,v+=vs,100,"Activity Type",Normal,ContactActType,false,ActTypeSClass);
+  EditField(h+100,v+=vs,100,"Activity Person",Normal,ContactPersons,false,UserSClass);
+
+  ButtonFrame(h,v+=60,300,4,"Loan Application Contact Link Confirm");
+  EditField(h+100,v+=5,150,"Activity Comment",Normal,LinkContactActComment,false,0);
+  EditField(h+100,v+=vs,100,"Activity Type",Normal,LinkContactActType,false,ActTypeSClass);
+  EditField(h+100,v+=vs,100,"Activity Person",Normal,LinkContactPersons,false,UserSClass);
+
+  EditField(h+100,v+=40,100,"News letter",Normal,NewsLetterMail,false,0);
+
+
+  EndWindow;
+end;
+
+window WebMetaTagLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Meta Tags",WebMetaTagLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,300,298);
+  SpawnClass(WebMetaTagDClass);
+  UseView(WebMetaTagVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(32,32,"Structure",StructNr,false,StructNr);
+  RlColKey(200,200,"Content",ContentNr,false,ContentNr);
+  RlColKey(-40,-40,"SerNr",SerNr,false,SerNr);
+  EndWindow;
+end;
+
+window WebMetaTagDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  vs = 20;
+  WindowBegin("Meta Tag",WebMetaTagDClass,CGView,-);
+  UseView(WebMetaTagVc);
+  SetWRect(20,80,570,258);
+  EditField(h=120,v=6,100,"Structure",Normal,StructNr,false,WebNGStructSClass);
+
+  HalPushButton(-120,v,-20,v+=20,"WebMetaTagDClassAdd","Add Translation");
+
+  if (GuiType==kGuiCocoa) then begin
+    RecordList2(4,v+=vs,-21,-1,"WebMetaTagTransVc");
+  end else begin
+    RecordList2(4,v+=vs,-21,-35,"WebMetaTagTransVc");    
+  end;
+  RlColKey(4,4,"Language",LangCode,false,LangCode);
+  RlCol(70,70,"Title",Title,false);
+  RlCol(200,200,"Keywords",KeyWords,false);
+  RlCol(-200,-200,"Descriptions",Description,false);
+  EditField(h=300,v=6,100,"Content",Normal,ContentNr,false,WebNGContentSClass);
+  EndWindow;
+end;
+
+window WebMetaTagTransLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Meta Tags Translations",WebMetaTagTransLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,300,298);
+  SpawnClass(WebMetaTagTransDClass);
+  UseView(WebMetaTagTransVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(32,32,"SerNr",SerNr,false,SerNr);
+  EndWindow;
+end;
+
+window WebMetaTagTransDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  vs = 20;
+  WindowBegin("Meta Tag Translation",WebMetaTagTransDClass,CGView,-);
+  UseView(WebMetaTagTransVc);
+  SetWRect(20,80,570,298);
+  EditField(h=120,v=6,100,"Language",Normal,LangCode,false,WebNGLanguageSClass);
+  EditField(h,v+=vs,-40,"Title",Normal,Title,false,0);
+  EditField(h,v+=vs,-40,"KeyWords",Normal,KeyWords,false,0);
+  EditField(h,v+=vs,-40,"Description",Normal,Description,false,0)
+  EndWindow;
+end;
+
+window WebNGContentSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Web Contents",WebNGContentSClass,CGslist,-);
+  SetWRect(10,80,800,291);
+  UseView(WebNGContentVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(6,6,"Ser. No.",SerNr,false,SerNr);
+  RlColKey(75,75,"Style",ContentStyle,false,ContentStyle);
+  RlColKey(185,185,"Country",Country,false,Country);
+  RlCol(255,255,"Category",ContentCategory,false);
+  RlColKey(390,390,"Comment",Comment,false,Comment);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window MultiDocLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Multi Page Documents",MultiDocLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(MultiDocDClass);
+  UseView(MultiDocVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Document",DocName,false,DocName);
+  EndWindow;
+end;
+
+window MultiDocDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Multi Page Document",MultiDocDClass,CGview,-);
+  SetWRect(20,80,400,339);
+  UseView(MultiDocVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,150,"Document",Normal,DocName,false,0);
+
+  MatrixBegin(10,v+=vs+20,-40,-20,-,99);
+  MatCol(1,24,"Form",0,FormCode,false,DocSClass);
   EndMatrix;
   EndWindow;
 end;

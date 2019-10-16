@@ -167,6 +167,7 @@ begin
   Boolean TrHs;
   record IVVc IVr;
 
+  openval = blankval;
   TrHs = true;
   ARr.CustCode = custcode;
   while (LoopKey("CustCode",ARr,1,TrHs)) begin
@@ -184,6 +185,35 @@ begin
   end;
 
   GetCustomerOpenInvoices = res;
+  return;
+end;
+
+global
+function val GetSellerOpenInvoices(string custcode,Longint credmannr,var val openval)
+begin
+  record ARVc ARr;
+  val res;
+  Boolean TrHs;
+  record IVVc IVr;
+  record CredManGrntReportVc GRr;
+
+  openval = blankval;
+  TrHs = true;
+  GRr.CustCode = custcode;
+  GRr.CustPaidFlag = 0;
+  while (LoopKey("CustCode:" & credmannr,GRr,2,TrHs)) begin
+    if (GRr.CustCode!=custcode or GRr.CustPaidFlag!=0) then begin
+      TrHs = false;
+    end else begin
+      ARr.InvoiceNr = GRr.BuyerIVNr;
+      if (ReadFirstMain(ARr,1,true)) then begin
+        openval = openval + ARr.RVal;
+        res = res + ARr.RVal;
+      end;
+    end;
+  end;
+
+  GetSellerOpenInvoices = res;
   return;
 end;
 
@@ -219,5 +249,40 @@ begin
 
 LCredManFactVcRecordCheck:;
   CredManFactVcRecordCheck = res;
+  return;
+end;
+
+global
+function LongInt CredManPmtGrntVcRecordCheck(var record CredManPmtGrntVc PGr,record CredManPmtGrntVc PG2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+  record CredManVc CredManr;
+  row CredManPmtGrntVc PGrw;
+  Integer i,rwcnt;
+  val openval,usedval;
+
+  res = 0;
+  
+  CredManr.SerNr = PGr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    if (PGr.Total>CredManr.InvSum4) then begin
+      RecordCheckError(200101,"",-1,"Total");
+      res = -1;
+      goto LCredManPmtGrntVcRecordCheck;
+    end;
+  end;
+  rwcnt = MatRowCnt(PGr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(PGr,i,PGrw);
+    usedval = GetSellerOpenInvoices(PGrw.CustCode,CredManr.SerNr,openval);
+    if (usedval>PGrw.MaxLimit) then begin
+      RecordCheckError(200104,openval,i,"MaxLimit");
+      res = -1;
+      goto LCredManPmtGrntVcRecordCheck;
+    end;
+  end;
+
+LCredManPmtGrntVcRecordCheck:;
+  CredManPmtGrntVcRecordCheck = res;
   return;
 end;

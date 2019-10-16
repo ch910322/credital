@@ -664,6 +664,7 @@ begin
 //CUST-BEGIN
   TileButton(5,"Surety");
   TileButton(6,"Factoring");
+  TileButton(7,"Payment Guarantee");
 //CUST-END
   Tile(1,500,true,"",Approved);//CUST CurncyCode>>Approved
   CheckBox(40,-41,0,"Approved",Approved);
@@ -836,6 +837,17 @@ begin
   HalPushButton(h,v,h+100,v+20,"OpenCredManFactoringBtn","Buyers");v = v + 30;
   HalPushButton(h,v,h+100,v+20,"OpenCredManFactoringInvoicesBtn","Invoices");v = v + 30;
   
+  Tile(7,600,true,"7",PayGrntComment); 
+  EditField(h,v=6,100,"Comment",Normal,PayGrntComment,false,0);
+  EditField(h,v+=vs,100,"Payment day 1 ",Normal,PayGrntPayDate1,true,0);
+  EditField(h,v+=vs,100,"Payment day 2",Normal,PayGrntPayDate2,true,0);
+  EditField(h,v+=vs,100,"Report day 1 ",Normal,PayGrntReportDate1,true,0);
+  EditField(h,v+=vs,100,"Report day 2",Normal,PayGrntReportDate2,true,0);
+  CheckBox(h,v+=vs,0,"Insured",PayGrntInsured);
+
+  v = v + vs;
+  HalPushButton(h,v,h+100,v+20,"OpenCredManPayGrntSellersBtn","Sellers");v = v + 30;
+  HalPushButton(h,v,h+100,v+20,"OpenCredManPayGrntReportsBtn","Reports");v = v + 30;
 
   SpecialMenu("Open #NL# Transaction",'t',2,"OpenTRFromCredMan");
   SpecialMenu("Open Subsystem Record",' ',3,"OpenSubsysCredManDsm");

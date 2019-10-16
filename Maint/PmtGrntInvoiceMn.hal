@@ -1,0 +1,138 @@
+//<halrule>server-only</halrule>
+external inner procedure IVVc_PastePayDeal(var record IVVc,string,string);
+external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBlock,var Integer,var Integer);
+external inner function Boolean PasteCust2InInv(var record IVVc,record LocalMachineBlock,string,Boolean,var string,var string,var string,var string,var string);
+external inner function Boolean IVVc_PasteArtCode(var record IVVc,Integer,var string,var string,Boolean,var Integer);
+external inner function Boolean IVVc_PasteQuantity(var record IVVc,Integer);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner procedure VIVc_PasteInvDate(var record VIVc);
+external inner procedure VIDDefault(Integer,string,var record VIVc);
+external inner function Boolean VIVc_PasteAccNumber(var record VIVc,string,Boolean,Integer);
+external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean,Boolean,var string);
+external inner procedure VIVc_PastePayDeal(var record VIVc);
+external inner procedure VICalcVals(var record VIVc);
+external inner procedure VISumup(record VIVc,var val);
+external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
+external inner function LongInt DateDiff(Date,Date);
+
+
+updating procedure CreateCreditNoteForSecurity(Longint origiv,val totalsec)
+begin
+  record IVVc IVr,IVCreditr;
+  row IVVc IVrw;
+  Integer i,rwcnt;
+  
+  IVr.SerNr = origiv;
+  if (ReadFirstMain(IVr,1,true)) then begin
+    if (CreateCreditNoteIV(IVr,kInvoiceTypeCredit,IVCreditr,"",false)==0) then begin
+      //decrease the amount
+      rwcnt = MatRowCnt(IVCreditr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(IVCreditr,i,IVrw);
+        if (IVrw.stp==kInvoiceRowTypeNormal) then begin
+          IVrw.Price = totalsec;
+          MatRowPut(IVCreditr,i,IVrw);
+          IVVc_PasteQuantity(IVCreditr,i);
+          i = rwcnt;
+        end;
+      end;  
+      IVCreditr.SerNr = NextSerNr("IVVc",IVCreditr.InvDate,-1,false,"");
+      IVCreditr.OKFlag = 1;
+      RecordInsert(IVCreditr,true);
+    end;
+  end;
+
+  return;
+end;
+
+updating procedure CreatePmtGuaranteeInvoice(record CredManGrntReportVc GRr,Integer latedays,val due)
+begin
+  record IVVc IVr;
+  row IVVc IVrw;
+  record CredManVc CredManr;
+  record PmtGrntBlock PGb;
+  record CredManSetBlock CMSb;
+  record LocalMachineBlock LMb;
+  Integer sernrf;
+  Integer err1,err2;
+  string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
+  val ct;
+  val interest,totalsec;
+
+  CredManr.SerNr = GRr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    BlockLoad(PGb);
+    BLockLoad(CMSb);
+
+    RecordNew(IVr);
+    IVr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    IVr.TransDate = CurrentDate;
+    IVr.InvDate = CUrrentDate;
+    IVVc_PasteInvDate(IVr,LMb,err1,err2);
+    IVr.CustCode = CredManr.CustCode;
+    PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn)
+    IVr.PayDeal = PGb.BuyerPayDeal;
+    IVVc_PastePayDeal(IVr,"","");
+    //IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
+    IVr.CustCredManNr = GRr.CredManNr;
+    totalsec = GRr.TotalSum*PGb.BuyerSecurityPrc/100;
+    interest = latedays*CredManr.IntRate*due/100;
+    ClearRow(IVr,IVrw,1);
+    IVrw.ArtCode = PGb.BuyerSecurityItem;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Quant = 1;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Price = totalsec;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+
+    ClearRow(IVr,IVrw,1);
+    IVrw.ArtCode = CMSb.RateItem;
+    MatRowPut(IVr,1,IVrw);
+    IVVc_PasteArtCode(IVr,1,warning,warning,false,sernrf);
+    MatRowGet(IVr,1,IVrw);
+    IVrw.Quant = 1;
+    MatRowPut(IVr,1,IVrw);
+    IVVc_PasteQuantity(IVr,1);
+    MatRowGet(IVr,1,IVrw);
+    IVrw.Price = interest;
+    MatRowPut(IVr,1,IVrw);
+    IVVc_PasteQuantity(IVr,1);
+
+    IVr.OKFlag = 1;
+    if (RecordInsert(IVr,true)) then begin
+      CreateCreditNoteForSecurity(GRr.BuyerIVNr,totalsec);
+    end;
+  end;
+  return;
+end;
+
+global
+updating procedure PmtGrntInvoiceMn(record RcVc RepSpec)
+begin
+  Boolean TrHs;
+  record CredManGrntReportVc GRr;
+  record ARVc ARr;
+  Integer latedays;
+  
+  TrHs = true;
+  GRr.CustPaidFlag = 0;
+  while (LoopKey("CustPaidFlag",GRr,1,TrHs)) begin
+    if (GRr.CustPaidFlag!=0) then begin
+      TrHs = false;
+    end else begin
+      ARr.InvoiceNr = GRr.BuyerIVNr;
+      if (ReadFirstMain(ARr,1,true)) then begin
+        latedays = DateDiff(ARr.DueDate,RepSpec.d1);
+        if (latedays<0) then begin
+          CreatePmtGuaranteeInvoice(GRr,-latedays,ARr.RVal);
+        end;
+      end;
+    end;
+  end;
+  return;
+end;

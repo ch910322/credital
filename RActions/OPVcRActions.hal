@@ -1,5 +1,6 @@
 //<halrule>server-only</halrule>
 external updating procedure UpdateFactoringInvoicePayment(record OPVc,Boolean);
+external updating procedure UpdatePmtGrntReportPayment(record OPVc,Boolean);
 
 global
 updating function LongInt OPVcRecordUpdateAfter(var record OPVc OPr,record OPVc OP2r,LongInt stat,LongInt long4)
@@ -10,9 +11,11 @@ BEGIN
 
   if (OPr.DoneFlag==1 and OP2r.DoneFlag==0) then begin
     UpdateFactoringInvoicePayment(OPr,true);
+    UpdatePmtGrntReportPayment(OPr,true);
   end;
   if (OPr.DoneFlag==0 and OP2r.DoneFlag==1) then begin
     UpdateFactoringInvoicePayment(OPr,false);
+    UpdatePmtGrntReportPayment(OPr,false);
   end;
 
   OPVcRecordUpdateAfter = res;
@@ -28,6 +31,7 @@ BEGIN
 
   if (OPr.DoneFlag==1) then begin
     UpdateFactoringInvoicePayment(OPr,true);
+    UpdatePmtGrntReportPayment(OPr,true);
   end;
 
   OPVcRecordSaveAfter = res;

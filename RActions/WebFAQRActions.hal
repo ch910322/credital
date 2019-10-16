@@ -14,3 +14,50 @@ begin
   WebFAQVcRecordDefaults = res; 
   return;
 end;
+
+global
+function LongInt WebMetaTagVcRecordDefaults(var record WebMetaTagVc MTr,record WebMetaTagVc MT2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+
+  res = 1;  
+
+  if (SingleUserMode) then begin
+    MTr.SerNr = NextSerNr("WebMetaTagVc",CurrentDate,-1,false,"");
+  end;
+  
+  WebMetaTagVcRecordDefaults = res; 
+  return;
+end;
+
+
+global
+function LongInt WebMetaTagVcRecordDuplicate(var record WebMetaTagVc MTr,record WebMetaTagVc MT2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+
+  res = 1;  
+
+  MTr.SerNr = "";
+  
+  WebMetaTagVcRecordDuplicate = res; 
+  return;
+end;
+
+global
+function LongInt WebMetaTagVcRecordCheck(var record WebMetaTagVc MTr,record WebMetaTagVc MT2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;  
+
+  if (MTr.SerNr<0) then begin
+    MTr.SerNr = NextSerNr("WebMetaTagVc",CurrentDate,-1,false,"");
+  end;
+
+  WebMetaTagVcRecordCheck = res; 
+  return;
+end;
+
+
+

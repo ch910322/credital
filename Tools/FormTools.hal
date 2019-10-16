@@ -1,0 +1,51 @@
+
+
+
+global
+updating procedure PrintMultiDocDocument(string docname,string fn,string id)
+begin
+  record MultiDocVc MDr;
+  row MultiDocVc MDrw;
+  Integer i,rwcnt;
+  record B2BLoanApplicationVc LAr;
+  Boolean printf;
+  record RcVc RepSpec;
+
+  MDr.DocName = docname;
+  if (ReadFirstMain(MDr,1,true)) then begin
+    rwcnt = MatRowCnt(MDr);
+    switch (docname) begin
+      case "LoanAppForm":
+        LAr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(LAr,1,true) or id=="-2");
+      case "SuretyAgreementForm":
+        LAr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(LAr,1,true) or id=="-2");
+        if (id=="-2") then begin
+          LAr.SuretyCnt = 1;
+        end;
+    end;
+    if (rwcnt>0 and printf) then begin
+      SetDocumentFilename(fn);
+      SetMedia(mtPdf);
+      RepSpec.MultiPageJob = 1; 
+      RepSpec.repname = MDr.DocName;
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(MDr,i,MDrw);
+        if (i==rwcnt-1) then begin
+          RepSpec.MultiPageJob = 0;
+        end;
+        RepSpec.f12 = MDrw.FormCode;
+        switch (docname) begin
+          case "LoanAppForm":
+            PrintDocumentWithSpec(LAr,MDr.DocName,false,RepSpec);
+          case "SuretyAgreementForm":
+            PrintDocumentWithSpec(LAr,MDr.DocName,false,RepSpec);
+        end;
+      end;   
+      SetDocumentFilename("");
+    end;
+  end;
+
+  return;
+end;

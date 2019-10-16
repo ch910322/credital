@@ -2,7 +2,7 @@ remote updating procedure AddFactoringIVAndGenerateRecords(record RcVc,var Longi
 remote procedure GetFactoringCustomers(Longint,var array string,var array string);
 external inner procedure PasteFromSysList(Integer,Integer);
 remote updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc);
-remote updating procedure FillCredManBuyers(var record CredManFactVc,var val);
+remote procedure FillCredManBuyers(var record CredManFactVc,var val);
 remote procedure CredManFactInsertCustCode(var record CredManFactVc,Integer);
 remote updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 

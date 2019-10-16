@@ -12,6 +12,9 @@ external inner function LongInt DateDiff(Date,Date);
 external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
 external inner procedure ToolWebOutElementTextFormat(record WebNGElementVc);
 external function string 255 MakeWebSafe(string);
+external inner function boolean IsNumeric(string);
+external inner function string 255 removenextnode(var string);
+external inner function string 10 CurrentWebLang();
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -283,12 +286,15 @@ begin
   row WebLoanCalcVc WLCrw;
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Integer type;
-  string 255 add;
+  string 255 add,termtext;
+  Integer i,rwcnt;
 
   switch (WEr.HALFunc) begin
-    case "Verslo": type = 1;
-    case "Faktoringas": type = 2;
-    case "Atsiskaitymo": type = 3;
+    case "Verslo": type = 0;
+    case "Verslo2": type = 3;
+    case "Verslo3": type = 4;
+    case "Faktoringas": type = 1;
+    case "Atsiskaitymo": type = 2;
   end;
 
   WLCr.Type = type;
@@ -304,9 +310,21 @@ begin
     if (WLCr.TermType==1) then begin
       add = ToolWebNGTranslateText2(70073);
     end;
+    if (type==4) then begin
+      add = ToolWebNGTranslateText2(70013);
+    end;
 
 
-    WebOutString("<div class='loan_app'><form method='POST'>");
+    WebOutString("<div class='loan_app'><form method='POST' type='" & type & "'>");
+    rwcnt = MatRowCnt(WLCr);
+    WebOutString("<script>");
+    WebOutString("var rates" & type & " = [];");//sorry for doing it like this. 
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(WLCr,i,WLCrw);
+      WebOutString("rates" & type & ".push({months:" & ValToString(WLCrw.Months,M4Val,"",".",0) & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
+    end;
+    WebOutString("</script>");
+
     WebOutString("<div class='loan_small_title'>" & ToolWebNGTranslateText2(70144) & "</div>");
     WebOutString("<div class='loan_small_descr'>" & WLCr.WebText & "</div>");
 /*
@@ -319,7 +337,14 @@ begin
 
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70008),add,true);
+      termtext = ToolWebNGTranslateText2(70008);
+      if (type==4) then begin
+        termtext = ToolWebNGTranslateText2(70284);
+      end;
+      if (type==0) then begin
+        termtext = ToolWebNGTranslateText2(70375);
+      end;
+      ShowSlideBar(term_min,term_max,term_step,"term",termtext,add,true);
     end;
 /*
     ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
@@ -374,19 +399,19 @@ begin
     WebOutString("var rates = [];");
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(WLCr,i,WLCrw);
-      WebOutString("rates.push({months:" & WLCrw.Months & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
+      WebOutString("rates.push({months:" & ValToString(WLCrw.Months,M4Val,"",".",0) & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
     end;
     WebOutString("</script>");
 
     WebOutString("<div class='loan_app'><form method='POST'>");
-    WebOutString("<div class='row'><div class='col'>")
+    WebOutString("<div class='row'><div class='col-md'>")
     if (amount_min>0) then begin
-      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70368),ToolWebNGTranslateText2(70013),true);
     end;
     if (term_min>0) then begin
       ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70107),add,true);
     end;
-    WebOutString("</div><div class='col'>")
+    WebOutString("</div><div class='col-md'>")
     //show selection box
     WebOutString("<div class='payment_info'>");
     WebOutString("<div class='total_repayment'><div class='payment_ind'></div><div class='payment_val'></div><div class='payment_text'>" & ToolWebNGTranslateText2(70232) & "</div></div>");
@@ -411,10 +436,24 @@ procedure ShowNewsLetterSignup(record WebNGElementVc WEr)
 begin
   
   WebOutString("<div class='newsletter'>");
-  WebOutString("<div class='newsletter-title'>" & ToolWebNGTranslateText2(70015) & "</div>");
-  WebOutString("<div class='newsletter-descr'>" & ToolWebNGTranslateText2(70016) & "</div>");
-  WebOutString("<div class='newsletter-form'><form><input type='hidden' name='id' value='" & WEr.HALFunc & "'><input type='email' name='email'><input type='button' class='button' value='" & ToolWebNGTranslateText2(70017) & "'></div>");
+  //WebOutString("<div class='newsletter-title'>" & ToolWebNGTranslateText2(70015) & "</div>");
+  //WebOutString("<div class='newsletter-descr'>" & ToolWebNGTranslateText2(70016) & "</div>");
+  WebOutString("<div class='newsletter-form'><form><input type='hidden' name='id' value='" & WEr.Code & ":" & WEr.HALFunc & "'><input type='email' name='email' placeholder='" & ToolWebNGTranslateText2(70026) & "'><input type='button' class='button hl_button' value='" & ToolWebNGTranslateText2(70017) & "'></div>");
   WebOutString("</div>");
+
+  return;
+end;
+
+updating procedure SendSignupMail(record CUVc CUr)
+begin
+  record CreditalWebSetBlock WSb;
+  record RcVc RepSpec;
+
+  BlockLoad(WSb);
+  if (nonblank(WSb.NewsLetterMail)) then begin
+    RepSpec.f1 = CUr.Code;
+    SendCustomerLetterWithDetails(RepSpec,WSb.NewsLetterMail,CUr.LangCode,CUr.eMail);
+  end;
 
   return;
 end;
@@ -433,7 +472,8 @@ begin
   PersColListr.PersColCode = PersColr.Code;
   PersColListr.FileName = "CUVc";
   if (RecordInsert(PersColListr,true)) then begin 
-
+    //Send mail for submittion
+    SendSignupMail(CUr);
   end;
 
   return;
@@ -444,26 +484,39 @@ updating procedure WebSubmitNewsLetter()
 begin
   record PersColVc PersColr;
   record CUVc CUr; 
-  string 255 tstr,email;
+  string 255 tstr,email,res,el,id;
+  Longint pos;
+  record WebNGElementVc WEr;
 
-  PersColr.Code = WebGetArg("id");
-  if (ReadFirstMain(PersColr,1,true)) then begin
-    email = WebGetArg("email");
-    CUr.eMail = email;
-    if (ReadFirstKey("eMail",Cur,1,true)) then begin
-      AddContactToMailingList(PersColr,CUr);
-    end else begin
-      RecordNew(CUr);
-      GetNextCustNr(tstr);//
-      CUr.Code = tstr;
+  tstr = WebGetArg("id");
+  GetNextSubString(tstr,pos,":",el);
+  GetNextSubString(tstr,pos,":",id);
+  PersColr.Code = id;
+  email = WebGetArg("email");
+  if (ReadFirstMain(PersColr,1,true) and nonblank(email)) then begin
+    Wer.Code = el;
+    if (ReadFirstMain(WEr,1,true) and WEr.HALFunc==id) then begin
       CUr.eMail = email;
-      if (RecordInsert(CUr,true)) then begin
+      if (ReadFirstKey("eMail",Cur,1,true)) then begin
         AddContactToMailingList(PersColr,CUr);
+        res = ToolWebNGTranslateText2(70018);
+      end else begin
+        RecordNew(CUr);
+        GetNextCustNr(tstr);//
+        CUr.Code = tstr;
+        CUr.eMail = email;
+        if (RecordInsert(CUr,true)) then begin
+          AddContactToMailingList(PersColr,CUr);
+          res = ToolWebNGTranslateText2(70018);
+        end;
       end;
     end;
   end;
+  if (blank(res)) then begin
+    res = ToolWebNGTranslateText2(70025);
+  end;
 
-  WebOutString("<res msg='" & ToolWebNGTranslateText2(70018) & "'></res>");
+  WebOutString("<res msg='" & res & "'></res>");
 
   return;
 end;
@@ -652,7 +705,6 @@ begin
   WebOutString("</div>");
 
   pos = -1;
-  WebOutString("<div class='partner-search-title'><div class='partner-search-text'>" & ToolWebNGTranslateText2(70152) & "</div><div class='partner-search-count'></div></div>");
   WebOutString("<div class='partner-list-wrap'>");
   while (GetNextSubstring(IPb.PartnerClass,pos,",",tstr)) begin
     ResetLoop(CUr);
@@ -662,6 +714,9 @@ begin
         WebOutString("<div class='single-partner' category='" & tstr & "'><div class='partner-image-wrap'><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
         WebOutString("<div class='description'>");
         OutputContactHTMLNote(CUr);
+        if (nonblank(CUr.wwwAddr)) then begin
+          WebOutString("<div class='comp_wwwaddr'><a href='" & CUr.wwwAddr & "'>" & ToolWebNGTranslateText2(70364) & "</a></div>");
+        end;
         WebOutString("</div>");
         WebOutString("</div>");
       end;
@@ -696,6 +751,23 @@ begin
   WebOutString("web_strings['EnterEmailAddress'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70162)) & "';");
   WebOutString("web_strings['BlankPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70163)) & "';");
   WebOutString("web_strings['SamePassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70164)) & "';");
+  WebOutString("web_strings['Balance'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70285)) & "';");
+  WebOutString("web_strings['Interest'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70286)) & "';");
+  WebOutString("web_strings['Instalment'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70287)) & "';");
+  WebOutString("web_strings['Legend01'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70307)) & "';");
+  WebOutString("web_strings['Legend02'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70308)) & "';");
+  WebOutString("web_strings['Legend03'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70309)) & "';");
+  WebOutString("web_strings['Legend11'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70310)) & "';");
+  WebOutString("web_strings['Legend12'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70311)) & "';");
+  WebOutString("web_strings['Legend13'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70312)) & "';");
+  WebOutString("web_strings['Legend21'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70313)) & "';");
+  WebOutString("web_strings['Legend22'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70314)) & "';");
+  WebOutString("web_strings['Legend23'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70315)) & "';");
+  WebOutString("web_strings['Legend24'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70376)) & "';");
+  WebOutString("web_strings['PutOldPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70357)) & "';");
+  WebOutString("web_strings['PutNewPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70359)) & "';");
+  WebOutString("web_strings['PutNewPassword2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70361)) & "';");
+  WebOutString("web_strings['SpecifyCompany'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70374)) & "';");
   
   WebOutString("</script>");
 
@@ -725,6 +797,11 @@ begin
   if (filename==1) then begin
     WCr.SerNr = StringToLongint(code);
     if (ReadFirstMain(WCr,1,true)) then begin
+
+      if (WCr.ContentStyle!="SEKMES") then begin//sorry for hardcoding this...
+        goto LDisplayContentGallery;
+      end;
+
       i = 1;
       while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
         if (FileNameIsImage(Attachr.FileName)) then begin
@@ -751,6 +828,7 @@ begin
     end;
   end;
 
+LDisplayContentGallery:;
   return;
 end;
 
@@ -811,13 +889,16 @@ begin
   if (GetSessionString("LoanAppVer")==WebGetArg("scall")) then begin
     compid = WebGetArg("regnr");
 
-    if (nonblank(compid) and (len(compid)==9 or len(compid)==12)) then begin
+    if (nonblank(compid) and (len(compid)==9 or (len(compid)==11 and IsNumeric(compid)))) then begin
       CUr.RegNr1 = compid;
       if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
         fres = CUr.Name;
       end else begin
         if (len(compid)==9) then begin//only for companies (9 chars) not persons (12 chars)
           GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr);
+        end;
+        if (len(compid)==11) then begin
+          fres = " ";
         end;
       end;
     end;
@@ -975,7 +1056,8 @@ begin
           res = true;
           RecordCopy(oldCUr,CUr);
           CUr.Password = CalcPassword(passw1,CUr.Code,0);
-          RecordUpdate(oldCUr,CUr,true);
+          CUr.AllowLogin = 1;
+          RecordUpdate(oldCUr,CUr,false);
           RecordCopy(oldPSr,PSr);
           PSr.UsedFlag = 1;
           RecordUpdate(oldPSr,PSr,true);
@@ -993,6 +1075,74 @@ begin
   end;
 
   WebOutString("<res msg='" & msg & "' stat='" & res & "'></res>");
+
+  return;
+end;
+
+function Boolean FindMetaTranslation(Longint sernr,string lang,var string title,var string kw,var string descr)
+begin
+  record WebMetaTagTransVc MTTr;
+  Boolean res;
+  
+  MTTr.SerNr = sernr;
+  MTTr.LangCode = lang;
+  if (ReadFirstMain(MTTr,2,true)) then begin
+    title = MTTr.Title;
+    kw = MTTr.KeyWords;
+    descr = MTTr.Description;
+    res = true;
+  end;
+
+  FindMetaTranslation = res;
+  return;
+end;
+
+procedure FindMetaTag(Longint strnr,Longint cont,var string title,var string kw,var string descr)
+begin
+  record WebMetaTagVc MTr;
+  
+  MTr.StructNr = strnr;
+  MTr.ContentNr = cont;
+  if (ReadFirstKey("StructNr",MTr,2,true)) then begin
+    if (FindMetaTranslation(MTr.SerNr,CurrentWebLang,title,kw,descr)==false) then begin
+      FindMetaTranslation(MTr.SerNr,"",title,kw,descr);
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure OuterSetPageMetaData(record WebNGStructVc WSr,string mpath)
+begin
+  transaction string 255 gExtraHeadHTML;
+  transaction string 255 gExtraSiteTitle;
+  string 255 node,path,title,kw,descr;
+  
+  path = mpath;
+
+  if (WSr.Type==kStructTypeContentHandlerApp) then begin
+    node = removenextnode(mpath);
+    if (blank(node)) then begin
+      FindMetaTag(WSr.SerNr,-1,title,kw,descr);
+    end else begin
+      FindMetaTag(-1,StringToLongint(node),title,kw,descr);      
+    end;
+  end else begin
+    if (WSr.Type!=21 and WSr.Type!=19 and WSr.Type!=13) then begin
+      FindMetaTag(WSr.SerNr,-1,title,kw,descr);
+    end;
+  end;
+
+  if (nonblank(title)) then begin
+    gExtraSiteTitle = " " & title;
+  end;
+  if (nonblank(descr)) then begin
+  gExtraHeadHTML = gExtraHeadHTML & "<meta name='description' content='" & descr & "'>";
+  end;
+  if (nonblank(kw)) then begin
+  gExtraHeadHTML = gExtraHeadHTML & "<meta name='keywords' content='" & kw & "'>";
+  end;
 
   return;
 end;

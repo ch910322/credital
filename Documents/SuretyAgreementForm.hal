@@ -55,11 +55,16 @@ BEGIN
   printf = true;
   while (printf) begin  
     formcode = "";
-    for (i=rwcnt-1;i>=0;i=i-1) begin
-      MatRowGet(FDr,i,FDrw);
-      if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,LAr.SerNr,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
-      begin
-        goto LBREAK;
+    if (nonblank(RepSpec.f12)) then begin
+      formcode = RepSpec.f12;
+      printf = false;
+    end else begin
+      for (i=rwcnt-1;i>=0;i=i-1) begin
+        MatRowGet(FDr,i,FDrw);
+        if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,LAr.SerNr,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
+        begin
+          goto LBREAK;
+        end;
       end;
     end;
 LBREAK:;

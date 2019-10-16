@@ -56,7 +56,7 @@ begin
           RecordCopy(oldCUr,CUr);
           CUr.BankAccount = LAr.BankAccount;
           CUr.AccOperator = LAr.BankCode;
-          RecordUpdate(oldCUr,CUr,true);
+          RecordUpdate(oldCUr,CUr,false);
         end;
       end;
     end;

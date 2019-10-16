@@ -1,0 +1,297 @@
+remote procedure CredManPmtGrntInsertCustCode(var record CredManPmtGrntVc,Integer);
+remote procedure GetPmtGrntSellers(Longint,var array string,var array string);
+external inner procedure PasteFromSysList(Integer,Integer);
+remote procedure FillCredManSellers(var record CredManPmtGrntVc,var val);
+remote updating procedure AddGrntReportAndGenerateRecords(record RcVc,var Longint);
+remote procedure GetNextPeriodDate(Longint,string,var Date,var Date);
+
+
+function Boolean CredManPmtGrntDClassCustCodeEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManPmtGrntVc PGr;
+
+  if (changedf and rownr>-1) then begin  
+    GetWindowRecord(wn,PGr);
+    CredManPmtGrntInsertCustCode(PGr,rownr);
+    PutWindowRecord(wn,PGr);   
+  end; 
+  CredManPmtGrntDClassCustCodeEFAfter = true;
+  return;
+end;
+
+procedure SumupLimits(var record CredManPmtGrntVc PGr)
+begin
+  row CredManPmtGrntVc PGrw;
+  Integer i,rwcnt;
+  val tot;
+
+  rwcnt = MatRowCnt(PGr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(PGr,i,PGrw);
+    tot = tot + PGrw.MaxLimit;
+  end;
+
+  PGr.Total = tot;
+
+  return;
+end;
+
+function Boolean CredManPmtGrntDClassMaxLimitEFAfter(Integer wn,Integer rownr,Boolean changedf)
+begin
+  record CredManPmtGrntVc PGr;
+  row CredManPmtGrntVc PGrw;
+  record CUVc CUr;
+
+  if (changedf and rownr>-1) then begin  
+    GetWindowRecord(wn,PGr);
+    SumupLimits(PGr);
+    PutWindowRecord(wn,PGr);   
+  end; 
+  CredManPmtGrntDClassMaxLimitEFAfter = true;
+  return;
+end;
+
+
+
+global
+function Boolean CredManPmtGrntDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "CustCode": res = CredManPmtGrntDClassCustCodeEFAfter(wn,rownr,changed!=0);
+    case "MaxLimit": res = CredManPmtGrntDClassMaxLimitEFAfter(wn,rownr,changed!=0);
+  end;
+  
+  CredManPmtGrntDClassAfterEditField = res;
+  return;
+end;
+
+global
+function Boolean CredManPmtGrntDClassSwitchRow(Integer wn,Integer rownr)
+begin
+  Boolean res;
+
+  res = true;
+  CredManPmtGrntDClassMaxLimitEFAfter(wn,rownr,true);
+
+  CredManPmtGrntDClassSwitchRow = res;
+  return;
+end;
+
+global
+function Boolean CredManPmtGrntDClassOnOpenWindow(Integer wn)
+begin
+  record CredManPmtGrntVc PGr;
+  val credmanlimit;
+  Integer oldstate;
+  record CredManVc CredManr;
+  array val aopen;
+  Integer i;
+
+  GetWindowRecord(wn,PGr);
+  CredManr.SerNr = PGr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    PutWindowString(wn,"credmanlimit",CredManr.InvSum4);
+  end;
+  if (WindowState(wn)==Rs_Normal) then begin
+    NewTimedTask("FillCredManSellersTask","FillCredManSellersTask","FillCredManSellersTask",wn,CurrentDate,CurrentTime,"","");
+  end;
+
+  CredManPmtGrntDClassOnOpenWindow = false;
+  return;
+end;
+
+global
+updating procedure FillCredManSellersTask(string wnstr)
+begin
+  Integer wn;
+  record CredManPmtGrntVc PGr;
+  val credmanlimit;
+  Integer oldstate;
+
+  wn = StringToInt(wnstr);
+  if (GetWindowClass(wn)=="CredManPmtGrntDClass") then begin
+    if (WindowState(wn)==Rs_Normal) then begin
+      GetWindowRecord(wn,PGr);
+      FillCredManSellers(PGr,credmanlimit);
+      PutWindowRecord(wn,PGr);
+      WindowDoOK(wn,0);
+    end;
+  end;
+  
+  return;
+end;
+
+global
+function Boolean CredManGrntReportWClassUpdateWindowSubset(Integer wn,var string subsetname)
+begin
+  record CredManVc CredManr;
+  
+  GetWindowRecord(MotherWindow(wn),CredManr);
+  if (CredManr.SerNr>0) then begin
+    subsetname = CredManr.SerNr;
+  end else begin
+    subsetname = -9999999;
+  end;
+
+  CredManGrntReportWClassUpdateWindowSubset = true;
+  return;
+end;
+
+function Boolean NewCredManGrntReportWClassf1EFAfter(Integer wn,Boolean changedf)
+begin
+  record RcVc RepSpec;
+  record CUVc CUr;
+  Date d1,d2;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,RepSpec);
+    CUr.Code = RepSpec.f1;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      RepSpec.f3 = CUr.Name;
+    end;
+    GetNextPeriodDate(RepSpec.long1,RepSpec.f1,d1,d2);
+    RepSpec.d1 = d1;
+    RepSpec.d2 = d2;
+
+    PutWindowRecord(wn,RepSpec);   
+  end; 
+  NewCredManGrntReportWClassf1EFAfter = true;
+  return;
+end;
+
+
+global
+function Boolean NewCredManGrntReportWClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "f1": res = NewCredManGrntReportWClassf1EFAfter(wn,changed!=0);
+  end;
+  
+  NewCredManGrntReportWClassAfterEditField = res;
+  return;
+end;
+
+global
+function Boolean PmtGrntSellerSClassOnOpenWindow(Integer wn)
+begin
+  array string 255 acode,aname;
+  record RcVc RepSpec;
+  Integer i;
+
+  GetWindowRecord(MotherWindow(wn),RepSpec);
+  GetPmtGrntSellers(RepSpec.long1,acode,aname);
+
+  ClearStringList(wn);
+  for (i=0;i<acode.length;i=i+1) begin
+    AddListRow(wn,"customers",1,acode[i],0);
+    AddListData(wn,"customers","custcode",acode[i]);
+    AddListData(wn,"customers","custname",aname[i]);
+  end;
+
+  PmtGrntSellerSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+function Boolean PmtGrntSellerSClassOnOKWindow(Integer wn)
+begin
+  PasteFromSysList(wn,-1);
+  PmtGrntSellerSClassOnOKWindow = false;
+  return;
+end;
+
+global
+procedure CredManGrntReportAddSm()
+begin
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+
+  if (GetWindowClass(MotherWindow(CurWindow))=="CredManDClass") then begin
+    GetWindowRecord(MotherWindow(CurWindow),CredManr);
+    
+    RepSpec.long1 = CredManr.SerNr;
+    OpenWindow("NewCredManGrntReportWClass",1,CurWindow,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+
+global
+updating procedure NewCredManGrntReportWClassProceed()
+begin
+  record RcVc RepSpec;
+  Integer wn;
+  Longint errno;
+
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+  GetWindowRecord(wn,RepSpec);
+  AddGrntReportAndGenerateRecords(RepSpec,errno);
+  if (errno>-1) then begin
+    MessageBox(errno,"");
+  end else begin
+    UpdateBrowses("CredManGrntReportWClass");
+    CloseWindow(wn);
+  end;
+
+  return;
+end;
+
+global
+updating procedure CredManGrntReportDeleteSm()
+begin
+  Integer wn;
+  record CredManGrntReportVc GRr;
+  
+  wn = CurWindow;
+  if (GetRecordFromBrowse(GRr,wn,1)) begin
+    //if (GRr.InitSLInvFlag==0 and GRr.InitPLInvFlag==0) then begin
+      RecordDelete(GRr);
+      UpdateBrowses("CredManGrntReportWClass");
+    //end;
+  end;
+
+  return;
+end;
+
+
+global
+procedure CredManGrntReportOpenSLSm()
+begin
+  record CredManGrntReportVc GRr;
+  record IVVc IVr;
+  Integer wn;
+
+  wn = CurWindow;
+  if (GetRecordFromBrowse(GRr,wn,1)) begin
+    IVr.SerNr = GRr.BuyerIVNr;
+    if (ReadFirstMain(IVr,1,true)) then begin
+      OpenWindow("IVDClass",0,CurWindow,"","",IVr);
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure CredManGrntReportOpenPLSm()
+begin
+  record CredManGrntReportVc GRr;
+  record VIVc VIr;
+  Integer wn;
+
+  wn = CurWindow;
+  if (GetRecordFromBrowse(GRr,wn,1)) begin
+    VIr.SerNr = GRr.SellerVINr;
+    if (ReadFirstMain(VIr,1,true)) then begin
+      OpenWindow("VIDClass",0,CurWindow,"","",VIr);
+    end;
+  end;
+
+  return;
+end;

@@ -6,12 +6,57 @@ external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner procedure LoadWebPage(string,var record WebNGPageVc);
 external inner procedure RedirectToLoginPage();
 external inner function string 255 GetMainCustomerCodeFromContact(string);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner function string 255 GetLinkToStruct(LongInt,boolean);
 
 procedure DisplayAccDataField(string cls,string label,string value) 
 begin
   
   WebOutString("<div class='acc-item-col " & cls & "'><div class='acc-item-label'>" & label & "</div><div class='acc-item-value'>" & value & "</div></div>");
 
+  return;
+end;
+
+global
+function string 255 GetLinkToCreditAccount()
+begin
+  record WebNGStructVc WSr;
+  string 255 res;
+
+  WSr.Type = 201;
+  if (ReadFirstKey("Type",WSr,1,true)) then begin
+   res = GetLinkToStruct(WSr.SerNr,false);
+  end;
+
+  GetLinkToCreditAccount = res;
+  return;
+end;
+
+function string 255 GetFirstCustCode(string contact)
+begin
+  record ContactRelVc CRr;
+  string 255 res;
+  
+  CRr.ContactCode = contact;
+  if (ReadFirstKey("ContactCode",CRr,1,true)) then begin
+    res = CRr.CustCode;
+  end;
+
+  GetFirstCustCode = res;
+  return;
+end;
+
+function string 255 GetSelectedCustomerCode()
+begin
+  string 255 res;
+  
+  res = GetSessionString("WebActCustCode");
+  if (blank(res)) then begin
+    res = GetFirstCustCode(CurrentCust);
+    PutSessionString("WebActCustCode",res);
+  end;
+
+  GetSelectedCustomerCode = res;
   return;
 end;
 
@@ -26,7 +71,7 @@ begin
   Integer i,j,rwcnt;
 
   WebOutString("<div class='record-list receipt-list'>");
-  custcode = GetMainCustomerCodeFromContact(CurrentCust);//we will have to redo this once we implement multiple companies
+  custcode = GetSelectedCustomerCode;//we will have to redo this once we implement multiple companies
   if (nonblank(custcode)) then begin
     j = 1;
     TrHs = true;
@@ -75,7 +120,7 @@ begin
   record IVVc IVr;
   Integer i;
 
-  custcode = GetMainCustomerCodeFromContact(CurrentCust);//we will have to redo this once we implement multiple companies
+  custcode = GetSelectedCustomerCode;//we will have to redo this once we implement multiple companies
   i = 1;
   WebOutString("<div class='record-list invoice-list'>");
   if (nonblank(custcode)) then begin
@@ -101,13 +146,293 @@ begin
   WebOutString("</div>");
 
   return;
-end;  
+end;
+
+procedure GetLoanApplications(var record ORVc ORr)
+begin
+  Integer rw;
+  row ORVc ORrw;
+  record B2BLoanApplicationVc LAr; 
+  Boolean TrHs;
+  
+  rw = MatRowCnt(ORr);
+  TrHs = true;
+  LAr.CustCode = GetSelectedCustomerCode;
+  while (LoopKey("CustCode",LAr,1,TrHs)) begin
+    if (LAr.CustCode!=GetSelectedCustomerCode) then begin
+      TrHs = false;
+    end else begin
+      ClearRow(ORr,ORrw,1);
+      ORrw.GroupOrdRow = LAr.SerNr;
+      ORrw.ServiceDelDate = LAr.TransDate;
+      ORrw.Location = LAr.OrderClass;
+      //ORrw.PickingDate = LAr.StartDate;
+      //ORrw.InloadingDate = LAr.EndDate;
+      ORrw.Sum = LAr.Sum;
+      MatRowPut(ORr,rw,ORrw);
+      rw = rw + 1;
+    end;
+  end;
+
+  return;
+end;
+
+procedure GetLoanAgreements(var record ORVc ORr)
+begin
+  Integer rw;
+  row ORVc ORrw;
+  record CredManVc CredManr; 
+  Boolean TrHs;
+  
+  rw = MatRowCnt(ORr);
+  TrHs = true;
+  CredManr.CustCode = GetSelectedCustomerCode;
+  while (LoopKey("CustCode",CredManr,1,TrHs)) begin
+    if (CredManr.CustCode!=GetSelectedCustomerCode) then begin
+      TrHs = false;
+    end else begin
+      ClearRow(ORr,ORrw,2);
+      ORrw.GroupOrdRow = CredManr.SerNr;
+      ORrw.ServiceDelDate = CredManr.TransDate;
+      ORrw.Location = CredManr.OrderClass;
+      //ORrw.PickingDate = LAr.StartDate;
+      //ORrw.InloadingDate = LAr.EndDate;
+      ORrw.Sum = CredManr.InvSum4;
+      MatRowPut(ORr,rw,ORrw);
+      rw = rw + 1;
+    end;
+  end;
+  
+  return;
+end;
+
+function string 255 GetWebColor(Integer color)
+begin
+  string 255 res;
+
+  switch (color) begin
+    case kRowColorGreen:       res = "green";
+    case kRowColorLime:        res = "lime";
+    case kRowColorRed:         res = "red";
+    case kRowColorOrange:      res = "orange";
+    case kRowColorYellow:      res = "yellow";
+    case kRowColorGold:        res = "gold";
+    case kRowColorGray:        res = "gray";
+    case kRowColorBeige:       res = "beige";
+    case kRowColorBlue:        res = "blue";
+    case kRowColorSkyBlue:     res = "skyeblue";
+    case kRowColorViolet:      res = "violet";
+    case kRowColorPeriwinkle:  res = "periwinkle";
+  end;
+  
+
+  GetWebColor = res;
+  return;
+end;
+
+procedure FillOrderClassData(var vector string vColor,var vector string vClass)
+begin
+  record OrderClassColorBlock OCCb;
+  row OrderClassColorBlock OCCbrw;
+  Integer i,rwcnt;
+  record OrderClassVc OCr;
+
+  BlockLoad(OCCb);
+  rwcnt = MatRowCnt(OCCb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(OCCb,i,OCCbrw);
+    vColor[OCCbrw.OrderClass] = GetWebColor(OCCbrw.Color);
+  end;
+
+  while (LoopMain(OCr,1,true)) begin
+    vClass[OCr.Code] = OCr.Comment;
+  end;
+
+  return;
+end;
+
+procedure ShowCreditAccountAgreements()
+begin
+  record ORVc ORr;
+  vector string 255 vColor,vClass;
+  Integer i,rwcnt;
+  row ORVc ORrw;
+  
+  GetLoanApplications(ORr);
+  GetLoanAgreements(ORr);
+
+  FillOrderClassData(vColor,vClass);
+
+  SortRows(ORr,"Location",false);
+
+  //show titles
+  WebOutString("<div class='agreement-table-wrap'><table id='agreement-table' cellspacing=0>")
+  WebOutString("<thead>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70331) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70332) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70333) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70334) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70335) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th></th>");
+  WebOutString("</thead>");
+  WebOutString("<tbody>");
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);    
+    WebOutString("<tr>");
+    if (nonblank(vClass[ORrw.Location])) then begin
+      WebOutString("<td><div class='or_status " & vColor[ORrw.Location] & "'>" & vClass[ORrw.Location] & "</div></td>");
+    end else begin
+      WebOutString("<td></td>");
+    end;
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70331) & "'>" & ORrw.ServiceDelDate & "</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70332) & "'>" & ORrw.PickingDate & "</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70333) & "'>" & ValToString(ORrw.Sum,M4Val," ",".",1) & "&euro;</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70334) & "'>" & ORrw.InloadingDate & "</td>");
+    WebOutString("<td class='row-expand-col' type='" & ORrw.stp & "' nr='" & ORrw.GroupOrdRow & "'><div class='row-expand'>" & ToolWebNGTranslateText2(70316) & "</div></td>");
+    WebOutString("</tr>");
+    WebOutString("<tr class='child-row'><td colspan=6></td></tr>")
+  end;
+  WebOutString("</tbody>");
+  WebOutString("</table>");
+  WebOutString("</div>");
+
+  return;
+end;
+
+procedure ShowAccountStrings()
+begin
+  
+  WebOutString("<script>");
+  WebOutString("var acc_str = {};");
+  WebOutString("acc_str['Number'] = '" & ToolWebNGTranslateText2(70318) & "';");
+  WebOutString("acc_str['MonthlyPayment'] = '" & ToolWebNGTranslateText2(70325) & "';");
+  WebOutString("acc_str['Type'] = '" & ToolWebNGTranslateText2(70319) & "';");
+  WebOutString("acc_str['ServiceFee'] = '" & ToolWebNGTranslateText2(70326) & "';");
+  WebOutString("acc_str['Amount'] = '" & ToolWebNGTranslateText2(70320) & "';");
+  WebOutString("acc_str['StartDate'] = '" & ToolWebNGTranslateText2(70321) & "';");
+  WebOutString("acc_str['IBAN'] = '" & ToolWebNGTranslateText2(70328) & "';");
+  WebOutString("acc_str['EndDate'] = '" & ToolWebNGTranslateText2(70322) & "';");
+  WebOutString("acc_str['Surety'] = '" & ToolWebNGTranslateText2(70329) & "';");
+  WebOutString("acc_str['Rate'] = '" & ToolWebNGTranslateText2(70330) & "';");
+  WebOutString("acc_str['Term'] = '" & ToolWebNGTranslateText2(70324) & "';");
+  WebOutString("acc_str['SignDocuments'] = '" & ToolWebNGTranslateText2(70338) & "';");
+  WebOutString("acc_str['Help'] = '" & ToolWebNGTranslateText2(70339) & "';");
+  WebOutString("acc_str['CallText'] = '" & ToolWebNGTranslateText2(70336) & "';");
+  WebOutString("acc_str['CallPhone'] = '" & ToolWebNGTranslateText2(70337) & "';");
+  WebOutString("</script>");
+
+  return;
+end;
+
+procedure ShowPersonalID(record CUVc CUr)
+begin
+  
+  WebOutString("<div class='col-md'><div class='profile_label top'>" & ToolWebNGTranslateText2(70350) & "</div><div class='profile_value'>" & CUr.RegNr1 & "</div></div>");
+
+  return;
+end;
+
+procedure ShowCompanySelection(record CUVc CUr)
+begin
+  record ContactRelVc CRr;
+  record CUVc tCUr;
+  Boolean TrHs;
+  string 255 curcust;
+  
+  WebOutString("<div class='col-md'><div class='profile_label top'>" & ToolWebNGTranslateText2(70351) & "</div><div class='profile_value comp_select'>");
+  curcust = GetSelectedCustomerCode;
+  WebOutString("<select>");
+  if (CUr.CUType==0 and CUr.VEType==0 and CUr.GuestType==0 and CUr.DealerType==0) then begin
+    CRr.ContactCode = CUr.Code;
+    TrHs = true;
+    while (LoopKey("ContactCode",CRr,1,TrHs)) begin
+      if (CRr.ContactCode!=CUr.Code) then begin
+        TrHs = false;
+      end else begin
+        if (curcust==CRr.CustCode) then begin
+          WebOutString("<option value='" & CRr.CustCode & "' SELECTED>" & CRr.CustName & "</option>");  
+        end else begin
+          WebOutString("<option value='" & CRr.CustCode & "'>" & CRr.CustName & "</option>");  
+        end;
+      end;
+    end;
+  end;
+
+   
+  WebOutString("</select></div></div>");
+
+  return;
+end;
+
+procedure ShowEditField(string name,string label,string type,string value,string add)
+begin
+  
+  WebOutString("<div class='col-md" & add & "'><div class='profile_label'>" & label & "</div><div class='profile_value'><input type='" & type & "' value='" & value & "'></div></div>");
+
+  return;
+end;
+
+procedure ShowProfile()
+begin
+  record CUVc CUr;
+
+  CUr.Code = CurrentCust;
+  ReadFirstMain(Cur,1,true);
+  
+  WebOutString("<div class='row profile_wrap'>");
+
+  //profile left
+  WebOutString("<div class='col profile_left'>");
+  WebOutString("<div class='row'><div class='col-auto user-img'><img src='/images/def_user.png'></div><div class='col plt'>");
+  WebOutString("<div class='row username'><div class='col'>" & CUr.Name & "</div></div>");
+  WebOutString("<div class='row info'>");
+  ShowPersonalID(CUr);
+  ShowCompanySelection(CUr);
+  WebOutString("</div>");//info
+  WebOutString("</div></div>");//plt row
+
+  WebOutString("<div class='row profile_edit'>");
+  ShowEditField("phone",ToolWebNGTranslateText2(70352),"text",CUr.Phone,"-4 phone");
+  ShowEditField("address",ToolWebNGTranslateText2(70353),"text",CUr.InvAddr0," address");
+  WebOutString("</div>");//row
+  WebOutString("<div class='row profile_submit'>");
+  WebOutString("<div class='col'><div class='hl_button'>" & ToolWebNGTranslateText2(70354) & "</div></div>")
+  WebOutString("</div>");//row
+
+  WebOutString("</div>");//profile_left
+
+
+  //profile right
+  WebOutString("<div class='col profile_right'>");
+
+  WebOutString("<div class='row passw_title'><div class='col'>" & ToolWebNGTranslateText2(70355) & "</div></div>");//row
+  WebOutString("<div class='row'>");
+  ShowEditField("currentpassw",ToolWebNGTranslateText2(70356),"password","","-6 old-password");
+  WebOutString("</div>");//row
+  WebOutString("<div class='row password-new'>");
+  ShowEditField("newpassw1",ToolWebNGTranslateText2(70358),"password",""," new-passw");
+  ShowEditField("newpassw2",ToolWebNGTranslateText2(70360),"password",""," new-passw2");
+  WebOutString("</div>");//row
+  WebOutString("<div class='row'>");
+  WebOutString("<div class='col-md passw-info'>" & ToolWebNGTranslateText2(70362) & "</div>")
+  WebOutString("<div class='col-auto submit_password'><div class='hl_button'>" & ToolWebNGTranslateText2(70363) & "</div></div>")
+  WebOutString("</div>");//row
+
+  WebOutString("</div>");//profile_right
+
+  WebOutString("</div>");//profile_wrap
+
+  return;
+end;
 
 global
 procedure CreditAccountApp(record WebNGStructVc WSr,string mpath)
 begin
   string 255 path,node;
   record WebNGPageVc WPr;
+  record WebNGStructVc tWSr;
+  Boolean pagef;
 
   path = mpath;
   
@@ -116,21 +441,201 @@ begin
     goto LCreditAccountApp;
   end;
 
-  LoadWebPage(WSr.WebPage,WPr);
-  ShowWebAppPageStart(WPr,"my_account");
 
   node = removenextnode(path);
+  tWSr.Name = node;
+  if (ReadFirstKey("MotherName:" & WSr.SerNr,tWSr,1,true)) then begin
+    if (nonblank(tWSr.WebPage)) then begin
+      LoadWebPage(tWSr.WebPage,WPr);
+      pagef = true;
+    end;
+  end;
+  if (!pagef) then begin
+    LoadWebPage(WSr.WebPage,WPr);
+  end;
+  ShowWebAppPageStart(WPr,"my_account");
   switch(node) begin
     case "receipts":
       ShowCreditAccountReceipts;
     case "invoices":
       ShowCreditAccountInvoices;
+    case "contracts":
+      ShowCreditAccountAgreements;
+    case "profile":
+      ShowProfile;
     otherwise
       ShowCreditAccountReceipts;
   end;
+
+  ShowAccountStrings;
   
   ShowWebAppPageEnd(WPr);
 
 LCreditAccountApp:;
+  return;
+end;
+
+global
+function string 255 ShowSuretyApp(record B2BLoanApplicationVc LAr)
+begin
+  string 255 res;
+  
+  if (nonblank(LAr.SuretyProvider1)) then begin
+    res = LAr.Surety1Name & " (" & LAr.Surety1ID & ")";
+  end;
+  if (nonblank(LAr.SuretyProvider2)) then begin
+    res = AddObjectToObjectList(res,LAr.Surety1Name & " (" & LAr.Surety1ID & ")");
+  end;
+  if (nonblank(LAr.SuretyProvider3)) then begin
+    res = AddObjectToObjectList(res,LAr.Surety1Name & " (" & LAr.Surety1ID & ")");
+  end;
+
+
+  ShowSuretyApp = res;
+  return;
+end;
+
+function string 255 ShowSuretyCredMan(record CredManVc CredManr)
+begin
+  string 255 res;
+  
+  if (nonblank(CredManr.SuretyProvider1)) then begin
+    res = CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")";
+  end;
+  if (nonblank(CredManr.SuretyProvider2)) then begin
+    res = AddObjectToObjectList(res,CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")");
+  end;
+  if (nonblank(CredManr.SuretyProvider3)) then begin
+    res = AddObjectToObjectList(res,CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")");
+  end;
+
+
+  ShowSuretyCredMan = res;
+  return;
+end;
+
+function string 255 GetLoanType(string credmantype)
+begin
+  string 255 res;
+  record WebLoanAppTypeBlock WLATb;
+  row WebLoanAppTypeBlock WLATbrw;
+  Integer i,rwcnt;
+
+  BlockLoad(WLATb);
+  rwcnt = MatRowCnt(WLATb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(WLATb,i,WLATbrw);
+    if (WLATbrw.CredManType==credmantype) then begin
+      res = ToolWebNGTranslateText2(70340+WLATbrw.Type);
+    end;
+  end;
+
+  //check it based on the setting??
+
+  GetLoanType = res;
+  return;
+end;
+
+procedure GetAgreementInfo(string agreement,string type)
+begin
+  record B2BLoanApplicationVc LAr; 
+  record CredManVc CredManr;
+  val payment;
+  
+  switch (type) begin
+    case "application":
+      LAr.SerNr = StringToLongint(agreement);
+      if (ReadFirstMain(LAr,1,true)) then begin
+        if (LAr.CustCode==GetSelectedCustomerCode) then begin
+          payment = 0;//for now;
+          WebOutString("<res  type='" & GetLoanType(LAr.Type) & "' transdate='" & LAr.TransDate & "' amount='" & LAr.Sum & "' months='" & LAr.Months & "' monthly-payment='" & payment & "' rate='" & LAr.InterestRate & "' suretylist='" & ShowSuretyApp(LAr) & "' bankacc='" & LAr.BankAccount & "' sernr='" & LAr.SerNr & "'></res>");
+        end;
+      end;
+    case "agreement":
+      CredManr.SerNr = StringToLongint(agreement);
+      if (ReadFirstMain(CredManr,1,true)) then begin
+        if (CredManr.CustCode==GetSelectedCustomerCode) then begin
+          WebOutString("<res type='" & GetLoanType(CredManr.Type) & "' transdate='" & CredManr.TransDate & "' amount='" & CredManr.InvSum4 & "' months='" & CredManr.InstalmentMonths & "' monthly-payment='" & CredManr.MonthlySum & "' rate='" & CredManr.IntRate & "' suretylist='" & ShowSuretyCredMan(CredManr) & "' bankacc='" & CredManr.BankAccount & "' sernr='" & CredManr.SerNr & "'></res>");
+        
+        end;
+      end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateCreditProfile(string address,string phone,var Boolean res)
+begin
+  record CUVc CUr,oldCUr;
+  
+  CUr.Code = CurrentCust;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordCopy(oldCUr,CUr);
+    CUr.Phone = phone;
+    CUr.InvAddr0 = address;
+    if (RecordUpdate(oldCUr,CUr,true)==0) then begin
+      res = true;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateCreditPassword(string old,string new,string new2,var Boolean res,var string tstr)
+begin
+  record CUVc CUr,oldCUr;
+  Longint oldpass,err;
+  Boolean testf;
+  
+  CUr.Code = CurrentCust;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    testf = true;
+    if (CalcPassword(old,CUr.Code,0)!=CUr.Password) then begin
+      testf = false;
+      err = 70365;
+    end;
+    if (testf and new!=new2) then begin
+      testf = false;
+      err = 70366;
+    end;
+
+    if (testf) then begin
+      RecordCopy(oldCUr,CUr);
+      CUr.Password = CalcPassword(new,CUr.Code,0);
+      if (RecordUpdate(oldCUr,CUr,true)==0) then begin
+        res = true;
+      end;
+    end;
+  end;
+
+  if (err>0) then begin
+    tstr = ToolWebNGTranslateText2(err);
+  end;
+  return;
+end;
+
+global
+procedure CreditAccountActions(string action)
+begin
+  Boolean res;
+  string 255 errstr;
+  
+  switch (action) begin
+    case "getagreementinfo":
+      GetAgreementInfo(WebGetArg("agreement"),WebGetArg("type"));
+    case "updatepassword":
+      qupdating.UpdateCreditPassword(WebGetArg("old"),WebGetArg("new"),WebGetArg("new2"),res,errstr);
+      if (res==false) then begin
+        WebOutString("<res err='1' msg='" & errstr & "'></res>");
+      end;
+    case "updateprofile":
+      qupdating.UpdateCreditProfile(WebGetArg("address"),WebGetArg("phone"),res);
+      if (res==false) then begin
+        WebOutString("<res err='1' msg='" & ToolWebNGTranslateText2(70367) & "'></res>");
+      end;
+  end;
+
   return;
 end;

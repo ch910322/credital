@@ -306,7 +306,7 @@ begin
 end;
 
 global
-updating procedure FillCredManBuyers(var record CredManFactVc CMFr,var val credmanlimit)
+procedure FillCredManBuyers(var record CredManFactVc CMFr,var val credmanlimit)
 begin
   Integer i,rwcnt;
   row CredManFactVc CMFrw;

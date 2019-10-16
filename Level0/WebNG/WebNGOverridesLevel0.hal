@@ -1,3 +1,5 @@
+external function string 255 GetLinkToStruct(LongInt,boolean);
+
 global
 function string 255 LetVcDoReplaceTokenResetPassword(record RCVc RepSpec,string field)
 begin
@@ -6,5 +8,31 @@ begin
   res = RepSpec.searchstr;
   
   LetVcDoReplaceTokenResetPassword = res;
+  return;
+end;
+
+
+global
+function string 255 GetLinkToMyAccount()
+begin
+  record WebNGStructVc WSr;
+  string 255 res;
+
+  WSr.Type = 201;
+  if (ReadFirstKey("Type",WSr,1,true)) then begin
+   res = GetLinkToStruct(WSr.SerNr,false) & "profile";
+  end;
+
+  GetLinkToMyAccount = res;
+  return;
+end;
+
+//i'm using this standard function plug in my functions after login. Didn't want to include the standard file just for this
+global
+procedure SendHansaWorldID()
+begin
+
+  PutSessionString("WebActCustCode","");
+
   return;
 end;

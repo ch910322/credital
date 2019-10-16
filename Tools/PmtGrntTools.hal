@@ -1,0 +1,435 @@
+external function val GetSellerOpenInvoices(string,Longint,var val);
+external inner procedure IVVc_PastePayDeal(var record IVVc,string,string);
+external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBlock,var Integer,var Integer);
+external inner function Boolean PasteCust2InInv(var record IVVc,record LocalMachineBlock,string,Boolean,var string,var string,var string,var string,var string);
+external inner function Boolean IVVc_PasteArtCode(var record IVVc,Integer,var string,var string,Boolean,var Integer);
+external inner function Boolean IVVc_PasteQuantity(var record IVVc,Integer);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner procedure VIVc_PasteInvDate(var record VIVc);
+external inner procedure VIDDefault(Integer,string,var record VIVc);
+external inner function Boolean VIVc_PasteAccNumber(var record VIVc,string,Boolean,Integer);
+external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean,Boolean,var string);
+external inner procedure VIVc_PastePayDeal(var record VIVc);
+external inner procedure VICalcVals(var record VIVc);
+external inner procedure VISumup(record VIVc,var val);
+external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
+external inner function LongInt DateDiff(Date,Date);
+
+
+global
+procedure CredManPmtGrntInsertCustCode(var record CredManPmtGrntVc PGr,Integer rownr)
+begin
+  row CredManPmtGrntVc PGrw;
+  record CUVc CUr;
+  val open;
+
+  MatRowGet(PGr,rownr,PGrw);
+  CUr.Code = PGrw.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    PGrw.CustName = CUr.Name;
+    PGrw.Used = GetSellerOpenInvoices(PGrw.CustCode,PGr.CredManNr,open);
+    PGrw.OpenTotal = open;
+    MatRowPut(PGr,rownr,PGrw);
+  end;
+
+  return;
+end;
+
+global
+procedure GetPmtGrntSellers(Longint credmannr,var array string acode,var array string aname)
+begin
+  record CredManPmtGrntVc PGr;
+  row CredManPmtGrntVc PGrw;
+  Integer i,rwcnt;
+
+  PGr.CredManNr = credmannr;
+  if (ReadFirstMain(PGr,1,true)) then begin
+    rwcnt = MatRowCnt(PGr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(PGr,i,PGrw);
+      acode[acode.length] = PGrw.CustCode;
+      aname[aname.length] = PGrw.CustName;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure FillCredManSellers(var record CredManPmtGrntVc PGr,var val credmanlimit)
+begin
+  Integer i,rwcnt;
+  row CredManPmtGrntVc PGrw;
+  val open;
+  
+  rwcnt = MatRowCnt(PGr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(PGr,i,PGrw);
+    PGrw.Used = GetSellerOpenInvoices(PGrw.CustCode,PGr.CredManNr,open);
+    PGrw.OpenTotal = open;
+    MatRowPut(PGr,i,PGrw);
+  end;
+
+  return;
+end;
+
+global
+updating procedure GeneratePmtGrntSLAndPLInvoices(record CredManGrntReportVc GRr,row CredManPmtGrntVc PGrw)
+begin
+  record PmtGrntBlock PGb;
+  record CredManGrntReportVc oldGRr;
+  record IVVc IVr;
+  record VIVc VIr;
+  row IVVc IVrw;
+  row VIVc VIrw;
+  Integer sernrf;
+  Integer err1,err2;
+  string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
+  record LocalMachineBlock LMb;
+  val ct;
+  record CredManVc CredManr;
+  
+  CredManr.SerNr = GRr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    BlockLoad(PGb);
+    RecordCopy(oldGRr,GRr);
+
+    RecordNew(IVr);
+    IVr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    IVr.TransDate = CurrentDate;
+    IVr.InvDate = GRr.ReportDate;
+    IVVc_PasteInvDate(IVr,LMb,err1,err2);
+    IVr.CustCode = CredManr.CustCode;
+    PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
+    IVr.PayDate = GRr.DueDate;
+    //IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
+    IVr.CustCredManNr = GRr.CredManNr;
+    ClearRow(IVr,IVrw,1);
+    IVrw.ArtCode = PGb.BuyerItem;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Quant = 1;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+    MatRowGet(IVr,0,IVrw);
+    IVrw.Price = GRr.TotalSum;
+    MatRowPut(IVr,0,IVrw);
+    IVVc_PasteQuantity(IVr,0);
+    IVr.OKFlag = 1;
+    if (RecordInsert(IVr,true)) then begin
+      GRr.BuyerIVNr = IVr.SerNr;
+      GRr.InitSLInvFlag = 1;
+    end;
+
+    RecordNew(VIr);
+    VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    VIr.TransDate = CurrentDate;
+    VIr.InvDate = GRr.ReportDate;
+    VIVc_PasteInvDate(VIr);    
+    VIr.VECode = GRr.CustCode;
+    VIVc_PasteVECode(VIr,0,true,true,warning)
+    VIr.DueDate = GRr.DueDate;
+    //VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
+    VIr.PayVal = GRr.TotalSum;
+    ClearRow(VIr,VIrw,1);
+    VIrw.AccNumber = PGb.SellerAccount;
+    MatRowPut(VIr,0,VIrw);
+    VIVc_PasteAccNumber(VIr,"",true,0);
+    MatRowGet(VIr,0,VIrw);
+    VIrw.VATCode = PGb.SellerVATCode;
+    MatRowPut(VIr,0,VIrw);
+    VIDDefault(0,"VATCode",VIr);
+    MatRowGet(VIr,0,VIrw);
+    VIrw.Sum = GRr.TotalSum;
+    MatRowPut(VIr,0,VIrw);
+    VICalcVals(VIr);
+    VISumup(VIr,ct);
+    VIr.OKFlag = 1;
+    if (RecordInsert(VIr,true)) then begin
+      GRr.SellerVINr = VIr.SerNr;
+      GRr.InitPLInvFlag = 1;
+    end; 
+
+    RecordUpdate(oldGRr,GRr,true);
+  end;
+
+  return;
+end;
+
+global
+updating procedure AddGrntReportAndGenerateRecords(record RcVc RepSpec,var Longint errno)
+begin
+  record CredManGrntReportVc GRr;
+  record CredManPmtGrntVc PGr;
+  row CredManPmtGrntVc PGrw,tPGrw;
+  Boolean foundf;
+  Integer i,rwcnt,delaydays;
+  val openval,usedval;
+  
+  errno = -1;
+  PGr.CredManNr = RepSpec.long1;
+  if (ReadFirstMain(PGr,1,true)) then begin
+    rwcnt = MatRowCnt(PGr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(PGr,i,PGrw);
+      if (PGrw.CustCode==RepSpec.f1) then begin
+        foundf = true;
+        usedval = GetSellerOpenInvoices(RepSpec.f1,RepSpec.long1,openval);
+        if (usedval+RepSpec.vals0>PGrw.MaxLimit) then begin
+          errno = 200103;
+          goto LAddFactoringIVAndGenerateRecords;
+        end;
+        //delaydays = PGrw.DelayDays;
+        MatRowGet(PGr,i,tPGrw);
+        i = rwcnt;
+      end;
+    end;
+  end;
+  if (!foundf) then begin
+    errno = 200102;
+    goto LAddFactoringIVAndGenerateRecords;
+  end;
+
+  if (errno==-1) then begin
+    RecordNew(GRr);
+    GRr.SerNr = NextSerNr("CredManGrntReportVc",CurrentDate,-1,false,"");
+    GRr.CredManNr = RepSpec.long1;
+    GRr.CustCode = RepSpec.f1;
+    GRr.CustName = RepSpec.f3;
+    GRr.ReportDate = RepSpec.d1;
+    GRr.DueDate = RepSpec.d2;
+    GRr.TotalSum = RepSpec.vals0;
+    if (RecordInsert(GRr,true)) then begin
+      GeneratePmtGrntSLAndPLInvoices(GRr,tPGrw);
+    end;
+  end;
+LAddFactoringIVAndGenerateRecords:;
+  return;
+end;
+
+
+global
+updating procedure UpdatePmtGrntReportReceipt(record IPVc IPr,Boolean setf)
+begin
+  record CredManGrntReportVc GRr,oldGRr;
+  row IPVc IPrw;
+  Integer i,rwcnt;
+  val due;
+  record ARVc ARr;
+  
+  rwcnt = MatRowCnt(IPr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IPr,i,IPrw);
+    if (IPrw.InvoiceNr>-1) then begin
+      GRr.BuyerIVNr = IPrw.InvoiceNr;
+      if (ReadFirstKey("BuyerIVNr",GRr,1,true)) then begin
+        RecordCopy(oldGRr,GRr);
+        ARr.InvoiceNr = IPrw.InvoiceNr;
+        if (ReadFirstMain(ARr,1,true)) begin
+          due = ARr.RVal;
+        end;
+        if (setf) then begin
+          if (due==0) then begin
+            GRr.CustPaidFlag = 1;
+            GRr.PaymentDate = IPrw.PayDate;
+          end;
+          GRr.ReceivedAmount = GRr.TotalSum - ARr.RVal;
+        end else begin
+          GRr.CustPaidFlag = 0;
+          GRr.PaymentDate = "";
+          GRr.ReceivedAmount = due;//blank value
+        end;
+        RecordUpdate(oldGRr,GRr,true);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdatePmtGrntReportPayment(record OPVc OPr,Boolean setf)
+begin
+  record CredManGrntReportVc GRr,oldGRr;
+  row OPVc OPrw;
+  Integer i,rwcnt;
+  val due;
+  record APVc APr;
+  
+  rwcnt = MatRowCnt(OPr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(OPr,i,OPrw);
+    if (OPrw.VISerNr>-1) then begin
+      GRr.SellerVINr = OPrw.VISerNr;
+      if (ReadFirstKey("SellerVINr",GRr,1,true)) then begin
+        RecordCopy(oldGRr,GRr);
+        if (setf) then begin
+          APr.SerNr = OPrw.VISerNr;
+          if (ReadFirstMain(APr,1,true)) begin
+            due = APr.RVal;
+          end;
+          if (due==0) then begin
+            GRr.CustPaid2Flag = 1;
+          end;
+        end else begin
+          GRr.CustPaid2Flag = 0;
+        end;
+        RecordUpdate(oldGRr,GRr,true);
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoicesPL(record VIVc VIr,Boolean setf)
+begin
+  Integer i,rwcnt;
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+  
+//first check if this invoice was the initial factoring invoice
+  
+  CMIr.BuyerVINr = VIr.SerNr;
+  if (ReadFirstKey("BuyerVINr",CMIr,1,true)) then begin
+    if (!setf) then begin
+      RecordCopy(oldCMIr,CMIr);
+      CMIr.BuyerVINr = -1;
+      CMIr.InitPLInvFlag = 0;
+      RecordUpdate(oldCMIr,CMIr,true);
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure UpdateFactoringInvoicesSL(record IVVc IVr,Boolean setf)
+begin
+  Integer i,rwcnt;
+  row IVVc IVrw;
+  record CredManFactInvoiceVc CMIr,oldCMIr;
+  
+//first check if this invoice was the initial factoring invoice
+  CMIr.SellerIVNr = IVr.SerNr;
+  if (ReadFirstKey("SellerIVNr",CMIr,1,true)) then begin
+    if (!setf) then begin
+      RecordCopy(oldCMIr,CMIr);
+      CMIr.SellerIVNr = -1;
+      CMIr.InitSLInvFlag = 0;
+      RecordUpdate(oldCMIr,CMIr,true);
+    end;
+  end;
+
+//second - check if this was a fee invoice
+  if (IVr.CustCredManNr>-1) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.FactoringInvoice>-1) then begin
+        CMIr.SerNr = IVrw.FactoringInvoice;
+        if (ReadFirstMain(CMIr,1,true)) then begin
+          RecordCopy(oldCMIr,CMIr);
+          if (setf) then begin
+            CMIr.FeeGenFlag = 1;
+          end else begin
+            CMIr.FeeGenFlag = 0;
+          end;
+          RecordUpdate(oldCMIr,CMIr,true);
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+procedure GetPmtGrntSellerRow(Longint credmannr,string custcode,var row CredManPmtGrntVc tPGrw)
+begin
+  record CredManPmtGrntVc PGr;
+  row CredManPmtGrntVc PGrw;
+  Integer i,rwcnt;
+  
+  PGr.CredManNr = credmannr;
+  if (ReadFirstMain(PGr,1,true)) then begin
+    rwcnt = MatRowCnt(PGr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(PGr,i,PGrw);
+      if (PGrw.CustCode==custcode) then begin
+        MatRowGet(PGr,i,tPGrw);
+        i = rwcnt;
+      end;
+    end;  
+  end;
+
+  return;
+end;
+
+global
+procedure GetNextPeriodDate(Longint credmannr,string custcode,var Date d1,var Date d2)
+begin
+  Date lastd;
+  Boolean TrHs;
+  record CredManGrntReportVc GRr;
+  Integer dd;
+  record CredManVc CredManr;
+  row CredManPmtGrntVc PGrw;
+
+  d1 = "";
+  d2 = "";
+  CredManr.SerNr = credmannr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    TrHs = true;
+    GRr.CustCode = custcode;
+    while (LoopKey("CustCode:" & CredManr.SerNr,GRr,1,TrHs)) begin
+      if (GRr.CustCode!=custcode) then begin
+        TrHs = false;
+      end else begin
+        if (lastd<GRr.ReportDate) then begin
+          lastd = GRr.ReportDate;
+        end;
+      end;
+    end;
+  //PayGrntReportDate1
+    if (blank(lastd)) then begin
+      lastd = CredManr.startDate;
+    end;
+
+    d1 = lastd;
+    dd = lastd.day;
+    if (dd<CredManr.PayGrntReportDate1) then begin
+      d1.Day = CredManr.PayGrntReportDate1;
+    end else begin
+      if (dd<CredManr.PayGrntReportDate2) then begin
+        d1.Day = CredManr.PayGrntReportDate2;
+      end else begin
+        d1 = AddMonth(lastd,1);
+        d1.Day = CredManr.PayGrntReportDate1;
+      end;
+    end;
+
+    GetPmtGrntSellerRow(credmannr,custcode,PGrw);
+    
+    d2 = d1;
+    if (PGrw.DelayMonths>0) then begin
+      d2 = AddMonth(d2,PGrw.DelayMonths);
+    end;
+    if (PGrw.DelayDays>0) then begin
+      d2 = AddDay(d2,PGrw.DelayDays);
+    end;
+    dd = d2.day;
+    if (dd<CredManr.PayGrntPayDate1) then begin
+      d2.Day = CredManr.PayGrntPayDate1;
+    end else begin
+      if (dd<CredManr.PayGrntPayDate2) then begin
+        d2.Day = CredManr.PayGrntPayDate2;
+      end else begin
+        d2 = AddMonth(d2,1);
+        d2.Day = CredManr.PayGrntPayDate1;
+      end;
+    end;
+  end;
+
+  return;
+end;

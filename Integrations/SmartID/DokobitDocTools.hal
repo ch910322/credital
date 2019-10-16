@@ -188,7 +188,7 @@ global
 updating procedure TreatDokobitCallBack(area post,string session)
 begin
   area request,reply;
-  string 255 action,status,fn,url,path;
+  string 255 action,status,fn,url,path,token;
   record B2BLoanApplicationVc LAr;
   record WebNGPaySessionVc WPSr,oldWPSr;
   JSON js;
@@ -200,6 +200,7 @@ begin
       js = ParseJSONArea(post);
       status = JSONGet(js,"status");
       action = JSONGet(js,"action");
+      token = JSONGet(js,"token");
       if (status=="ok" and SetInSet(action,"signing_completed,signer_signed,signing_archived")) then begin      
         RecordCopy(oldWPSr,WPSr);
         WPSr.Status = 10+kCCStatusPaymentOK;
@@ -216,6 +217,10 @@ begin
               RecordLinkFile(fn,0,LAr,CurrentCompany);
               Delete_File(fn);
               //delete file on dokobit as well
+              SetAreaZeroSize(request);
+              if (SendWebRequest(url,443,-1,true,"POST","/api/signing/" & token & "/delete.json?access_token=" & SIb.AccessToken,"","",false,request,reply,30)) then begin
+                LogDokobit(reply,"dokobit_deletefile.txt");
+              end;
             end;
           end;
         end;
@@ -238,7 +243,7 @@ begin
   record Attach2Vc Attachr;
   record RLinkVc RLr;
   record WebNGPaySessionVc WPSr;
-  Boolean res;
+  Boolean res,cufoundf;
   area post;
 
   switch (action) begin
@@ -251,6 +256,19 @@ begin
       LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
       if (ReadFirstMain(LAr,1,true)) then begin
         if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+          cufoundf = true;
+        end;
+        if (!cufoundf) then begin
+          RecordClear(CUr);
+          ResetLoop(CUr);
+          CUr.eMail = LAr.ContacteMail;
+          if (ReadFirstKey("eMail",CUr,1,true)) then begin
+            if (CUr.Name==LAr.ContactName) then begin
+              cufoundf = true;
+            end;
+          end;
+        end;
+        if (cufoundf) then begin
           GetNextSubstring(CUr.Name,pos," ",name);
           GetNextSubstring(CUr.Name,pos," ",surname);
           if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin

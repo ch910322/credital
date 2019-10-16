@@ -19,14 +19,19 @@ begin
   Setting("SMS Reminders",SMSReminderLClass,modCredMan);
   Setting("Factoring Settings",FactoringTClass,modCredMan);
   Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
+  Setting("Payment Guarantee Settings",PmtGrntTClass,modCredMan);
+  Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
+  Setting("Multi Page Documents",MultiDocLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
+  Maintenance("Create Payment Guarantee Invoices",PmtGrntInvoiceVClass,PmtGrntInvoiceMn,modCredMan);
 
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
+  //Document("Combined Application",LoanAppRClass,CombinedAgreementForm,CombinedAgreementFClass,modCredMan);
   Document("Surety Agreement",SuretyAgreementRClass,SuretyAgreementForm,SuretyAgreementFClass,modCredMan);
 
 /*DB Maint*/
@@ -43,6 +48,9 @@ begin
   Setting("Partner Search Settings",WebInvoicingPartnerTClass,modWebShopNG);
   Setting("Password Sessions",PassSessLClass,modWebShopNG);
   Setting("Agreement Type Links",WebLoanAppTypeTClass,modWebShopNG);
+  Setting("Credital Web Settings",CreditalWebSetTClass,modWebShopNG);
+  Setting("Meta Tags",WebMetaTagLClass,modWebShopNG);
+  Setting("Meta Tags Translations",WebMetaTagTransLClass,modWebShopNG);
 
 
   SString(200000,"Evaluation report");
@@ -146,9 +154,17 @@ begin
   SetBegin(2000);
   SetText(kRowColorNone,"None");
   SetText(kRowColorGreen,"Green");
+  SetText(kRowColorLime,"Lime");
   SetText(kRowColorRed,"Red");
+  SetText(kRowColorOrange,"Orange");
   SetText(kRowColorYellow,"Yellow");
-  SetText(kRowColorGray,"Grey");
+  SetText(kRowColorGold,"Gold");
+  SetText(kRowColorGray,"Gray");
+  SetText(kRowColorBeige,"Beige");
+  SetText(kRowColorBlue,"Blue");
+  SetText(kRowColorSkyBlue,"Sky Blue");
+  SetText(kRowColorViolet,"Violet");
+  SetText(kRowColorPeriwinkle,"Periwinkle");
   EndSet;
 
   SetBegin(2001);

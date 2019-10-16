@@ -20,6 +20,10 @@ external function Integer CheckSmartIDStatus(record CUVc,string);
 external function Boolean InitSmartIDAuthentication(record CUVc,var string,var string);
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 StrReplace(string,string,string);
+external inner function Boolean PasteCuInAct(var record ActVc,var string);
+external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
+external updating procedure PrintMultiDocDocument(string,string,string);
+external function string 255 ShowSuretyApp(record B2BLoanApplicationVc);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -40,14 +44,31 @@ global
 procedure LoadLoanSession(var vector string vSess)
 begin
   
-  vSess["LoanType"] = GetSessionString("WebLoanType");
+  vSess["LoanType"] = "";//GetSessionString("WebLoanType");
   vSess["LoanAmount"] = GetSessionString("WebLoanAmount");
   vSess["LoanTerm"] = GetSessionString("WebLoanTerm");
-  vSess["WebLoanNr"] = GetSessionString("WebLoanNr");//190058;//
+  vSess["LoanNewCust"] = GetSessionString("WebLoanNewCust");
+  vSess["WebLoanNr"] = GetSessionString("WebLoanNr");//GetSessionString("WebLoanNr");//190058;//
   if (blank(vSess["LoanType"])) then begin
-    vSess["LoanType"] = 0;
+    vSess["LoanType"] = -1;
     vSess["LoanAmount"] = 0;
     vSess["LoanTerm"] = 0;
+  end;
+
+  return;
+end;
+
+procedure GetLoanDefaults(var vector string vSess)
+begin
+  
+  if (nonblank(WebGetArg("type"))) then begin
+    vSess["LoanType"] = WebGetArg("type");
+  end;
+  if (nonblank(WebGetArg("amount"))) then begin
+    vSess["LoanAmount"] = WebGetArg("amount");
+  end;
+  if (nonblank(WebGetArg("term"))) then begin
+    vSess["LoanTerm"] = WebGetArg("term");
   end;
 
   return;
@@ -60,15 +81,20 @@ begin
   vSess["LoanAmount"] = "";
   vSess["LoanTerm"] = "";
   vSess["WebLoanNr"] = "";
+  vSess["LoanNewCust"] = "";
 
   return;
 end;
 
-procedure StoreSessionLoan(Longint sernr)
+procedure StoreSessionLoan(Longint sernr,Integer status)
 begin
    
   PutSessionString("WebLoanNr",sernr);
-
+  if (status==2) then begin
+    PutSessionString("WebLoanNewCust","true");
+  end else begin
+    PutSessionString("WebLoanNewCust","");
+  end;
   return;
 end;
 
@@ -80,22 +106,21 @@ begin
   if (type==seltype) then begin
     addcls = addcls & " selected";
   end;
-  WebOutString("<div class='col-4 " & addcls & "' type='" & type & "'><div class='loan_num'><div class='loan_num_inner'>" & num & "</div></div><div class='loan_text'>" & text & "</div></div>");
+  WebOutString("<div class='col-md-4 " & addcls & "' type='" & type & "'><div class='loan_num'><div class='loan_num_inner'>" & num & "</div></div><div class='loan_text'>" & text & "</div></div>");
 
   return;
 end;
 
-procedure DisplayLoanTypes(string selectedtype)
+procedure DisplayLoanTypes(Integer selectedtype)
 begin
   Integer st;
 
   WebOutString("<div class='row loan-types'>")
-  st = StringToInt(selectedtype);
-  ShowLoanType("A","green",ToolWebNGTranslateText2(70101),0,st);
-  ShowLoanType("B","green",ToolWebNGTranslateText2(70102),3,st);
-  ShowLoanType("C","green",ToolWebNGTranslateText2(70103),4,st);
-  ShowLoanType("D","orange",ToolWebNGTranslateText2(70104),1,st);
-  ShowLoanType("E","blue",ToolWebNGTranslateText2(70105),2,st);
+  ShowLoanType("A","green",ToolWebNGTranslateText2(70101),0,selectedtype);
+  ShowLoanType("B","green",ToolWebNGTranslateText2(70102),3,selectedtype);
+  ShowLoanType("C","green",ToolWebNGTranslateText2(70103),4,selectedtype);
+  ShowLoanType("D","orange",ToolWebNGTranslateText2(70104),1,selectedtype);
+  ShowLoanType("E","blue",ToolWebNGTranslateText2(70105),2,selectedtype);
   WebOutString("</div>")
 
   return;
@@ -104,14 +129,15 @@ end;
 procedure DisplayLoanSlideBars()
 begin
    
+  WebOutString("<h2 class='slider-head'>" & ToolWebNGTranslateText2(70306) & "</h2>");
   WebOutString("<form><div class='row sliders'>");
-  WebOutString("<div class='single_slider col'>");
+  WebOutString("<div class='single_slider col-md'>");
   WebOutString("<div class='slider_label'>" & ToolWebNGTranslateText2(70106) & "</div>");
   WebOutString("<div class='slider-update'><input type='text' name='amount_inp' add='" & ToolWebNGTranslateText2(70013) & "'></div>");
   WebOutString("<div class='slider-input'><input type='range' name='amount'></div>");// min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'
   WebOutString("</div>");
 
-  WebOutString("<div class='single_slider col'>");
+  WebOutString("<div class='single_slider col-md'>");
   WebOutString("<div class='slider_label'>" & ToolWebNGTranslateText2(70107) & "</div>");
   WebOutString("<div class='slider-update'><input type='text' name='term_inp' add='" & ToolWebNGTranslateText2(70014) & "'></div>");
   WebOutString("<div class='slider-input'><input type='range' name='term'></div>");// min='" & min & "' max='" & max & "' value='" & (max/2) & "' step='" & step & "'
@@ -128,7 +154,7 @@ begin
   WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70108) & "</h2></div>");
   WebOutString("<div class='row loan-payments'>")
   WebOutString("<div class='col monthly-payment'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70109) & "</div></div>");
-  WebOutString("<div class='col-auto deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
+  WebOutString("<div class='col deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
   WebOutString("<div class='col percentage'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70111) & "</div></div>");
 
   WebOutString("</div>");
@@ -136,23 +162,23 @@ begin
   return;
 end;
 
-procedure ShowInputField2(string name,string label,string ph,string value,string add,Boolean colf,string type)
+procedure ShowInputField2(string name,string label,string ph,string value,string add,Integer colcnt,string type)
 begin
   
-  if (colf) then begin
-    WebOutString("<div class='col-md-4'>");
+  if (colcnt>0) then begin
+    WebOutString("<div class='col-md-" & colcnt & "'>");
   end;
   WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><input type='" & type & "' placeholder='" & ph & "' value='" & value & "' " & add & "></div></div>");
-  if (colf) then begin
+  if (colcnt>0) then begin
     WebOutString("</div>");
   end;
   return;
 end;
 
-procedure ShowInputField(string name,string label,string ph,string value,string add,Boolean colf)
+procedure ShowInputField(string name,string label,string ph,string value,string add,Integer colcnt)
 begin
 
-  ShowInputField2(name,label,ph,value,add,colf,"text");
+  ShowInputField2(name,label,ph,value,add,colcnt,"text");
   
   return;
 end;
@@ -163,14 +189,14 @@ begin
   return;
 end;
 
-procedure ShowPaymentDateField(string name,string label,string ph,string value,string add,Boolean colf)
+procedure ShowPaymentDateField(string name,string label,string ph,string value,string add,Integer colcnt)
 begin
   
-  if (colf) then begin
-    WebOutString("<div class='col-md-4'>");
+  if (colcnt>0) then begin
+    WebOutString("<div class='col-md-" & colcnt & "'>");
   end;
   WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><select " & add & ">" & ShowOption("",ph) & ShowOption(5,5) & ShowOption(15,15) & ShowOption(25,25) & "</select></div></div>");
-  if (colf) then begin
+  if (colcnt>0) then begin
     WebOutString("</div>");
   end;
   return;
@@ -220,7 +246,7 @@ begin
 
   WebOutString("<div class='loan_step1_input'>");
   ShowRegNrField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),false,curtic);
-  ShowInputField2("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115),"","",false,"email");
+  ShowInputField2("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115),"","",0,"email");
   WebOutString("</div>");
 
   ShowCheckBox("datasec",ToolWebNGTranslateText2(70116));
@@ -230,7 +256,7 @@ begin
   return;
 end;
 
-procedure ShowAllLoanTypeScript(vector string vSess)
+procedure ShowAllLoanTypeScript(Integer type,val sum,Integer months)
 begin
   record WebLoanCalcVc WLCr;
   row WebLoanCalcVc WLCrw;
@@ -238,9 +264,9 @@ begin
   string 255 add;
 
   WebOutString("<script>");
-  WebOutString("var deftype = " & vSess["LoanType"] & ";");
-  WebOutString("var defamount = " & vSess["LoanAmount"] & ";");
-  WebOutString("var defterm = " & vSess["LoanTerm"] & ";");
+  WebOutString("var deftype = " & type & ";");
+  WebOutString("var defamount = " & ValToString(sum,M4Val,"",".",1) & ";");
+  WebOutString("var defterm = " & months & ";");
   WebOutString("var loantypes = {};");
 
 
@@ -248,6 +274,9 @@ begin
     add = ToolWebNGTranslateText2(70014);
     if (WLCr.TermType==1) then begin
       add = ToolWebNGTranslateText2(70073);
+    end;
+    if (WLCr.Type==4) then begin
+      add = ToolWebNGTranslateText2(70013);
     end;
     rwcnt = MatRowCnt(WLCr);
     WebOutString("var t = {};");
@@ -262,7 +291,7 @@ begin
     
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(WLCr,i,WLCrw);
-      WebOutString("t['rates'].push({months:" & WLCrw.Months & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
+      WebOutString("t['rates'].push({months:" & ValToString(WLCrw.Months,M4Val,"",".",0) & ",rate:" & ValToString(WLCrw.Rate,M4Val,"",".",0) & "});");
     end;
     WebOutString("loantypes['" & WLCr.Type & "'] = t;");
   end;
@@ -299,36 +328,75 @@ end;
 procedure ShowLoanSteps(Integer activestep)
 begin
   
-  WebOutString("<div class='loan_app_steps row'>");
+  WebOutString("<div class='loan_app_steps_wrap'>");
+  WebOutString("<div class='loan_app_steps'>");
+  WebOutString("<div class='row'>");
   ShowStep(1,activestep);
   ShowStep(2,activestep);
   ShowStep(3,activestep);
   WebOutString("</div>");
+  WebOutString("</div>");
+  WebOutString("</div>");
 
+  return;
+end;
+
+function Integer MapLoanType(string type)
+begin
+  record WebLoanAppTypeBlock LATb;
+  row WebLoanAppTypeBlock LATbrw;
+  Integer res,i,rwcnt;
+
+  BlockLoad(LATb);
+  rwcnt = MatRowCnt(LATb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(LATb,i,LATbrw);
+    if (LATbrw.CredManType==type) then begin
+      res = LATbrw.Type;
+    end;
+  end;
+
+  MapLoanType = res;
   return;
 end;
 
 procedure ShowLoanAppStepOne()
 begin
   vector string 255 vSess;
+  record B2BLoanApplicationVc LAr;
   
   LoadLoanSession(vSess);
+  GetLoanDefaults(vSess)
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(1);
+  LAr.Sum = StringToLongint(vSess["LoanAmount"]);
+  LAr.Months = StringToLongint(vSess["LoanTerm"]);
+  LAr.Surety1Type = StringToLongint(vSess["LoanType"]);//used Surety1Type just a dummy field
+  /*
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+  if (ReadFirstMain(LAr,1,true)==false) then begin
+    LAr.Sum = StringToLongint(vSess["LoanAmount"]);
+    LAr.Months = StringToLongint(vSess["LoanTerm"]);
+    LAr.Surety1Type = StringToLongint(vSess["LoanType"]);//used Surety1Type just a dummy field
+  end else begin
+    LAr.Surety1Type = MapLoanType(LAr.Type);
+  end;
+  */
 
   WebOutString("<div class='loan_app_content'>");
   WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70100) & "</h2></div>");
-  DisplayLoanTypes(vSess["LoanType"]);
+  DisplayLoanTypes(LAr.Surety1Type);
 
+  WebOutString("<div class='loan_form'>");
   DisplayLoanSlideBars;
 
   DisplayLoanPayments;
 
   DisplayLoanFooter;
 
-  ShowAllLoanTypeScript(vSess);
-
+  ShowAllLoanTypeScript(LAr.Surety1Type,LAr.Sum,LAr.Months);
+  WebOutString("</div>");//loan_form
   WebOutString("</div>");
   WebOutString("</div>");
   return;
@@ -360,27 +428,36 @@ procedure ShowLoanAppStepTwo()
 begin
   vector string 255 vSess;
   record B2BLoanApplicationVc LAr;
-  record CUVc CUr;
+  record CUVc CUr,ContactCUr;
+  string 255 readonly;
   
   LoadLoanSession(vSess);
-  
+  if (blank(CurrentCust) and vSess["LoanNewCust"]!="true") then begin
+    goto LShowLoanAppStepTwo;
+  end;
+
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(2);
 
   WebOutString("<div class='loan_app_content'>");
-  WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70123) & "</h2></div>");
+  //WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70123) & "</h2></div>");
 
   LAr.SerNr = vSess["WebLoanNr"];
   if (ReadFirstMain(LAr,1,true)) then begin
     CUr.Code = LAr.CustCode;
     ReadFirstMain(CUr,1,true);
+    ContactCUr.eMail = LAr.ContacteMail;
+    ReadFirstKey("eMail",ContactCUr,1,true);
+    if (nonblank(ContactCUr.eMail)) then begin
+      readonly = "readonly";
+    end;
     WebOutString("<div class='row input_row'>")
-    ShowInputField("compname",ToolWebNGTranslateText2(70125),ToolWebNGTranslateText2(70126),LAr.CustName,"readonly",true);
-    ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),CUr.RegNr1,"readonly",true);
+    ShowInputField("compname",ToolWebNGTranslateText2(70125),ToolWebNGTranslateText2(70126),LAr.CustName,"readonly",4);
+    ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),CUr.RegNr1,"readonly",4);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row block_end'>")
-    ShowInputField("address",ToolWebNGTranslateText2(70127),ToolWebNGTranslateText2(70128),BuildAddressString(CUr),"readonly",true);
+    ShowInputField("address",ToolWebNGTranslateText2(70127),ToolWebNGTranslateText2(70128),BuildAddressString(CUr),"readonly",4);
     WebOutString("</div>");
 
   //radio buttons
@@ -390,26 +467,29 @@ begin
     ShowRadioButton("addrtype","1",ToolWebNGTranslateText2(70131),true,"");
     WebOutString("</div>");
     WebOutString("<div class='row input_row block_end hidden addr2_wrap'>")
-    ShowInputField("address2",ToolWebNGTranslateText2(70254),ToolWebNGTranslateText2(70255),"","",true);
+    ShowInputField("address2",ToolWebNGTranslateText2(70254),ToolWebNGTranslateText2(70255),"","",4);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row'>")
-    ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),"","",true);
-    ShowInputField("manname",ToolWebNGTranslateText2(70234),ToolWebNGTranslateText2(70235),"","",true);
+    ShowInputField("manname",ToolWebNGTranslateText2(70234),ToolWebNGTranslateText2(70235),ContactCUr.Name,"",4);
+    ShowInputField("manid",ToolWebNGTranslateText2(70236),ToolWebNGTranslateText2(70237),ContactCUr.RegNr1,"",4);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row'>")
-    ShowInputField("manid",ToolWebNGTranslateText2(70236),ToolWebNGTranslateText2(70237),"","",true);
-    ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","",true);
+    ShowInputField2("manemail",ToolWebNGTranslateText2(70240),ToolWebNGTranslateText2(70241),ContactCUr.eMail,readonly,4,"email");
+    ShowInputField("manphone",ToolWebNGTranslateText2(70242),ToolWebNGTranslateText2(70243),ContactCUr.Phone,"",4);
     WebOutString("</div>");
 
-    WebOutString("<div class='row input_row'>")
-    ShowInputField("manaddr",ToolWebNGTranslateText2(70238),ToolWebNGTranslateText2(70239),"","",true);
-    ShowInputField2("manemail",ToolWebNGTranslateText2(70240),ToolWebNGTranslateText2(70241),"","",true,"email");
+    WebOutString("<div class='row input_row wide'>")
+    ShowInputField("manaddr",ToolWebNGTranslateText2(70238),ToolWebNGTranslateText2(70239),ContactCUr.InvAddr0,"",8);
+    WebOutString("</div>");
+
+    WebOutString("<div class='row input_row wide'>")
+    ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),ContactCUr.BankAccount,"",8);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row block_end'>")
-    ShowInputField("manphone",ToolWebNGTranslateText2(70242),ToolWebNGTranslateText2(70243),"","",true);
+    ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","",4);
     WebOutString("</div>");
 
     WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70124) & "</h2></div>");
@@ -426,17 +506,17 @@ begin
 
     WebOutString("<div class='single_surety_template hidden'>")
     WebOutString("<div class='row input_row'>")
-    ShowInputField("sur_name",ToolWebNGTranslateText2(70244),ToolWebNGTranslateText2(70245),"","",true);
-    ShowInputField("sur_id",ToolWebNGTranslateText2(70246),ToolWebNGTranslateText2(70247),"","",true);
+    ShowInputField("sur_name",ToolWebNGTranslateText2(70244),ToolWebNGTranslateText2(70245),"","",4);
+    ShowInputField("sur_id",ToolWebNGTranslateText2(70246),ToolWebNGTranslateText2(70247),"","",4);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row'>")
-    ShowInputField("sur_addr",ToolWebNGTranslateText2(70248),ToolWebNGTranslateText2(70249),"","",true);
-    ShowInputField2("sur_email",ToolWebNGTranslateText2(70250),ToolWebNGTranslateText2(70251),"","",true,"email");
+    ShowInputField("sur_addr",ToolWebNGTranslateText2(70248),ToolWebNGTranslateText2(70249),"","",4);
+    ShowInputField2("sur_email",ToolWebNGTranslateText2(70250),ToolWebNGTranslateText2(70251),"","",4,"email");
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row'>")
-    ShowInputField("sur_phone",ToolWebNGTranslateText2(70252),ToolWebNGTranslateText2(70253),"","",true);
+    ShowInputField("sur_phone",ToolWebNGTranslateText2(70252),ToolWebNGTranslateText2(70253),"","",4);
     WebOutString("</div>");
     WebOutString("<div class='row input_row block_end'>")
     WebOutString("<div class='surety_remove_wrap'><div class='surety_remove hl_button'>" & ToolWebNGTranslateText2(70272) & "</div></div>");
@@ -454,6 +534,7 @@ begin
   WebOutString("</div>");
   WebOutString("</div>");
 
+LShowLoanAppStepTwo:;
   return;
 end;
 
@@ -477,49 +558,47 @@ function string 255 GetLoanType(record B2BLoanApplicationVc LAr)
 begin
   string 255 res;
   record CredManTypeVc CMTr;
+  Integer type;
 
-  CMTr.Code = LAr.Type;
-  if (ReadFirstMain(CMTr,1,true)) then begin
-    switch (CMTr.InstalmentType) begin
-      case 0: res = ToolWebNGTranslateText2(70216);
-      case 1: res = ToolWebNGTranslateText2(70217);
-      case 2: res = ToolWebNGTranslateText2(70218);
-      case 3: res = ToolWebNGTranslateText2(70219);
-      case 4: res = ToolWebNGTranslateText2(70220);
-    end;
+  type = MapLoanType(LAr.Type);
+  switch (type) begin
+    case 0: res = ToolWebNGTranslateText2(70216);
+    case 3: res = ToolWebNGTranslateText2(70217);
+    case 4: res = ToolWebNGTranslateText2(70218);
+    case 1: res = ToolWebNGTranslateText2(70219);
+    case 2: res = ToolWebNGTranslateText2(70220);
   end;
 
   GetLoanType = res;
   return;
 end;
 
-function string 255 ShowSurety(record B2BLoanApplicationVc LAr)
-begin
-  string 255 res;
-  res = "&nbsp;";
-  ShowSurety = res;
-  return;
-end;
-
 procedure ShowLoanAppSummary(record B2BLoanApplicationVc LAr)
 begin
   record CUVc CUr;
+  Date startdate,enddate;
 
   CUr.Code = LAr.CustCode;
   ReadFirstMain(CUr,1,true);
 
+  startdate = CurrentDate;
+  startdate.Day = LAr.MonthlyPaymentDay;
+  if (startdate<CurrentDate) then begin
+    startdate = AddMonth(startdate,1);
+  end;
+  enddate = AddMonth(startdate,LAr.Months);
+
   WebOutString("<div class='summary_table'>");
-  DisplaySummaryLine(ToolWebNGTranslateText2(70205),DateToString(LAr.StartDate,"YYYY MM DD"));
+  //DisplaySummaryLine(ToolWebNGTranslateText2(70205),DateToString(LAr.StartDate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70206),GetLoanType(LAr));
-  DisplaySummaryLine(ToolWebNGTranslateText2(70207),ValToString(LAr.Sum,M4Val," ",".",1) & "&euro;");
-  DisplaySummaryLine(ToolWebNGTranslateText2(70208),DateToString(LAr.StartDate,"YYYY MM DD"));
-  DisplaySummaryLine(ToolWebNGTranslateText2(70209),DateToString(LAr.StartDate,"YYYY MM DD"));
-  DisplaySummaryLine(ToolWebNGTranslateText2(70210),"&nbsp;");
+  DisplaySummaryLine(ToolWebNGTranslateText2(70207),ValToString(LAr.Sum,M4Val," ",".",1) & " &euro;");
+  DisplaySummaryLine(ToolWebNGTranslateText2(70208),DateToString(startdate,"YYYY MM DD"));
+  DisplaySummaryLine(ToolWebNGTranslateText2(70209),DateToString(enddate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70211),LAr.CustName);
   DisplaySummaryLine(ToolWebNGTranslateText2(70212),CUr.RegNr1);
   DisplaySummaryLine(ToolWebNGTranslateText2(70213),LAr.Addr0);
   DisplaySummaryLine(ToolWebNGTranslateText2(70214),LAr.BankAccount);
-  DisplaySummaryLine(ToolWebNGTranslateText2(70215),ShowSurety(LAr));
+  DisplaySummaryLine(ToolWebNGTranslateText2(70215),ShowSuretyApp(LAr));
   WebOutString("</div>");
 
   return;
@@ -536,15 +615,19 @@ begin
   return;
 end;
 
-procedure ShowLoanAppVerification()
+procedure ShowLoanAppVerification(record B2BLoanApplicationVc LAr)
 begin
   
   //smartid,paysera and e-signature
   WebOutString("<h2>" & ToolWebNGTranslateText2(70231) & "</h2>");
-  ShowVerificatonMethod("esig","esignature.svg",ToolWebNGTranslateText2(70225));
-  ShowVerificatonMethod("ebank","ebank.svg",ToolWebNGTranslateText2(70226));
-  ShowVerificatonMethod("smartid","esmartid.svg",ToolWebNGTranslateText2(70227));
-  ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70224));
+  if (LAr.ContactName==LAr.Surety1Name) then begin
+    ShowVerificatonMethod("esig","esignature.svg",ToolWebNGTranslateText2(70225));
+    ShowVerificatonMethod("ebank","ebank.svg",ToolWebNGTranslateText2(70226));
+    ShowVerificatonMethod("smartid","esmartid.svg",ToolWebNGTranslateText2(70227));
+    ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70224));
+  end else begin
+    ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70373));
+  end;
   WebOutString("<div class='clear'></div>");
   return;
 end;
@@ -563,6 +646,9 @@ begin
   record B2BLoanApplicationVc LAr;
   
   LoadLoanSession(vSess);
+  if (blank(CurrentCust) and vSess["LoanNewCust"]!="true") then begin
+    goto LShowLoanAppStepThree;
+  end;
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(3);
@@ -575,13 +661,13 @@ begin
 
     ShowDataProcessing;
 
-    ShowLoanAppVerification;
+    ShowLoanAppVerification(LAr);
   end else begin
     //display error message?
   end;
   WebOutString("</div>");
   WebOutString("</div>");
-
+LShowLoanAppStepThree:;
   return;
 end;
 
@@ -636,6 +722,36 @@ begin
   WebOutString("loan_str['OtherAgrText'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70079)) & "';");
   WebOutString("loan_str['Close'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70080)) & "';");
   WebOutString("loan_str['Proceed'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70081)) & "';");
+  WebOutString("loan_str['ErrorSigning'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70288)) & "';");
+  WebOutString("loan_str['ErrorSigning2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70289)) & "';");
+  WebOutString("loan_str['SigingDone'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70290)) & "';");
+  WebOutString("loan_str['LoanTyp0Str1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70291)) & "';");
+  WebOutString("loan_str['LoanTyp0Str2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70292)) & "';");
+  WebOutString("loan_str['LoanTyp0Str3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70293)) & "';");
+  WebOutString("loan_str['LoanTyp1Str1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70294)) & "';");
+  WebOutString("loan_str['LoanTyp1Str2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70295)) & "';");
+  WebOutString("loan_str['LoanTyp1Str3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70296)) & "';");
+  WebOutString("loan_str['LoanTyp2Str1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70297)) & "';");
+  WebOutString("loan_str['LoanTyp2Str2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70298)) & "';");
+  WebOutString("loan_str['LoanTyp2Str3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70299)) & "';");
+  WebOutString("loan_str['LoanTyp3Str1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70300)) & "';");
+  WebOutString("loan_str['LoanTyp3Str2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70301)) & "';");
+  WebOutString("loan_str['LoanTyp3Str3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70302)) & "';");
+  WebOutString("loan_str['LoanTyp4Str1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70303)) & "';");
+  WebOutString("loan_str['LoanTyp4Str2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70304)) & "';");
+  WebOutString("loan_str['LoanTyp4Str3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70305)) & "';");
+  WebOutString("loan_str['SliderTitle1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70306)) & "';");
+  WebOutString("loan_str['SliderTitle2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70370)) & "';");
+  WebOutString("loan_str['SliderTitle3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70371)) & "';");
+  WebOutString("loan_str['SliderLabel1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70107)) & "';");
+  WebOutString("loan_str['SliderLabel2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70372)) & "';");
+  WebOutString("loan_str['CantBeBlank'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70377)) & "';");
+  WebOutString("loan_str['SpecifyName'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70378)) & "';");
+  WebOutString("loan_str['SpecifyValidEmail'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70379)) & "';");
+  WebOutString("loan_str['SpecifyRegNr'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70380)) & "';");
+  WebOutString("loan_str['MandatoryCheckbox'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70381)) & "';");
+  WebOutString("loan_str['Stop'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70084)) & "';");
+
   WebOutString("</script>");
 
 end;
@@ -680,7 +796,7 @@ LShowLoanApp:;
 end;
 
 global
-updating function Boolean StoreLoanCustomer(string regnr,string email,string name,string addr0,string addr1,string addr2,string addr3,string phone,string mobile,string fax,string homepage,string email,string vatnr,var record CUVc CUr)
+updating function Boolean StoreLoanCustomer(string regnr,string email,string name,string addr0,string addr1,string addr2,string addr3,string phone,string mobile,string fax,string homepage,string compemail,string vatnr,var record CUVc CUr)
 begin
   Boolean res;
   string 255 tstr;
@@ -689,7 +805,7 @@ begin
   if (GetNextCustNr(tstr)) then begin end;
   CUr.Code = tstr;
   CUr.RegNr1 = regnr;
-  CUr.eMail = email;
+  CUr.eMail = compemail;
   CUr.Name = name;
   CUr.InvAddr0 = addr0;
   CUr.InvAddr2 = addr2;
@@ -699,6 +815,7 @@ begin
   CUr.Fax = fax;
   CUr.wwwAddr = homepage;
   CUr.VATNr = vatnr;
+  CUr.CUType = 1;
   if (RecordInsert(CUr,true)) then begin
     res = true;
     ReadFirstMain(CUr,1,true);
@@ -708,22 +825,135 @@ begin
   return;
 end;
 
-function Boolean GetCustomer(string regnr,string email,var record CUVc CUr)
+global
+updating function Boolean StoreLoanContact(string email,var record CUVc CUr)
+begin
+  Boolean res;
+  string 255 tstr;
+  record RcVc RepSpec;
+  record PassSessVc PSr;
+  record CMApplicationSetBlock CMb;
+  
+  RecordNew(CUr);
+  if (GetNextCustNr(tstr)) then begin end;
+  CUr.Code = tstr;
+  CUr.eMail = email;
+  CUr.CUType = 0;
+  CUr.CustCat = "";
+  CUr.CustType = 1;
+  CUr.AllowLogin = 0;
+  CUr.CountryCode = "LT";//hardcoded for now   
+  if (RecordInsert(CUr,true)) then begin
+    res = true;
+    ReadFirstMain(CUr,1,true);
+    BlockLoad(CMb);
+    RecordNew(PSr);
+    PSr.UUID = MakeUUID;
+    PSr.CustCode = CUr.Code;
+    PSr.TransDate = CurrentDate;
+    PSr.TransTime = CurrentTime;
+    if (RecordInsert(PSr,true)) then begin
+      RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
+    end;
+    RepSpec.f1 = CUr.Code;
+    SendCustomerLetterWithDetails(RepSpec,CMb.NewCustLetter,CUr.LangCode,CUr.eMail);
+  end;
+
+  StoreLoanContact = res;
+  return;
+end;
+
+function Boolean CompanyLinkedToContact(record CUVc CUr,record CUVc ContactCUr)
+begin
+  record ContactRelVc ContactRelr;
+  Boolean res;
+
+  ContactRelr.CustCode = CUr.Code;
+  ContactRelr.ContactCode = ContactCUr.Code;
+  if (ReadFirstMain(ContactRelr,2,true)) then begin
+    res = true;
+  end;
+  
+  CompanyLinkedToContact = res;
+  return;
+end;
+
+procedure CheckCustomer(string regnr,string email,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
 begin
   string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail;
   Boolean res;
+  Boolean compf,contactf,loginf,res2;
 
-  CUr.RegNr1 = regnr;
-  if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+  ContactCUr.eMail = email;
+  if (ReadFirstKey("eMail",ContactCUr,1,true)) then begin
     res = true;
+    contactf = true;
+    if (ContactCUr.Code==CurrentCust) then begin
+      loginf = true;
+    end;
   end else begin
-    GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr);
-    if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
+    if (qupdating.StoreLoanContact(email,ContactCUr)) then begin
       res = true;
     end;
   end;
 
-  GetCustomer = res;
+  if (contactf and !loginf) then begin
+    status = 3;
+    goto LCheckCustomer;
+  end;
+  if (contactf and ContactCUr.AllowLogin==0) then begin
+    status = 4;
+    goto LCheckCustomer;
+  end;
+  if (!contactf and !res) then begin
+    status = 5;
+    goto LCheckCustomer;
+  end;
+
+  res = false;
+  CUr.RegNr1 = regnr;
+  if (ReadFirstKey("RegNr1",CUr,1,true)) then begin//should check email as well
+    compf = true;
+    res = true;
+  end else begin
+    if (len(regnr)==11) then begin
+      name = regnr;
+    end else begin
+      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr);
+    end;
+    if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
+      res = true;
+   end;
+  end;
+
+  if (!compf and !res) then begin
+    status = 5;
+    goto LCheckCustomer;
+  end;
+  if (compf and contactf) then begin
+    //check contact links. allow continuing with different class if not linked
+    if (CompanyLinkedToContact(CUr,ContactCUr)==false) then begin
+      status = 2;
+      goto LCheckCustomer;
+    end;
+  end;
+  if (compf and !contactf) then begin
+    //allow continuing, but with different class
+    status = 2;
+    goto LCheckCustomer;
+  end;
+  if (!compf) then begin
+    //link together
+    res2 = qupdating.AddContactCUDsmRemote(CUr,ContactCUr.Code);
+  end;
+  if (contactf and !loginf) then begin
+    status = 0;
+  end;
+  if (!contactf) then begin 
+    status = 1;
+  end;
+
+LCheckCustomer:;
   return;
 end;
 
@@ -789,8 +1019,36 @@ begin
   return;
 end;
 
+updating procedure CreateActivityForContactLinks(record CUVc CUr,record CUVc ContactCUr)
+begin
+  record ActVc Actr;
+  row ActVc Actrw;
+  record CreditalWebSetBlock WSb;
+  string 255 warning;
+  
+  BlockLoad(WSb);
+  RecordNew(Actr);
+  Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+  Actr.TransDate = CurrentDate;
+  Actr.CUCode = CUr.Code;
+  PasteCuInAct(Actr,warning);
+  Actr.ActType = WSb.LinkContactActType;
+  PasteActTypeInAct2("",Actr,warning);
+  Actr.MainPersons = WSb.LinkContactPersons;
+  Actr.Comment = WSb.LinkContactActComment;
+  Actr.TodoFlag = kTodoFlagTodo;
+
+  ClearRow(Actr,Actrw,1);
+  Actrw.Text = ContactCUr.Name & " (" & ContactCUr.Code & ")";
+  MatRowPut(Actr,0,Actrw);
+  if (RecordInsert(Actr,true)) then begin
+    CreateRecordLink(Actr,CUrrentCompany,ContactCUr,CurrentCompany);
+  end;
+  return;
+end;
+
 global
-updating function Boolean StoreInitialLoanApp(record CUVc CUr,record WebLoanCalcVc WLCr,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email)
+updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -803,8 +1061,14 @@ begin
   LAr.CustCode = CUr.Code;
   InsertCustomerInB2BApplication(LAr);
   LAr.eMail = email;
-  LAr.OrderClass = CMb.WebAppClass;
+logtext(0,"status " & status);
+  if (status==2) then begin
+    LAr.OrderClass = CMb.CheckWebAppClass;    
+  end else begin
+    LAr.OrderClass = CMb.WebAppClass;
+  end;
 
+  LAr.ContacteMail = ContactCUr.eMail;
   LAr.Manager = WLCr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
@@ -817,9 +1081,40 @@ begin
   end;
   if (RecordInsert(LAr,true)) then begin
     res = true;
+    if (status==2) then begin
+      //Create activity for linking contact with contactperson
+      CreateActivityForContactLinks(CUr,ContactCUr);
+    end;
   end;
 
   StoreInitialLoanApp = res;
+  return;
+end;
+
+global
+updating procedure UpdateLoanAppFirstStep(record B2BLoanApplicationVc LAr,record CUVc CUr,record WebLoanCalcVc WLCr,Longint amount,Longint term,string email)
+begin
+  record B2BLoanApplicationVc oldLAr;
+  record CredManTypeVc CMTr;
+  
+  RecordCopy(oldLAr,LAr);
+  LAr.CustCode = CUr.Code;
+  InsertCustomerInB2BApplication(LAr);
+  LAr.eMail = email;
+
+  LAr.Manager = WLCr.Manager;
+  InsertManagerInB2BApplication(LAr);
+  LAr.Sum = amount;
+  LAr.Months = term;
+
+  LAr.Type = GetAgreementType(LAr,WLCr.Type,WLCr.CredManType);
+  CMTr.Code = LAr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    LAr.InterestRate = CMTr.IntRate;
+  end;
+  if (RecordUpdate(oldLAr,LAr,true)) then begin
+  end;
+
   return;
 end;
 
@@ -831,7 +1126,9 @@ begin
   string 255 regnr,email,datasec,datause,link,name,errstr;  
   record B2BLoanApplicationVc LAr;
   record WebLoanCalcVc WLCr;
-  record CUVc CUr;
+  record CUVc CUr,ContactCUr;
+  vector string 255 vSess;
+  Integer status;
 
   type = StringToLongInt(WebGetArg("type"));
   amount = StringToLongInt(WebGetArg("amount"));
@@ -860,26 +1157,61 @@ begin
   if (datasec!="1") then begin
     err = err + 64;
   end;
-  if (GetCustomer(regnr,email,CUr)==false) then begin//should we even store the customer??
-    err = err + 128;    
-  end;
+
   WLCr.Type = type;
   if (ReadFirstMain(WLCr,1,true)==false) then begin
     err = err + 256;    
   end;
 
   if (err==0) then begin
-    if (qupdating.StoreInitialLoanApp(CUr,WLCr,amount,term,LAr,email)) then begin
-      StoreSessionLoan(LAr.SerNr);
+    CheckCustomer(regnr,email,CUr,ContactCUr,status);
+    switch (status) begin
+      case 0://we are logged in - all good
+      case 1://we just created a new company and new contact - all good
+      case 2://the company exists, but not linked to contact (new or existing - doesn't matter) - allow to proceed, but with different Order Class
+        
+      case 3://contact exists - require login. if they haven't set the password. we should notify
+        err = err + 128;
+      case 4://contact exists - not validated
+        err = err + 512;
+      case 5://failed to store either contact or customer
+        err = err + 1024;
+    end;
+  end;
+
+  if (err==0) then begin
+/*
+    LoadLoanSession(vSess);
+    LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+    if (ReadFirstMain(LAr,1,true)) then begin
+      qupdating.UpdateLoanAppFirstStep(LAr,CUr,WLCr,amount,term,email); 
       link = GetLinkToLoanApp;
       link = link & "2";
     end else begin
-      errstr = ToolWebNGTranslateText2(70122);
-    end;
+*/
+      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email)) then begin
+        StoreSessionLoan(LAr.SerNr,status);
+        link = GetLinkToLoanApp;
+        link = link & "2";
+      end else begin
+        errstr = ToolWebNGTranslateText2(70122);
+      end;
+//    end;
+//    PutSessionString("WebLoanType",type);
   end else begin
     errstr = ToolWebNGTranslateText2(70122);
   end;
-  WebOutString("<res err='" & errstr & "' redir='" & link & "'></res>");
+  WebOutString("<res err='" & errstr & "' redir='" & link & "'>");
+  if (BitAnd(err,128)) then begin
+    WebOutString("<err id='require_login'></err>");
+  end;
+  if (BitAnd(err,512)) then begin
+    WebOutString("<err id='verify_email'></err>");
+  end;
+  if (BitAnd(err,1024)) then begin
+    WebOutString("<err id='internal_error'></err>");
+  end;
+  WebOutString("</res>");
 
   return;
 end;
@@ -892,31 +1224,46 @@ begin
   return;
 end;
 
-updating procedure GetContactDetails(string ind,var record CUVc CUr,record B2BLoanApplicationVc LAr)
+updating procedure GetContactDetails(string ind,var record CUVc tCUr,record B2BLoanApplicationVc LAr,Boolean manf)
 begin
   string 255 tstr;
-  record CUVc tCUr;
+  record CUVc CUr,oldCUr;
+  Boolean updatef;
   
   RecordClear(CUr);
-  RecordNew(CUr);
-  if (GetNextCustNr(tstr)) then begin end;
-  CUr.Code = tstr;
-
-  CUr.CUType = 0;
-  CUr.CustCat = "";
-  CUr.CustType = 1;
   CUr.eMail = WebGetArg(ind & "email");
-  CUr.Name = WebGetArg(ind & "name");
-  CUr.Phone = WebGetArg(ind & "phone");
-  CUr.RegNr1 = WebGetArg(ind & "id");
-  SplitAddress(CUr,WebGetArg(ind & "addr"));
-
-  if (RecordInsert(CUr,true)) then begin
-    tCUr.Code = LAr.CustCode;
-    tCUr.Name = LAr.CustName;
-    AddContactCUDsmRemote(tCUr,Cur.Code);
+  if (ReadFirstKey("eMail",CUr,1,true)) then begin
+    RecordCopy(oldCUr,CUr);
+    updatef = true;
+  end else begin
+    RecordNew(CUr);
+    if (GetNextCustNr(tstr)) then begin end;
+    CUr.Code = tstr;
+    CUr.CUType = 0;
+    CUr.CustCat = "";
+    CUr.CustType = 1;
+    CUr.AllowLogin = 0;
+    CUr.CountryCode = "LT";//hardcoded?    
+  end;
+  if (updatef==false or manf) then begin
+    CUr.eMail = WebGetArg(ind & "email");
+    CUr.Name = WebGetArg(ind & "name");
+    CUr.Phone = WebGetArg(ind & "phone");
+    CUr.RegNr1 = WebGetArg(ind & "id");
+    SplitAddress(CUr,WebGetArg(ind & "addr"));
+  end;
+  if (updatef) then begin
+    RecordUpdate(oldCUr,CUr,false); //false,to make sure we really update the record
+  end else begin
+    RecordInsert(CUr,true); 
   end;
 
+  RecordCopy(tCUr,CUr);
+  if (nonblank(CUr.Name) and nonblank(CUr.eMail) and !manf) then begin
+    CUr.Code = LAr.CustCode;
+    CUr.Name = LAr.CustName;
+    AddContactCUDsmRemote(CUr,tCur.Code);
+  end;
   return;
 end;
 
@@ -925,9 +1272,12 @@ begin
   Integer i,scnt,surcnt;
   record CUVc CUr;
   
-  GetContactDetails("man",CUr,LAr);
+  GetContactDetails("man",CUr,LAr,true);
   LAr.ContactName = CUr.Name;
-  InsertContactName(LAr);
+  LAr.ContacteMail = CUr.eMail;
+  LAr.ContactPhoneNo = CUr.Phone;
+  LAr.ContactMobile = CUr.Mobile;
+  //InsertContactName(LAr);
   LAr.CEOCustCode = CUr.Code;
   LAr.CEOName = CUr.Name;
 
@@ -940,7 +1290,7 @@ begin
   end;
 
   for (i=0;i<scnt and surcnt<3;i=i+1) begin
-    GetContactDetails(i & "sur_",CUr,LAr);
+    GetContactDetails(i & "sur_",CUr,LAr,false);
     SetFieldValueByName(LAr,"SuretyProvider" & (surcnt+1),CUr.Code,-1);
     InsertSuretyInB2BApplication(LAr,surcnt+1);
     surcnt = surcnt + 1;
@@ -957,6 +1307,7 @@ begin
   record CUVc CUr;
   record RcVc RepSpec;
   record CMApplicationSetBlock CMb;
+  record PassSessVc PSr;
   
   BlockLoad(CMb);
   for (i=1;i<4;i=i+1) begin
@@ -964,8 +1315,24 @@ begin
     if (nonblank(code)) then begin
       CUr.Code = code;
       if (ReadFirstMain(CUr,1,true)) then begin
+        if (CUr.Name!=LAr.ContactName) then begin
+          if (CUr.Password==0 or CUr.Password==-1) then begin
+            RecordNew(PSr);
+            PSr.UUID = MakeUUID;
+            PSr.CustCode = CUr.Code;
+            PSr.TransDate = CurrentDate;
+            PSr.TransTime = CurrentTime;
+            if (RecordInsert(PSr,true)) then begin
+              RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
+            end;
+          end;
+        end;
         RepSpec.f1 = LAr.CustCode;
-        SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);
+        if (nonblank(RepSpec.searchstr)) then begin
+          SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);
+        end else begin
+          SendCustomerLetterWithDetails(RepSpec,CMb.NoPassSuretyLetter,CUr.LangCode,CUr.eMail);          
+        end;
       end;
     end;
   end;
@@ -987,10 +1354,7 @@ begin
       RecordRemove(Attachr);
     end;
   end;
-  SetDocumentFilename(fn);
-  SetMedia(mtPdf);    
-  PrintDocument(LAr,"LoanAppForm",false);
-  SetDocumentFilename("");
+  PrintMultiDocDocument("LoanAppForm",fn,LAr.SerNr);
   if (FileExists(fn)) then begin
     RecordLinkFile(fn,0,LAr,CurrentCompany);
     Delete_File(fn);
@@ -1162,7 +1526,7 @@ end;
 global
 procedure LoanAppSmartIDAction(string action)
 begin
-  Boolean res;
+  Boolean res,cufoundf;
   Integer stat;
   string 255 token,control_code;
   vector string 255 vSess;
@@ -1173,6 +1537,17 @@ begin
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
     if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+      cufoundf = true;
+    end;
+    if (!cufoundf==false) then begin
+      CUr.eMail = LAr.ContacteMail;
+      if (ReadFirstKey("eMail",CUr,1,true)) then begin
+        if (CUr.Name==LAr.ContactName) then begin
+          cufoundf = true;
+        end;
+      end;
+    end;
+    if (cufoundf) then begin
       switch (action) begin
         case "init":
           res = InitSmartIDAuthentication(CUr,token,control_code);

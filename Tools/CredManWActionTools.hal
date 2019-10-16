@@ -265,7 +265,7 @@ begin
 end;
 
 global
-updating procedure GetFactoringRecord(record CredManVc CredManr,var record CredManFactVc CMFr)
+procedure GetFactoringRecord(record CredManVc CredManr,var record CredManFactVc CMFr)
 begin
   record CredManFactVc tCMFr;
 
@@ -279,3 +279,20 @@ begin
 
   return;
 end;
+
+global
+procedure GetPayGrntRecord(record CredManVc CredManr,var record CredManPmtGrntVc PGr)
+begin
+  record CredManPmtGrntVc tPGr;
+
+  tPGr.CredManNr = CredManr.SerNr;
+  if (ReadFirstMain(tPGr,1,true)) then begin
+    RecordCopy(PGr,tPGr);
+  end else begin
+    RecordNew(PGr);
+    PGr.CredManNr = CredManr.SerNr;
+  end;
+
+  return;
+end;
+

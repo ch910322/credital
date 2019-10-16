@@ -232,7 +232,7 @@ begin
     CredManr.Addr0 = LAr.CustName;
     CredManr.SalesMan = LAr.Manager;
     CredManr.InvSum4 = LAr.Sum;
-    CredManr.startDate = LAr.StartDate;
+    CredManr.startDate = CurrentDate;//LAr.StartDate;
     CredManr.InstalmentMonths = LAr.Months;
     CredManr.PayDeal = CUr.PayDeal;
     CredManr.ClientContact = LAr.ContactName;

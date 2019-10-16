@@ -12,7 +12,9 @@ remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
 external inner procedure ContactSClassOnOpen(Integer,string,var Array string,var Integer);
-remote updating procedure GetFactoringRecord(record CredManVc,var record CredManFactVc);
+remote procedure GetFactoringRecord(record CredManVc,var record CredManFactVc);
+remote procedure GetPayGrntRecord(record CredManVc,var record CredManPmtGrntVc);
+
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -123,6 +125,29 @@ begin
   return;
 end;
 
+function Boolean CredManDClassDayValueEFAfter(Integer wn,Boolean changedf,string fieldname)
+begin
+  record CredManVc CredManr;
+  Integer value;
+
+  if (changedf) then begin  
+    GetWindowRecord(wn,CredManr);
+    value = StringToInt(GetFieldValueByName(CredManr,fieldname,-1));
+    if (value<1) then begin
+      value = 1;
+    end;
+    if (value>31) then begin
+      value = 31;
+    end;
+    SetFieldValueByName(CredManr,fieldname,value,-1);
+    PutWindowRecord(wn,CredManr);   
+  end; 
+  CredManDClassDayValueEFAfter = true;
+  return;
+end;
+
+
+
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
@@ -141,6 +166,10 @@ begin
     case "SuretyProvider2":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,2);
     case "SuretyProvider3":   res = CredManDClassSuretyProviderEFAfter(wn,changed!=0,3);
     case "LoanToValue":       res = CredManDClassLoanToValueEFAfter(wn,changed!=0,3);
+    case "PayGrntPayDate1":   res = CredManDClassDayValueEFAfter(wn,changed!=0,fieldname);
+    case "PayGrntPayDate2":   res = CredManDClassDayValueEFAfter(wn,changed!=0,fieldname);
+    case "PayGrntReportDate1":res = CredManDClassDayValueEFAfter(wn,changed!=0,fieldname);
+    case "PayGrntReportDate2":res = CredManDClassDayValueEFAfter(wn,changed!=0,fieldname);
     otherwise 
       res = inner.CredManDClassAfterEditField(wn,fieldname,fn,rownr,changed);
   end;
@@ -740,6 +769,35 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   OpenWindow("CustCredManFactInvoiceWClass",1,wn,"","",RepSpec);
+
+  return;
+end;
+
+global
+updating procedure OpenCredManPayGrntSellersBtn()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record CredManPmtGrntVc PGr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  GetPayGrntRecord(CredManr,PGr);
+  OpenWindow("CredManPmtGrntDClass",1,0,"","",PGr);
+
+  return;
+end;
+
+global
+updating procedure OpenCredManPayGrntReportsBtn()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record RcVc RepSpec;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  OpenWindow("CredManGrntReportWClass",1,wn,"","",RepSpec);
 
   return;
 end;

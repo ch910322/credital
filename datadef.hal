@@ -219,6 +219,9 @@ begin
   RecordField(SuretyLetter,M4Str,255,0);
   RecordField(VerWebAppClass,M4Code,5,OrderClassVc);
   RecordField(OtherWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(NoPassSuretyLetter,M4Str,255,0);
+  RecordField(CheckWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(NewCustLetter,M4Str,255,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -395,6 +398,15 @@ begin
   RecordField(PrincipleDelayMonths,M4Qty,0,0);
   RecordField(PrincipleDelayInterest,M4Qty,0,0);
   RecordField(MaxMonthlyPayment,M4Val,0,0);
+
+/*Payment guarantee start*/
+  RecordField(PayGrntComment,M4Str,255,0);
+  RecordField(PayGrntPayDate1,M4Long,0,0);
+  RecordField(PayGrntPayDate2,M4Long,0,0);
+  RecordField(PayGrntReportDate1,M4Long,0,0);
+  RecordField(PayGrntReportDate2,M4Long,0,0);
+  RecordField(PayGrntInsured,M4Int,0,0);
+/*Payment guarantee end*/
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -739,7 +751,7 @@ begin
   RecordField(WebText,M4Str,255,0);
   RecordField(TermType,M4Int,0,0);
   ArrayBegin(Math,-,1);
-  ArrayField(Months,M4Int,0,0);
+  ArrayField(Months,M4Val,0,0);
   ArrayField(Rate,M4Val,0,0);
   EndArray;
   MainKeyBegin(Type,0);
@@ -815,6 +827,78 @@ begin
   RecordField(SellerFeeAccount,M4Code,10,AccVc);
   EndBlock;
 
+  RecordBegin(CredManPmtGrntVc,-,"");
+  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(Total,M4Val,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(CustCode,M4Code,20,CUVc);
+  ArrayField(CustName,M4Str,255,0);
+  ArrayField(MaxLimit,M4Val,0,0);
+  ArrayField(EvalLimit,M4Val,0,0);
+  ArrayField(Used,M4Val,0,0);
+  ArrayField(OpenTotal,M4Val,0,0);
+  ArrayField(DelayDays,M4Long,0,0);
+  ArrayField(DelayMonths,M4Long,0,0);
+  EndArray;
+  MainKeyBegin(CredManNr,0);
+  KeySegment(CredManNr);
+  EndRecord;
+
+  RecordBegin(CredManGrntReportVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(ReportDate,M4Date,0,0);
+  RecordField(DueDate,M4Date,0,0);
+  RecordField(TotalSum,M4Val,0,0);
+  RecordField(InitSLInvFlag,M4Int,0,0);
+  RecordField(InitPLInvFlag,M4Int,0,0);
+  RecordField(SellerVINr,M4Long,0,0);
+  RecordField(FeeGenFlag,M4Int,0,0);
+  RecordField(CustName,M4Str,255,0);
+  RecordField(BuyerIVNr,M4Long,0,0);
+  RecordField(CustPaidFlag,M4Int,0,0);
+  RecordField(CustPaid2Flag,M4Int,0,0);
+  RecordField(ReceivedAmount,M4Val,0,0);
+  RecordField(PaymentDate,M4Date,0,0);
+  MainKeyBegin(SerNr,1);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(SellerVINr);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(SellerVINr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(CustCode);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(CustCode);
+  KeySegment(CustPaidFlag);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(BuyerIVNr);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(BuyerIVNr);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(CustPaidFlag);
+  StoreInBaseKey;
+  AppendFieldToKeyName(CredManNr);
+  KeySegment(CustPaidFlag);
+  KeySegment(FeeGenFlag);
+  KeySegment(SerNr);
+  EndRecord;
+
+  BlockBegin(PmtGrntBlock,-,"");
+  RecordField(SellerAccount,M4Code,10,AccVc);
+  RecordField(SellerVATCode,M4Code,10,0);
+  RecordField(BuyerItem,M4Code,20,INVc);
+  RecordField(BuyerSecurityItem,M4Code,20,INVc);
+  RecordField(BuyerSecurityPrc,M45Val,0,0);
+  RecordField(BuyerPayDeal,M4Code,5,PDVc);
+  EndBlock;
+
   BlockBegin(WebInvoicingPartnerBlock,-,"");
   RecordField(PartnerClass,M4UStr,255,0);
   EndBlock;
@@ -841,6 +925,57 @@ begin
   ArrayField(CredManType,M4Code,20,CredManTypeVc);
   EndArray;
   EndBlock;
+
+  
+  BlockBegin(CreditalWebSetBlock,-,"");
+  RecordField(ContactActType,M4Code,20,0);
+  RecordField(ContactPersons,M4UStr,100,0);
+  RecordField(ContactActComment,M4Str,200,0);
+  RecordField(NewsLetterMail,M4Str,30,0);
+  RecordField(LinkContactActType,M4Code,20,0);
+  RecordField(LinkContactPersons,M4UStr,100,0);
+  RecordField(LinkContactActComment,M4Str,200,0);
+  EndBlock;
+
+  RecordBegin(WebMetaTagVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(StructNr,M4Long,0,WebNGStructVc);
+  RecordField(ContentNr,M4Long,0,WebNGContentVc);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  KeyBegin(StructNr);
+  KeySegment(StructNr);
+  KeySegment(ContentNr);
+  KeyBegin(ContentNr);
+  KeySegment(ContentNr);
+  KeySegment(StructNr);
+  EndRecord;
+
+  RecordBegin(WebMetaTagTransVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(LangCode,M4Code,5,0);
+  RecordField(Title,M4Str,255,0);
+  RecordField(KeyWords,M4Str,255,0);
+  RecordField(Description,M4Str,255,0);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  KeySegment(LangCode);
+  SubsetKeyBegin2(LangCode);
+  StoreInBaseKey;
+  AppendFieldToKeyName(SerNr);
+  KeySegment(LangCode);
+  KeySegment(SerNr);
+  EndRecord;
+
+  RecordBegin(MultiDocVc,-,"");
+  RecordField(DocName,M4Str,255,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(FormCode,M4Code,200,0);
+  EndArray;
+  MainKeyBegin(DocName,0);
+  KeySegment(DocName);
+  EndRecord;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
