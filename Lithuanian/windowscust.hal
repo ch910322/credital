@@ -848,7 +848,7 @@ begin
   SpecialMenu("Get Surety Provider Data",' ',4,"");
   SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
   SpecialMenu("Customer Status",'e',6,"CUStatusB2BLoanAppDsm");
-  SpecialMenu("Creditinfo.lt",'e',6,"GetCreditinfoStatDsm");
+  SpecialMenu("Creditinfo.lt",'',6,"GetCreditinfoStatDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 

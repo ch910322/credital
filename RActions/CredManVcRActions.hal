@@ -286,3 +286,56 @@ LCredManPmtGrntVcRecordCheck:;
   CredManPmtGrntVcRecordCheck = res;
   return;
 end;
+
+global
+function LongInt AgreementDocVcRecordDefaults(var record AgreementDocVc ADr,record AgreementDocVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+  record CredManSetBlock CredManSb;
+  
+  res = 1;  
+
+  if (SingleUserMode) then begin
+    ADr.SerNr = NextSerNr("AgreementDocVc",ADr.TransDate,-1,false,"");
+  end;
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  
+  AgreementDocVcRecordDefaults = res; 
+  return;
+end;
+
+global
+function LongInt AgreementDocVcRecordDuplicate(var record AgreementDocVc ADr,record AgreementDocVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res; 
+  res = 1;  
+
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  ADr.SerNr = -1;
+  ADr.SignedByUs = 0;
+  ADr.SignedByUsDate = "";
+  ADr.SignedByUsTime = "";
+  ADr.SignedByCustomer = 0;
+  ADr.SignedByCustomerDate = "";
+  ADr.SignedByCustomerTime = "";
+  
+  AgreementDocVcRecordDuplicate = res; 
+  return;
+end;
+
+
+global
+function LongInt AgreementDocVcRecordCheck(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+
+  res = 0;
+  
+  if (ADr.SerNr<=0) then begin
+    ADr.SerNr = NextSerNr("AgreementDocVc",ADr.TransDate,-1,false,"");
+  end;
+
+  return;
+end;

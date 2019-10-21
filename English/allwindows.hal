@@ -667,8 +667,8 @@ begin
   TileButton(7,"Payment Guarantee");
 //CUST-END
   Tile(1,500,true,"",Approved);//CUST CurncyCode>>Approved
-  CheckBox(40,-41,0,"Approved",Approved);
-  CheckBox(40,-21,0,"OK",OKFlag);
+  CheckBox(20,-41,0,"Approved",Approved);
+  CheckBox(20,-21,0,"OK",OKFlag);
 //CUST-BEGIN
 /*
   EditField(200,-21,50,"Currency",Normal,CurncyCode,false,CurncyCodeSClass);
@@ -677,10 +677,22 @@ begin
   EditField(-120,-41,80,"Total Excl. Deposit",ViewOnly,TotalSumExclDep,true,0);
   EditField(-120,-21,80,"Total Value",ViewOnly,TotalSum,true,0);
 */
-
+  
   SoftEditField(-340,-21,80,"Buy-out Value",ViewOnly,"buyoutvalue",true,0,M4Val,0);
   SoftEditField(-120,-41,80,"Remaining Principle Part",ViewOnly,"remainingprinciple",true,0,M4Val,0);
   SoftEditField(-120,-21,80,"Total Due Amount",ViewOnly,"totaldue",true,0,M4Val,0);
+
+  CheckBox(110,-41,0,"Sign Agreement",SignAgreement);
+  CheckBox(110,-21,0,"Sign Schedule",SignSchedule);
+
+  HalPushButton(230,-47,280,-27,"CredManDClassSignAgreement","Open");
+  HalPushButton(230,-25,280,-5,"CredManDClassSignSchedule","Open");
+
+  CheckBox(300,-41,0,"Sign Surety",SignSurety);
+  CheckBox(300,-21,0,"Sign Vekselis",SignVekselis);
+
+  HalPushButton(400,-47,450,-27,"CredManDClassSignSurety","Open");
+  HalPushButton(400,-25,450,-5,"CredManDClassSignVekselis","Open");
 
 /*
   DataList(10,10,-50,-285,"credmanevents");
@@ -693,9 +705,9 @@ begin
 */
 
   if (GuiType==kGuiWPF) then begin
-    RecordList2(10,10,-30,-50,"CredHistVc");//CUST CredManEventVc >> CredManHistVc  
+    RecordList2(10,10,-30,-52,"CredHistVc");//CUST CredManEventVc >> CredManHistVc  
   end else begin
-    RecordList2(10,10,-30,-80,"CredHistVc");//CUST CredManEventVc >> CredManHistVc
+    RecordList2(10,10,-30,-82,"CredHistVc");//CUST CredManEventVc >> CredManHistVc
   end;
   RlColKey(4,4,"Date",TransDate,false,CredManTransDate);
   RlCol(100,100,"Due Date",PayDate,false);

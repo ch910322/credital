@@ -151,6 +151,9 @@ begin
   RecordField(OwnerRep,M4Str,200,0);
   RecordField(CEORep,M4Str,200,0);
   RecordField(CapitalCurncyCode,M4Code,5,CurncyCodeVc);
+  RecordField(CreditinfoLimit,M4Val,0,0);
+  RecordField(AvailableFinStatements,M4Int,0,0);
+  RecordField(PrincipleDelayMonths,M4Qty,0,0);
 
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
@@ -179,6 +182,10 @@ begin
   ArrayField(EstateValue,M4Val,0,0);
   ArrayField(CarsValue,M4Val,0,0);
   ArrayField(TotEstateCars,M4Int,0,0);
+  ArrayField(ClaimDate,M4Date,0,0);
+  ArrayField(PaymentDate,M4Date,0,0);
+  ArrayField(CreditorName,M4Str,250,0);
+  ArrayField(CreditAmount,M4Val,0,0);
   EndArray;
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
@@ -222,6 +229,7 @@ begin
   RecordField(NoPassSuretyLetter,M4Str,255,0);
   RecordField(CheckWebAppClass,M4Code,5,OrderClassVc);
   RecordField(NewCustLetter,M4Str,255,0);
+  RecordField(OwnershipYears,M4Long,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -407,6 +415,11 @@ begin
   RecordField(PayGrntReportDate2,M4Long,0,0);
   RecordField(PayGrntInsured,M4Int,0,0);
 /*Payment guarantee end*/
+
+  RecordField(SignAgreement,M4Int,0,0);
+  RecordField(SignSchedule,M4Int,0,0);
+  RecordField(SignSurety,M4Int,0,0);
+  RecordField(SignVekselis,M4Int,0,0);
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -935,6 +948,8 @@ begin
   RecordField(LinkContactActType,M4Code,20,0);
   RecordField(LinkContactPersons,M4UStr,100,0);
   RecordField(LinkContactActComment,M4Str,200,0);
+  RecordField(OneFeeItem,M4Code,20,INVc);
+  RecordField(MonthlyFeeItem,M4Code,20,INVc);
   EndBlock;
 
   RecordBegin(WebMetaTagVc,-,"");
@@ -970,11 +985,32 @@ begin
   RecordBegin(MultiDocVc,-,"");
   RecordField(DocName,M4Str,255,0);
   RecordField(Math,M4Matrix,0,0);
+  RecordField(DocName2,M4Str,255,0);
   ArrayBegin(Math,-,1);
   ArrayField(FormCode,M4Code,200,0);
   EndArray;
   MainKeyBegin(DocName,0);
   KeySegment(DocName);
+  EndRecord;
+
+  RecordBegin(AgreementDocVc,0,"");
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(TransDate,M4Date,0,0);
+  RecordField(TransTime,M4Time,0,0);
+  RecordField(Type,M4Set,2017,0);
+  RecordField(SignedByCustomer,M4Int,0,0);
+  RecordField(SignedByUs,M4Int,0,0);
+  RecordField(SignedByCustomerDate,M4Date,0,0);
+  RecordField(SignedByUsDate,M4Date,0,0);
+  RecordField(SignedByCustomerTime,M4Time,0,0);
+  RecordField(SignedByUsTime,M4Time,0,0);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  KeyBegin(CredManNr);
+  KeySegment(CredManNr);
+  KeySegment(Type);
+  KeySegment(SerNr);
   EndRecord;
 
   SourceFile("halcust\\English", 0);

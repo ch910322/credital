@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure ShowRedirectHtml2(string,boolean,Integer);
 external outer procedure OuterShowSingleContactUsField(record WebNGContactFormFieldVc,Integer);
 external outer procedure OuterAddFieldToMail(record MailVc,record WebNGContactFormFieldVc,Integer,string,string);

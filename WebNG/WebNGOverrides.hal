@@ -37,6 +37,9 @@ external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var s
 external inner procedure ShowWebElement(string);
 external updating procedure PrintMultiDocDocument(string,string,string);
 external inner procedure SetContentTypeForExtension(string);
+external inner function string 255 ToolWebNGTranslateText2(Longint);
+external inner function string 255 GetMainCustomerCodeFromContact(string);
+
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -415,6 +418,10 @@ begin
     case 70379: res = "¯veskite teisingˆ el. paäto adresˆ";//can't be blank
     case 70380: res = "¯veskite teisingˆ °mon˜s kodˆ";
     case 70381: res = "Privaloma paìym˜ti";
+    case 70382: res = "Vartotojas nepriskirtas °monei, praäome susisiekti";
+    case 70384: res = "SingleFee";
+    case 70385: res = "Monthly Fee ";
+    case 70386: res = "Principle Delay Months";
 
   end;
 
@@ -465,6 +472,15 @@ begin
   return;
 end;
 
+global updating
+procedure DoWebLogout()
+begin
+  
+  WebLogout;
+
+  return;
+end;
+
 global
 function Boolean DoOuterWebActions(string action)
 begin
@@ -503,10 +519,15 @@ begin
       ShowWebElement("LOGIN_BOX");
       res = true;
     case "failedlogin":
-      WebOutString("FAILED");
+      WebOutString("<res stat='FAILED' err='" & ToolWebNGTranslateText2(20081) & "'></res>");
       res = true;
     case "successlogin":
-      WebOutString("SUCCESS");
+      if (blank(GetMainCustomerCodeFromContact(CurrentCust))) then begin
+        qupdating.DoWebLogout;
+        WebOutString("<res stat='FAILED' err='" & ToolWebNGTranslateText2(70382) & "'></res>");
+      end else begin
+        WebOutString("<res stat='SUCCESS'></res>");
+      end;
       res = true;
 
   end;

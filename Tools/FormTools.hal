@@ -1,6 +1,4 @@
 
-
-
 global
 updating procedure PrintMultiDocDocument(string docname,string fn,string id)
 begin
@@ -10,21 +8,35 @@ begin
   record B2BLoanApplicationVc LAr;
   Boolean printf;
   record RcVc RepSpec;
+  record CredManVc CredManr;
 
   MDr.DocName = docname;
   if (ReadFirstMain(MDr,1,true)) then begin
     rwcnt = MatRowCnt(MDr);
-    switch (docname) begin
+    switch (MDr.DocName2) begin
       case "LoanAppForm":
         LAr.SerNr = StringToLongint(id);
         printf = (ReadFirstMain(LAr,1,true) or id=="-2");
-      case "SuretyAgreementForm":
+      case "SuretyApplicationForm":
         LAr.SerNr = StringToLongint(id);
         printf = (ReadFirstMain(LAr,1,true) or id=="-2");
         if (id=="-2") then begin
           LAr.SuretyCnt = 1;
         end;
+      case "CredManForm":
+        CredManr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+      case "CredManScheduleForm":
+        CredManr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+      case "SuretyAgreementForm":
+        CredManr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+      case "VekselisForm":
+        CredManr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
     end;
+
     if (rwcnt>0 and printf) then begin
       SetDocumentFilename(fn);
       SetMedia(mtPdf);
@@ -36,11 +48,19 @@ begin
           RepSpec.MultiPageJob = 0;
         end;
         RepSpec.f12 = MDrw.FormCode;
-        switch (docname) begin
+        switch (MDr.DocName2) begin
           case "LoanAppForm":
-            PrintDocumentWithSpec(LAr,MDr.DocName,false,RepSpec);
+            PrintDocumentWithSpec(LAr,MDr.DocName2,false,RepSpec);
+          case "SuretyApplicationForm":
+            PrintDocumentWithSpec(LAr,MDr.DocName2,false,RepSpec);
+          case "CredManForm":
+            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
+          case "CredManScheduleForm":
+            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
           case "SuretyAgreementForm":
-            PrintDocumentWithSpec(LAr,MDr.DocName,false,RepSpec);
+            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
+          case "VekselisForm":
+            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
         end;
       end;   
       SetDocumentFilename("");

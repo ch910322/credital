@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 //tools
 external function boolean LoginState();
 external function string 255 removenextnode(var string);

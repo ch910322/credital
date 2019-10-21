@@ -2,35 +2,31 @@ external inner function Boolean Getformcode(Integer,Integer,string,string,string
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure OutAddress(string,string,string,string,string,string,string);
+external inner procedure ValToText(val,Integer,string,string,var string);
+external inner function Boolean FindCustomerRelation(string,string,var record CUVc);
 
 procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
 begin
-  record CUVc CUr;
   
   name = GetFieldValueByName(CredManr,"Surety" & num & "Name",-1);
   email = GetFieldValueByName(CredManr,"Surety" & num & "eMail",-1);
   phone = GetFieldValueByName(CredManr,"Surety" & num & "Phone",-1);
   mobile = GetFieldValueByName(CredManr,"Surety" & num & "Mobile",-1);
   id = GetFieldValueByName(CredManr,"Surety" & num & "ID",-1);
-  CUr.Code = GetFieldValueByName(CredManr,"SuretyProvider" & num,-1);
-  if (ReadFirstMain(CUr,1,true)) then begin
-    addr0 = GetFieldValueByName(CredManr,"Surety" & num & "Addr0",-1);
-    addr1 = GetFieldValueByName(CredManr,"Surety" & num & "Addr1",-1);
-    addr2 = GetFieldValueByName(CredManr,"Surety" & num & "Addr2",-1);
-    addr3 = GetFieldValueByName(CredManr,"Surety" & num & "Addr3",-1);
-    addr4 = GetFieldValueByName(CredManr,"Surety" & num & "Addr4",-1);
-  end else begin
-    addr0 = ""; addr1 = ""; addr2 = ""; addr3 = ""; addr4 = ""; 
-  end;
+  addr0 = GetFieldValueByName(CredManr,"Surety" & num & "Addr0",-1);
+  addr1 = GetFieldValueByName(CredManr,"Surety" & num & "Addr1",-1);
+  addr2 = GetFieldValueByName(CredManr,"Surety" & num & "Addr2",-1);
+  addr3 = GetFieldValueByName(CredManr,"Surety" & num & "Addr3",-1);
+  addr4 = GetFieldValueByName(CredManr,"Surety" & num & "Addr4",-1);
 
   return;
 end;
 
 global
-procedure DoSuretyAgreementForm(record RcVc RepSpec,record CredManVc CredManr)
+procedure DoVekselisForm(record RcVc RepSpec,record CredManVc CredManr)
 BEGIN
   record DocVc Docr;
-  record CUVc CUr;
+  record CUVc CUr,tCUr;
   record FormDefVc FDr;
   row FormDefVc FDrw;
   Integer i,rwcnt;
@@ -46,7 +42,7 @@ BEGIN
   FDr.shortname = RepSpec.shortname;
   if (ReadFirstMain(FDr,1,true)==false) then begin
     MessageBox(1624, " " & USetStr(1623));
-    goto LDoSuretyAgreementForm;
+    goto LDoVekselisFormForm;
   end;
   rwcnt = MatRowCnt(FDr);
   for (i=rwcnt-1;i>=0;i=i-1) begin
@@ -90,7 +86,7 @@ LBREAK:;
         OUTFORMFIELD("F_CONTACTMOBILE",mobile)
         OUTFORMFIELD("F_CONTACTMAIL",email)
         OUTFORMFIELD("F_CONTACTID",id)
-        OutAddress("F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
+        OUTFORMFIELD("F_CONTACTADRESS",addr0);
 
         GetSuretyValues(CredManr,2,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
         OUTFORMFIELD("F_CONTACT2NAME",name)
@@ -98,7 +94,7 @@ LBREAK:;
         OUTFORMFIELD("F_CONTACT2MOBILE",mobile)
         OUTFORMFIELD("F_CONTACT2MAIL",email)
         OUTFORMFIELD("F_CONTACT2ID",id)
-        OutAddress("F_CONTACT2ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+        OUTFORMFIELD("F_CONTACT2ADRESS",addr0);
 
         GetSuretyValues(CredManr,3,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
         OUTFORMFIELD("F_CONTACT3NAME",name)
@@ -106,7 +102,25 @@ LBREAK:;
         OUTFORMFIELD("F_CONTACT3MOBILE",mobile)
         OUTFORMFIELD("F_CONTACT3MAIL",email)
         OUTFORMFIELD("F_CONTACT3ID",id)
-        OutAddress("F_CONTACT3ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+        OUTFORMFIELD("F_CONTACT3ADRESS",addr0);
+
+        if (FindCustomerRelation(CredManr.CustCode,CredManr.ClientContact,CUr)) then begin
+          OUTFORMFIELD("F_ATTNAME",CUr.Name)
+          OUTFORMFIELD("F_ATTID",CUr.RegNr1)
+        end;
+        tCUr.Code = CredManr.CustCode;
+        if (ReadFirstMain(tCUr,1,true)) then begin
+          OUTFORMFIELD("F_CUSTNAME",tCUr.Name)
+          OUTFORMFIELD("F_CUSTID",tCUr.RegNr1)
+        end;
+        
+        OUTFORMFIELD("F_AGREEMENTDATE",CredManr.TransDate);
+
+        OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
+        if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
+          ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+          OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
+        end;
 
         CloseForm;        
       end else begin
@@ -121,20 +135,20 @@ LBREAK:;
     end;
     intdocnr = intdocnr + 1;
   end;
-LDoSuretyAgreementForm:;  
+LDoVekselisFormForm:;  
   RETURN;  
 END;     
  
 
 global
-procedure SuretyAgreementForm(record RcVc RepSpec)
+procedure VekselisForm(record RcVc RepSpec)
 BEGIN
   record CredManVc CredManr;
   Boolean tmpf;
   
   CredManr.SerNr = RepSpec.long1;
   if (ReadFirstMain(CredManr,1,true)) then begin
-    tmpf = PrintDocument(CredManr,"SuretyAgreementForm",false);    
+    tmpf = PrintDocument(CredManr,"VekselisForm",false);    
   end;
   RETURN;
 END;

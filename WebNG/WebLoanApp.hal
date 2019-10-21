@@ -24,6 +24,7 @@ external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
 external updating procedure PrintMultiDocDocument(string,string,string);
 external function string 255 ShowSuretyApp(record B2BLoanApplicationVc);
+external procedure CredManSetDatesCust(var record CredManVc);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -90,7 +91,7 @@ procedure StoreSessionLoan(Longint sernr,Integer status)
 begin
    
   PutSessionString("WebLoanNr",sernr);
-  if (status==2) then begin
+  if (status==2 or status==1) then begin
     PutSessionString("WebLoanNewCust","true");
   end else begin
     PutSessionString("WebLoanNewCust","");
@@ -341,6 +342,7 @@ begin
   return;
 end;
 
+global
 function Integer MapLoanType(string type)
 begin
   record WebLoanAppTypeBlock LATb;
@@ -576,24 +578,21 @@ end;
 procedure ShowLoanAppSummary(record B2BLoanApplicationVc LAr)
 begin
   record CUVc CUr;
-  Date startdate,enddate;
+  record CredManVc CredManr;
 
   CUr.Code = LAr.CustCode;
   ReadFirstMain(CUr,1,true);
 
-  startdate = CurrentDate;
-  startdate.Day = LAr.MonthlyPaymentDay;
-  if (startdate<CurrentDate) then begin
-    startdate = AddMonth(startdate,1);
-  end;
-  enddate = AddMonth(startdate,LAr.Months);
+  CredManr.startDate = CurrentDate;
+  CredManr.MonthlyPaymentDay = LAr.MonthlyPaymentDay;
+  CredManSetDatesCust(CredManr);
 
   WebOutString("<div class='summary_table'>");
   //DisplaySummaryLine(ToolWebNGTranslateText2(70205),DateToString(LAr.StartDate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70206),GetLoanType(LAr));
   DisplaySummaryLine(ToolWebNGTranslateText2(70207),ValToString(LAr.Sum,M4Val," ",".",1) & " &euro;");
-  DisplaySummaryLine(ToolWebNGTranslateText2(70208),DateToString(startdate,"YYYY MM DD"));
-  DisplaySummaryLine(ToolWebNGTranslateText2(70209),DateToString(enddate,"YYYY MM DD"));
+  DisplaySummaryLine(ToolWebNGTranslateText2(70208),DateToString(CredManr.FirstInvDate,"YYYY MM DD"));
+  DisplaySummaryLine(ToolWebNGTranslateText2(70209),DateToString(CredManr.endDate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70211),LAr.CustName);
   DisplaySummaryLine(ToolWebNGTranslateText2(70212),CUr.RegNr1);
   DisplaySummaryLine(ToolWebNGTranslateText2(70213),LAr.Addr0);
@@ -946,7 +945,7 @@ begin
     //link together
     res2 = qupdating.AddContactCUDsmRemote(CUr,ContactCUr.Code);
   end;
-  if (contactf and !loginf) then begin
+  if (contactf and loginf) then begin
     status = 0;
   end;
   if (!contactf) then begin 
@@ -1078,6 +1077,7 @@ logtext(0,"status " & status);
   CMTr.Code = LAr.Type;
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
+    LAr.PrincipleDelayMonths = CMTr.PrincipleDelayMonths;
   end;
   if (RecordInsert(LAr,true)) then begin
     res = true;
@@ -1111,6 +1111,7 @@ begin
   CMTr.Code = LAr.Type;
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
+    LAr.PrincipleDelayMonths= CMTr.PrincipleDelayMonths;
   end;
   if (RecordUpdate(oldLAr,LAr,true)) then begin
   end;

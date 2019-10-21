@@ -250,6 +250,8 @@ begin
 
     if (RecordInsert(CredManr,true)) then begin
       res = true;
+      CreateRecordLink(LAr,CurrentCompany,CredManr,CurrentCompany);
+      CreateRecordLink(CredManr,CurrentCompany,LAr,CurrentCompany);
     end;
   end;
 

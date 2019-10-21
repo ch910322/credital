@@ -69,6 +69,8 @@ begin
   SetWRect(20,80,570,298);
   Sizeable(-1,-1,0,0);
   EditField(h=180,v=6,100,"Owner Title",Normal,OwnerTitle,false,JobTitleSClass);
+  EditField(h,v+=vs,100,"Ownership Years",Normal,OwnershipYears,false,0);
+
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
@@ -415,6 +417,19 @@ begin
   WindowBegin("Specify Surety Agreement Form",SuretyAgreementRClass,CGRcW,RcType);
   SetWRect(20,80,400,220);
   vs=20;
+  EditFieldTL(h=160,v=6,120,"Agreement",M4Long,Normal,0,long1,false,CredManSClass);
+  EndWindow;
+
+  WindowBegin("Specify Vekselis Form",VekselisRClass,CGRcW,RcType);
+  SetWRect(20,80,400,220);
+  vs=20;
+  EditFieldTL(h=160,v=6,120,"Agreement",M4Long,Normal,0,long1,false,CredManSClass);
+  EndWindow;
+
+
+  WindowBegin("Specify Surety Application Form",SuretyApplicationRClass,CGRcW,RcType);
+  SetWRect(20,80,400,220);
+  vs=20;
   EditFieldTL(h=160,v=6,120,"Loan Application",M4Long,Normal,0,long1,false,B2BLoanApplicationSClass);
   EditFieldTL(h,v+=vs,120,"Surety (1,2,3)",M4Int,Normal,0,flags[0],false,0);
   EndWindow;
@@ -614,15 +629,18 @@ begin
   vm = v;
   EditField(h,v+=vs,100,"Total Sum",Normal,Sum,true,0);
   EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
+  EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
+  EditField(h,v+=vs,100,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
   EditField(h,v+=vs,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
   //EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
   //EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
   v = vm;
-  EditField(h3=h3+30,v,-40,"Monthly Rate %",Normal,InterestRate,true,0);
-  EditField(h3,v+=vs,-40,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
+  
+  EditField(h3=h3+30,v,-40,"Princ. Delay Months",ViewOnly,PrincipleDelayMonths,true,0);
   EditField(h3,v+=vs,-40,"Max Rec. Sum",ViewOnly,MaxRecSum,true,0);
   EditField(h3,v+=vs,-40,"Value based on Surety",Normal,MaxValSurety,true,0);
   EditField(h3,v+=vs,-40,"Value based on Comp.",Normal,MaxValCompany,true,0);
+  EditField(h3,v+=vs,-40,"Creditinfo Limit",Normal,CreditinfoLimit,true,0);
   v = vm;
   ButtonFrame(h2,v=v+20,100,5,"Creditable");
   RadioButton(h2,v,0,0,"Not Calculated",Creditable);
@@ -802,6 +820,7 @@ begin
   CheckBox(h3,v,0,"Being Sued",BeingSued);
   CheckBox(h,v+=vs,0,"Ongoing Debt Collections",DebtCollections);
   CheckBox(h2,v,0,"Unreliable Company",UnreliableComp);
+  CheckBox(h3,v,0,"Available fin. statements",AvailableFinStatements);
 
 //  EditField(h,v+=vs,100,"Long Term Asset Value",Normal,AssetValue,false,0);
   EditField(h,v+=vs,100,"50% Rev. Customers",Normal,HalfRevenueCustomers,true,0);
@@ -824,7 +843,7 @@ begin
   EditField(h3+40,v,80,"Total",Normal,PrevTotal,true,0);
 
   vm = v + 50;
-  MatrixBegin(10,v+=50,-55,-1,-,50);
+  MatrixBegin(10,v+=50,-55,-1,-,99);
   Flip(1);
   MatCol(1,20,"Period",0,Period,false,0);
   MatCol(1,80,"Late Rating",0,LateRating,true,0);
@@ -858,7 +877,19 @@ begin
   MatCol(1,220,"Value",0,EstateValue,true,0);
   MatCol(1,290,"Employees",0,EmployeeCnt,true,0);  
   MatCol(1,380,"Av. Salary",0,AvSalary,true,0);
+  Flip(7);
+  MatCol(1,80,"Months",0,Month,false,0);    
+  MatCol(1,150,"Claim Date",0,ClaimDate,false,0);
+  MatCol(1,220,"Payment Date",0,PaymentDate,false,0);
+  MatCol(1,290,"Creditor",0,CreditorName,false,0);  
+  MatCol(1,380,"Amount",0,CreditAmount,true,0);
   EndMatrix;
+
+    ArrayField(ClaimDate,M4Date,0,0);
+  ArrayField(PaymentDate,M4Date,0,0);
+  ArrayField(CreditorName,M4Str,250,0);
+  ArrayField(CreditAmount,M4Val,0,0);
+
 
   VTab(-40,v=vm,-6,v+=vs,ToolFlip,1,"A");
   VTab(-40,v,-6,v+=vs,ToolFlip,2,"B");
@@ -866,6 +897,7 @@ begin
   VTab(-40,v,-6,v+=vs,ToolFlip,4,"D");
   VTab(-40,v,-6,v+=vs,ToolFlip,5,"E");
   VTab(-40,v,-6,v+=vs,ToolFlip,6,"F");
+  VTab(-40,v,-6,v+=vs,ToolFlip,7,"G");
 
   Tile(tilenr,600,true,tilenr,BuyBankruptcyRating); tilenr = tilenr + 1;
   EditField(h,v=6,100,"Buyer's Bankrup. Rating",Normal,BuyBankruptcyRating,true,0);
@@ -883,7 +915,7 @@ begin
   SpecialMenu("Get Surety Provider Data",' ',4,"");
   SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
   SpecialMenu("Customer Status",'e',6,"CUStatusB2BLoanAppDsm");
-  SpecialMenu("Creditinfo.lt",'e',6,"GetCreditinfoStatDsm");
+  SpecialMenu("Creditinfo.lt",'',6,"GetCreditinfoStatDsm");
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 
@@ -1543,6 +1575,8 @@ begin
   EditField(h+100,v+=vs,100,"Activity Person",Normal,LinkContactPersons,false,UserSClass);
 
   EditField(h+100,v+=40,100,"News letter",Normal,NewsLetterMail,false,0);
+  EditField(h+100,v+=vs,100,"One Time Fee Item",Normal,OneFeeItem,false,INSClass);
+  EditField(h+100,v+=vs,100,"Monthly Fee Item",Normal,MonthlyFeeItem,false,INSClass);
 
 
   EndWindow;
@@ -1642,6 +1676,7 @@ begin
   UseView(MultiDocVc);
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Document",DocName,false,DocName);
+  RlCol   (170,170,"System Document",DocName2,false);
   EndWindow;
 end;
 
@@ -1654,9 +1689,66 @@ begin
   UseView(MultiDocVc);
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,150,"Document",Normal,DocName,false,0);
+  EditField(h,v+=vs,150,"System Document",Normal,DocName2,false,0);
 
   MatrixBegin(10,v+=vs+20,-40,-20,-,99);
   MatCol(1,24,"Form",0,FormCode,false,DocSClass);
   EndMatrix;
   EndWindow;
 end;
+
+
+window AgreementDocLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Agreement Documents",AgreementDocLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(AgreementDocDClass);
+  UseView(AgreementDocVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Number",SerNr,false,SerNr);
+  RlColKey(100,100,"Agreement",CredManNr,false,CredManNr);
+  RlCol(196,196,"Date",TransDate,false);
+  RlColKey(322,322,"Type",Type,false,Type);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window AgreementDocDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,v,vs,v2,vs2,hm;
+  WindowBegin("Agreement Document",AgreementDocDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  UseView(AgreementDocVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,90,"Number",Normal,SerNr,false,0);
+  EditField(h,v+=vs,90,"Agreement",Normal,CredManNr,false,CredManSClass);
+  EditField(h,v+=vs,90,"Date",ViewOnly,TransDate,false,0);
+  EditField(h2=300,v,90,"Time",ViewOnly,TransTime,false,0);
+  EditField(h,v+=vs,150,"Type",Normal,Type,false,SetSClass);
+  CheckBox(h,v+=vs,0,"Signed By Customer",SignedByCustomer,);
+  EditField(h+180,v,90,"Date",ViewOnly,SignedByCustomerDate,false,0);
+  EditField(h+280,v,90,"",ViewOnly,SignedByCustomerTime,false,0);
+  CheckBox(h,v+=vs,0,"Signed By Us",SignedByUs);
+  EditField(h+180,v,90,"Date",ViewOnly,SignedByUsDate,false,0);
+  EditField(h+280,v,90,"",ViewOnly,SignedByUsTime,false,0);
+
+  HalPushButton(-300,v=7,-200,v+=20,"AgreementDocDClassSign","Sign");
+
+  EndWindow;
+end;
+
+window DocSigningWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2;
+  WindowBegin("Sign Document",DocSigningWClass,CGOther,RcType);
+  SetWRect(20,80,800,700);
+  AutoSizeWindow(false);
+  UseView(RcVc);
+  WebPage(0,0,-1,-1,"","$SIGNAREA");
+  EndWindow;
+end;
+

@@ -238,6 +238,7 @@ begin
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
     LAr.Months = CMTr.InstalmentMonths;
+    LAr.PrincipleDelayMonths = CMTr.PrincipleDelayMonths;
     CalculateEndDate(LAr);
     
     PutWindowRecord(wn,LAr);    
@@ -1140,7 +1141,7 @@ begin
   GetCreditInfo(LAr);
 
   PutWindowRecord(wn,LAr);
-  WindowDoOK(wn,0);
+  //WindowDoOK(wn,0);
   
   return;
 end;

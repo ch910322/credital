@@ -7,6 +7,7 @@ external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 external inner function Boolean PasteCustInCredMan(var record CredManVc);
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
+external updating procedure PrintMultiDocDocument(string,string,string);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -296,3 +297,77 @@ begin
   return;
 end;
 
+function Integer GetSuretyCnt(record CredManVc CredManr)
+begin
+  Integer res;
+  
+  res = 0;
+  if (nonblank(CredManr.SuretyProvider1)) then begin
+    res = res + 1;
+  end;
+  if (nonblank(CredManr.SuretyProvider2)) then begin
+    res = res + 1;
+  end;
+  if (nonblank(CredManr.SuretyProvider3)) then begin
+    res = res + 1;
+  end;
+
+  GetSuretyCnt = res;
+  return;
+end;
+
+global
+updating procedure CreateAgreementDoc(record CredManVc CredManr,Integer type,var record AgreementDocVc ADr)
+begin
+  string 255 fn;
+  Integer scnt;
+  
+  RecordNew(ADr);
+  ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  ADr.CredManNr = CredManr.SerNr;
+  ADr.Type = type;
+  if (RecordInsert(ADr,true)) then begin
+    scnt = GetSuretyCnt(CredManr);
+    switch (ADr.Type) begin
+      case 1://agreement
+        fn = "Agreement.pdf";
+        PrintMultiDocDocument("CredManForm",fn,CredManr.SerNr);
+      case 2://schedule
+        fn = "Schedule.pdf";
+        PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr);
+      case 3://surety
+        fn = "Surety.pdf";
+        PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr);
+      case 6://vekselis
+        fn = "Vekselis.pdf";
+        PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr);
+    end;
+    RecordLinkFile(fn,0,ADr,CurrentCompany);
+    Delete_File(fn);
+  end;
+
+
+  return;
+end;
+
+global
+function Boolean GetAgreementDoc(record CredManVc CredManr,Integer type,var record AgreementDocVc ADr)
+begin
+  record AgreementDocVc tADr;
+  Boolean res;
+  
+  tADr.CredManNr = CredManr.SerNr;
+  tADr.Type = type;
+  if (ReadFirstKey("CredManNr",tADr,2,true)) then begin
+    RecordCopy(ADr,tADr);
+    res = true;
+  end else begin
+    qupdating.CreateAgreementDoc(CredManr,type,ADr);
+    res = true;
+  end;
+
+  GetAgreementDoc = res;
+  return;
+end;

@@ -14,7 +14,8 @@ remote updating function Boolean DoRefinCredMan(record RcVc,var string,var recor
 external inner procedure ContactSClassOnOpen(Integer,string,var Array string,var Integer);
 remote procedure GetFactoringRecord(record CredManVc,var record CredManFactVc);
 remote procedure GetPayGrntRecord(record CredManVc,var record CredManPmtGrntVc);
-
+remote procedure PrepareAgreementDocSigningSession(record AgreementDocVc,var string,var Integer);
+remote function Boolean GetAgreementDoc(record CredManVc,Integer,var record AgreementDocVc);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -798,6 +799,151 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   OpenWindow("CredManGrntReportWClass",1,wn,"","",RepSpec);
+
+  return;
+end;
+
+global
+procedure AgreementDocDClassSign()
+begin
+  Integer nwn;
+  record RcVc RepSpec;
+
+  if (WindowState(CurWindow)==Rs_Normal) then begin
+    nwn = OpenWindow("DocSigningWClass",0,CurWindow,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+
+global
+procedure DocumentSigningClientDone(string user,record AgreementDocVc ADr)
+begin
+  record AgreementDocVc tADr;
+  Integer wn,swn;
+
+  if (user==CurrentUser) then begin
+    swn = FindWindow("DocSigningWClass");
+    wn = MotherWindow(swn);
+    if (wn>0) then begin
+      GetWindowRecord(wn,tADr);
+      if (ADr.SerNr==tADr.SerNr) then begin
+        //PutWindowRecord(wn,ADr);
+        CloseWindow(wn);
+        OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+      end;
+    end;
+    if (swn>0) then begin
+      CloseWindow(swn);
+    end;
+  end;
+
+  return;
+end;
+
+global
+function Boolean DocSigningWClassOnOpenWindow(Integer wn)
+begin
+  record AgreementDocVc ADr;
+  string 255 link;
+  record RcVc RepSpec;
+  Integer err;
+  string 255 html
+  
+  GetWindowRecord(MotherWindow(wn),ADr);
+ 
+  threadremote.PrepareAgreementDocSigningSession(ADr,link,err);
+  html = "<html><head>";//<!DOCTYPE html>
+  html = html & "<style>body{margin:0px;padding:0px;} iframe{border:none}</style>";//
+  html = html & "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>";
+  //html = html & "<script src='http://localhost:1201/scripts/clientsign.js?ver=2'></script>";
+  //html = html & "<script>$(document).ready(function(){AddSingingIframe('" & link & "')});</script>";
+  html = html & "</head><body><iframe id='isign-gateway' width='100%' height='100%' src='" & link & "'></iframe>";
+/*
+  html = html & "<script src='https://gateway-sandbox.dokobit.com/js/isign.frame.js'></script>";
+  html = html & "<script>";
+//  html = html & "$.getScript('https://gateway-sandbox.dokobit.com/js/isign.frame.js', function(){";
+  html = html & "    $(document.body).append('aaaa '; ";
+  html = html & "    Isign.onSignSuccess = function(){ ";
+//  html = html & "        $(document.body).html('success');";
+//  html = html & "        HansaWorld.CallHal('RefreshAgreementDocWindow','true');";
+  html = html & "    };";
+  html = html & "    Isign.onSignError = function(errors){";
+//  html = html & "        alert('failed to sign ' + errors.join(', '));";
+  html = html & "    };";
+  html = html & "    Isign.adjustHeight = false;";
+//  html = html & "});  ";
+  html = html & "</script>";
+*/
+  html = html & "</body></html>";
+
+  SetWebPageData(wn,"$SIGNAREA",html);
+
+  DocSigningWClassOnOpenWindow = false;
+  return;
+end;
+
+global
+procedure CredManDClassSignAgreement()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record AgreementDocVc ADr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  if (GetAgreementDoc(CredManr,1,ADr)) then begin
+    OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+  end;
+
+  return;
+end;
+
+global
+procedure CredManDClassSignSchedule()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record AgreementDocVc ADr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  if (GetAgreementDoc(CredManr,2,ADr)) then begin
+    OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+  end;
+
+  return;
+end;
+
+global
+procedure CredManDClassSignVekselis()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record AgreementDocVc ADr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  if (GetAgreementDoc(CredManr,6,ADr)) then begin
+    OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+  end;
+
+  return;
+end;
+
+global
+procedure CredManDClassSignSurety()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record AgreementDocVc ADr;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+  if (GetAgreementDoc(CredManr,3,ADr)) then begin
+    OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+  end;
 
   return;
 end;

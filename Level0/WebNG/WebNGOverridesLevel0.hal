@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external function string 255 GetLinkToStruct(LongInt,boolean);
 
 global

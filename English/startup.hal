@@ -22,6 +22,7 @@ begin
   Setting("Payment Guarantee Settings",PmtGrntTClass,modCredMan);
   Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
   Setting("Multi Page Documents",MultiDocLClass,modCredMan);
+  Setting("Agreement Documents",AgreementDocLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -33,6 +34,8 @@ begin
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
   //Document("Combined Application",LoanAppRClass,CombinedAgreementForm,CombinedAgreementFClass,modCredMan);
   Document("Surety Agreement",SuretyAgreementRClass,SuretyAgreementForm,SuretyAgreementFClass,modCredMan);
+  Document("Surety Application",SuretyApplicationRClass,SuretyApplicationForm,SuretyApplicationFClass,modCredMan);
+  Document("Vekselis",VekselisRClass,VekselisForm,VekselisFClass,modCredMan);
 
 /*DB Maint*/
 
@@ -273,6 +276,14 @@ begin
   SetBegin(2016);
   SetText(0,"New");
   SetText(1,"Existing");
+  EndSet;
+
+  SetBegin(2017);
+  SetText(0,"-");
+  SetText(1,"Agreement");
+  SetText(2,"Schedule");
+  SetText(3,"Surety Provider Agreement");
+  SetText(6,"Vekselis");
   EndSet;
 
   return;

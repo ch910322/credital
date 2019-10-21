@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external function Boolean IsMarketplaceServer();
 //tools
 external function string 10 CurrentWebLang;
