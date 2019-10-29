@@ -5,11 +5,12 @@ external inner function string 255 removenextnode(var string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner procedure LoadWebPage(string,var record WebNGPageVc);
 external inner procedure RedirectToLoginPage();
-external inner function string 255 GetMainCustomerCodeFromContact(string);
 external inner function string 60 AddObjectToObjectList(string,string);
 external inner function string 255 GetLinkToStruct(LongInt,boolean);
-external function Integer MapLoanType(string);
+external function string 255 GetLoanType(string);
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external inner procedure SetContentTypeForExtension(string);
+external procedure ShowWebLoanStrings();
 
 procedure DisplayAccDataField(string cls,string label,string value) 
 begin
@@ -45,6 +46,38 @@ begin
   end;
 
   GetFirstCustCode = res;
+  return;
+end;
+
+function Boolean CustIsContact(string contact,string custcode)
+begin
+  record ContactRelVc CRr;
+  Boolean res,TrHs;
+  
+  TrHs = true;
+  CRr.ContactCode = contact;
+  while (LoopKey("ContactCode",CRr,1,TrHs)) begin
+    if (CRr.ContactCode!=contact) then begin
+      TrHs = false;
+    end else begin
+      if (CRr.CustCode==custcode) then begin
+        res = true;
+        TrHs = false;
+      end;
+    end;
+  end;
+
+  CustIsContact = res;
+  return;
+end;
+
+procedure SetSelectedCustomerCode(string custcode)
+begin
+  
+  if (CustIsContact(CurrentCust,custcode)) then begin
+    PutSessionString("WebActCustCode",custcode);
+  end;
+
   return;
 end;
 
@@ -166,6 +199,7 @@ begin
     if (LAr.CustCode!=GetSelectedCustomerCode) then begin
       TrHs = false;
     end else begin
+      RecordClear(CredManr);
       ReadRecordLink(LAr,1,CredManr,RLr);
       ClearRow(ORr,ORrw,1);
       ORrw.GroupOrdRow = LAr.SerNr;
@@ -336,6 +370,13 @@ begin
   WebOutString("acc_str['SingleFee'] = '" & ToolWebNGTranslateText2(70384) & "';");
   WebOutString("acc_str['MonthlyFee'] = '" & ToolWebNGTranslateText2(70385) & "';");
   WebOutString("acc_str['DelayMonths'] = '" & ToolWebNGTranslateText2(70386) & "';");
+  WebOutString("acc_str['DocType1'] = '" & ToolWebNGTranslateText2(70387) & "';");
+  WebOutString("acc_str['DocType2'] = '" & ToolWebNGTranslateText2(70388) & "';");
+  WebOutString("acc_str['DocType3'] = '" & ToolWebNGTranslateText2(70389) & "';");
+  WebOutString("acc_str['DocType6'] = '" & ToolWebNGTranslateText2(70390) & "';");
+  WebOutString("acc_str['DocType7'] = '" & ToolWebNGTranslateText2(70393) & "';");
+  WebOutString("acc_str['Download'] = '" & ToolWebNGTranslateText2(70391) & "';");
+  WebOutString("acc_str['OverduePrc'] = '" & ToolWebNGTranslateText2(70392) & "';");
   WebOutString("</script>");
 
   return;
@@ -484,7 +525,8 @@ begin
   end;
 
   ShowAccountStrings;
-  
+  ShowWebLoanStrings;
+
   ShowWebAppPageEnd(WPr);
 
 LCreditAccountApp:;
@@ -500,10 +542,16 @@ begin
     res = LAr.Surety1Name & " (" & LAr.Surety1ID & ")";
   end;
   if (nonblank(LAr.SuretyProvider2)) then begin
-    res = AddObjectToObjectList(res,LAr.Surety1Name & " (" & LAr.Surety1ID & ")");
+    if (nonblank(res)) then begin
+      res = res & ", ";
+    end;
+    res = res & LAr.Surety2Name & " (" & LAr.Surety2ID & ")";
   end;
   if (nonblank(LAr.SuretyProvider3)) then begin
-    res = AddObjectToObjectList(res,LAr.Surety1Name & " (" & LAr.Surety1ID & ")");
+    if (nonblank(res)) then begin
+      res = res & ", ";
+    end;
+    res = res & LAr.Surety3Name & " (" & LAr.Surety3ID & ")";
   end;
 
 
@@ -520,10 +568,16 @@ begin
     res = CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")";
   end;
   if (nonblank(CredManr.SuretyProvider2)) then begin
-    res = AddObjectToObjectList(res,CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")");
+    if (nonblank(res)) then begin
+      res = res & ", ";
+    end;
+    res = res & CredManr.Surety2Name & " (" & CredManr.Surety2ID & ")";
   end;
   if (nonblank(CredManr.SuretyProvider3)) then begin
-    res = AddObjectToObjectList(res,CredManr.Surety1Name & " (" & CredManr.Surety1ID & ")");
+    if (nonblank(res)) then begin
+      res = res & ", ";
+    end;
+    res = res & CredManr.Surety3Name & " (" & CredManr.Surety3ID & ")";
   end;
 
 
@@ -590,17 +644,126 @@ begin
       if (cnt>1) then begin
         i = rwcnt;
       end;
-    end else begin
-      if (cnt==1) then begin
-        if (CredManPayPlanrw.ArtCode==WSb.MonthlyFeeItem) then begin
-          res = res + CredManPayPlanrw.Sum;
-        end;
-      end;
-      lastd = CredManPayPlanrw.TransDate;
     end;
+    if (cnt==1) then begin
+      if (CredManPayPlanrw.ArtCode==WSb.MonthlyFeeItem) then begin
+        res = res + CredManPayPlanrw.Sum;
+      end;
+    end;
+    lastd = CredManPayPlanrw.TransDate;
   end;
 
   GetMonthlyTimeFeeAmount = res;
+  return;
+end;
+
+function Integer GetCustomerSignatureStatus(record AgreeemtDocVc ADr,string custcode)
+begin
+  Integer i,rwcnt,res;
+  row AgreementDocVc ADrw;
+
+  res = -1;
+  rwcnt = MatRowCnt(ADr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ADr,i,ADrw);
+    if (ADrw.CustCode==custcode) then begin
+      res = 0;
+      if (ADrw.Status==1) then begin
+        res = 1; 
+      end;
+      i = rwcnt;
+    end;
+  end;    
+
+  GetCustomerSignatureStatus = res;
+  return;
+end;
+
+function Boolean CustIsSurety(string custcode,record CredManVc CredManr)
+begin
+  Boolean res;
+  
+  if (GetFieldValueByName(CredManr,"SuretyProvider1",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+  if (GetFieldValueByName(CredManr,"SuretyProvider2",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+  if (GetFieldValueByName(CredManr,"SuretyProvider3",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+
+LCustIsSurety:;
+  CustIsSurety = res;
+  return;
+end;
+
+function Boolean CustIsCEO(string custcode,record CredManVc CredManr)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
+
+  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    if (LAr.CEOCustCode==custcode) then begin
+      res = true;
+    end;
+  end;  
+
+  CustIsCEO = res;
+  return;
+end;
+
+global
+function Boolean ContactShouldSeeDocument(record CredManVc CredManr,string custcode,record AgreementDocVc ADr)
+begin
+  Boolean res;
+  
+  if (ADr.Type==3 or ADr.Type==6) then begin
+    if (CustIsSurety(custcode,CredManr)) then begin
+      res = true;
+      goto LContactShouldSeeDocument;
+    end;
+  end;
+  if (ADr.Type==1 or ADr.Type==2) then begin
+    if (CustIsCEO(custcode,CredManr)) then begin
+      res = true;
+      goto LContactShouldSeeDocument;
+    end;
+  end;
+
+LContactShouldSeeDocument:;
+  ContactShouldSeeDocument = res;
+  return;
+end;
+
+global
+function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc LAr,string custcode,record AgreementDocVc ADr)
+begin
+  Boolean res;
+  row AgreementDocVc ADrw;
+  
+  MatRowGet(ADr,0,ADrw);
+  if (ADrw.CustCode==custcode) then begin
+    res = true;
+  end;
+
+  ContactShouldSeeDocument2 = res;
+  return;
+end;
+
+
+function string 255 FixLoanTypeStr(string loanstr)
+begin
+  string 255 res;
+
+  res = "<span class=\"highlight\">" & left(loanstr,2) & "</span>" & right(loanstr,len(loanstr)-2);
+
+
+  FixLoanTypeStr = res;
   return;
 end;
 
@@ -610,6 +773,7 @@ begin
   record CredManVc CredManr;
   val payment;
   record CredManSetBlock CMb;
+  record CMApplicationSetBlock CMSb;
   record CredManPayPlanVc CredManPayPlanr;
   record CreditalWebSetBlock WSb;
   record AgreementDocVc ADr;
@@ -619,25 +783,26 @@ begin
   LAr.SerNr = StringToLongint(agreement);
   if (ReadFirstMain(LAr,1,true)) then begin
     if (LAr.CustCode==GetSelectedCustomerCode) then begin
+      BlockLoad(CMSb);
       ReadRecordLink(LAr,1,CredManr,RLr);
       if (CredManr.OKFlag==0) then begin
         payment = 0;//for now;
         WebOutString("<res ");
         WebOutString("rectype='application' ");
-        WebOutString("type='" & MapLoanType(LAr.Type) & "' ");
+        WebOutString("type='" & FixLoanTypeStr(GetLoanType(LAr.Type)) & "' ");
         WebOutString("transdate='" & LAr.TransDate & "' ");
         WebOutString("startdate='-' ");
-        WebOutString("amount='" & LAr.Sum & "' ");
+        WebOutString("amount='" & ValToString(LAr.Sum,M4Val," ",",",1) & " &euro;' ");
         WebOutString("enddate='-' ");
         WebOutString("fee='-' ");
         WebOutString("monthlyfee='-' ");
         WebOutString("months='" & LAr.Months & "' ");
-        WebOutString("delaymonths='" & LAr.PrincipleDelayMonths & "' ");
-        WebOutString("rate='" & LAr.InterestRate & "' ");
+        WebOutString("delaymonths='" & ValToString(LAr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
+        WebOutString("rate='" & LAr.InterestRate & "%' ");
         WebOutString("suretylist='" & ShowSuretyApp(LAr) & "' ");
         WebOutString("bankacc='" & LAr.BankAccount & "' ");
+        WebOutString("overdueprc='-' ");
         WebOutString("sernr='" & LAr.SerNr & "'>");
-        WebOutString("</res>");
       end else begin
         BlockLoad(CMb);
         BlockLoad(WSb);
@@ -646,31 +811,54 @@ begin
         payment = 0;//for now;
         WebOutString("<res ");
         WebOutString("rectype='agreement' ");
-        WebOutString("type='" & MapLoanType(CredManr.Type) & "' ");
+        WebOutString("type='" & FixLoanTypeStr(GetLoanType(CredManr.Type)) & "' ");
         WebOutString("transdate='" & CredManr.TransDate & "' ");
-        WebOutString("startdate='" & CredManr.startDate & "' ");
-        WebOutString("amount='" & CredManr.InvSum4 & "' ");
-        WebOutString("enddate='" & CredManr.endDate & "' ");
-        WebOutString("fee='" & GetOneTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & "'  ");
-        WebOutString("monthlyfee='" & GetMonthlyTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & "' "); 
+        WebOutString("startdate='" & DateToString(CredManr.startDate,"YYYY MM DD") & "' ");
+        WebOutString("amount='" & ValToString(CredManr.InvSum4,M4Val," ",",",1) & " &euro;' ");
+        WebOutString("enddate='" & DateToString(CredManr.endDate,"YYYY MM DD") & "' ");
+        WebOutString("fee='" & GetOneTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;'  ");
+        WebOutString("monthlyfee='" & GetMonthlyTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;' "); 
         WebOutString("months='" & LAr.Months & "' ");
-        WebOutString("delaymonths='" & CredManr.PrincipleDelayMonths & " ");
-        WebOutString("rate='" & CredManr.IntRate & "' ");
-        WebOutString("suretylist='" & ShowSuretyCredMan(LAr) & "' ");
+        WebOutString("delaymonths='" & ValToString(CredManr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
+        WebOutString("rate='" & CredManr.IntRate & "%' ");
+        WebOutString("suretylist='" & ShowSuretyCredMan(CredManr) & "' ");
         WebOutString("bankacc='" & CredManr.BankAccount & "' ");
+        WebOutString("overdueprc='" & CredManr.OverduePercentage & "%' ");
         WebOutString("sernr='" & CredManr.SerNr & "'>");
         
+      end;
+
+      if (CredManr.SerNr>0 and nonblank(CredManr.OrderClass) and SetInSet(CredManr.OrderClass,CMSb.ActiveCredOrderClass)) then begin
         TrHs = true;
-        ADr.CredManNr = CredManr.SerNr;
-        while (LoopKey("CredManNr",ADr,1,TrHs)) begin
-          if (ADr.CredManNr!=CredManr.SerNr) then begin
+        ADr.RecordNr = CredManr.SerNr;
+        ADr.RecordType = 0;
+        while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+          if (ADr.RecordNr!=CredManr.SerNr or ADr.RecordType!=0) then begin
             TrHs = false;
           end else begin
-            WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & ADr.SignedByCustomer & "'></document>");
+            if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
+              WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='" & (CredManr.OrderClass==CMSb.SignOrderClass) & "'></document>");
+            end;
           end;
         end;
-        WebOutString("</res>");
       end;
+      TrHs = true;
+      ResetLoop(ADr);
+      RecordClear(ADr);
+      ADr.RecordNr = LAr.SerNr;
+      ADr.RecordType = 1;
+      while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+        if (ADr.RecordNr!=LAr.SerNr or ADr.RecordType!=1) then begin
+          TrHs = false;
+        end else begin
+          if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
+            WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='1'></document>");
+          end;
+        end;
+      end;
+
+      WebOutString("</res>");
+
     end;
   end;
 
@@ -733,7 +921,12 @@ global
 procedure CreditAccountActions(string action)
 begin
   Boolean res;
-  string 255 errstr;
+  string 255 errstr,link;
+  record AgreementDocVc ADr;
+  record B2BLoanApplicationVc LAr;
+  record CredManVc CredManr;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
   
   switch (action) begin
     case "getagreementinfo":
@@ -748,7 +941,40 @@ begin
       if (res==false) then begin
         WebOutString("<res err='1' msg='" & ToolWebNGTranslateText2(70367) & "'></res>");
       end;
+    case "setcustcomp":
+      SetSelectedCustomerCode(WebGetArg("comp"));
+      link = GetLinkToCreditAccount & "contracts";
+      WebOutString("<res link='" & link & "'></res>");
+    case "downloaddocument":
+      ADr.SerNr = StringToLongint(WebGetArg("sernr"));
+      if (ReadFirstMain(ADr,1,true)) then begin
+        switch (ADr.RecordType) begin
+          case 0:
+            CredManr.SerNr = ADr.RecordNr;
+            if (ReadFirstMain(CredManr,1,true)) then begin
+              if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
+                if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+                  SetContentTypeForExtension("pdf");
+                  WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+                  WebOutAttachment(Attachr.SerNr);
+                end;
+              end;
+            end;
+          case 1:
+            LAr.SerNr = ADr.RecordNr;
+            if (ReadFirstMain(LAr,1,true)) then begin
+              if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
+                if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+                  SetContentTypeForExtension("pdf");
+                  WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+                  WebOutAttachment(Attachr.SerNr);
+                end;
+              end;
+            end;
+        end;
+      end;
   end;
 
   return;
 end;
+

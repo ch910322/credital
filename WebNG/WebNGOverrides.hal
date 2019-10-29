@@ -35,7 +35,7 @@ external procedure CreditAccountActions(string);
 external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
 external inner procedure ShowWebElement(string);
-external updating procedure PrintMultiDocDocument(string,string,string);
+external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function string 255 GetMainCustomerCodeFromContact(string);
@@ -363,7 +363,7 @@ begin
     case 70327: res = "Palðkan÷ dydis ir suma";
     case 70328: res = "IBAN";
     case 70329: res = "Laiduotojai";
-    case 70330: res = "Delspinigiai";
+    case 70330: res = "Palðkan÷ dydis ir suma";
 
     case 70331: res = "Bðsena";
     case 70332: res = "Paraiäka";
@@ -422,6 +422,13 @@ begin
     case 70384: res = "SingleFee";
     case 70385: res = "Monthly Fee ";
     case 70386: res = "Principle Delay Months";
+    case 70387: res = "Agreement";
+    case 70388: res = "Schedule";
+    case 70389: res = "Surety Agreement";
+    case 70390: res = "Vekselis";
+    case 70391: res = "Download";
+    case 70392: res = "Delspiningiai";
+    case 70393: res = "Data Usage Agreement";
 
   end;
 
@@ -458,7 +465,7 @@ begin
         res = true;
       case "textprint":
         fn = "doc.pdf";
-        PrintMultiDocDocument(WebGetArg("DocName"),fn,-2);
+        PrintMultiDocDocument(WebGetArg("DocName"),fn,-2,0,false);
         SetContentTypeForExtension("pdf");
         WebSetContentDisposition("inline; filename=" & fn);
         WebOutFile(fn);
@@ -529,7 +536,6 @@ begin
         WebOutString("<res stat='SUCCESS'></res>");
       end;
       res = true;
-
   end;
 
   DoOuterWebActions = res;

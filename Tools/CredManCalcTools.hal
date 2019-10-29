@@ -570,7 +570,7 @@ begin
   record CredManSetBlock CredManSetb;
   record CredManPayPlanVc CredManPayPlanr;
   row CredManPayPlanVc CredManPayPlanrw;
-  val acumint,res,bal;
+  val acumint,res,bal,tmp;
   Date td;
   Integer i,rwcnt;
 
@@ -579,7 +579,11 @@ begin
 
   if (BitAnd(type,2)) then begin
     bal = inCredManr.InvSum4-inCredManr.DepositSum;
-    AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,td,acumint,bal,"","",-1);
+    if (nonblank(inCredManr.PrincipleDelayMonths)) then begin
+      AddInterestDelay(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,td,acumint,bal,"","",-1);
+    end else begin
+      AddInterest(inCredManr,CredManPayPlanr,CredManSetb,kMonthTypeRegular,td,acumint,bal,"","",-1);
+    end;
   end;
   if (BitAnd(type,4)) then begin
     bal = inCredManr.InvSum4-inCredManr.DepositSum;
@@ -588,6 +592,12 @@ begin
   if (BitAnd(type,8)) then begin
     bal = inCredManr.InvSum4-inCredManr.DepositSum;
     AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,1,kMonthTypeRegular,td,acumint,bal,"","",1);//first month
+    if (inCredManr.MaxMonthlyPayment>0) then begin
+      tmp = GetMonthlyPaymentAmount(inCredManr,6);
+      MatRowGet(CredManPayPlanr,MatRowCnt(CredManPayPlanr)-1,CredManPayPlanrw);
+      CredManPayPlanrw.Sum = inCredManr.MaxMonthlyPayment - tmp;
+      MatRowPut(CredManPayPlanr,MatRowCnt(CredManPayPlanr)-1,CredManPayPlanrw);
+    end;
   end;
 
   rwcnt = MatRowCnt(CredManPayPlanr);

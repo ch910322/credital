@@ -1082,7 +1082,7 @@ begin
         case 1:
           link = base & code & "/images?image=" & WCr.ThumbnailImage;
         case 2:
-          link = base & "images?image=" & WCr.CoverImage;
+          link = base & code & "/images?image=" & WCr.CoverImage;
       end;
     end;
 //CUST-END

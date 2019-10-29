@@ -458,6 +458,7 @@ begin
   return;
 end;
 
+global
 updating procedure AddContactToMailingList(record PersColVc PersColr,record CUVc CUr)
 begin
   record PersColListVc PersColListr;
@@ -685,7 +686,7 @@ procedure PartnerSearchForm(record WebNGElementVc WEr)
 begin
   record WebInvoicingPartnerBlock IPb;
   Longint pos;
-  string 255 tstr;
+  string 255 tstr,tstr2;
   record CClassVc CCr;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
@@ -715,7 +716,11 @@ begin
         WebOutString("<div class='description'>");
         OutputContactHTMLNote(CUr);
         if (nonblank(CUr.wwwAddr)) then begin
-          WebOutString("<div class='comp_wwwaddr'><a href='" & CUr.wwwAddr & "'>" & ToolWebNGTranslateText2(70364) & "</a></div>");
+          tstr2 = CUr.wwwAddr;
+          if (left(tstr2,4)!="http") then begin
+            tstr2 = "http://" & tstr2;
+          end;
+          WebOutString("<div class='comp_wwwaddr'><a href='" & tstr2 & "' target='blank'>" & ToolWebNGTranslateText2(70364) & "</a></div>");
         end;
         WebOutString("</div>");
         WebOutString("</div>");
@@ -1036,6 +1041,7 @@ begin
   string 255 passw1,passw2,msg;
   Boolean showf,expf;
   Boolean res;
+  string 255 link;
   
   PSr.UUID = StringToUUID(WebGetArg("sess"));
   if (ReadFirstMain(PSr,1,true)) then begin
@@ -1043,7 +1049,7 @@ begin
       showf = true;
       passw1 = WebGetArg("passw1");
       passw2 = WebGetArg("passw2");
-      if (PSr.UsedFlag==1 or DateDiff(CurrentDate,PSr.TransDate)>2) then begin
+      if (PSr.UsedFlag==1 or DateDiff(CurrentDate,PSr.TransDate)>7) then begin
         expf = true;
         showf = false;
       end;
@@ -1061,6 +1067,11 @@ begin
           RecordCopy(oldPSr,PSr);
           PSr.UsedFlag = 1;
           RecordUpdate(oldPSr,PSr,true);
+
+          link = "/dologin?login=" & CUr.Code & "&passwd=" & passw1 & "&failed=" & UrlEncode("WebUpdatingAction.hal?action=afterlogin&failed=1") & "&custpage=" & UrlEncode("WebUpdatingAction.hal?action=afterlogin&cust=1") & "&cooksess=true";
+
+          link = AddParamToEncryptedLink("",link);
+
         end;
       end;
     end;
@@ -1074,7 +1085,9 @@ begin
     msg = ToolWebNGTranslateText2(70263);
   end;
 
-  WebOutString("<res msg='" & msg & "' stat='" & res & "'></res>");
+
+
+  WebOutString("<res msg='" & msg & "' stat='" & res & "' link='" & link & "'></res>");
 
   return;
 end;

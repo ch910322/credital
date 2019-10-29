@@ -7,7 +7,7 @@ external inner procedure PasteFromSysList2(Integer,Integer);
 remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
 external inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote inner function Boolean PasteCustInCredMan(var record CredManVc);
-remote updating function Boolean B2BLoanAppCreateCredMan(record B2BLoanApplicationVc,var record CredManVc);
+remote updating function Boolean B2BLoanAppCreateCredMan(var record B2BLoanApplicationVc,var record CredManVc);
 external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
@@ -239,6 +239,7 @@ begin
     LAr.InterestRate = CMTr.IntRate;
     LAr.Months = CMTr.InstalmentMonths;
     LAr.PrincipleDelayMonths = CMTr.PrincipleDelayMonths;
+    LAr.PrincipleDelayInterest = CMTr.PrincipleDelayInterest;
     CalculateEndDate(LAr);
     
     PutWindowRecord(wn,LAr);    
@@ -796,6 +797,8 @@ begin
 
   if (WindowState(wn)==Rs_normal) then begin
     if (B2BLoanAppCreateCredMan(LAr,CredManr)) then begin
+      PutWindowRecord(wn,LAr);
+      WindowDoOK(wn,0);
       nwn = OpenWindow("CredManDClass",0,0,"","",CredManr);
     end;
   end;
@@ -1200,5 +1203,36 @@ begin
   
   LoanAppRClassReportDefaults(wn);
   LoanAppRClassOnOpenWindow = true;
+  return;
+end;
+
+function Boolean MultiDocDClassCustCodeEFAfter(Integer wn,Integer changed)
+begin
+  Boolean res;
+  record MultiDocVc MDr;
+  
+  GetWindowRecord(wn,MDr);
+
+  MDr.LoanType = SetFromString(2001,MDr.LoanTypeStr);
+  PutWindowRecord(wn,MDr);
+
+  MultiDocDClassCustCodeEFAfter = res;
+  return;
+end;
+
+global
+function Boolean MultiDocDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  if (changed) then begin
+    switch (fieldname) begin
+      case "LoanTypeStr": 
+        res = MultiDocDClassCustCodeEFAfter(wn,changed);
+
+    end;
+  end;
+
+  MultiDocDClassAfterEditField = res;
   return;
 end;

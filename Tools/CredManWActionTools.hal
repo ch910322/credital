@@ -7,7 +7,7 @@ external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 external inner function Boolean PasteCustInCredMan(var record CredManVc);
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
-external updating procedure PrintMultiDocDocument(string,string,string);
+external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -316,33 +316,70 @@ begin
   return;
 end;
 
+procedure AddSuretyToDocument(var record AgreementDocVc ADr,record CredManVc CredManr)
+begin
+  Integer i;
+  string 255 custcode;
+  row AgreementDocVc ADrw;
+   
+  for (i=1;i<4;i=i+1) begin
+    custcode = GetFieldValueByName(CredManr,"SuretyProvider" & i,-1);
+    if (nonblank(custcode)) then begin
+      ClearRow(ADr,ADrw,1);
+      ADrw.CustCode = custcode;
+      ADrw.CustName = GetFieldValueByName(CredManr,"Surety" & i & "Name",-1);
+      MatRowPut(ADr,MatRowCnt(ADr),ADrw);
+    end;
+  end;
+
+  return;
+end;
+
 global
 updating procedure CreateAgreementDoc(record CredManVc CredManr,Integer type,var record AgreementDocVc ADr)
 begin
   string 255 fn;
   Integer scnt;
+  row AgreementDocVc ADrw;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
   
   RecordNew(ADr);
   ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
   ADr.TransDate = CurrentDate;
   ADr.TransTime = CurrentTime;
-  ADr.CredManNr = CredManr.SerNr;
+  ADr.RecordNr = CredManr.SerNr;
   ADr.Type = type;
+  switch (ADr.Type) begin
+    case 3:
+      AddSuretyToDocument(ADr,CredManr);
+    case 6:
+      AddSuretyToDocument(ADr,CredManr);
+    otherwise
+      if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+        if (nonblank(LAr.CEOCustCode)) then begin
+          ClearRow(ADr,ADrw,1);
+          ADrw.CustCode = LAr.CEOCustCode;
+          ADrw.CustName = LAr.CEOName;
+          MatRowPut(ADr,0,ADrw);
+        end;
+      end;
+  end;
   if (RecordInsert(ADr,true)) then begin
     scnt = GetSuretyCnt(CredManr);
     switch (ADr.Type) begin
       case 1://agreement
         fn = "Agreement.pdf";
-        PrintMultiDocDocument("CredManForm",fn,CredManr.SerNr);
+        PrintMultiDocDocument("CredManLongForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
       case 2://schedule
         fn = "Schedule.pdf";
-        PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr);
+        PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
       case 3://surety
         fn = "Surety.pdf";
-        PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr);
+        PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
       case 6://vekselis
         fn = "Vekselis.pdf";
-        PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr);
+        PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
     end;
     RecordLinkFile(fn,0,ADr,CurrentCompany);
     Delete_File(fn);
@@ -358,9 +395,10 @@ begin
   record AgreementDocVc tADr;
   Boolean res;
   
-  tADr.CredManNr = CredManr.SerNr;
+  tADr.RecordNr = CredManr.SerNr;
+  tADr.RecordType = 0;
   tADr.Type = type;
-  if (ReadFirstKey("CredManNr",tADr,2,true)) then begin
+  if (ReadFirstKey("RecordNr",tADr,3,true)) then begin
     RecordCopy(ADr,tADr);
     res = true;
   end else begin

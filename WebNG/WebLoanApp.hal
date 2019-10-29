@@ -22,9 +22,13 @@ external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 StrReplace(string,string,string);
 external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
-external updating procedure PrintMultiDocDocument(string,string,string);
+external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,record RcVc);
 external function string 255 ShowSuretyApp(record B2BLoanApplicationVc);
 external procedure CredManSetDatesCust(var record CredManVc);
+external updating procedure AddContactToMailingList(record PersColVc,record CUVc);
+external function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc,record CUVc,record AgreementDocVc);
+external function string 255 GetLinkToCreditAccount();
+external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -487,7 +491,7 @@ begin
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row wide'>")
-    ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),ContactCUr.BankAccount,"",8);
+    ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),CUr.BankAccount,"",8);
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row block_end'>")
@@ -556,14 +560,15 @@ begin
   return;
 end;
 
-function string 255 GetLoanType(record B2BLoanApplicationVc LAr)
+global
+function string 255 GetLoanType(string type)
 begin
   string 255 res;
   record CredManTypeVc CMTr;
-  Integer type;
+  Integer t;
 
-  type = MapLoanType(LAr.Type);
-  switch (type) begin
+  t = MapLoanType(type);
+  switch (t) begin
     case 0: res = ToolWebNGTranslateText2(70216);
     case 3: res = ToolWebNGTranslateText2(70217);
     case 4: res = ToolWebNGTranslateText2(70218);
@@ -584,12 +589,13 @@ begin
   ReadFirstMain(CUr,1,true);
 
   CredManr.startDate = CurrentDate;
+  CredManr.InstalmentMonths = LAr.Months;
   CredManr.MonthlyPaymentDay = LAr.MonthlyPaymentDay;
   CredManSetDatesCust(CredManr);
 
   WebOutString("<div class='summary_table'>");
   //DisplaySummaryLine(ToolWebNGTranslateText2(70205),DateToString(LAr.StartDate,"YYYY MM DD"));
-  DisplaySummaryLine(ToolWebNGTranslateText2(70206),GetLoanType(LAr));
+  DisplaySummaryLine(ToolWebNGTranslateText2(70206),GetLoanType(LAr.Type));
   DisplaySummaryLine(ToolWebNGTranslateText2(70207),ValToString(LAr.Sum,M4Val," ",".",1) & " &euro;");
   DisplaySummaryLine(ToolWebNGTranslateText2(70208),DateToString(CredManr.FirstInvDate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70209),DateToString(CredManr.endDate,"YYYY MM DD"));
@@ -606,7 +612,7 @@ end;
 procedure ShowVerificatonMethod(string type,string image,string name)
 begin
   
-  WebOutString("<div class='ver_item' type='" & type & "'>")
+  WebOutString("<div class='ver_item ver_item" & type & "' type='" & type & "'>")
   WebOutString("<div class='ver_item_image'><img src='/files?file=" & image & "'></div>");
   WebOutString("<div class='ver_item_text'>" & name & "</div>");
   WebOutString("</div>");
@@ -708,8 +714,8 @@ begin
   return;
 end;
 
-
-procedure ShowWebStrings()
+global
+procedure ShowWebLoanStrings()
 begin
 
   WebOutString("<script>");
@@ -786,7 +792,7 @@ begin
     otherwise
       ShowLoanAppStepOne;
   end;
-  ShowWebStrings;
+  ShowWebLoanStrings;
 
   ShowWebAppPageEnd(WPr);
 
@@ -1046,12 +1052,25 @@ begin
   return;
 end;
 
+updating procedure AddToMailingList(record CMApplicationSetBlock CMb,record CUVc CUr)
+begin
+  record PersColVc PersColr;
+  
+  PersColr.Code = CMb.MailingList;
+  if (ReadFirstMain(PersColr,1,true)) then begin
+    AddContactToMailingList(PersColr,CUr);
+  end;
+
+  return;
+end;
+
 global
-updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email)
+updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string datause)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
   record CMApplicationSetBlock CMb;
+  Integer type;
   
   BlockLoad(CMb);
   RecordNew(LAr);
@@ -1059,7 +1078,7 @@ begin
   LAr.TransDate = CurrentDate;
   LAr.CustCode = CUr.Code;
   InsertCustomerInB2BApplication(LAr);
-  LAr.eMail = email;
+  LAr.eMail = CUr.eMail;
 logtext(0,"status " & status);
   if (status==2) then begin
     LAr.OrderClass = CMb.CheckWebAppClass;    
@@ -1071,16 +1090,29 @@ logtext(0,"status " & status);
   LAr.Manager = WLCr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
-  LAr.Months = term;
 
+  
   LAr.Type = GetAgreementType(LAr,WLCr.Type,WLCr.CredManType);
   CMTr.Code = LAr.Type;
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
     LAr.PrincipleDelayMonths = CMTr.PrincipleDelayMonths;
+    LAr.PrincipleDelayInterest = CMTr.PrincipleDelayInterest;
+  end;
+  type = MapLoanType(LAr.Type);
+  switch (type) begin
+    case 2: LAr.Months = 6;
+    case 4: LAr.Months = 18;
+            LAr.MaxMonthlyPayment = term;
+    case 3: LAr.Months = 12;
+    case 1: LAr.Months = term/30+1;
+    otherwise LAr.Months = term;
   end;
   if (RecordInsert(LAr,true)) then begin
     res = true;
+    if (datause=="1") then begin
+      AddToMailingList(CMb,ContactCUr);
+    end;
     if (status==2) then begin
       //Create activity for linking contact with contactperson
       CreateActivityForContactLinks(CUr,ContactCUr);
@@ -1100,7 +1132,7 @@ begin
   RecordCopy(oldLAr,LAr);
   LAr.CustCode = CUr.Code;
   InsertCustomerInB2BApplication(LAr);
-  LAr.eMail = email;
+  LAr.eMail = CUr.eMail;
 
   LAr.Manager = WLCr.Manager;
   InsertManagerInB2BApplication(LAr);
@@ -1190,7 +1222,7 @@ begin
       link = link & "2";
     end else begin
 */
-      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email)) then begin
+      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,datause)) then begin
         StoreSessionLoan(LAr.SerNr,status);
         link = GetLinkToLoanApp;
         link = link & "2";
@@ -1255,6 +1287,8 @@ begin
   end;
   if (updatef) then begin
     RecordUpdate(oldCUr,CUr,false); //false,to make sure we really update the record
+    CUVcRecordUpdate(CUr,oldCUr,Rs_Update,1);
+
   end else begin
     RecordInsert(CUr,true); 
   end;
@@ -1268,7 +1302,7 @@ begin
   return;
 end;
 
-updating procedure AddManagerAndSurety(var record B2BLoanApplicationVc LAr,Boolean mansurf)
+updating procedure AddManagerAndSurety(var record B2BLoanApplicationVc LAr,Boolean mansurf,var string managercode)
 begin
   Integer i,scnt,surcnt;
   record CUVc CUr;
@@ -1278,6 +1312,8 @@ begin
   LAr.ContacteMail = CUr.eMail;
   LAr.ContactPhoneNo = CUr.Phone;
   LAr.ContactMobile = CUr.Mobile;
+  
+  managercode = CUr.Code;
   //InsertContactName(LAr);
   LAr.CEOCustCode = CUr.Code;
   LAr.CEOName = CUr.Name;
@@ -1316,8 +1352,9 @@ begin
     if (nonblank(code)) then begin
       CUr.Code = code;
       if (ReadFirstMain(CUr,1,true)) then begin
+        RecordClear(RepSpec);
         if (CUr.Name!=LAr.ContactName) then begin
-          if (CUr.Password==0 or CUr.Password==-1) then begin
+          if (CUr.AllowLogin==0) then begin
             RecordNew(PSr);
             PSr.UUID = MakeUUID;
             PSr.CustCode = CUr.Code;
@@ -1330,9 +1367,9 @@ begin
         end;
         RepSpec.f1 = LAr.CustCode;
         if (nonblank(RepSpec.searchstr)) then begin
-          SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);
+          SendCustomerLetterWithDetails(RepSpec,CMb.NoPassSuretyLetter,CUr.LangCode,CUr.eMail);
         end else begin
-          SendCustomerLetterWithDetails(RepSpec,CMb.NoPassSuretyLetter,CUr.LangCode,CUr.eMail);          
+          SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);          
         end;
       end;
     end;
@@ -1341,25 +1378,78 @@ begin
   return;
 end;
 
-updating procedure PrepareLoanApplicationVerification(record B2BLoanApplicationVc LAr)
+procedure AddCustToDocument(var record AgreementDocVc ADr,record B2BLoanApplicationVc LAr,string custcode)
+begin
+  row AgreementDocVc ADrw;
+  record CUVc CUr;
+   
+  ClearRow(ADr,ADrw,1);
+  ADrw.CustCode = custcode;
+  CUr.Code = custcode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    ADrw.CustName = CUr.Name;
+  end;
+  MatRowPut(ADr,MatRowCnt(ADr),ADrw);
+
+  return;
+end;
+
+function Integer GetListOfContacts(record B2BLoanApplicationVc LAr,var vector Boolean vCode)
+begin
+  Integer res;
+  
+  res = 0;
+  if (nonblank(LAr.SuretyProvider1)) then begin
+    vCode[LAr.SuretyProvider1] = true;
+  end;
+  if (nonblank(LAr.SuretyProvider2)) then begin
+    vCode[LAr.SuretyProvider2] = true;
+  end;
+  if (nonblank(LAr.SuretyProvider3)) then begin
+    vCode[LAr.SuretyProvider3] = true;
+  end;
+
+  GetListOfContacts = res;
+  return;
+end;
+
+updating procedure PrepareLoanApplicationVerification(record B2BLoanApplicationVc LAr,string managercode)
 begin
   vector string 255 vSess;
   string 255 md5,fn;
   Longint fsz;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
-  
-  fn = "LoanApplication.pdf";
-  if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
-    if (Attachr.FileName==fn) then begin
-      RecordRemove(Attachr);
+  Integer scnt,i;
+  record AgreementDocVc ADr;
+  vector Boolean vCode;
+  array string 255 aCode;
+  record RcVc RepSpec;
+
+  GetListOfContacts(LAr,vCode);
+  vCode[managercode] = true;
+  GetVectorTags(vCode,aCode);
+  for (i=0;i<aCode.length;i=i+1) begin
+    RecordNew(ADr);
+    ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
+    ADr.TransDate = CurrentDate;
+    ADr.TransTime = CurrentTime;
+    ADr.RecordNr = LAr.SerNr;
+    ADr.RecordType = 1;
+    ADr.Type = 7;
+    AddCustToDocument(ADr,LAr,aCode[i]);
+
+    if (RecordInsert(ADr,true)) then begin
+      fn = "Agreement.pdf";
+      RepSpec.f10 = aCode[i];
+      PrintMultiDocDocument2("LoanAppForm",fn,LAr.SerNr,0,false,RepSpec);
+      RecordLinkFile(fn,0,ADr,CurrentCompany);
+      Delete_File(fn);
+      CreateRecordLink(ADr,CurrentCompany,LAr,CurrentCompany);
+      CreateRecordLink(LAr,CurrentCompany,ADr,CurrentCompany);
     end;
   end;
-  PrintMultiDocDocument("LoanAppForm",fn,LAr.SerNr);
-  if (FileExists(fn)) then begin
-    RecordLinkFile(fn,0,LAr,CurrentCompany);
-    Delete_File(fn);
-  end;
+
 
   return;
 end;
@@ -1368,13 +1458,14 @@ global
 updating procedure LoanApplicationStoreStep2()
 begin
   Integer type,err;
-  string 255 bankacc,link,addr2,errstr;  
+  string 255 bankacc,link,addr2,errstr,managercode;  
   record B2BLoanApplicationVc LAr,oldLAr;
   Integer paymentdate;
   Boolean mansurf,addrtype;
   vector string 255 vSess;
   record CUVc CUr,oldCUr;
-
+  record CMApplicationSetBlock CMb;
+  
   bankacc = WebGetArg("bankacc");
   paymentdate = StringToInt(WebGetArg("paymentdate"));
   mansurf = (WebGetArg("mainsurety")=="1");
@@ -1392,8 +1483,9 @@ begin
     LoadLoanSession(vSess);
     LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
     if (ReadFirstMain(LAr,1,true)) then begin
+      BlockLoad(CMb);
       RecordCopy(oldLAr,LAr);
-      AddManagerAndSurety(LAr,mansurf);
+      AddManagerAndSurety(LAr,mansurf,managercode);
       LAr.BankAccount = bankacc;
       LAr.MonthlyPaymentDay = paymentdate;
       if (addrtype) then begin
@@ -1408,9 +1500,12 @@ begin
         end;
         RecordUpdate(oldCUr,CUr,false);//skipping record actions here
       end;
+      if (LAr.OrderClass!=CMb.CheckWebAppClass) then begin
+        LAr.OrderClass = CMb.OtherWebAppClass;
+      end;
       if (RecordUpdate(oldLAr,LAr,true)==0) then begin
         SendEmailsToSurety(LAr);
-        PrepareLoanApplicationVerification(LAr);
+        PrepareLoanApplicationVerification(LAr,managercode);
       end;
     end;
     link = GetLinkToLoanApp;
@@ -1428,18 +1523,17 @@ updating procedure SetLoanAppStatus(Integer stat,vector string vSess)
 begin
   record CMApplicationSetBlock CMb;
   record B2BLoanApplicationVc LAr,oldLAr;
-  
+/*  
   BlockLoad(CMb);
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
     RecordCopy(oldLAr,LAr);
     switch (stat) begin
-      case 1: LAr.OrderClass = CMb.VerWebAppClass;
       case 2: LAr.OrderClass = CMb.OtherWebAppClass;
     end;
     RecordUpdate(oldLAr,LAr,true);
   end;
-
+*/
   return;
 end;
 
@@ -1469,7 +1563,7 @@ begin
   string 255 base,link;
 
   LoadLoanSession(vSess);
-  qupdating.SetLoanAppStatus(2,vSess);
+  //qupdating.SetLoanAppStatus(2,vSess);
   base = GetLinkToLoanApp;
   link = base & "4";
   WebOutString("<res stat='1' link='" & link & "'></res>");
@@ -1487,19 +1581,49 @@ begin
   
   WPSr.UUID = sess;
   if (ReadFirstMain(WPSr,1,true)) then begin
-    if (WPSr.Status==10+kCCStatusPaymentOK) then begin
-      nextf = true;
-      LoadLoanSession(vSess);
-      SetLoanAppStatus(1,vSess);
+    switch (WPSr.PayMentDesc) begin
+      case "LoanApp":
+        if (WPSr.Status==10+kCCStatusPaymentOK) then begin
+          nextf = true;
+          LoadLoanSession(vSess);
+          //SetLoanAppStatus(1,vSess); Should be done in record action
+        end;
+        base = GetLinkToLoanApp;
+        if (nextf) then begin
+          ShowRedirectHTML(base & "4",WebSecureMode);
+        end else begin
+          ShowRedirectHTML(base & "3",WebSecureMode);
+        end;
+
+      case "AgreementDocVc":
+        base = GetLinkToCreditAccount;
+        ShowRedirectHTML(base & "contracts",WebSecureMode);
     end;
   end;
-  base = GetLinkToLoanApp;
-  if (nextf) then begin
-    ShowRedirectHTML(base & "4",WebSecureMode);
-  end else begin
-    ShowRedirectHTML(base & "3",WebSecureMode);
+
+  return;
+end;
+
+global
+function Boolean FindWebLoanAppContact(string custcode,string name,string email,var record CUVc CUr)
+begin
+  Boolean res;
+  
+  if (GetLoanAppContact(name,custcode,CUr)) then begin
+    res = true;
+  end;
+  if (!res) then begin
+    RecordClear(CUr);
+    ResetLoop(CUr);
+    CUr.eMail = email;
+    if (ReadFirstKey("eMail",CUr,1,true)) then begin
+      if (CUr.Name==name) then begin
+        res = true;
+      end;
+    end;
   end;
 
+  FindWebLoanAppContact = res;
   return;
 end;
 
@@ -1510,14 +1634,20 @@ begin
   vector string 255 vSess;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
+  record CUVc CUr;
+  record AgreementDocVc ADr;
   
   LoadLoanSession(vSess);
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
-    if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
-      SetContentTypeForExtension("pdf");
-      WebSetContentDisposition("inline; filename=" & Attachr.FileName);
-      WebOutAttachment(Attachr.SerNr);
+    if (FindWebLoanAppContact(LAr.ContactName,LAr.CustCode,LAr.ContacteMail,CUr)) then begin
+      if (FindSuretyApplicationDoc(LAr,CUr,ADr)) then begin
+        if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+          SetContentTypeForExtension("pdf");
+          WebSetContentDisposition("inline; filename=" & Attachr.FileName);
+          WebOutAttachment(Attachr.SerNr);
+        end;
+      end;
     end;
   end;
 
@@ -1556,7 +1686,7 @@ begin
         case "check":
           stat = CheckSmartIDStatus(CUr,WebGetArg("token"));
           if (stat==1) then begin
-            qupdating.SetLoanAppStatus(1,vSess);
+            //qupdating.SetLoanAppStatus(1,vSess);should be done on document record action
           end;
           WebOutString("<res stat='" & stat & "'></res>");
       end;

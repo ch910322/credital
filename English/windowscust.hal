@@ -75,15 +75,21 @@ begin
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
+ 
+  EditField(h,v+=vs,100,"Accepted Appl. Class",Normal,AcceptedAppOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Finished with Ident. Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Finished w/o Ident. Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Signed Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Not signed Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Request Signature Class",Normal,SignOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Active Agreement Order Class",Normal,ActiveCredOrderClass,false,OrderClassSClass);
+
 
 
   EditField(h,v+=vs,100,"Surety Email",Normal,SuretyLetter,false,0);
   EditField(h,v+=vs,100,"Surety Email without Password",Normal,NoPassSuretyLetter,false,0);
   EditField(h,v+=vs,100,"New Customer Email",Normal,NewCustLetter,false,0);
+  EditField(h,v+=vs,100,"Mailing List",Normal,MailingList,false,PersColSClass);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
   RadioButton(h,v,0,0,"Contact",ContactPasteSpecial);
@@ -616,7 +622,7 @@ begin
   EditField(h,v=6,100,"Ser. No.",Normal,SerNr,false,TSerSClass);
   EditField(h2,v,80,"Date",Normal,TransDate,false,PasteCurDate);
   EditField(h,v+=vs,100,"Customer",Normal,CustCode,false,CUSClass);
-  EditField(h2,v,-40,"Name",Normal,CustName,false,0);
+  EditField(h2,v,130,"Name",Normal,CustName,false,0);
   EditField(h,v+=vs,100,"Contact",Normal,ContactName,false,B2BLoanApp_ContactSClass);
   EditField(h2,v,130,"Email",Normal,eMail,false,0);
   EditField(h3+30,v,-40,"Telephone",Normal,PhoneNo,false,0);
@@ -624,19 +630,21 @@ begin
   EditField(h2,v,130,"Contact Telephone",Normal,ContactPhoneNo,false,0);
   EditField(h3+30,v,-40,"Contact Mobile",Normal,ContactMobile,false,0);
   EditField(h,v+=vs,100,"Manager",Normal,Manager,false,UserSClass);
-  EditField(h2,v,-40,"Name",Normal,ManagerName,false,0);
+  //EditField(h2,v,-40,"Name",Normal,ManagerName,false,0);
+  EditField(h2,v,130,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h3+30,v,-40,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
   EditField(h,v+=vs,100,"Type",Normal,Type,false,CredManTypeSClass);
   vm = v;
   EditField(h,v+=vs,100,"Total Sum",Normal,Sum,true,0);
   EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
-  EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
-  EditField(h,v+=vs,100,"Monthly Payment Day",Normal,MonthlyPaymentDay,true,0);
-  EditField(h,v+=vs,100,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Princ. Delay Int. %",ViewOnly,PrincipleDelayInterest,true,0);
+  EditField(h,v+=vs,100,"Princ. Delay Months",ViewOnly,PrincipleDelayMonths,true,0);
+  //EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
   //EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
   //EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
   v = vm;
   
-  EditField(h3=h3+30,v,-40,"Princ. Delay Months",ViewOnly,PrincipleDelayMonths,true,0);
+  EditField(h3=h3+30,v,-40,"Max. Monthly Payment",ViewOnly,MaxMonthlyPayment,true,0);
   EditField(h3,v+=vs,-40,"Max Rec. Sum",ViewOnly,MaxRecSum,true,0);
   EditField(h3,v+=vs,-40,"Value based on Surety",Normal,MaxValSurety,true,0);
   EditField(h3,v+=vs,-40,"Value based on Comp.",Normal,MaxValCompany,true,0);
@@ -1677,6 +1685,7 @@ begin
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Document",DocName,false,DocName);
   RlCol   (170,170,"System Document",DocName2,false);
+  RlCol   (-120,120,"Loan Type",LoanTypeStr,false);
   EndWindow;
 end;
 
@@ -1685,18 +1694,52 @@ window MultiDocDClass:1
 begin
   real h,v,vs,v2,vs2,hm;
   WindowBegin("Multi Page Document",MultiDocDClass,CGview,-);
-  SetWRect(20,80,400,339);
+  SetWRect(20,80,650,339);
   UseView(MultiDocVc);
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,150,"Document",Normal,DocName,false,0);
+  CheckBox(h+200,v,0,"With Max Monthly Payment",MaxMonthlyPayment);
   EditField(h,v+=vs,150,"System Document",Normal,DocName2,false,0);
+  EditFieldTL(h,v+=vs,150,"Loan Type",M4StrSet,Normal,2001,LoanTypeStr,false,SetSClass);
+  //EditField(h,v+=vs,150,"Loan Type2",Normal,LoanType,false,0);
 
   MatrixBegin(10,v+=vs+20,-40,-20,-,99);
   MatCol(1,24,"Form",0,FormCode,false,DocSClass);
+  MatCol(1,140,"Standard Text",0,StandardTextList,false,LtxtSClass);
+  MatCol(1,-150,"System Document",0,DocNameRow,false,0);
   EndMatrix;
   EndWindow;
 end;
 
+window FontWidthLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Style Width",FontWidthLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(FontWidthDClass);
+  UseView(FontWidthVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Font",Font,false,Font);
+  EndWindow;
+end;
+
+window FontWidthDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Style Width",FontWidthDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  UseView(FontWidthVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,150,"Font",Normal,Font,false,0);
+  EditField(h,v+=vs,150,"Default Width",Normal,DefWidth,false,0);
+  MatrixBegin(10,v+=vs+20,-40,-20,-,99);
+  MatCol(1,24,"Width",0,Width,false,0);
+  MatCol(1,140,"Characters",0,Chars,false,0);
+  EndMatrix;
+  EndWindow;
+end;
 
 window AgreementDocLClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
@@ -1708,7 +1751,7 @@ begin
   UseView(AgreementDocVc);
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Number",SerNr,false,SerNr);
-  RlColKey(100,100,"Agreement",CredManNr,false,CredManNr);
+  RlColKey(100,100,"Agreement",RecordNr,false,RecordNr);
   RlCol(196,196,"Date",TransDate,false);
   RlColKey(322,322,"Type",Type,false,Type);
   SearchField("Search");
@@ -1720,22 +1763,32 @@ window AgreementDocDClass:1
 begin
   real h,h2,v,vs,v2,vs2,hm;
   WindowBegin("Agreement Document",AgreementDocDClass,CGview,-);
-  SetWRect(20,80,600,339);
+  SetWRect(20,80,600,459);
   UseView(AgreementDocVc);
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,90,"Number",Normal,SerNr,false,0);
-  EditField(h,v+=vs,90,"Agreement",Normal,CredManNr,false,CredManSClass);
+  EditField(h,v+=vs,90,"Agreement",Normal,RecordNr,false,0);
   EditField(h,v+=vs,90,"Date",ViewOnly,TransDate,false,0);
   EditField(h2=300,v,90,"Time",ViewOnly,TransTime,false,0);
   EditField(h,v+=vs,150,"Type",Normal,Type,false,SetSClass);
+/*
   CheckBox(h,v+=vs,0,"Signed By Customer",SignedByCustomer,);
   EditField(h+180,v,90,"Date",ViewOnly,SignedByCustomerDate,false,0);
   EditField(h+280,v,90,"",ViewOnly,SignedByCustomerTime,false,0);
+*/
   CheckBox(h,v+=vs,0,"Signed By Us",SignedByUs);
   EditField(h+180,v,90,"Date",ViewOnly,SignedByUsDate,false,0);
   EditField(h+280,v,90,"",ViewOnly,SignedByUsTime,false,0);
 
-  HalPushButton(-300,v=7,-200,v+=20,"AgreementDocDClassSign","Sign");
+  HalPushButton(-300,7,-200,27,"AgreementDocDClassSign","Sign");
+
+  MatrixBegin(10,v+=40,-30,220,-,10);
+  MatCol(1,25,"Code",0,CustCode,false,CUSClass);
+  MatCol(1,120,"Name",0,CustName,false,0);
+  MatCol(1,-270,"Status",0,Status,false,0);
+  MatCol(1,-180,"Date",0,SignatureDate,false,0);
+  MatCol(1,-90,"Time",0,SignatureTime,false,0);
+  EndMatrix;
 
   EndWindow;
 end;

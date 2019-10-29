@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure PrintCurrencyCode(string,string);
 external procedure OutAddress(string,string,string,string,string,string,string);
 external function Boolean FindFormcode(Integer,Integer);
@@ -21,14 +22,40 @@ external procedure ValToText(val,Integer,string,string,var string);
 //external procedure CredManSetFax(record CUVc,record CredManVc);
 //CUST-BEGIN
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
-external function Boolean FindCustomerRelation(string,string,var record CUVc);
+
+function Boolean FindCustomerRelationCred(string custcode,string contactname,var record CUVc ContactCUr)
+begin
+  Boolean res,TrHs;
+  record ContactRelVc CRr;
+  record CUVc CUr;
+
+  TrHs = true;
+  CRr.CustCode = custcode;
+  while (LoopMain(CRr,1,TrHs)) begin
+    if (CRr.CustCode!=custcode) then begin
+      TrHs = false;
+    end else begin
+      CUr.Code = CRr.ContactCode;
+      if (ReadFirstMain(CUR,1,true)) then begin
+        if (CUr.Name==contactname) then begin
+          res = true;
+          RecordCopy(ContactCUr,CUr);
+          TrHs = false;
+        end;
+      end;    
+    end;
+  end;
+
+  FindCustomerRelationCred = res;
+  return;
+end;
 
 procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
   record CUVc ContactCUr;
 
   if (nonblank(CredManr.ClientContact)) then begin
-    if (FindCustomerRelation(CredManr.CustCode,CredManr.ClientContact,ContactCUr)) then begin
+    if (FindCustomerRelationCred(CredManr.CustCode,CredManr.ClientContact,ContactCUr)) then begin
       contactid = ContactCUr.RegNr1;
       contactname = ContactCUr.Name;
     end;
@@ -41,9 +68,12 @@ procedure PrintCustomDetails(record CredManVc CredManr,record CUVc CUr)
 begin
   string 255 tstr,contactname,contactid;
   record BankVc Bankr;
-  val amt,fees,prolong;
+  val amt,fees,prolong,tot;
   row CredManVc CredManrw;
   Integer i,rwcnt;
+  record CUVc ContactCUr,CEOCUr;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
   
   OutFormField("F_EMAIL",CUr.eMail);//Email
   OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
@@ -54,12 +84,12 @@ begin
   OUTFORMFIELD("F_ID",contactid);
   OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
   OUTFORMFIELD("F_DATEDAY",CredManr.MonthlyPaymentDay);
-    if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
-      ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
-      OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
-    end;
+  OUTFORMFIELD("F_MONTHLYINST",CredManr.MonthlySum);
+  if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
+    ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
+  end;
   
-  OutAddress("F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
   OUTFORMFIELD("F_BANKACC",CUr.BankAccount);
   Bankr.Code = CUr.AccOperator;
   ReadFirstMain(Bankr,1,true);
@@ -82,6 +112,13 @@ begin
 
   amt = GetMonthlyPaymentAmount(CredManr,8);
   OUTFORMFIELD("F_PRINCIPLE",amt);
+
+  tot = amt * (CredManr.InstalmentMonths);//-1?
+  tot = CredManr.InvSum4-CredManr.DepositSum-tot;
+  if (tot<0) then begin
+    tot = 0;//the same as we do on cred man plan
+  end;
+  OUTFORMFIELD("F_LEFTPRINCIPLE",tot);
 
   fees = 0;
   rwcnt = MatRowCnt(CredManr);
@@ -109,7 +146,20 @@ begin
   end;
   OUTFORMFIELD("F_OVERDUEPRC",CredManr.OverduePercentage);
   OUTFORMFIELD("F_OTHERCONDITIONS",CredManr.OtherConditions);
-  
+
+  OutAddress("F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+
+  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    CEOCUr.Code = LAr.CEOCustCode;
+    if (ReadFirstMain(CEOCUr,1,true)) then begin
+      OutFormField("F_CEONAME",CEOCUr.Name);
+      OutFormField("F_CEOID",CEOCUr.RegNr1);
+    end;
+  end;  
+
+  amt = GetMonthlyPaymentAmount(CredManr,2);
+  OUTFORMFIELD("F_INTEREST",amt);
+
   return;
 end;
 

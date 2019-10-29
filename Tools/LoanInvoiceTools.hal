@@ -44,15 +44,54 @@ enum begin
   kMonthTypeLast = 2
 end;
 
+function string 255 SetCompanyLanguage()
+begin
+  record CYBlock CYb;
+  string 255 oldlang,newlang;
+  Integer langmode;
+
+  BlockLoad(CYb);
+  oldlang = CurrentLanguage;
+  newlang = CYb.LangCode;
+
+  if (oldlang!=newlang and nonblank(newlang)) then begin
+    langmode = SetFromString(619,newlang);
+    if (langmode>-1) then begin
+      SetLangMode(langmode,newlang,0);
+    end;
+  end;
+
+  SetCompanyLanguage = oldlang;
+  return;
+end;
+
+procedure ResetCompanyLanguage(string oldlang)
+begin
+  Integer oldlangmode;
+
+  if (CurrentLanguage!=oldlang) then begin
+    oldlangmode = SetFromString(619,oldlang);
+    if (oldlangmode>-1) then begin
+      SetLangMode(oldlangmode,oldlang,0);
+    end;
+  end;
+
+  return;
+end;
+
+
 procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate,Date fromdate,Date todate,Boolean sernrf,Boolean forcecustf)
 begin
   record LocalMachineBlock LMb;
   string 255 warning,errstr,prepstr,invdatewarn,transdatewarn;
   row IVVc IVrw;
   record CMApplicationSetBlock CMASb;
+  string 255 oldlang;
   
+
   BlockLoad(LMb);
   BlockLoad(CMASb);
+  oldlang = SetCompanyLanguage;
 
   RecordNew(IVr);
   IVr.CustCredManNr = CredManr.SerNr;
@@ -90,7 +129,7 @@ begin
     IVrw.Spec = " ";
     MatRowPut(IVr,MatRowCnt(IVr),IVrw);
   end;
-
+  ResetCompanyLanguage(oldlang);
 
   return;
 end;

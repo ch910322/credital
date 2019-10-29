@@ -2,6 +2,8 @@ external inner function Boolean Getformcode(Integer,Integer,string,string,string
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure OutAddress(string,string,string,string,string,string,string);
+external inner procedure PrintCurrencyCode(string,string);
+external inner procedure ValToText(val,Integer,string,string,var string);
 
 procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
 begin
@@ -23,6 +25,30 @@ begin
     addr0 = ""; addr1 = ""; addr2 = ""; addr3 = ""; addr4 = ""; 
   end;
 
+  return;
+end;
+
+function Boolean FindCEOContact(string custcode,var record CUVc CUr)
+begin
+  record CMApplicationSetBlock ASb;
+  record ContactRelVc CRr;
+  Boolean res;
+  
+  BlockLoad(ASb);
+  if (nonblank(ASb.CEOTitle)) then begin
+    while (LoopKey("CustContactCode:" & custcode,CRr,1,true)) begin
+      CUr.Code = CRr.ContactCode;
+      if (ReadFirstMain(CUr,1,true)) then begin
+        if (SetInSet(ASb.CEOTitle,CUr.JobDesc)) then begin
+          res = true;
+          goto LFindCEOContact;
+        end;
+      end;
+    end;
+  end;  
+
+LFindCEOContact:;
+  FindCEOContact = res;
   return;
 end;
 
@@ -107,6 +133,24 @@ LBREAK:;
         OUTFORMFIELD("F_CONTACT3MAIL",email)
         OUTFORMFIELD("F_CONTACT3ID",id)
         OutAddress("F_CONTACT3ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+
+        CUr.Code = CredManr.CustCode;
+        ReadFirstMain(CUr,1,true);
+        OUTFORMFIELD("F_NUMMER",CredManr.SerNr);
+        OUTFORMFIELD("F_KUNDNAMN",CUr.Name);
+        OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
+        PrintCurrencyCode("F_VALUTA",CredManr.CurncyCode);
+        OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
+        if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
+          ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+          OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
+        end;
+
+        RecordCLear(CUr);
+        if (FindCEOContact(CredManr.CustCode,CUr)) then begin
+          OUTFORMFIELD("F_CEONAME",CUr.Name);
+          OUTFORMFIELD("F_CEOID",CUr.RegNr1);
+        end;
 
         CloseForm;        
       end else begin

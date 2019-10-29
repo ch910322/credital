@@ -7,8 +7,11 @@ external inner procedure ShowRedirectHtmlFromArea(area,boolean);
 external updating procedure ProcessLoanAppVerificationPaysera(string);
 external procedure LoadLoanSession(var vector string);
 external inner function string 255 StrReplace(string,string,string);
+external function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc,record CUVc,record AgreementDocVc);
+external function Boolean MarkCustomerAgreementDocSigned(record AgreementDocVc,string);
+external function Boolean FindWebLoanAppContact(string,string,string,var record CUVc);
 
-updating function string 255 StartPaymentSession(string custcode,string currency,val amount,Longint recid)
+updating function string 255 StartPaymentSession(string custcode,string currency,val amount,Longint recid,string rectype)
 begin
   record WebNGPaySessionVc WPSr;
   string 255 res;
@@ -20,6 +23,7 @@ begin
   WPSr.Currency    = currency;
   WPSr.InclAmount  = amount;
   WPSr.RecordNr    = recid;
+  WPSr.PayMentDesc = rectype;
 
   if (RecordStore(WPSr,true)) then begin
     res = WPSr.UUID;
@@ -61,16 +65,46 @@ begin
   record B2BLoanApplicationVc LAr;
   Longint fsz,lines,l;
   vector string 255 vSess;
+  string 255 rectype,contactname,contactemail;
+  Longint recid;
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  record CUVc CUr;
 
-  LoadLoanSession(vSess)
-  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
-  if (ReadFirstMain(LAr,1,true)) then begin
+  if (nonblank(WebGetArg("docid"))) then begin
+    ADr.SerNr = StringToLongint(WebGetArg("docid"));
+    if (ReadFirstMain(ADr,1,true)) then begin
+      LAr.SerNr = ADr.RecordNr;
+      if (ReadFirstMain(LAr,1,true)) then begin
+        rectype = "AgreementDocVc";
+        recid = ADr.SerNr;
+        MatRowGet(ADr,0,ADrw);
+        CUr.Code = ADrw.CustCode;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          contactname = CUr.Name;
+          contactemail = CUr.eMail;
+        end;
+      end;
+    end;
+  end else begin
+    LoadLoanSession(vSess)
+    LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+    if (ReadFirstMain(LAr,1,true)) then begin
+      rectype = "LoanApp";
+      recid = LAr.SerNr;
+      contactname = LAr.ContactName;
+      contactemail = LAr.ContacteMail;
+    end;
+  end;
+
+  if (nonblank(rectype) and FindWebLoanAppContact(LAr.CustCode,contactname,contactemail,CUr)) then begin
     BlockLoad(Pb);
     BlockLoad(CYb);
     crncy = "EUR";
-    GetCustomerPaymentDetails(LAr,custcode,firstname,lastname,email,addr1,addr2,addr3,postcode,country,amount);
 
-    paysessionid = StartPaymentSession(custcode,crncy,amount,LAr.SerNr);
+    GetCustomerPaymentDetails(LAr,custcode,firstname,lastname,email,addr1,addr2,addr3,postcode,country,amount);
+    email = CUr.eMail;
+    paysessionid = StartPaymentSession(CUr.Code,crncy,amount,recid,rectype);
 
     accesscode = Pb.SignPassword;
     projectid = Pb.ProjectID;
@@ -83,9 +117,9 @@ begin
       returnurl = "http://" & Webhost;
     end;
     base = "/paskolos-paraiska/3";
-    link = FormatLink("/WebUpdatingAction.hal","action=paysera.proceed&session=" & paysessionid,true,true);
-    link2 = FormatLink("/WebUpdatingAction.hal","action=paysera.cancel&session=" & paysessionid,true,true);
-    link3 = FormatLink("/WebUpdatingAction.hal","action=paysera.callback&session=" & paysessionid,true,true);
+    link = "/WebPayseraProceed.hal?session=" & paysessionid;//FormatLink("/WebUpdatingAction.hal","action=paysera.proceed&session=" & paysessionid,true,true);
+    link2 = "/WebPayseraCancel.hal?session=" & paysessionid;//FormatLink("/WebUpdatingAction.hal","action=paysera.cancel&session=" & paysessionid,true,true);
+    link3 = "/WebPayseraCallback.hal?session=" & paysessionid;//FormatLink("/WebUpdatingAction.hal","action=paysera.callback&session=" & paysessionid,true,true);
     tourl = "https://www.paysera.com/pay";
     amountstr = ValToString(amount,M4Val,"","",0);;
     tstr = CYb.BusinessName;
@@ -208,13 +242,18 @@ begin
   record NotePadVc Noter;
   record RLinkVc RLr;
   record B2BLoanApplicationVc LAr;
+  record CUVc CUr;
+  record AgreementDocVc ADr,oldADr;
+  Boolean foundf;
   
   WPSr.UUID = WebGetArg("session");
+
   if (ReadFirstMain(WPSr,1,true)) then begin
     if (WPSr.Status!=10+kCCStatusPaymentOK) then begin
       BlockLoad(Pb);
       
       md5base64str = LowerCase(md5string(WebGetArg("data") & Pb.SignPassword));
+Logtext(0,"FinalizePayseraPayment session=" & WPSr.UUID & ";" & WebGetArg("ss1") & ":" & md5base64str);
       if (md5base64str==WebGetArg("ss1")) then begin
         /*
         if (WebGetArg("personcodestatus")=="1") then begin
@@ -225,17 +264,37 @@ begin
         */
         RecordCopy(oldWPSr,WPSr);
         WPSr.Status = 10+kCCStatusPaymentOK;
-        RecordUpdate(oldWPSr,WPSr,false);    
-        LAr.SerNr = WPSr.RecordNr;
-        if (ReadFirstMain(LAr,1,true)) then begin
-          RecordNew(Noter);
-          Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
-          SetTextField(Noter,CurrentDate & " " & CurrentTime);
-          if (RecordStore(Noter,false)) then begin
-            CreateRecordLink(LAr,CurrentCompany,Noter,CurrentCompany);  
-            if (ReadRecordLink(LAr,1,Noter,RLr)) then begin
-              RLr.Comment = USetStr(200106) & " " & str;
-              if (RecordStore(RLr,true)) then begin
+        if (RecordUpdate(oldWPSr,WPSr,false)==0) then begin   
+          switch (WPSr.PayMentDesc) begin
+            case "LoanApp":
+              LAr.SerNr = WPSr.RecordNr;
+              if (ReadFirstMain(LAr,1,true)) then begin
+                CUr.Code = WPSr.CustCode;
+              if (FindSuretyApplicationDoc(LAr,CUr,ADr)) then begin
+                  foundf = true;
+                end;
+              end;
+            case "AgreementDocVc":
+              ADr.SerNr = WPSr.RecordNr;
+              if (ReadFirstMain(ADr,1,true)) then begin
+                foundf = true;
+              end;
+          end;
+          if (foundf) then begin
+            RecordCopy(oldADr,ADr);
+            if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)) then begin
+              if (RecordUpdate(oldADr,ADr,true)==0) then begin
+                RecordNew(Noter);
+                Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
+                SetTextField(Noter,CurrentDate & " " & CurrentTime);
+                if (RecordStore(Noter,false)) then begin
+                  CreateRecordLink(ADr,CurrentCompany,Noter,CurrentCompany);  
+                  if (ReadRecordLink(ADr,1,Noter,RLr)) then begin
+                    RLr.Comment = USetStr(200106) & " " & str;
+                    if (RecordStore(RLr,true)) then begin
+                    end;
+                  end;
+                end;
               end;
             end;
           end;
@@ -283,5 +342,35 @@ begin
   end;
 end;
 
+
+global webpublic
+updating procedure WebPayseraProceed()
+begin
+  FinalizePayseraPayment;
+  ProcessLoanAppVerificationPaysera(WebGetArg("session"));
+
+  return;
+end;
+
+global webpublic
+updating procedure WebPayseraCancel()
+begin
+  string 255 base; 
+
+  base = GetLinkToLoanApp;
+  ShowRedirectHTML(base & "3",WebSecureMode);
+  
+  return;
+end;
+
+global webpublic
+updating procedure WebPayseraCallback()
+begin
+
+  FinalizePayseraPayment;
+  WebOutString("OK");
+  
+  return;
+end;
 
 

@@ -154,6 +154,12 @@ begin
   RecordField(CreditinfoLimit,M4Val,0,0);
   RecordField(AvailableFinStatements,M4Int,0,0);
   RecordField(PrincipleDelayMonths,M4Qty,0,0);
+  RecordField(StateChangeDate,M4Date,0,0);
+  RecordField(StateChangeTime,M4Time,0,0);
+  RecordField(StateNotified,M4Int,0,0);
+  RecordField(CreatedDate,M4Date,0,0);
+  RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(MaxMonthlyPayment,M4Val,0,0);
 
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
@@ -206,6 +212,14 @@ begin
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
+  KeyBegin(OrderClassChange);
+  KeySegment(OrderClass);
+  KeySegment(StateChangeDate);
+  KeySegment(StateChangeTime);
+  KeySegment(SerNr);  
+  KeyBegin(CreatedDate);
+  KeySegment(CreatedDate);
+  KeySegment(SerNr);  
   EndRecord; 
   
   BlockBegin(CMApplicationSetBlock,-,"");
@@ -230,6 +244,11 @@ begin
   RecordField(CheckWebAppClass,M4Code,5,OrderClassVc);
   RecordField(NewCustLetter,M4Str,255,0);
   RecordField(OwnershipYears,M4Long,0,0);
+  RecordField(MailingList,M4Code,30,0);
+  RecordField(SignOrderClass,M4Code,5,OrderClassVc);
+  RecordField(ActiveCredOrderClass,M4UStr,255,0);
+  RecordField(AcceptedAppOrderClass,M4Code,5,OrderClassVc);
+  
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -421,6 +440,11 @@ begin
   RecordField(SignSurety,M4Int,0,0);
   RecordField(SignVekselis,M4Int,0,0);
 
+  RecordField(StateChangeDate,M4Date,0,0);
+  RecordField(StateChangeTime,M4Time,0,0);
+  RecordField(StateNotified,M4Int,0,0);
+  RecordField(CreatedDate,M4Date,0,0);
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -433,6 +457,16 @@ begin
   KeySegment(FactBuyer);
   KeySegment(endDate);
   KeySegment(SerNr);  
+
+  KeyBegin(OrderClassChange);
+  KeySegment(OrderClass);
+  KeySegment(StateChangeDate);
+  KeySegment(StateChangeTime);
+  KeySegment(SerNr);  
+  KeyBegin(CreatedDate);
+  KeySegment(CreatedDate);
+  KeySegment(SerNr);  
+
   EndRecordAdd;
 
   BlockBegin(OrderClassColorBlock,0,"");
@@ -652,12 +686,12 @@ begin
   EndArray;
   EndBlock;
 
-  RecordBegin(SMSReminderVc,-,"");
+  RecordBegin(SMSReminderVc,-,"");//this should be called MessageReminderVc
   RecordField(SerNr,M4Long,0,0);
   RecordField(Comment,M4Str,255,0);
+  RecordField(ReminderType,M4Set,2018,0);
   RecordField(Type,M4Set,2012,0);
   RecordField(Days,M4Long,0,0);
-  RecordField(Message,M4TextField,0,0);
   RecordField(Day1,M4Int,0,0);
   RecordField(Day2,M4Int,0,0);
   RecordField(Day3,M4Int,0,0);
@@ -675,6 +709,7 @@ begin
   RecordField(BankHolidays,M4Int,0,0);
   RecordFIeld(ActiveFlag,M4Int,0,0);
   RecordField(LastSentDate,M4Date,0,0);
+  RecordField(Message,M4TextField,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(ActiveFlag);
@@ -986,16 +1021,35 @@ begin
   RecordField(DocName,M4Str,255,0);
   RecordField(Math,M4Matrix,0,0);
   RecordField(DocName2,M4Str,255,0);
+  RecordField(LoanType,M4Int,0,0);
+  RecordField(LoanTypeStr,M4Str,255,0);
+  RecordField(MaxMonthlyPayment,M4Int,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(FormCode,M4Code,200,0);
+  ArrayField(DocNameRow,M4Str,255,0);
+  ArrayField(StandardTextList,M4UStr,255,0);
   EndArray;
   MainKeyBegin(DocName,0);
   KeySegment(DocName);
+  KeySegment(LoanType);
+  KeySegment(MaxMonthlyPayment);
+  EndRecord;
+
+  RecordBegin(FontWidthVc,-,"");
+  RecordField(Font,M4Str,255,0);
+  RecordField(Math,M4Matrix,0,0);
+  RecordField(DefWidth,M45Val,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Width,M45Val,0,0);
+  ArrayField(Chars,M4Str,255,0);
+  EndArray;
+  MainKeyBegin(Font,0);
+  KeySegment(Font);
   EndRecord;
 
   RecordBegin(AgreementDocVc,0,"");
   RecordField(SerNr,M4Long,0,0);
-  RecordField(CredManNr,M4Long,0,CredManVc);
+  RecordField(RecordNr,M4Long,0,CredManVc);
   RecordField(TransDate,M4Date,0,0);
   RecordField(TransTime,M4Time,0,0);
   RecordField(Type,M4Set,2017,0);
@@ -1005,10 +1059,20 @@ begin
   RecordField(SignedByUsDate,M4Date,0,0);
   RecordField(SignedByCustomerTime,M4Time,0,0);
   RecordField(SignedByUsTime,M4Time,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  RecordField(RecordType,M4Set,2019,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(CustCode,M4Code,20,CUVc);
+  ArrayField(CustName,M4Str,255,0);
+  ArrayField(Status,M4Set,2018,0);
+  ArrayField(SignatureDate,M4Date,0,0);
+  ArrayField(SignatureTime,M4Time,0,0);
+  EndArray;
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
-  KeyBegin(CredManNr);
-  KeySegment(CredManNr);
+  KeyBegin(RecordNr);
+  KeySegment(RecordNr);
+  KeySegment(RecordType);
   KeySegment(Type);
   KeySegment(SerNr);
   EndRecord;

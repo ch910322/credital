@@ -8,6 +8,8 @@ external inner procedure BitSafeBase64EncodeAnArea(var area);
 external inner function string 255 StrReplace(string,string,string);
 external inner function Boolean FindTheUser(var record UserVc);
 remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
+external function Boolean ContactShouldSeeDocument(record CredManVc,string,record AgreementDocVc);
+external function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc,string,record AgreementDocVc);
 
 procedure LogDokobit(area a,string fn)
 begin
@@ -82,7 +84,7 @@ LFileUploadedSuccessfully:;
   return;
 end;
 
-function Boolean OpenSigningSession(record SmartIDBlock SIb,string uploadtoken,string signerid,string signername,string signersurname,string signercode,string regname,Longint id,var string token,var string paysessionid,var string signertoken)
+function Boolean OpenSigningSession(record SmartIDBlock SIb,string uploadtoken,string signerid,string signername,string signersurname,string signercode,string regname,Longint id,var string token,var string paysessionid,var string signertoken,var string errstr)
 begin
   string 255 url,callback,returnurl;
   area request,reply;
@@ -113,6 +115,8 @@ begin
       res = true;
       token = JSONGet(js,"token");
       signertoken = JSONGet(js,"signers/" & signerid);
+    end else begin
+      errstr = JSONGet(js,"message");
     end;
   end;
 
@@ -120,7 +124,7 @@ begin
   return;
 end;
 
-function Boolean StartSigningRequest(string tmethod,var string link,area afile,string filename,string signerid,string signername,string signersurname,string signercode,string regname,Longint id,var string sessionid)
+function Boolean StartSigningRequest(string tmethod,var string link,area afile,string filename,string signerid,string signername,string signersurname,string signercode,string regname,Longint id,var string sessionid,var string errstr)
 begin
   string 255 method,token,sha1,url,uploadtoken,base64,signertoken;
   record SmartIDBlock SIb;
@@ -157,11 +161,13 @@ begin
     if (JSONGet(js,"status")=="ok") then begin
       uploadtoken = JSONGet(js,"token");
       if (FileUploadedSuccessfully(SIb,uploadtoken)) then begin
-        if (OpenSigningSession(SIb,uploadtoken,signerid,signername,signersurname,signercode,regname,id,token,sessionid,signertoken)) then begin
+        if (OpenSigningSession(SIb,uploadtoken,signerid,signername,signersurname,signercode,regname,id,token,sessionid,signertoken,errstr)) then begin
           link = "https://" & url & "/signing/" & token & "?access_token=" & signertoken & "&signing_option=" & method;// & method;
           //link = link & "&_locale=en";
           res = true;
         end;
+      end else begin
+        errstr = "Failed to upload document";
       end;
     end;
   end;
@@ -183,6 +189,28 @@ begin
     name = removenextlistitem(tmp,"/");
   end;
 
+  return;
+end;
+
+global
+function Boolean MarkCustomerAgreementDocSigned(record AgreementDocVc ADr,string custcode)
+begin
+  Integer i,rwcnt;
+  row AgreementDocVc ADrw;
+  Boolean res;
+  
+  rwcnt = MatRowCnt(ADr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ADr,i,ADrw);
+    if (ADrw.CustCode==custcode) then begin
+      ADrw.Status = 1;
+      MatRowPut(ADr,i,ADrw);
+      i = rwcnt;
+      res = true;
+    end;
+  end;
+
+  MarkCustomerAgreementDocSigned = res;
   return;
 end;
 
@@ -222,17 +250,22 @@ begin
                   RecordLinkFile(fn,0,LAr,CurrentCompany);
                   Delete_File(fn);
                 end;
+              case "AgreementDocVc2":
+                goto LAgreementDoc;
               case "AgreementDocVc":
+LAgreementDoc:;
                 ADr.SerNr = WPSr.RecordNr;
-               if (ReadFirstMain(ADr,1,true)) then begin
-                 fn = "Agreement_signed.pdf";
+                if (ReadFirstMain(ADr,1,true)) then begin
+                  fn = "Agreement_signed.pdf";
                   WriteAreaToFile(reply,fn,0);
                   RecordLinkFile(fn,0,ADr,CurrentCompany);
                   Delete_File(fn);
                   RecordCopy(oldADr,ADr);
-                  ADr.SignedByUs = 1;
-                  ADr.SignedByUsDate = CurrentDate;
-                  ADr.SignedByUsTime = CurrentTime;
+                  if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)==false) then begin
+                    ADr.SignedByUs = 1;
+                    ADr.SignedByUsDate = CurrentDate;
+                    ADr.SignedByUsTime = CurrentTime;
+                  end;
                   if (RecordUpdate(oldADr,ADr,true)==0) then begin
                     AllClientsRemoteAsync.DocumentSigningClientDone(WPSr.CustCode,ADr);
                   end;
@@ -253,10 +286,45 @@ begin
 end;
 
 global
+function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc LAr,record CUVc CUr,record AgreementDocVc tADr)
+begin
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  Boolean TrHs,res;
+  Integer i,rwcnt;
+   
+  TrHs = true;
+  ADr.RecordNr = LAr.SerNr;
+  ADr.RecordType = 1;
+  ADr.Type = 7;
+  while (LoopKey("RecordNr",ADr,3,TrHs)) begin
+    if (ADr.RecordNr!=LAr.SerNr or ADr.RecordType!=1 or ADr.Type!=7) then begin
+      TrHs = false;
+    end else begin
+      rwcnt = MatRowCnt(ADr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(ADr,i,ADrw);
+        if (ADrw.CustCode==CUr.Code) then begin
+          res = true;
+          RecordCopy(tADr,ADr);
+          i = rwcnt;
+          TrHs = false;
+        end;
+      end;
+    end;
+  end;
+
+  FindSuretyApplicationDoc = res;
+  return;
+end;
+
+global
 procedure DokobitActions(string action)
 begin
   string 255 link,base,errstr,name,surname,sessionid;
   record B2BLoanApplicationVc LAr;
+  record CredManVc CredManr;
+  record AgreementDocVc ADr;
   vector string 255 vSess;
   record CUVc CUr;
   Longint pos,fsz;
@@ -264,7 +332,7 @@ begin
   record Attach2Vc Attachr;
   record RLinkVc RLr;
   record WebNGPaySessionVc WPSr;
-  Boolean res,cufoundf;
+  Boolean res,cufoundf,showf;
   area post;
 
   switch (action) begin
@@ -273,35 +341,84 @@ begin
 
     case "start":
       //upload file and get upload session to use in the link
-      LoadLoanSession(vSess);
-      LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
-      if (ReadFirstMain(LAr,1,true)) then begin
-        if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
-          cufoundf = true;
-        end;
-        if (!cufoundf) then begin
-          RecordClear(CUr);
-          ResetLoop(CUr);
-          CUr.eMail = LAr.ContacteMail;
-          if (ReadFirstKey("eMail",CUr,1,true)) then begin
-            if (CUr.Name==LAr.ContactName) then begin
+      switch (WebGetArg("rectype")) begin
+        case "agreementdoc":
+          ADr.SerNr = StringToLongint(WebGetArg("id"));
+          if (ReadFirstMain(ADr,1,true)) then begin
+            switch (ADr.Type) begin
+              case 7:
+                LAr.SerNr = ADr.RecordNr;
+                if (ReadFirstMain(LAr,1,true)) then begin
+                  if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
+                    showf = true;
+                  end;
+                end;
+
+              otherwise
+                CredManr.SerNr = ADr.RecordNr;
+                if (ReadFirstMain(CredManr,1,true)) then begin
+                  if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
+                    showf = true;
+                  end;
+                end;
+            end;
+            if (showf) then begin
+              CUr.Code = CUrrentCust;
+              if (ReadFirstMain(CUr,1,true)) then begin
+                GetNextSubstring(CUr.Name,pos," ",name);
+                GetNextSubstring(CUr.Name,pos," ",surname);
+                if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+                  fsz = AttachFileSize(Attachr);
+                  LoadAttachFilePartToArea(Attachr,0,fsz,afile);
+                  if (StartSigningRequest("stationary",link,afile,Attachr.FileName,CurrentCust,name,surname,CUr.RegNr1,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
+                    //errstr = "Failed to initiate signing";
+                  end else begin
+                    res = true;
+                  end;
+                end else begin
+                  errstr = "Failed to find a document";
+                end;
+              end;
+            end;
+ 
+          end;
+        otherwise
+          LoadLoanSession(vSess);
+          LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+          if (ReadFirstMain(LAr,1,true)) then begin
+            if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
               cufoundf = true;
             end;
-          end;
-        end;
-        if (cufoundf) then begin
-          GetNextSubstring(CUr.Name,pos," ",name);
-          GetNextSubstring(CUr.Name,pos," ",surname);
-          if (ReadRecordLink(LAr,1,Attachr,RLr)) then begin
-            fsz = AttachFileSize(Attachr);
-            LoadAttachFilePartToArea(Attachr,0,fsz,afile);
-            if (StartSigningRequest(WebGetArg("method"),link,afile,"Agreement.pdf",CUr.Code,name,surname,CUr.RegNr1,"B2BLoanApplicationVc",LAr.SerNr,sessionid)==false) then begin
-              errstr = "Failed to initiate signing";
+            if (!cufoundf) then begin
+              RecordClear(CUr);
+              ResetLoop(CUr);
+              CUr.eMail = LAr.ContacteMail;
+              if (ReadFirstKey("eMail",CUr,1,true)) then begin
+                if (CUr.Name==LAr.ContactName) then begin
+                  cufoundf = true;
+                end;
+              end;
+            end;
+            if (cufoundf) then begin
+              if (FindSuretyApplicationDoc(LAr,CUr,ADr)) then begin
+                GetNextSubstring(CUr.Name,pos," ",name);
+                GetNextSubstring(CUr.Name,pos," ",surname);
+                if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+                  fsz = AttachFileSize(Attachr);
+                  LoadAttachFilePartToArea(Attachr,0,fsz,afile);
+                  if (StartSigningRequest(WebGetArg("method"),link,afile,Attachr.FileName,CUr.Code,name,surname,CUr.RegNr1,"AgreementDocVc2",ADr.SerNr,sessionid,errstr)==false) then begin
+                    //errstr = "Failed to initiate signing";
+                  end else begin
+                    res = true;
+                  end;
+                end;
+              end else begin
+                errstr = "Failed to find document";
+              end;
             end else begin
-              res = true;
+              errstr = "Failed to find customer";
             end;
           end;
-        end;
       end;
       WebOutString("<res err='" & errstr & "' link='" & link & "' session='" & sessionid & "' stat='" & res & "'></res>");
     case "callback":
@@ -311,23 +428,24 @@ begin
       //from dokobit
     case "proceed":
       //to check the signing
-      LoadLoanSession(vSess);
-      LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
-      if (ReadFirstMain(LAr,1,true)) then begin
-        WPSr.UUID = WebGetArg("session");
-        if (ReadFirstMain(WPSr,1,true)) then begin
-          if (WPSr.Status== 10+kCCStatusPaymentOK) then begin
-            res = true;
-          end;
+      WPSr.UUID = WebGetArg("session");
+      if (ReadFirstMain(WPSr,1,true)) then begin
+        if (WPSr.Status== 10+kCCStatusPaymentOK) then begin
+          res = true;
+        end;
+        switch (WPSr.PayMentDesc) begin
+          case "AgreementDocVc":
+            WebOutString("<res stat='" & res & "'></res>");
+          otherwise
+            base = GetLinkToLoanApp;
+            if (res) then begin
+              link = base & "4";
+            end else begin
+              link = base & "3";
+            end;
+            WebOutString("<res stat='" & res & "' link='" & link & "'></res>");
         end;
       end;
-      base = GetLinkToLoanApp;
-      if (res) then begin
-        link = base & "4";
-      end else begin
-        link = base & "3";
-      end;
-      WebOutString("<res stat='" & res & "' link='" & link & "'></res>");
   end;
 
   return;
@@ -342,7 +460,7 @@ begin
   record CredManVc CredManr;
   Longint fsz;
   area afile;
-  string 255 sessionid,name,surname;
+  string 255 sessionid,name,surname,errstr;
   Longint pos;
   Boolean res;
   
@@ -353,7 +471,7 @@ begin
     if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
       fsz = AttachFileSize(Attachr);
       LoadAttachFilePartToArea(Attachr,0,fsz,afile);
-      if (StartSigningRequest("stationary",link,afile,Attachr.FileName,CurrentUser,name,surname,Userr.IDCode,"AgreementDocVc",ADr.SerNr,sessionid)==false) then begin
+      if (StartSigningRequest("stationary",link,afile,Attachr.FileName,CurrentUser,name,surname,Userr.IDCode,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
         //errstr = "Failed to initiate signing";
       end else begin
         res = true;

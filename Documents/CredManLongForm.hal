@@ -1,0 +1,784 @@
+//<halrule>server-only</halrule>
+external inner function roundmode SetRoundMOdeD(integer);
+external inner procedure GetFieldArgument(record DocVc,Integer,var string);
+external inner function Boolean FindFormcode(Integer,Integer);
+external inner procedure CommonDocumentFields(record RcVc);
+external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
+external inner procedure GetLangNr(string,var record LangNrVc);
+external inner function Integer InString2(string,string);
+
+function boolean InString9(string instr,string sstr)
+begin
+  integer l,i;
+  boolean res;
+
+  l = len(instr);
+  res = false;
+  for (i = 0; i < l;i = i + 1) begin
+    if (mid(instr,i,1)==sstr) then begin
+      i = l;
+      res = true;
+    end;
+  end;
+
+  InString9 = res;
+  return;
+end;
+
+function string 200 GetTagFieldName(string tagstr,integer colnr)
+begin
+  string 200 res;
+
+  res = "F_COTEXT" & "_" & colnr;
+  switch tagstr begin
+    case "b": res = "F_COTEXTB" & "_" & colnr;
+    case "i": res = "F_COTEXTI" & "_" & colnr;
+    case "bi": res = "F_COTEXTBI" & "_" & colnr;
+    case "li": res = "F_COTEXTLI" & "_" & colnr;
+    case "h1": res = "F_COTEXTH1" & "_" & colnr;
+  end;
+
+  GetTagFieldName = res;
+  return;
+end;
+
+function integer GetFieldCharLimit(record DocVc Docr,string fieldname,var val fsize,var string fontused)
+begin
+  record StyleVc Styler;
+  row DocVc Docrw;
+  integer rw,rwc;
+  integer res;
+  integer boldadj;
+  val v,v2;
+
+  rwc = matRowCnt(Docr);
+  res = 10;
+  for (rw = 0; rw < rwc; rw = rw + 1) begin
+    MatRowGet(Docr,rw,Docrw);
+    if (Docrw.unitText==fieldname) then begin
+      Styler.Code = Docrw.unitStyle;
+      if (ReadfirstMain(Styler,1,false)) then begin
+        fsize = Styler.PdfSize;
+        if (blank(fontused)) then begin
+          if (nonblank(Styler.PdfFontFile)) then begin
+            fontused = Styler.PdfFontFile;
+          end;
+          if (blank(fontused) and nonblank(Styler.PdfFont)) then begin
+            fontused = Styler.PdfFont;
+          end;
+        end;
+        if (Styler.WinFace==1) then begin
+          fsize = fsize * 1.07;
+        end;
+     /*
+       if (Styler.WinFace==1) then begin
+         boldadj = Styler.WinSize/4;
+       end;
+       v = Styler.WinSize+boldadj;
+       v2 = v*v/100;
+       if (v2 > 2) then begin v2 = 2; end;
+       v = v / (3-v2);
+       res = (Docrw.unitWidth-Docrw.xpos)/v;
+       */
+        res = Docrw.unitWidth-Docrw.xpos;
+      end;
+    end;
+  end;
+  //res = 450;
+  //res = res*0.75;
+  GetFieldCharLimit = res;
+  return;
+end;
+
+procedure JustifyString(var string res,integer curl,integer chrlimit,var integer adjlen,val spacew,val fsize)
+begin
+  integer i,l,cnt,added,sl;
+  string 20 toadd;
+  integer scnt;
+  integer prevpos;
+  boolean foundchar;
+  val w,w2;
+  w = spacew*fsize/8;//*0.8;
+
+  if (chrlimit-curl)/w>0.7 then begin
+    l = len(res);
+    w2 = chrlimit-curl;
+    cnt = w2/w;
+    //count number of spaces
+    for (i = 0; i < l;i = i + 1) begin
+      if (mid(res,i,1)==" ") then begin
+        scnt = scnt + 1;
+      end;
+    end;
+   //trace(res,len(res) & " " & cnt);
+    if (scnt > 0) then begin
+      prevpos = 0;
+      while (cnt>0) begin
+        foundchar = false;
+        for (i = l-2; i >=0;i = i - 1) begin
+
+          if (cnt > 0 and mid(res,i,1)==" " and mid(res,i-1,1)<>" ") then begin
+            res = left(res,i+1) & " " & right(res,l-i-1);
+            adjlen = adjlen-1;
+            l = l + 1;
+            i = i - 1;
+            cnt = cnt - 1;
+            foundchar = true;
+          end;
+        end;
+        if !foundchar then begin
+          cnt= 0;
+        end;
+      end;
+    end;
+  end;
+
+
+return;
+end;
+
+function integer GetTextPixels(string tstr,val size,vector val vLetL,val defw)
+begin
+  //vector val vLetL;
+  val res;
+  integer i,l;
+  val w1,w2,w3;//defw
+  val w,tmp;
+  val defw1,defw2,defw3,defw4,defw5,srat,charsize;
+  string 255 charset1,charset2,charset3;
+/*
+  defw = 4;
+  defw1 = 3;
+  defw2 = 6.7;
+  defw3 = 1.9;
+  defw4 = 4.5;
+  defw5 = 2.8;
+  vLetL[";"] = defw1;
+  vLetL[")"] = defw1;
+  vLetL["("] = defw1;
+  vLetL["r"] = defw1;
+  vLetL["t"] = defw1;
+  vLetL[""""] = defw1;
+  vLetL["'"] = defw1;
+  vLetL["-"] = defw1;
+  vLetL["?"] = defw1;
+  vLetL["m"] = defw2;
+  vLetL["w"] = defw2;
+  vLetL["!"] = defw3;
+  vLetL["."] = defw5;
+  vLetL[","] = defw5;
+
+  vLetL["l"] = defw3;
+  vLetL["i"] = defw3;
+  vLetL["j"] = defw3;
+  vLetL["?"] = defw3;
+
+  vLetL["a"] = defw4;
+  vLetL["?"] = defw4;
+  vLetL["b"] = defw4;
+  vLetL["d"] = defw4;
+  vLetL["e"] = defw4;
+  vLetL["?"] = defw4;
+  vLetL["g"] = defw4;
+  vLetL["?"] = defw4;
+  vLetL["h"] = defw4;
+  vLetL["n"] = defw4;
+  vLetL["?"] = defw4;
+  vLetL["o"] = defw4;
+  vLetL["p"] = defw4;
+  vLetL["u"] = defw4;
+  vLetL["?"] = defw4;
+
+  vLetL["f"] = defw5;
+  vLetL[" "] = defw5;
+*/
+  l = Len(tstr);
+  for (i = 0; i <l; i = i + 1) begin
+    w = vLetL[ASC(mid(tstr,i,1))];
+    if (w==0) then begin
+      logtext(0,"char not found " & asc(mid(tstr,i,1)) & ":" & mid(tstr,i,1));
+    end;
+    if (w==0) then begin
+      w = defw;
+    end;
+/*
+    if (asc(mid(tstr,i,1))>=64 and asc(mid(tstr,i,1))<=90) then begin
+      w = w + 3;
+      if (mid(tstr,i,1)=="L") then begin w = w + 1; end;
+    end;
+*/  
+    //logtext(0,"w = " & w & ",size=" & size);
+    tmp = 8;
+    srat = (size/tmp);
+    charsize = srat*w;
+    res  = res + charsize ;
+  end;
+//  res = res + 18;
+
+
+  GetTextPixels = res;
+  return;
+end;
+
+function string 255 OutputToNextFormat(var string tstr,var boolean newlinef,var boolean toPrintf,var string toPrintString,var string tagname,var integer chrlimit,var integer tocutlen,record DocVc Docr,integer colnr,var val fsize,vector val vLetl,val defw,val spacew)
+begin
+  string 255 res,fontused;
+  integer i,l,laststop,tagstart,tagdatastart,adjlen;
+  boolean findtagend,tagdataf;
+  integer curl,prevchar,curchar;
+
+  l = len(tstr);
+  laststop = 0;
+  findtagend = false;
+  adjlen =0;
+  tocutlen = 0;
+  tagdataf = false;
+  for (i = 0; i < l; i = i + 1) begin
+LTryAgainRow:;
+    curchar = asc(mid(tstr,i,1));
+    if (asc(mid(tstr,i,1))==9) then begin
+      tstr = left(tstr,i) & right(tstr,l-i-1);
+      l = l - 1;
+      tocutlen = tocutlen + 1;
+      goto LTryAgainRow;
+    end;
+    if ((prevchar==13 and curchar==10) or (prevchar==10 and curchar==13)) then begin
+      tstr = left(tstr,i) & right(tstr,l-i-1);
+      l = l - 1;
+      tocutlen = tocutlen + 1;
+      goto LTryAgainRow;
+    end;
+
+    if (tagdatastart>0) then begin
+      res = mid(tstr,tagdatastart,i-tagdatastart);
+    end else begin
+      res = left(tstr,i);
+    end;
+    if (mid(tstr,i,1)==" " or mid(tstr,i,1)=="<" or curchar==13 or curchar==10 or laststop==0) then begin
+      curl = GetTextPixels(res,fsize,vLetl,defw);
+      if (curl>=chrlimit) then begin
+        if (laststop>0) then begin
+          i = laststop+1;
+        end;
+        toPrintf = true;
+        newlinef = true;
+        if (tagdatastart>0) then begin
+          res = mid(tstr,tagdatastart,i-tagdatastart);
+        end else begin
+          res = left(tstr,i);
+        end;
+        curl = GetTextPixels(res,fsize,vLetl,defw);
+        JustifyString(res,curl,chrlimit,adjlen,spacew,fsize);
+        tocutlen = tocutlen + adjlen;
+        toPrintString = toPrintString & res;
+        i = l;
+        Goto LExitRow;
+      end;
+    end;
+    if (curchar==13 or curchar==10) then begin
+      newlinef = true;
+      res = left(tstr,i);
+      toPrintString = toPrintString & res;
+      res = res & " ";
+      toPrintf = true;
+      i = l;
+      Goto LExitRow;
+    end;
+    if (mid(tstr,i,1)=="<" and i<>0) then begin
+
+      if (tagdatastart<0) then begin
+        tagdatastart = 0;
+      end;
+
+      res = mid(tstr,tagdatastart,i-tagdatastart);
+      tocutlen = tocutlen + adjlen;
+      toPrintString = toPrintString & res;
+      toPrintf = true;
+      i = l;
+      Goto LExitRow;
+    end;
+    if (mid(tstr,i,1)=="<" and i==0) then begin
+      findtagend = true;
+      tagstart = i+1;
+    end;
+    if (mid(tstr,i,1)==">" and findtagend) then begin
+      tagname = mid(tstr,tagstart,i-tagstart);
+      adjlen = adjlen + i-tagstart+2;
+      if (left(tagname,1)=="/") then begin
+        res = mid(tstr,tagdatastart,i-len(tagname)-tagdatastart-3);
+        curl = GetTextPixels(res,fsize,vLetl,defw);
+        JustifyString(res,curl,chrlimit,adjlen,spacew,fsize);
+        tocutlen = tocutlen + adjlen;
+        tagname = "";
+        toPrintString = toPrintString & res;
+        if (asc(mid(tstr,i+1,1))==13 or asc(mid(tstr,i+1,1))==10) then begin
+          newlinef = true;
+        end;
+        toPrintf = true;
+        i = l;
+        chrlimit = GetFieldCharLimit(Docr,GetTagFieldName("",1),fsize,fontused);
+
+        Goto LExitRow;
+      end else begin
+        chrlimit = GetFieldCharLimit(Docr,GetTagFieldName(tagname,colnr),fsize,fontused);
+        tagdatastart = i+1;
+        tagdataf = true;
+      end;
+    end;
+    if (mid(tstr,i,1)==" ") then begin
+      laststop = i;
+    end;
+LExitRow:;
+    prevchar = curchar;
+  end;
+  if (i==l) then begin
+    toPrintf = true;
+    res = left(tstr,i);
+    toPrintString = toPrintString & res;
+  end;
+
+  OutputToNextFormat = res;
+  return;
+end;
+
+procedure PrintOneTextRow(record DocVc Docr,boolean Toprintf,var string toPrintString,var string PrintToField,string tagname,var integer chrlimit,var boolean Bulletprinted,integer colnr)
+begin
+  string 255 argstr,fontused;
+  val fsize;
+
+  if (toPrintf) then begin
+    PrintToField = GetTagFieldName(tagname,colnr);
+    chrlimit = GetFieldCharLimit(Docr,PrintToField,fsize,fontused);
+ //   LogText(0,toPrintString);
+    OUTFORMFIELD(PrintToField,toPrintString);
+    toPrintString = "";
+    if (tagname=="li") then begin
+      if (!Bulletprinted) then begin
+        if (colnr==1) then begin
+          GetFieldArgument(Docr,F_MODEL1,argstr);
+          OUTFORMFIELD("F_MODEL1",argstr);
+          Bulletprinted = true;
+        end;
+        if (colnr==2) then begin
+          GetFieldArgument(Docr,F_MODEL2,argstr);
+          OUTFORMFIELD("F_MODEL2",argstr);
+          Bulletprinted = true;
+        end;
+      end;
+    end else begin
+      Bulletprinted = false;
+    end;
+  end;
+
+  return;
+end;
+
+function string 200 GetFirstItem(var string itemlist)
+begin
+  string 200 res,tnewlist;
+  integer i,l;
+
+  res = itemlist;
+  l = len(itemlist);
+  tnewlist = "";
+  for (i = 0; i < l;i = i + 1) begin
+    if (mid(itemlist,i,1)==",") then begin
+      res = left(itemlist,i);
+      tnewlist = right(itemlist,l-i-1);
+      i = l;
+    end;
+  end;
+  itemlist= tnewlist;
+
+  GetFirstItem = res;
+  return;
+end;
+
+procedure ReFillWithRecordFields(record RCVc RepSpec,var record LTxtVc Ltxtr,record CredManVc CredManr,record B2BLoanApplicationVc LAr)
+begin
+  record CUVc Cur,SCUr;
+  integer sp,ep,i,j,l,lcnt;
+  string 30 fn;
+  string 255 tstr,tstr2;
+  record LTxtVc Ltxt2r;
+  record BankVc Bankr;
+  longint textsize,pos;
+  boolean printf;
+
+  recordNew(Ltxt2r);
+  Ltxt2r.Code = Ltxtr.Code;
+  textsize = SizeTextCnt(LTxtr);
+  pos = 0;
+  Cur.Code = CredManr.CustCode;
+  ReadFirstMain(Cur,1,true);
+  Bankr.Code= Cur.AccOperator;
+  ReadFirstMain(Bankr,1,true);
+  if (nonblank(RepSpec.f10)) then begin
+    SCUr.Code = RepSpec.f10;
+    ReadFirstMain(SCUr,1,true);
+  end;
+  while (pos < textsize) begin
+    tstr =  StringFromText(LTxtr,pos,200);
+    l = len(tstr);
+    j = 0;
+    for (i = l-1; i > 0; i = i - 1) begin
+      j = j + 1;
+      if (j > 20) then begin
+        i = 0;
+        Goto LSkipRow;
+      end;
+      if (mid(tstr,i,1)=="]" or mid(tstr,i,1)==">" or mid(tstr,i,1)=="<" or mid(tstr,i,1)=="," or mid(tstr,i,1)==".") then begin
+        i = 0;
+        Goto LSkipRow;
+      end;
+      if (mid(tstr,i,1)=="[") then begin
+        tstr = left(tstr,i);
+        i = 0;
+        Goto LSkipRow;
+      end;
+      LSkipRow:;
+    end;
+    pos = pos + Len(tstr);
+    sp = -1;
+    ep = -1;
+    l = len(tstr);
+    for (j = 0; j < l; j = j + 1) begin
+      if (asc(mid(tstr,j,1))==9) then begin
+        tstr = left(tstr,j) & "     " & right(tstr,l-j-1);
+        j = j + 4;
+        l = l + 4;
+      end;
+      if (mid(tstr,j,1) == "[") then begin
+        sp = j+1;
+        ep = -1;
+      end;
+      if (mid(tstr,j,1) == "]") then begin
+        ep = j-1;
+      end;
+      if (ep > -1 and sp > -1) then begin
+        fn = mid(tstr,sp,ep-(sp-1));
+        tstr2 = tstr;
+        printf = false;
+        if (fn=="CurrentDate") then begin
+          tstr = left(tstr,sp-1) & DateToString(CurrentDate,"DD.MM.YYYY") & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (left(fn,5)=="CUVc:") then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(Cur,right(fn,len(fn)-5),-1) & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (left(fn,8)=="SignCUr:") then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(SCur,right(fn,len(fn)-8),-1) & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (left(fn,7)=="BankVc:") then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(Bankr,right(fn,len(fn)-7),-1) & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (left(fn,7)=="B2BLoanApplicationVc:") then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(LAr,right(fn,len(fn)-7),-1) & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (!printf) then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(CredManr,fn,-1) & right(tstr,l-j-1);
+        end;
+
+        l = len(tstr);
+        j = j + len(tstr)-len(tstr2);
+        sp = -1;
+        ep = -1;
+      end;
+    end;
+    AddToText(tstr,Ltxt2r);
+  end;
+  RecordCopy(Ltxtr,Ltxt2r);
+
+  return;
+end;
+
+function integer GetDocHeight(record DocVc Docr)
+begin
+  row DocVc Docrw;
+  integer rw,rwc,res1,res2,t;
+
+  rwc = MatRowCnt(Docr);
+
+  for (rw = 0; rw < rwc; rw = rw + 1) begin
+    MatROwGet(Docr,rw,Docrw);
+    if (Docrw.unitText=="+") then begin
+      if (res1==0) then begin
+        res1 = Docrw.ypos;
+      end else begin
+        res2 = Docrw.ypos;
+      end;
+    end;
+  end;
+  if (res1>res2) then begin
+    t = res2;
+    res2 = res1;
+    res1 = t;
+  end;
+  if (res2==0) then begin res2 = 700; end;
+
+  GetDocHeight = res2-res1;
+  return;
+end;
+
+procedure LoadFontWidth(string font,var vector val vLetL,var val defw,var val spacew)
+begin
+  record FontWidthVc FWr;
+  row FontWidthVc FWrw;
+  Integer i,rwcnt;
+  Longint pos;
+  string 255 tstr;
+  
+  FWr.Font = font;
+  if (ReadFirstMain(FWr,1,true)) then begin
+    defw = FWr.DefWidth;
+    rwcnt = MatRowCnt(FWr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(FWr,i,FWrw);
+      pos = -1;
+      while (GetNextSubstring(FWrw.Chars,pos,",",tstr)) begin
+        vLetL[ASC(tstr)] = FWrw.Width;
+        if (tstr==" ") then begin
+          spacew = FWrw.Width;
+        end;
+        if (tstr=="comma") then begin
+          vLetL[ASC(",")] = FWrw.Width;
+        end;
+      end;
+    end;
+  end;
+  vLetL[10] = 0.0001;
+
+  return;
+end;
+
+procedure PrintCredManLongForm(record RcVc RepSPec,record CredManVc CredManr,record B2BLoanApplicationVc LAr,string formcode,record SysFormatBlock SysFormatRec,record LangNrVc LangNrr,string printer)
+begin
+  record INVc INr;
+  record DocVc Docr;
+  row DocVc Docrw;
+  record LTxtVc LTxtr,LTxt2r;
+  integer rcnt,lbls;
+  integer rwc,rw,size,textsize,pos,tocutlen,chrlimit,i,rwcnt,lheight;
+  integer pos2,textsize2,xcnt,chrlimit2,ysize;
+  string 255 tstr,tstr2;
+  boolean newlinef,toPrintf,BulletPrinted,Bulletprinted2;
+  string 255 toPrintString,PrintToField,tagname;
+  string 255 toPrintString2,PrintToField2,tagname2,argstr;
+  integer pagenr;
+  integer xsize;
+  integer height;
+  string 200 comark,fontused;
+  val fsize,fsize2;
+  vector val vLetL;
+  val defw,spacew;
+  
+  Docr.Code = formcode;
+  readFirstMain(Docr,1,true);
+  xcnt = 1;
+  if (RepSpec.f3<>"") then begin
+    xcnt = 2;
+  end;
+  ysize = Docr.nrOfMatrixLinesFirst;
+  height = GetDocHeight(Docr);
+  xsize = 580/xcnt;
+  lheight = Round(1.00*height/ysize+1,SetRoundMOdeD(2));
+ // if (lheight * ysize > height) then begin lheight = lheight - 1; end;
+  lbls = ysize * xcnt;
+
+  FormLabelGrid(xcnt,xsize,ysize,lheight);
+
+  LTxtr.Code = GetFirstItem(RepSpec.f2);;
+  rcnt = 0;
+  PrintToField = GetTagFieldName("",1);
+  PrintToField2 = GetTagFieldName("",1);
+  chrlimit = GetFieldCharLimit(Docr,PrintToField,fsize,fontused);
+  chrlimit2 = GetFieldCharLimit(Docr,PrintToField2,fsize2,fontused);
+  LoadFontWidth(fontused,vLetL,defw,spacew);
+  pagenr = 1;
+  if (ReadFirstMain(Ltxtr,1,true)) then begin
+    ReFillWithRecordFields(RepSpec,Ltxtr,CredManr,LAr);
+    textsize = SizeTextCnt(LTxtr);
+    while (pos < textsize or pos2 < textsize2) begin
+      //LogText(0,pos & " < " & textsize & " and " & pos2 & " < " & textsize2);
+      tstr = StringFromText(LTxtr,pos,255);
+      newlinef = false;
+      toPrintf = false;
+      tocutlen = 0;
+      tstr = OutputToNextFormat(tstr,newlinef,toPrintf,toPrintString,tagName,chrlimit,tocutlen,Docr,1,fsize,vLetL,defw,spacew);
+      PrintOneTextRow(Docr,toprintf,toPrintString,PrintToField,tagname,chrlimit,Bulletprinted,1);
+      pos = pos + len(tstr)+tocutlen;
+      if (len(tstr)==0 and pos < textsize) then begin
+        pos = pos + 1;
+      end;
+      if (pos>=textsize) then begin
+        pos = 0;
+        textsize = 0;
+        if (RepSpec.f2<>"") then begin
+          LTxtr.Code = GetFirstItem(RepSpec.f2);
+          if (ReadFirstmain(LTxtr,1,true)) then begin
+            ReFillWithRecordFields(RepSpec,Ltxtr,CredManr,LAr);
+            pos = 0;
+            textsize = SizeTextCnt(LTxtr);
+          end;
+        end;
+      end;
+      if (newlinef or textsize==0) then begin
+        EndFormLabel;
+        rcnt = rcnt + 1;
+        if (rcnt >= lbls) then begin
+          OUTFORMFIELD("PAGENR",pagenr);
+          rwcnt = MatRowCnt(Docr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(Docr,i,Docrw);
+            if (Docrw.fieldSetNr==0) then begin
+              OUTFORMFIELD(Docrw.unitText,Docrw.unitText);
+            end;
+          end;    
+          CloseForm;
+          if (OpenForm(formcode)==false) then begin goto LDoFormPrint; end;
+          pagenr = pagenr + 1;
+          OUTFORMFIELD("PAGENR",pagenr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(Docr,i,Docrw);
+            if (Docrw.fieldSetNr==0) then begin
+              OUTFORMFIELD(Docrw.unitText,Docrw.unitText);
+            end;
+          end;    
+          SetPrinter(printer);
+          FormLabelGrid(xcnt,xsize,ysize,lheight);
+          CommonDocumentFields(RepSpec);
+          rcnt = 0;
+          EndFormLabel;  rcnt = rcnt + 1;
+          EndFormLabel;  rcnt = rcnt + 1;
+        end;
+      end;
+    end;
+  end;
+
+LDoFormPrint:;
+  return;
+end;
+
+global
+procedure DoCredManLongForm(record RcVc RepSpec,record CredManVc CredManr)
+BEGIN
+  record SysFormatBlock SysFormatRec;
+  record CUVc CUr;
+  Integer i,rwcnt;
+  val t;
+  record DocVc Docr;
+  record LangNrVc LangNrr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record B2BLoanApplicationVc LAr;
+
+  langcode = "";
+  intdocnr = 1;
+  printf = true;
+  while (printf) begin
+    if (nonblank(RepSpec.f12)) then begin
+      formcode = RepSpec.f12;
+      printf = false;
+    end;
+LBREAK:;
+    if (nonblank(formcode)) then begin
+      if (OpenForm(formcode)) then begin
+        PrintCredManLongForm(RepSPec,CredManr,LAr,formcode,SysFormatRec,LangNrr,"");
+        CloseForm;
+      end else begin
+        printf = false;
+        MessageBox(1546,formcode);
+      end;
+    end else begin
+      printf = false;
+      if (intdocnr==1) then begin
+        MessageBox(1624, " " & USetStr(1623));
+      end;
+    end;
+    intdocnr = intdocnr + 1;
+  end;
+LDoHWContractForm:;
+
+  RETURN;
+END;
+
+global
+procedure DoLoanAppLongForm(var record RcVc RepSpec,record B2BLoanApplicationVc LAr)
+BEGIN
+  record SysFormatBlock SysFormatRec;
+  record CUVc CUr;
+  Integer i,rwcnt;
+  val t;
+  record DocVc Docr;
+  record LangNrVc LangNrr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record CredManVc CredManr;
+
+
+  langcode = "";
+  intdocnr = 1;
+  printf = true;
+  while (printf) begin
+    if (nonblank(RepSpec.f12)) then begin
+      formcode = RepSpec.f12;
+      printf = false;
+    end;
+LBREAK:;
+    if (nonblank(formcode)) then begin
+      if (OpenForm(formcode)) then begin
+        PrintCredManLongForm(RepSPec,CredManr,LAr,formcode,SysFormatRec,LangNrr,"");
+        RepSpec.MultiPageJob = 0;
+        CloseForm;
+      end else begin
+        printf = false;
+        MessageBox(1546,formcode);
+      end;
+    end else begin
+      printf = false;
+      if (intdocnr==1) then begin
+        MessageBox(1624, " " & USetStr(1623));
+      end;
+    end;
+    intdocnr = intdocnr + 1;
+  end;
+LDoHWContractForm:;
+
+  RETURN;
+END;
+
+
+global
+procedure DoEmptyPageForm(record RcVc RepSpec,record RcVc DummyRepSpec)
+BEGIN
+  record SysFormatBlock SysFormatRec;
+  record CUVc CUr;
+  Integer i,rwcnt;
+  val t;
+  record DocVc Docr;
+  record LangNrVc LangNrr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record CredManVc CredManr;
+
+
+  langcode = "";
+  intdocnr = 1;
+  printf = true;
+    //if (nonblank(formcode)) then begin
+      if (OpenForm(RepSpec.f12)) then begin
+        CloseForm;
+      end;
+    //end;
+LDoHWContractForm:;
+
+  RETURN;
+END;
+

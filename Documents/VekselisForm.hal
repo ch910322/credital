@@ -3,7 +3,8 @@ external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure OutAddress(string,string,string,string,string,string,string);
 external inner procedure ValToText(val,Integer,string,string,var string);
-external inner function Boolean FindCustomerRelation(string,string,var record CUVc);
+external inner function Boolean FindCustomerRelationCred(string,string,var record CUVc);
+external inner procedure PrintCurrencyCode(string,string);
 
 procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
 begin
@@ -37,6 +38,7 @@ BEGIN
   record UserVc Userr;
   string 255 name,phone,email,id,addr0,addr1,addr2,addr3,addr4,mobile;
   Integer surety;
+  record CYBlock CYb;
     
   FDr.repname = RepSpec.repname;
   FDr.shortname = RepSpec.shortname;
@@ -104,7 +106,7 @@ LBREAK:;
         OUTFORMFIELD("F_CONTACT3ID",id)
         OUTFORMFIELD("F_CONTACT3ADRESS",addr0);
 
-        if (FindCustomerRelation(CredManr.CustCode,CredManr.ClientContact,CUr)) then begin
+        if (FindCustomerRelationCred(CredManr.CustCode,CredManr.ClientContact,CUr)) then begin
           OUTFORMFIELD("F_ATTNAME",CUr.Name)
           OUTFORMFIELD("F_ATTID",CUr.RegNr1)
         end;
@@ -112,9 +114,13 @@ LBREAK:;
         if (ReadFirstMain(tCUr,1,true)) then begin
           OUTFORMFIELD("F_CUSTNAME",tCUr.Name)
           OUTFORMFIELD("F_CUSTID",tCUr.RegNr1)
+          OutAddress("F_ADRESS",tCUr.Name,tCUr.InvAddr0,tCUr.InvAddr1,tCUr.InvAddr2,tCUr.InvAddr3,tCUr.InvAddr4);
         end;
-        
+
+        BlockLoad(CYb);
         OUTFORMFIELD("F_AGREEMENTDATE",CredManr.TransDate);
+        PrintCurrencyCode("F_VALUTA",CredManr.CurncyCode);
+        OUTFORMFIELD("F_ORT",CYb.Addr3);
 
         OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
         if (FIELDINFORM("F_TOTSUMINTEXT")) then begin

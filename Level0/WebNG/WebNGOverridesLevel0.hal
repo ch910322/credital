@@ -12,6 +12,29 @@ begin
   return;
 end;
 
+function Boolean CustomerHasMultipleComps(string custcode)
+begin
+  Boolean res,TrHs;
+  record ContactRelVc CRr;
+  Integer cnt;
+
+  TrHs = true;
+  CRr.ContactCode = custcode;
+  while (LoopKey("ContactCode",CRr,1,TrHs)) begin
+    if (CRr.ContactCode!=custcode) then begin
+      TrHs = false;
+    end else begin
+      cnt = cnt + 1;
+      if (cnt>1) then begin
+        TrHs = false;
+        res = true;
+      end;
+    end;
+  end;
+
+  CustomerHasMultipleComps = res;
+  return;
+end;
 
 global
 function string 255 GetLinkToMyAccount()
@@ -21,7 +44,13 @@ begin
 
   WSr.Type = 201;
   if (ReadFirstKey("Type",WSr,1,true)) then begin
-   res = GetLinkToStruct(WSr.SerNr,false) & "profile";
+    res = GetLinkToStruct(WSr.SerNr,false);
+  end;
+
+  if (CustomerHasMultipleComps(CurrentCust)) then begin
+    res = res & "profile";
+  end else begin
+    res = res & "contracts";        
   end;
 
   GetLinkToMyAccount = res;
@@ -35,5 +64,37 @@ begin
 
   PutSessionString("WebActCustCode","");
 
+  return;
+end;
+
+global
+function string 255 GetMainCustomerCodeFromContact(string contactcode)
+begin
+  record ContactRelVc CRr;
+  record CUVc CUr;
+  string 255 res;
+  
+  res = "";
+  if (nonblank(contactcode)) then begin
+    CUr.Code = contactcode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      if ((CUr.CUType==0 and CUr.VEType==0 and CUr.GuestType==0 and CUr.DealerType==0)) then begin
+        CRr.ContactCode = contactcode;
+        if (LoopKey("ContactCode",CRr,1,true)) then begin
+          if (CRr.ContactCode==contactcode) then begin
+            res = CRr.CustCode;
+            if (LoopKey("ContactCode",CRr,1,true)) then begin
+              if (CRr.ContactCode==contactcode) then begin
+                //res = "";
+              end;
+            end;
+          end;
+        end;
+      end else begin
+        res = CUr.Code;
+      end;
+    end;
+  end;
+  GetMainCustomerCodeFromContact = res;
   return;
 end;

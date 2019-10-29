@@ -1,19 +1,58 @@
+//<halrule>server-only</halrule>
 
-global
-updating procedure PrintMultiDocDocument(string docname,string fn,string id)
+function Boolean FindDocument(var record MultiDocVc MDr,string docname,Integer loantype,Boolean maxf)
 begin
-  record MultiDocVc MDr;
-  row MultiDocVc MDrw;
-  Integer i,rwcnt;
-  record B2BLoanApplicationVc LAr;
-  Boolean printf;
-  record RcVc RepSpec;
-  record CredManVc CredManr;
+  Boolean res;
 
   MDr.DocName = docname;
-  if (ReadFirstMain(MDr,1,true)) then begin
+  MDr.LoanType = loantype;
+  if (maxf) then begin
+    MDr.MaxMonthlyPayment = 1;
+  end;
+  if (ReadFirstMain(MDr,3,true)) then begin
+    res = true;
+  end;
+  if (!res) then begin
+    ResetLoop(MDr);
+    MDr.DocName = docname;
+    MDr.LoanType = loantype;
+    MDr.MaxMonthlyPayment = 0;
+    if (ReadFirstMain(MDr,3,true)) then begin
+      res = true;
+    end;
+  end;
+  if (!res) then begin
+    ResetLoop(MDr);
+    MDr.DocName = docname;
+    MDr.LoanType = 0;
+    MDr.MaxMonthlyPayment = 0;
+    if (ReadFirstMain(MDr,3,true)) then begin
+      res = true;
+    end;
+  end;
+
+  FindDocument = res;
+  return;
+end;
+
+global
+updating procedure PrintMultiDocDocument2(string docname,string fn,string id,Integer loantype,Boolean maxf,record RcVc RepSpec)
+begin
+  record MultiDocVc MDr;
+  row MultiDocVc MDrw,MD2rw;
+  Integer i,rwcnt;
+  record B2BLoanApplicationVc LAr;
+  Boolean printf,enddocf;
+  record CredManVc CredManr;
+  string 255 finaldocname;
+  record SysLevelBlock SysLevelb;
+
+  if (FindDocument(MDr,docname,loantype,maxf)) then begin
     rwcnt = MatRowCnt(MDr);
     switch (MDr.DocName2) begin
+      case "LoanAppLongForm":
+        LAr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(LAr,1,true) or id=="-2");
       case "LoanAppForm":
         LAr.SerNr = StringToLongint(id);
         printf = (ReadFirstMain(LAr,1,true) or id=="-2");
@@ -35,7 +74,11 @@ begin
       case "VekselisForm":
         CredManr.SerNr = StringToLongint(id);
         printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+      case "CredManLongForm":
+        CredManr.SerNr = StringToLongint(id);
+        printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
     end;
+
 
     if (rwcnt>0 and printf) then begin
       SetDocumentFilename(fn);
@@ -45,27 +88,54 @@ begin
       for (i=0;i<rwcnt;i=i+1) begin
         MatRowGet(MDr,i,MDrw);
         if (i==rwcnt-1) then begin
-          RepSpec.MultiPageJob = 0;
+          if (nonblank(MDrw.StandardTextList)) then begin
+            enddocf = true;
+          end else begin
+            RepSpec.MultiPageJob = 0;
+          end;
         end;
+        RepSpec.f2 = MDrw.StandardTextList;
         RepSpec.f12 = MDrw.FormCode;
-        switch (MDr.DocName2) begin
-          case "LoanAppForm":
-            PrintDocumentWithSpec(LAr,MDr.DocName2,false,RepSpec);
-          case "SuretyApplicationForm":
-            PrintDocumentWithSpec(LAr,MDr.DocName2,false,RepSpec);
-          case "CredManForm":
-            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
-          case "CredManScheduleForm":
-            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
-          case "SuretyAgreementForm":
-            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
-          case "VekselisForm":
-            PrintDocumentWithSpec(CredManr,MDr.DocName2,false,RepSpec);
+        finaldocname = MDrw.DocNameRow;
+        if (blank(finaldocname)) then begin
+          finaldocname = MDr.DocName2;
         end;
-      end;   
+        switch (finaldocname) begin
+          case "LoanAppForm":
+            PrintDocumentWithSpec(LAr,finaldocname,false,RepSpec);
+          case "LoanAppLongForm":
+            PrintDocumentWithSpec(LAr,finaldocname,false,RepSpec);
+          case "SuretyApplicationForm":
+            PrintDocumentWithSpec(LAr,finaldocname,false,RepSpec);
+          case "CredManForm":
+            PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+          case "CredManScheduleForm":
+            PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+          case "SuretyAgreementForm":
+            PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+          case "VekselisForm":
+            PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+          case "CredManLongForm":
+            PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+        end;
+      end;  
+      if (enddocf) then begin
+        RepSpec.MultiPageJob = 0;
+        PrintDocumentWithSpec(RepSpec,"EmptyPageForm",false,RepSpec);
+      end;
       SetDocumentFilename("");
     end;
   end;
+
+  return;
+end;
+
+global
+updating procedure PrintMultiDocDocument(string docname,string fn,string id,Integer loantype,Boolean maxf)
+begin
+  record RcVc RepSpec;
+
+  PrintMultiDocDocument2(docname,fn,id,loantype,maxf,RepSpec);
 
   return;
 end;

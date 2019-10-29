@@ -1,0 +1,113 @@
+
+
+global
+function LongInt AgreementDocVcRecordCheck(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+
+  res = 0;
+  
+  if (ADr.SerNr<=0) then begin
+    ADr.SerNr = NextSerNr("AgreementDocVc",ADr.TransDate,-1,false,"");
+  end;
+
+  AgreementDocVcRecordCheck = res;
+  return;
+end;
+
+function Boolean AllSuretyApplicationsSigned(Longint sernr)
+begin
+  Boolean res;
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  Boolean TrHs;
+
+  TrHs = true;
+  res = true;
+  ADr.RecordType = 1;
+  ADr.RecordNr = sernr;
+  ADr.Type = 7;
+  while (LoopKey("RecordNr",ADr,3,TrHs)) begin
+    if (ADr.RecordNr!=sernr or ADr.RecordType!=1 or ADr.Type!=7) then begin
+      TrHs = false;
+    end else begin
+      MatRowGet(ADr,0,ADrw);
+      if (ADrw.Status!=1) then begin
+        res = false;
+        TrHs = false;
+      end;
+    end;
+  end;
+
+  AllSuretyApplicationsSigned = res;
+  return;
+end;
+
+global
+updating function LongInt AgreementDocVcRecordUpdateAfter(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+  row AgreementDocVc ADrw;
+  record B2BLoanApplicationVc LAr,oldLAr;
+  record CMApplicationSetBlock CMb;
+
+  res = 0;
+  
+  if (ADr.Type==7) then begin
+    MatRowGet(ADr,0,ADrw);
+    if (ADrw.Status==1) then begin
+      if (AllSuretyApplicationsSigned(ADr.RecordNr)) then begin
+        LAr.SerNr = ADr.RecordNr;
+        if (ReadFirstMain(LAr,1,true)) then begin
+          BlockLoad(CMb);
+          if (LAr.OrderClass!=CMb.CheckWebAppClass) then begin
+            RecordCopy(oldLAr,LAr);
+            LAr.OrderClass = CMb.VerWebAppClass;
+            RecordUpdate(oldLAr,LAr,true);
+          end;
+        end;
+      end;
+    end;
+  end;  
+
+  AgreementDocVcRecordUpdateAfter = res;
+  return;
+end;
+
+global
+function LongInt AgreementDocVcRecordDefaults(var record AgreementDocVc ADr,record AgreementDocVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res;
+  record CredManSetBlock CredManSb;
+  
+  res = 1;  
+
+  if (SingleUserMode) then begin
+    ADr.SerNr = NextSerNr("AgreementDocVc",ADr.TransDate,-1,false,"");
+  end;
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  
+  AgreementDocVcRecordDefaults = res; 
+  return;
+end;
+
+global
+function LongInt AgreementDocVcRecordDuplicate(var record AgreementDocVc ADr,record AgreementDocVc LA2r,LongInt long3,LongInt long4)
+begin
+  LongInt res; 
+  res = 1;  
+
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  ADr.SerNr = -1;
+  ADr.SignedByUs = 0;
+  ADr.SignedByUsDate = "";
+  ADr.SignedByUsTime = "";
+  ADr.SignedByCustomer = 0;
+  ADr.SignedByCustomerDate = "";
+  ADr.SignedByCustomerTime = "";
+  
+  AgreementDocVcRecordDuplicate = res; 
+  return;
+end;

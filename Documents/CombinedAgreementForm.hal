@@ -49,7 +49,6 @@ BEGIN
       if (OpenForm(formcode)) then begin
         //SetPrinter("");
         //FormLabelGrid(1,1,1,1);
-        logtext(0,"XXXXXXX " & formcode);
         Docr.Code = formcode;
         ReadFirstMain(Docr,1,true);
         xcnt = 1;
@@ -63,19 +62,19 @@ BEGIN
 //rest of fields go here
 
         if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
-          OutFormField("F_CONTACTNAME",CUr.Name & ":" & formcode);
-          OutFormField("F_CONTACTID",CUr.RegNr1 & ":" & formcode);
+          OutFormField("F_CONTACTNAME",CUr.Name);
+          OutFormField("F_CONTACTID",CUr.RegNr1);
           //OutFormField("F_DATUM",CurrentDate);
         end;
         CUr.Code = LAr.CEOCustCode;
         if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_CEONAME",CUr.Name & ":" & formcode);
-          OutFormField("F_CEOID",CUr.RegNr1 & ":" & formcode);
+          OutFormField("F_CEONAME",CUr.Name);
+          OutFormField("F_CEOID",CUr.RegNr1);
         end;
         CUr.Code = LAr.SuretyProvider1;
         if (ReadFirstMain(CUr,1,true)) then begin
-          OutFormField("F_SURETY1NAME",CUr.Name & ":" & formcode);
-          OutFormField("F_SURETY1ID",CUr.RegNr1 & ":" & formcode);
+          OutFormField("F_SURETY1NAME",CUr.Name);
+          OutFormField("F_SURETY1ID",CUr.RegNr1);
         end;
 
 //        EndFormLabel;

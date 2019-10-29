@@ -31,8 +31,13 @@ begin
   LAr.TransDate = CurrentDate;
   LAr.SerNr = -1;
   LAr.Manager = CurrentUser;
+  LAr.StateChangeDate = CurrentDate;
+  LAr.StateChangeTime = CurrentTime;
+  LAr.StateNotified = 0;
+
   InsertManagerInB2BApplication(LAr);
-  
+
+
   B2BLoanApplicationVcRecordDuplicate = res; 
   return;
 end;
@@ -61,6 +66,17 @@ begin
       end;
     end;
   end;
+
+  if (LAr.OrderClass!=LAr.OrderClass) then begin
+    LAr.StateChangeDate = CurrentDate;
+    LAr.StateChangeTime = CurrentTime;
+    LAr.StateNotified = 0;
+  end;
+
+  if (blank(LAr.CreatedDate)) then begin
+    LAr.CreatedDate = CurrentDate;
+  end;
+
 
   B2BLoanApplicationVcRecordCheck = res;
   return;
