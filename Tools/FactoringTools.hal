@@ -16,7 +16,7 @@ external function val GetCustomerOpenInvoices(string,Longint,var val);
 global
 updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc CMIr)
 begin
-  record FactoringBlock Fb;
+  record CreditalInvoiceBlock CIb;
   record CredManFactInvoiceVc oldCMIr;
   record IVVc IVr;
   record VIVc VIr;
@@ -31,7 +31,7 @@ begin
   
   CredManr.SerNr = CMIr.CredManNr;
   if (ReadFirstMain(CredManr,1,true)) then begin
-    BlockLoad(Fb);
+    BlockLoad(CIb);
     RecordCopy(oldCMIr,CMIr);
 
     RecordNew(IVr);
@@ -41,13 +41,13 @@ begin
     IVVc_PasteInvDate(IVr,LMb,err1,err2);
     IVr.CustCode = CMIr.CustCode;
     PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn)
-    IVr.PayDeal = Fb.BuyerPayDeal;
+    IVr.PayDeal = CIb.FBuyerPayDeal;
     IVVc_PastePayDeal(IVr,"","");
     IVr.PayDate = CMIr.DueDate;
-    IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
+    IVr.Objects =  AddObjectToObjectList(IVr.Objects,CIb.FBuyerObject);
     IVr.CustCredManNr = CMIr.CredManNr;
     ClearRow(IVr,IVrw,1);
-    IVrw.ArtCode = Fb.BuyerItem;
+    IVrw.ArtCode = CIb.FBuyerItem;
     MatRowPut(IVr,0,IVrw);
     IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
     MatRowGet(IVr,0,IVrw);
@@ -65,22 +65,22 @@ begin
     end;
 
     RecordNew(VIr);
-    VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    VIr.SerNr = NextSerNr("VIVc",CurrentDate,-1,false,"");
     VIr.TransDate = CurrentDate;
     VIr.InvDate = CurrentDate;
     VIVc_PasteInvDate(VIr);    
     VIr.VECode = CredManr.CustCode;
     VIVc_PasteVECode(VIr,0,true,true,warning)
-    VIr.PayDeal = Fb.SellerPayDeal;
+    VIr.PayDeal = CIb.FSellerPayDeal;
     VIVc_PastePayDeal(VIr);
-    VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
+    VIr.Objects =  AddObjectToObjectList(VIr.Objects,CIb.FSellerObject);
     VIr.PayVal = (CMIr.TotalSum*CredManr.LoanToValue/100);
     ClearRow(VIr,VIrw,1);
-    VIrw.AccNumber = Fb.SellerAccount;
+    VIrw.AccNumber = CIb.FSellerAccount;
     MatRowPut(VIr,0,VIrw);
     VIVc_PasteAccNumber(VIr,"",true,0);
     MatRowGet(VIr,0,VIrw);
-    VIrw.VATCode = Fb.SellerVATCode;
+    VIrw.VATCode = CIb.FSellerVATCode;
     MatRowPut(VIr,0,VIrw);
     VIDDefault(0,"VATCode",VIr);
     MatRowGet(VIr,0,VIrw);
@@ -350,7 +350,7 @@ begin
   Integer i,rwcnt;
   record VIVc VIr;
   row VIVc VIrw;
-  record FactoringBlock Fb;
+  record CreditalInvoiceBlock CIb;
   record CredManFactInvoiceVc CMIr;
   record CredManVc CredManr;
   string 255 warning;
@@ -366,25 +366,25 @@ begin
           if (ReadFirstMain(CMIr,1,true)) then begin
             CredManr.SerNr = CMIr.CredManNr;
             if (ReadFirstMain(CredManr,1,true)) then begin
-              BlockLoad(Fb);
+              BlockLoad(CIb);
               amount = CMIr.TotalSum - (CMIr.TotalSum*CredManr.LoanToValue/100) - IVrw.Sum;
               RecordNew(VIr);
-              VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+              VIr.SerNr = NextSerNr("VIVc",CurrentDate,-1,false,"");
               VIr.TransDate = CurrentDate;
               VIr.InvDate = CurrentDate;
               VIVc_PasteInvDate(VIr);    
               VIr.VECode = CredManr.CustCode;
               VIVc_PasteVECode(VIr,0,true,true,warning)
-              VIr.PayDeal = Fb.SellerPayDeal;
+              VIr.PayDeal = CIb.FSellerPayDeal;
               VIVc_PastePayDeal(VIr);
-              VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
+              VIr.Objects =  AddObjectToObjectList(VIr.Objects,CIb.FSellerObject);
               VIr.PayVal = amount;
               ClearRow(VIr,VIrw,1);
-              VIrw.AccNumber = Fb.SellerFeeAccount;
+              VIrw.AccNumber = CIb.FSellerFeeAccount;
               MatRowPut(VIr,0,VIrw);
               VIVc_PasteAccNumber(VIr,"",true,0);
               MatRowGet(VIr,0,VIrw);
-              VIrw.VATCode = Fb.SellerVATCode;
+              VIrw.VATCode = CIb.FSellerVATCode;
               MatRowPut(VIr,0,VIrw);
               VIDDefault(0,"VATCode",VIr);
               MatRowGet(VIr,0,VIrw);

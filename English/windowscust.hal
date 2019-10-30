@@ -569,7 +569,9 @@ begin
   EditField(h,v+=vs,120,"Start Date",Normal,StartDate,false,PasteCurDate);
   EditField(h,v+=vs,120,"End Date",Normal,EndDate,false,PasteCurDate);
   EditField(h,v+=vs,120,"Image",Normal,Image,false,WebCampaignImageSClass);
-  EditField(h,v+=vs,120,"Style",Normal,Style,false,0);
+  EditField(h,v+=vs,-40,"Text 1",Normal,Text1,false,0);
+  EditField(h,v+=vs,-40,"Text 2",Normal,Text2,false,0);
+  EditField(h,v+=vs,-40,"Style",Normal,Style,false,0);
   
 
   EndWindow;
@@ -1418,29 +1420,6 @@ begin
   EndWindow;
 end;
 
-window FactoringTClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real h,v,vs,v2,vs2,hm;
-  WindowBegin("Factoring Settings",FactoringTClass,CGSbl,-);
-  SetBlid(FactoringBlock);
-  SetWRect(20,80,500,298);
-  vs=20; h=160; vs2=16; hm=-100;
-  ButtonFrame(h-100,v=30,250,4,"Buyer's Invoice");
-  EditField(h,v,100,"Payment Terms",Normal,BuyerPayDeal,false,PDSClass);
-  EditField(h,v+=vs,100,"Object",Normal,BuyerObject,false,ObjSClass);
-  EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
-
-  ButtonFrame(h-100,v+=50,250,6,"Seller's Invoice");
-  EditField(h,v,100,"Payment Terms",Normal,SellerPayDeal,false,PDSClass);
-  EditField(h,v+=vs,100,"Account",Normal,SellerAccount,false,AccSClass);
-  EditField(h,v+=vs,100,"Fee Account",Normal,SellerFeeAccount,false,AccSClass);
-  EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
-  EditField(h,v+=vs,100,"Object",Normal,SellerObject,false,ObjSClass);
-
-  EndWindow;
-end;
-
 window FactoringBuyersSClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
@@ -1472,29 +1451,6 @@ begin
   SearchField("Search");
   EndWindow;
 end;
-
-
-window PmtGrntTClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real h,v,vs,v2,vs2,hm;
-  WindowBegin("Payment Guarantee Settings",PmtGrntTClass,CGSbl,-);
-  SetBlid(PmtGrntBlock);
-  SetWRect(20,80,500,298);
-  vs=20; h=160; vs2=16; hm=-100;
-  ButtonFrame(h-100,v=30,250,5,"Buyer's Invoice");
-  EditField(h,v,100,"Security Item",Normal,BuyerSecurityItem,false,INSClass);
-  EditField(h,v+=vs,100,"Security Prc",Normal,BuyerSecurityPrc,false,0);
-  EditField(h,v+=vs,100,"PayDeal",Normal,BuyerPayDeal,false,PDSClass);
-  EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
-
-  ButtonFrame(h-100,v+=50,250,6,"Seller's Invoice");
-  EditField(h,v,100,"Account",Normal,SellerAccount,false,AccSClass);
-  EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
-
-  EndWindow;
-end;
-
 
 window WebInvoicingPartnerTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
@@ -1805,3 +1761,53 @@ begin
   EndWindow;
 end;
 
+
+window CreditalInvoiceTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2,tilenr;
+  WindowBegin("Invoice Settings",CreditalInvoiceTClass,CGSbl,-);
+  SetBlid(CreditalInvoiceBlock);
+  h = 200;
+  SetWRect(20,80,550,298);
+  tilenr = 1;
+  Tile(0,20,false,"",FBuyerPayDeal);
+  TileButton(tilenr,"Factoring"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Payment Guarantee"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Payments"); tilenr = tilenr + 1;
+
+  Tile(1,95,false,"1",FBuyerPayDeal);
+  vs=20; h=160; vs2=16; hm=-100;
+  ButtonFrame(h-100,v=30,250,4,"Buyer's Invoice");
+  EditField(h,v,100,"Payment Terms",Normal,FBuyerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Object",Normal,FBuyerObject,false,ObjSClass);
+  EditField(h,v+=vs,100,"Item",Normal,FBuyerItem,false,INSClass);
+
+  ButtonFrame(h-100,v+=50,250,6,"Seller's Invoice");
+  EditField(h,v,100,"Payment Terms",Normal,FSellerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Account",Normal,FSellerAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"Fee Account",Normal,FSellerFeeAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"VAT Code",Normal,FSellerVATCode,false,VATCodeSClass);
+  EditField(h,v+=vs,100,"Object",Normal,FSellerObject,false,ObjSClass);
+  
+  Tile(2,95,false,"2",PGBuyerSecurityItem);
+ 
+  ButtonFrame(h-100,v=30,250,5,"Buyer's Invoice");
+  EditField(h,v,100,"Security Item",Normal,PGBuyerSecurityItem,false,INSClass);
+  EditField(h,v+=vs,100,"Security Prc",Normal,PGBuyerSecurityPrc,false,0);
+  EditField(h,v+=vs,100,"PayDeal",Normal,PGBuyerPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Item",Normal,PGBuyerItem,false,INSClass);
+
+  ButtonFrame(h-100,v+=50,250,2,"Seller's Invoice");
+  EditField(h,v,100,"Account",Normal,PGSellerAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"VAT Code",Normal,PGSellerVATCode,false,VATCodeSClass);
+
+  Tile(3,95,false,"3",PaymentPayDeal);
+
+  EditField(h,v=6,100,"Payment Terms",Normal,PaymentPayDeal,false,PDSClass);
+  EditField(h,v+=vs,100,"Account",Normal,PaymentAccount,false,AccSClass);
+  EditField(h,v+=vs,100,"VAT Code",Normal,PaymentVATCode,false,VATCodeSClass);
+  EditField(h,v+=vs,100,"Object",Normal,PaymentObject,false,ObjSClass);
+
+  EndWindow;
+end;

@@ -50,7 +50,7 @@ begin
   record IVVc IVr;
   row IVVc IVrw;
   record CredManVc CredManr;
-  record PmtGrntBlock PGb;
+  record CreditalInvoiceBlock CIb;
   record CredManSetBlock CMSb;
   record LocalMachineBlock LMb;
   Integer sernrf;
@@ -61,7 +61,7 @@ begin
 
   CredManr.SerNr = GRr.CredManNr;
   if (ReadFirstMain(CredManr,1,true)) then begin
-    BlockLoad(PGb);
+    BlockLoad(CIb);
     BLockLoad(CMSb);
 
     RecordNew(IVr);
@@ -71,14 +71,14 @@ begin
     IVVc_PasteInvDate(IVr,LMb,err1,err2);
     IVr.CustCode = CredManr.CustCode;
     PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn)
-    IVr.PayDeal = PGb.BuyerPayDeal;
+    IVr.PayDeal = CIb.PGBuyerPayDeal;
     IVVc_PastePayDeal(IVr,"","");
     //IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
     IVr.CustCredManNr = GRr.CredManNr;
-    totalsec = GRr.TotalSum*PGb.BuyerSecurityPrc/100;
+    totalsec = GRr.TotalSum*CIb.PGBuyerSecurityPrc/100;
     interest = latedays*CredManr.IntRate*due/100;
     ClearRow(IVr,IVrw,1);
-    IVrw.ArtCode = PGb.BuyerSecurityItem;
+    IVrw.ArtCode = CIb.PGBuyerSecurityItem;
     MatRowPut(IVr,0,IVrw);
     IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
     MatRowGet(IVr,0,IVrw);

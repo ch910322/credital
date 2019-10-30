@@ -1185,25 +1185,3 @@ begin
   HalPushButton(h,v+=vs,h+150,v+=20,"NewCredManFactInvoiceWClassProceed","Add and Create Invoices");
   EndWindow;
 end;
-
-window FactoringTClass:1
-  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
-begin
-  real h,v,vs,v2,vs2,hm;
-  WindowBegin("Factoring Settings",FactoringTClass,CGSbl,-);
-  SetBlid(FactoringBlock);
-  SetWRect(20,80,500,298);
-  vs=20; h=160; vs2=16; hm=-100;
-  ButtonFrame(h-100,v=30,250,4,"Buyer's Invoice");
-  EditField(h,v,100,"Payment Terms",Normal,BuyerPayDeal,false,PDSClass);
-  EditField(h,v+=vs,100,"Object",Normal,BuyerObject,false,ObjSClass);
-  EditField(h,v+=vs,100,"Item",Normal,BuyerItem,false,INSClass);
-
-  ButtonFrame(h-100,v+=50,250,5,"Seller's Invoice");
-  EditField(h,v,100,"Payment Terms",Normal,SellerPayDeal,false,PDSClass);
-  EditField(h,v+=vs,100,"Account",Normal,SellerAccount,false,AccSClass);
-  EditField(h,v+=vs,100,"VAT Code",Normal,SellerVATCode,false,VATCodeSClass);
-  EditField(h,v+=vs,100,"Object",Normal,SellerObject,false,ObjSClass);
-
-  EndWindow;
-end;

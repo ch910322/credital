@@ -747,6 +747,8 @@ begin
   RecordField(Image,M4Str,200,0);
   RecordField(Type,M4Set,2013,0);
   RecordField(Style,M4Str,255,0);
+  RecordField(Text1,M4Str,255,0);
+  RecordField(Text2,M4Str,255,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(TypeStartDate);
@@ -864,17 +866,6 @@ begin
   KeySegment(SerNr);
   EndRecord;
 
-  BlockBegin(FactoringBlock,-,"");
-  RecordField(SellerPayDeal,M4Code,5,PDVc);
-  RecordField(SellerAccount,M4Code,10,AccVc);
-  RecordField(SellerVATCode,M4Code,10,0);
-  RecordField(SellerObject,M4Code,20,ObjVc);
-  RecordField(BuyerItem,M4Code,20,INVc);
-  RecordField(BuyerPayDeal,M4Code,5,PDVc);
-  RecordField(BuyerObject,M4Code,20,ObjVc);
-  RecordField(SellerFeeAccount,M4Code,10,AccVc);
-  EndBlock;
-
   RecordBegin(CredManPmtGrntVc,-,"");
   RecordField(CredManNr,M4Long,0,CredManVc);
   RecordField(Total,M4Val,0,0);
@@ -937,15 +928,6 @@ begin
   KeySegment(FeeGenFlag);
   KeySegment(SerNr);
   EndRecord;
-
-  BlockBegin(PmtGrntBlock,-,"");
-  RecordField(SellerAccount,M4Code,10,AccVc);
-  RecordField(SellerVATCode,M4Code,10,0);
-  RecordField(BuyerItem,M4Code,20,INVc);
-  RecordField(BuyerSecurityItem,M4Code,20,INVc);
-  RecordField(BuyerSecurityPrc,M45Val,0,0);
-  RecordField(BuyerPayDeal,M4Code,5,PDVc);
-  EndBlock;
 
   BlockBegin(WebInvoicingPartnerBlock,-,"");
   RecordField(PartnerClass,M4UStr,255,0);
@@ -1076,6 +1058,29 @@ begin
   KeySegment(Type);
   KeySegment(SerNr);
   EndRecord;
+
+  BlockBegin(CreditalInvoiceBlock,-,"");
+  RecordField(PGSellerAccount,M4Code,10,AccVc);
+  RecordField(PGSellerVATCode,M4Code,10,0);
+  RecordField(PGBuyerItem,M4Code,20,INVc);
+  RecordField(PGBuyerSecurityItem,M4Code,20,INVc);
+  RecordField(PGBuyerSecurityPrc,M45Val,0,0);
+  RecordField(PGBuyerPayDeal,M4Code,5,PDVc);
+
+  RecordField(FSellerPayDeal,M4Code,5,PDVc);
+  RecordField(FSellerAccount,M4Code,10,AccVc);
+  RecordField(FSellerVATCode,M4Code,10,0);
+  RecordField(FSellerObject,M4Code,20,ObjVc);
+  RecordField(FBuyerItem,M4Code,20,INVc);
+  RecordField(FBuyerPayDeal,M4Code,5,PDVc);
+  RecordField(FBuyerObject,M4Code,20,ObjVc);
+  RecordField(FSellerFeeAccount,M4Code,10,AccVc);
+
+  RecordField(PaymentObject,M4Code,20,ObjVc);
+  RecordField(PaymentPayDeal,M4Code,5,PDVc);
+  RecordField(PaymentAccount,M4Code,10,AccVc);
+  RecordField(PaymentVATCode,M4Code,10,0);
+  EndBlock;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

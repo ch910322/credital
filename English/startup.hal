@@ -17,13 +17,12 @@ begin
   Setting("Credit History Support",CredHistLClass,modCredMan);
   Setting("Contact Credit Limits",CreditLimitLClass,modCredMan);
   Setting("SMS Reminders",SMSReminderLClass,modCredMan);
-  Setting("Factoring Settings",FactoringTClass,modCredMan);
   Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
-  Setting("Payment Guarantee Settings",PmtGrntTClass,modCredMan);
   Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
   Setting("Multi Page Documents",MultiDocLClass,modCredMan);
   Setting("Agreement Documents",AgreementDocLClass,modCredMan);
   Setting("Font Widths",FontWidthLClass,modCredMan);
+  Setting("Credital Invoice Settings",CreditalInvoiceTClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);

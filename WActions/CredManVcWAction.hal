@@ -16,6 +16,7 @@ remote procedure GetFactoringRecord(record CredManVc,var record CredManFactVc);
 remote procedure GetPayGrntRecord(record CredManVc,var record CredManPmtGrntVc);
 remote procedure PrepareAgreementDocSigningSession(record AgreementDocVc,var string,var Integer);
 remote function Boolean GetAgreementDoc(record CredManVc,Integer,var record AgreementDocVc);
+remote updating procedure CredManMakePaymentRemote(record CredManVc,var record VIVc);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -943,6 +944,26 @@ begin
   GetWindowRecord(wn,CredManr);
   if (GetAgreementDoc(CredManr,3,ADr)) then begin
     OpenWindow("AgreementDocDClass",1,0,"","",ADr);
+  end;
+
+  return;
+end;
+
+global
+updating procedure CredManMakePaymentDsm()
+begin
+  Integer wn;
+  record CredManVc CredManr;
+  record VIVc VIr;
+    
+  wn = CurWindow;
+  GetWindowRecord(wn,CredManr);
+
+  if (CredManr.OKFlag==1 and CredManr.Approved==1) then begin
+    CredManMakePaymentRemote(CredManr,VIr);
+    if (VIr.SerNr>0) then begin
+      OpenWindow("VIDClass",0,0,"","",VIr);
+    end;
   end;
 
   return;

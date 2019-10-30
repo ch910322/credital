@@ -23,6 +23,7 @@ external procedure ValToText(val,Integer,string,string,var string);
 //CUST-BEGIN
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
 
+global
 function Boolean FindCustomerRelationCred(string custcode,string contactname,var record CUVc ContactCUr)
 begin
   Boolean res,TrHs;

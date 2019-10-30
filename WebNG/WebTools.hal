@@ -53,8 +53,8 @@ begin
     WebOutString("<div class='row about-partner-head'><div class='col'>" & ToolWebNGTranslateText2(70020) & "</div></div>");
     WebOutString("<div class='row about-partner-list'><div class='col partner-media-list owl-carousel'>");
   end else begin
-    WebOutString("<div class='col-2'>" & ToolWebNGTranslateText2(70012) & "</div>");
-    WebOutString("<div class='col-10'><div class='partner-full-list owl-carousel'>");
+    WebOutString("<div class='col-3 col-xl-2'>" & ToolWebNGTranslateText2(70012) & "</div>");
+    WebOutString("<div class='col-9 col-xl-10'><div class='partner-full-list owl-carousel'>");
   end;
 
   rwcnt = MatRowCnt(WPb);
@@ -149,7 +149,7 @@ begin
   i = 1;
   while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
     if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
-      WebOutString("<div class='web-campaign'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div>");
+      WebOutString("<div class='web-campaign'><div class='campaign_img'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div><div class='banner_text'><div class='banner_text1'>" & WCr.Text1 & "</div><div class='banner_text2'>" & WCr.Text2 & "</div></div></div>");
       if (nonblank(WCr.Style)) then begin
         WebOutString("<style>" & WCr.Style & "</style>");
       end;
@@ -404,14 +404,14 @@ begin
     WebOutString("</script>");
 
     WebOutString("<div class='loan_app'><form method='POST'>");
-    WebOutString("<div class='row'><div class='col-md'>")
+    WebOutString("<div class='row'><div class='col-sm'>")
     if (amount_min>0) then begin
       ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70368),ToolWebNGTranslateText2(70013),true);
     end;
     if (term_min>0) then begin
       ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70107),add,true);
     end;
-    WebOutString("</div><div class='col-md'>")
+    WebOutString("</div><div class='col-sm'>")
     //show selection box
     WebOutString("<div class='payment_info'>");
     WebOutString("<div class='total_repayment'><div class='payment_ind'></div><div class='payment_val'></div><div class='payment_text'>" & ToolWebNGTranslateText2(70232) & "</div></div>");

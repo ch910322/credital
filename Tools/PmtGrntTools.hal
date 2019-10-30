@@ -76,7 +76,7 @@ end;
 global
 updating procedure GeneratePmtGrntSLAndPLInvoices(record CredManGrntReportVc GRr,row CredManPmtGrntVc PGrw)
 begin
-  record PmtGrntBlock PGb;
+  record CreditalInvoiceBlock CIb;
   record CredManGrntReportVc oldGRr;
   record IVVc IVr;
   record VIVc VIr;
@@ -91,7 +91,7 @@ begin
   
   CredManr.SerNr = GRr.CredManNr;
   if (ReadFirstMain(CredManr,1,true)) then begin
-    BlockLoad(PGb);
+    BlockLoad(CIb);
     RecordCopy(oldGRr,GRr);
 
     RecordNew(IVr);
@@ -105,7 +105,7 @@ begin
     //IVr.Objects =  AddObjectToObjectList(IVr.Objects,Fb.BuyerObject);
     IVr.CustCredManNr = GRr.CredManNr;
     ClearRow(IVr,IVrw,1);
-    IVrw.ArtCode = PGb.BuyerItem;
+    IVrw.ArtCode = CIb.PGBuyerItem;
     MatRowPut(IVr,0,IVrw);
     IVVc_PasteArtCode(IVr,0,warning,warning,false,sernrf);
     MatRowGet(IVr,0,IVrw);
@@ -123,7 +123,7 @@ begin
     end;
 
     RecordNew(VIr);
-    VIr.SerNr = NextSerNr("IVVc",CurrentDate,-1,false,"");
+    VIr.SerNr = NextSerNr("VIVc",CurrentDate,-1,false,"");
     VIr.TransDate = CurrentDate;
     VIr.InvDate = GRr.ReportDate;
     VIVc_PasteInvDate(VIr);    
@@ -133,11 +133,11 @@ begin
     //VIr.Objects =  AddObjectToObjectList(VIr.Objects,Fb.SellerObject);
     VIr.PayVal = GRr.TotalSum;
     ClearRow(VIr,VIrw,1);
-    VIrw.AccNumber = PGb.SellerAccount;
+    VIrw.AccNumber = CIb.PGSellerAccount;
     MatRowPut(VIr,0,VIrw);
     VIVc_PasteAccNumber(VIr,"",true,0);
     MatRowGet(VIr,0,VIrw);
-    VIrw.VATCode = PGb.SellerVATCode;
+    VIrw.VATCode = CIb.PGSellerVATCode;
     MatRowPut(VIr,0,VIrw);
     VIDDefault(0,"VATCode",VIr);
     MatRowGet(VIr,0,VIrw);

@@ -8,6 +8,16 @@ external inner function Boolean PasteCustInCredMan(var record CredManVc);
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
 external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner procedure VIVc_PasteInvDate(var record VIVc);
+external inner procedure VIDDefault(Integer,string,var record VIVc);
+external inner function Boolean VIVc_PasteAccNumber(var record VIVc,string,Boolean,Integer);
+external inner function Boolean VIVc_PasteVECode(var record VIVc,Integer,Boolean,Boolean,var string);
+external inner procedure VIVc_PastePayDeal(var record VIVc);
+external inner procedure VICalcVals(var record VIVc);
+external inner procedure VISumup(record VIVc,var val);
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
+external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBlock,var Integer,var Integer);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -407,5 +417,107 @@ begin
   end;
 
   GetAgreementDoc = res;
+  return;
+end;
+
+updating procedure CredManCreditAllInvoices(record CredManVc CredManr)
+begin
+  record ARVc ARr;
+  Boolean TrHs;
+  record IVVc IVr,oldIVr,IVCreditr;
+  record LocalMachineBlock LMb;
+  Integer err1,err2;
+  array record IVVc aIVr;
+  Integer i;
+
+  ARr.CustCode = CredManr.CustCode;
+  TrHs = true;
+  while (LoopKey("CustCode",ARr,1,TrHs)) begin
+    if (ARr.CustCode!=CredManr.CustCode) then begin
+      TrHs = false;
+    end else begin
+      if (ARr.RVal>0) then begin
+        IVr.SerNr = ARr.InvoiceNr;
+        if (ReadFirstMain(IVr,1,true)) then begin
+          aIVr[aIVr.length] = IVr;
+        end;
+      end;
+    end;
+  end;
+  for (i=0;i<aIVr.length;i=i+1) begin
+    IVr = aIVr[i];
+    RecordClear(IVCreditr);
+    if (CreateCreditNoteIV(IVr,kInvoiceTypeCredit,IVCreditr,"",false)==0) then begin
+      if (IVr.InvDate>CurrentDate) then begin
+        IVCreditr.InvDate = IVr.InvDate;   
+        IVVc_PasteInvDate(IVCreditr,LMb,err1,err2);
+      end;
+      IVCreditr.SerNr = NextSerNr("IVVc",IVCreditr.InvDate,-1,false,"");
+      if (RecordInsert(IVCreditr,true)) then begin
+        RecordCopy(oldIVr,IVCreditr);
+        IVCreditr.OKFlag = 1;
+        RecordUpdate(oldIVr,IVCreditr,true);
+      end;
+    end;
+  end;
+ 
+
+  return;
+end;
+
+updating procedure CreateCredmanPurchaseInvoice(record CredManVc CredManr,var record VIVc VIr)
+begin
+  record CreditalInvoiceBlock CIb;
+  record VIVc oldVIr;
+  row VIVc VIrw;
+  val ct;
+  string 255 warning;
+
+  BlockLoad(CIb);
+  RecordNew(VIr);
+  VIr.SerNr = NextSerNr("VIVc",CurrentDate,-1,false,"");
+  VIr.TransDate = CurrentDate;
+  VIr.InvDate = CurrentDate;
+  VIVc_PasteInvDate(VIr);    
+  VIr.VECode = CredManr.CustCode;
+  VIVc_PasteVECode(VIr,0,true,true,warning)
+  VIr.PayDeal = CIb.PaymentPayDeal;
+  VIVc_PastePayDeal(VIr);
+  VIr.Objects =  AddObjectToObjectList(VIr.Objects,CIb.PaymentObject);
+  VIr.PayVal = CredManr.InvSum4;
+  ClearRow(VIr,VIrw,1);
+  VIrw.AccNumber = CIb.PaymentAccount;
+  MatRowPut(VIr,0,VIrw);
+  VIVc_PasteAccNumber(VIr,"",true,0);
+  MatRowGet(VIr,0,VIrw);
+  VIrw.VATCode = CIb.PaymentVATCode;
+  MatRowPut(VIr,0,VIrw);
+  VIDDefault(0,"VATCode",VIr);
+  MatRowGet(VIr,0,VIrw);
+  VIrw.Sum = CredManr.InvSum4;
+  MatRowPut(VIr,0,VIrw);
+  VICalcVals(VIr);
+  VISumup(VIr,ct);
+  if (RecordInsert(VIr,true)) then begin
+    RecordCopy(oldVIr,VIr);
+    VIr.OKFlag = 1;
+    RecordUpdate(oldVIr,VIr,true);
+  end; 
+
+  return;
+end;
+
+global
+updating procedure CredManMakePaymentRemote(record CredManVc CredManr,var record VIVc VIr)
+begin
+  record IVVc IVr;
+
+  if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=6) then begin
+    CreateSingleAgreementInvoice(CredManr,CredManr.endDate,IVr);
+    CredManCreditAllInvoices(CredManr);
+    CreateCredmanPurchaseInvoice(CredManr,VIr);
+  end;
+
+
   return;
 end;
