@@ -23,6 +23,7 @@ begin
   Setting("Agreement Documents",AgreementDocLClass,modCredMan);
   Setting("Font Widths",FontWidthLClass,modCredMan);
   Setting("Credital Invoice Settings",CreditalInvoiceTClass,modCredMan);
+  Setting("Automatic Tasks",CredManAutoTaskTClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -284,11 +285,23 @@ begin
   SetText(2,"Schedule");
   SetText(3,"Surety Provider Agreement");
   SetText(6,"Vekselis");
+  SetText(7,"Loan Application");
+  SetText(8,"Payment Certificate");
   EndSet;
 
   SetBegin(2018);
   SetText(0,"Not Signed");
   SetText(1,"Signed");
+  EndSet;
+
+  SetBegin(2020);
+  SetText(0,"Credit Agreement");
+  SetText(1,"Loan Application");
+  EndSet;
+
+  SetBegin(2021);
+  SetText(0,"Manager from Record");
+  SetText(1,"Specified Person");
   EndSet;
 
   return;

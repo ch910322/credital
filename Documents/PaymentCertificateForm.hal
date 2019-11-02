@@ -1,0 +1,110 @@
+external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var record SMVc);
+external inner function Boolean Getformcode(Integer,Integer,string,string,string,LongInt,LongInt,string,string,Integer,string,var string);
+external inner function Integer NumberofDocumentPages(string,Integer);
+external inner procedure CommonDocumentFields(record RcVc);
+external inner procedure PrintCredManHeader(record CredManVc);
+external inner procedure OutAddress(string,string,string,string,string,string,string);
+
+procedure PrintCertificate(record CredManPmtGrntVc PGr,row CredManPmtGrntVc PGrw,record DocVc Docr)
+begin
+  record CredManVc CredManr;
+  LongInt i,rwcnt;
+  val totpayment,totinterest;
+  record CUVc CUr;
+  record CYBlock CYb;
+ 
+  CredManr.SerNr = PGr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    PrintCredManHeader(CredManr);
+
+    CUr.Code = PGrw.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      OUTFORMFIELD("F_SELLERNAME",PGrw.CustName);
+      OUTFORMFIELD("F_SELLERID",CUr.RegNr1);
+      OUTFORMFIELD("F_SELLERLIMIT",PGrw.MaxLimit);
+      OutAddress("F_SELLERADDRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+    end;
+  end;
+
+
+  return;
+end;
+
+global
+procedure DoPaymentCertificateForm(record RcVc RepSpec,record CredManPmtGrntVc PGr)
+BEGIN
+  record DocVc Docr;
+  record CUVc CUr;
+  record SVOVc SVOr;
+  record INVc INr;
+  record FormDefVc FDr;
+  row FormDefVc FDrw;
+  Integer i,rwcnt;
+  string 255 tstr;
+  Boolean printf,langf;
+  Integer intdocnr;
+  string 30 formcode,langcode;
+  record UserVc Userr;
+  row CredManPmtGrntVc PGrw;
+    
+    
+  intdocnr = 1;
+  printf = true;
+  while (printf) begin  
+    formcode = "";
+    if (nonblank(RepSpec.f12)) then begin
+      formcode = RepSpec.f12;
+      printf = false;
+    end else begin
+      for (i=rwcnt-1;i>=0;i=i-1) begin
+        MatRowGet(FDr,i,FDrw);
+        if (Getformcode(i,FDrw.intdocnr,FDrw.FPCode,FDrw.UserGroup,FDrw.LangCode,FDrw.SerNr,-1,FDrw.PrintGroupCode,langcode,intdocnr,"",formcode)) then
+        begin
+          goto LBREAK;
+        end;
+      end;
+    end;
+LBREAK:;
+    if (nonblank(formcode)) then begin  
+      if (OpenForm(formcode)) then begin
+        CommonDocumentFields(RepSpec);
+        //NumberofDocumentPages(formcode,MatRowCnt(CredManr));
+        Docr.Code = formcode;
+        if (ReadFirstMain(Docr,1,true)) then begin
+        end;
+//rest of fields go here
+        if (RepSpec.ArtMode>-1) then begin
+          MatRowGet(PGr,RepSpec.ArtMode,PGrw);
+          PrintCertificate(PGr,PGrw,Docr);
+        end;
+        CloseForm;        
+      end else begin
+        printf = false;
+        MessageBox(1546,formcode);
+      end;
+    end else begin
+      printf = false;
+      if (intdocnr==1) then begin
+        MessageBox(1624, " " & USetStr(1623));
+      end;
+    end;
+    intdocnr = intdocnr + 1;
+  end;
+LDoPaymentCertificateForm:;  
+  RETURN;  
+END;     
+ 
+
+global
+procedure PaymentCertificateForm(record RcVc RepSpec)
+BEGIN
+  record CredManPmtGrntVc PGr;
+  Boolean tmpf;
+  
+  PGr.CredManNr = RepSpec.long1;
+  if (ReadFirstMain(PGr,1,true)) then begin
+    tmpf = PrintDocument(PGr,"PaymentCertificateForm",false);    
+  end;
+  RETURN;
+END;

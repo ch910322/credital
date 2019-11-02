@@ -1,4 +1,4 @@
-
+//<halrule>server-only</halrule>
 
 global
 function LongInt AgreementDocVcRecordCheck(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
@@ -109,5 +109,26 @@ begin
   ADr.SignedByCustomerTime = "";
   
   AgreementDocVcRecordDuplicate = res; 
+  return;
+end;
+
+global
+updating procedure ClearAgreementDocRecords(Longint recordnr,Integer rectype)
+begin
+  record AgreementDocVc ADr;
+  Boolean TrHs;
+
+  TrHs = true;
+  ADr.RecordType = rectype;
+  ADr.RecordNr = recordnr;
+  while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+    if (ADr.RecordType!=rectype or ADr.RecordNr!=recordnr) then begin
+      TrHs = false;
+    end else begin
+      RecordRemove(ADr);
+      StepBack(ADr);
+    end;
+  end;
+
   return;
 end;

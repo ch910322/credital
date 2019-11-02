@@ -86,6 +86,7 @@ begin
   OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
   OUTFORMFIELD("F_DATEDAY",CredManr.MonthlyPaymentDay);
   OUTFORMFIELD("F_MONTHLYINST",CredManr.MonthlySum);
+  OUTFORMFIELD("F_DELAYMONTHS",CredManr.PrincipleDelayMonths);
   if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
     ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
     OUTFORMFIELD("F_TOTSUMINTEXT",tstr);

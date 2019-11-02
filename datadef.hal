@@ -214,6 +214,7 @@ begin
   KeySegment(SerNr);  
   KeyBegin(OrderClassChange);
   KeySegment(OrderClass);
+  KeySegment(StateNotified);
   KeySegment(StateChangeDate);
   KeySegment(StateChangeTime);
   KeySegment(SerNr);  
@@ -445,6 +446,8 @@ begin
   RecordField(StateNotified,M4Int,0,0);
   RecordField(CreatedDate,M4Date,0,0);
 
+  RecordField(VINr,M4Long,0,0);
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -460,11 +463,17 @@ begin
 
   KeyBegin(OrderClassChange);
   KeySegment(OrderClass);
+  KeySegment(StateNotified);
   KeySegment(StateChangeDate);
   KeySegment(StateChangeTime);
   KeySegment(SerNr);  
+
   KeyBegin(CreatedDate);
   KeySegment(CreatedDate);
+  KeySegment(SerNr);  
+
+  KeyBegin(VINr);
+  KeySegment(VINr);
   KeySegment(SerNr);  
 
   EndRecordAdd;
@@ -1043,6 +1052,7 @@ begin
   RecordField(SignedByUsTime,M4Time,0,0);
   RecordField(Math,M4Matrix,0,0);
   RecordField(RecordType,M4Set,2019,0);
+  RecordField(CustCode,M4Code,20,CUVc);
   ArrayBegin(Math,-,1);
   ArrayField(CustCode,M4Code,20,CUVc);
   ArrayField(CustName,M4Str,255,0);
@@ -1080,6 +1090,20 @@ begin
   RecordField(PaymentPayDeal,M4Code,5,PDVc);
   RecordField(PaymentAccount,M4Code,10,AccVc);
   RecordField(PaymentVATCode,M4Code,10,0);
+  EndBlock;
+
+  BlockBegin(CredManAutoTaskBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Type,M4Set,2020,0);
+  ArrayField(OrderClass,M4Code,5,OrderClassVc);
+  ArrayField(DelayHours,M4Int,0,0);
+  ArrayField(DelayDays,M4Int,0,0);
+  ArrayField(PersonType,M4Set,2021,0);
+  ArrayField(Manager,M4Code,20,0);
+  ArrayField(ActType,M4Code,20,0);
+  ArrayField(ActText,M4Str,255,0);
+  EndArray;
   EndBlock;
 
   SourceFile("halcust\\English", 0);

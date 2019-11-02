@@ -2,6 +2,30 @@
 external updating procedure UpdateFactoringInvoicePayment(record OPVc,Boolean);
 external updating procedure UpdatePmtGrntReportPayment(record OPVc,Boolean);
 
+updating procedure UpdateCredManPaymentDate(record OPVc OPr)
+begin
+  Integer i,rwcnt;
+  row OPVc OPrw;
+  record CredManVc CredManr,oldCredManr;
+  
+  rwcnt = MatRowCnt(OPr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(OPr,i,OPrw);
+    ResetLoop(CredManr);
+    if (OPrw.VISerNr>0) then begin
+      CredManr.VINr = OPrw.VISerNr;
+      if (ReadFirstKey("VINr",CredManr,1,true)) then begin
+        RecordCopy(oldCredManr,CredManr);
+        CredManr.MoneyTransferDate = OPr.PayDate;
+        RecordUpdate(oldCredManr,CredManr,true);
+        
+      end;
+    end;
+  end;
+
+  return;
+end;
+
 global
 updating function LongInt OPVcRecordUpdateAfter(var record OPVc OPr,record OPVc OP2r,LongInt stat,LongInt long4)
 BEGIN
@@ -12,6 +36,7 @@ BEGIN
   if (OPr.DoneFlag==1 and OP2r.DoneFlag==0) then begin
     UpdateFactoringInvoicePayment(OPr,true);
     UpdatePmtGrntReportPayment(OPr,true);
+    UpdateCredManPaymentDate(OPr);
   end;
   if (OPr.DoneFlag==0 and OP2r.DoneFlag==1) then begin
     UpdateFactoringInvoicePayment(OPr,false);
@@ -32,6 +57,7 @@ BEGIN
   if (OPr.DoneFlag==1) then begin
     UpdateFactoringInvoicePayment(OPr,true);
     UpdatePmtGrntReportPayment(OPr,true);
+    UpdateCredManPaymentDate(OPr);
   end;
 
   OPVcRecordSaveAfter = res;

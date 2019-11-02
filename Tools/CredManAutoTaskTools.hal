@@ -1,0 +1,139 @@
+//<halrule>server-only</halrule>
+external inner function Boolean PasteCuInAct(var record ActVc,var string);
+external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
+
+global
+updating procedure CreateTaskActivityCredMan(record CredManVc CredManr,string person,string acttype,string acttext)
+begin
+  record ActVc Actr;
+  string 255 warning;
+  record CredManVc oldCredManr;
+
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+    Actr.TransDate = CurrentDate;
+    Actr.CUCode = CredManr.CustCode;
+    PasteCuInAct(Actr,warning);
+    Actr.ActType = acttype;
+    PasteActTypeInAct2("",Actr,warning);
+    Actr.MainPersons = person;
+    Actr.Comment = acttext;
+    Actr.TodoFlag = kTodoFlagTodo;
+    if (RecordInsert(Actr,true)) then begin
+      CreateRecordLink(Actr,CurrentCompany,CredManr,CurrentCompany);
+      RecordCopy(oldCredManr,CredManr);
+      CredManr.StateNotified = 1;
+      RecordUpdate(oldCredManr,CredManr,true)
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure CreateTaskActivityLoanApp(record B2BLoanApplicationVc LAr,string person,string acttype,string acttext)
+begin
+  record ActVc Actr;
+  string 255 warning;
+  record B2BLoanApplicationVc oldLAr;
+
+  if (ReadFirstMain(LAr,1,true)) then begin
+    Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+    Actr.TransDate = CurrentDate;
+    Actr.CUCode = LAr.CustCode;
+    PasteCuInAct(Actr,warning);
+    Actr.ActType = acttype;
+    PasteActTypeInAct2("",Actr,warning);
+    Actr.MainPersons = person;
+    Actr.Comment = acttext;
+    Actr.TodoFlag = kTodoFlagTodo;
+    if (RecordInsert(Actr,true)) then begin
+      CreateRecordLink(Actr,CurrentCompany,LAr,CurrentCompany);
+      RecordCopy(oldLAr,LAr);
+      LAr.StateNotified = 1;
+      RecordUpdate(oldLAr,LAr,true)
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure CredManToolsCheckRecord(string args)
+begin
+  record CredmanAutoTaskBlock ATb;
+  row CredmanAutoTaskBlock ATbrw;
+  record CredManVc CredManr;
+  record B2BLoanApplicationVc LAr;
+  Integer i,rwcnt;
+  Date td;
+  Time tt;
+  Boolean TrHs;
+  string 255 person;
+  
+  BlockLoad(ATb);
+  rwcnt = MatRowCnt(ATb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ATb,i,ATbrw);
+    td = AddDay(CurrentDate,-ATbrw.DelayDays);
+    tt = CurrentTime;
+    if (ATbrw.DelayHours>0) then begin
+      tt = AddHours(tt,-ATbrw.DelayHours);
+      if (tt>CurrentTime) then begin
+        td = AddDay(td,-1);
+      end;
+    end;
+LogText(0,"Checking agreements older than " & td & ":" & tt);
+    switch (ATbrw.Type) begin
+      case 0://agreements
+        RecordClear(CredManr);
+        ResetLoop(CredManr);
+        TrHs = true;
+        CredManr.OrderClass = ATbrw.OrderClass;
+        CredManr.StateNotified = 0;
+        CredManr.StateChangeDate = td;
+        CredManr.StateChangeTime = tt;
+        while (LoopBackKey("OrderClassChange",CredManr,4,TrHs)) begin
+          if (CredManr.OrderClass!=ATbrw.OrderClass or CredManr.StateNotified!=0) then begin
+            TrHs = false;
+          end else begin
+            person = CredManr.SalesMan;
+            if (ATBrw.PersonType==1) then begin
+              person = ATbrw.Manager;
+            end;
+            qupdating.CreateTaskActivityCredMan(CredManr,person,ATbrw.ActType,ATbrw.ActText);
+          end;
+        end;
+      case 1://agreements
+        RecordClear(LAr);
+        ResetLoop(LAr);
+        TrHs = true;
+        LAr.OrderClass = ATbrw.OrderClass;
+        LAr.StateNotified = 0;
+        LAr.StateChangeDate = td;
+        LAr.StateChangeTime = tt;
+        while (LoopBackKey("OrderClassChange",LAr,4,TrHs)) begin
+          if (LAr.OrderClass!=ATbrw.OrderClass or LAr.StateNotified!=0) then begin
+            TrHs = false;
+          end else begin
+            person = LAr.Manager;
+            if (ATBrw.PersonType==1) then begin
+              person = ATbrw.Manager;
+            end;
+            qupdating.CreateTaskActivityLoanApp(LAr,person,ATbrw.ActType,ATbrw.ActText);
+          end;
+        end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure InitCredManAutoTasks()
+begin
+  
+  NewPeriodicTask2("CredManAutoTask","CredManAutoTask","CredManToolsCheckRecord","",300,"")
+
+  return;
+end;

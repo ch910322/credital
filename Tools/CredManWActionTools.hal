@@ -8,6 +8,7 @@ external inner function Boolean PasteCustInCredMan(var record CredManVc);
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
 external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
+external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,record RcVc);
 external inner function string 60 AddObjectToObjectList(string,string);
 external inner procedure VIVc_PasteInvDate(var record VIVc);
 external inner procedure VIDDefault(Integer,string,var record VIVc);
@@ -420,6 +421,64 @@ begin
   return;
 end;
 
+global
+updating procedure CreateAgreementDoc2(Longint sernr,string custcode,Integer rw,var record AgreementDocVc ADr)
+begin
+  string 255 fn;
+  Integer scnt;
+  row AgreementDocVc ADrw;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
+  record RcVc RepSpec;
+  
+  RecordNew(ADr);
+  ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
+  ADr.TransDate = CurrentDate;
+  ADr.TransTime = CurrentTime;
+  ADr.RecordNr = sernr;
+  ADr.Type = 8;
+  if (RecordInsert(ADr,true)) then begin
+    fn = "PaymentCertificate.pdf";
+    RepSpec.ArtMode = rw;
+    PrintMultiDocDocument2("PaymentCertificateForm",fn,sernr,0,false,RepSpec);
+    RecordLinkFile(fn,0,ADr,CurrentCompany);
+    Delete_File(fn);
+  end;
+
+
+  return;
+end;
+
+global
+function Boolean GetAgreementDoc2(Longint sernr,string custcode,Integer rw,var record AgreementDocVc ADr)
+begin
+  record AgreementDocVc tADr;
+  Boolean res,TrHs;
+  
+  TrHs = true;
+  tADr.RecordNr = sernr;
+  tADr.RecordType = 0;
+  tADr.Type = 8;
+  while (LoopKey("RecordNr",tADr,3,TrHs)) begin
+    if (tADr.RecordNr!=sernr or tADr.RecordType!=0 or tADr.Type!=8) then begin
+      TrHs = false;
+    end else begin
+      if (ADr.CustCode==custcode) then begin
+        RecordCopy(ADr,tADr);
+        res = true;
+        goto LGetAgreementDoc2;
+      end;
+    end;
+  end;
+  qupdating.CreateAgreementDoc2(sernr,custcode,rw,ADr);
+  res = true;//no point of having a function i guess
+
+LGetAgreementDoc2:;
+  GetAgreementDoc2 = res;
+  return;
+end;
+
+
 updating procedure CredManCreditAllInvoices(record CredManVc CredManr)
 begin
   record ARVc ARr;
@@ -508,7 +567,7 @@ begin
 end;
 
 global
-updating procedure CredManMakePaymentRemote(record CredManVc CredManr,var record VIVc VIr)
+updating procedure CredManMakePaymentRemote(var record CredManVc CredManr,var record VIVc VIr)
 begin
   record IVVc IVr;
 
@@ -516,6 +575,9 @@ begin
     CreateSingleAgreementInvoice(CredManr,CredManr.endDate,IVr);
     CredManCreditAllInvoices(CredManr);
     CreateCredmanPurchaseInvoice(CredManr,VIr);
+    if (VIr.SerNr>0) then begin
+      CredManr.VINr = VIr.SerNr;
+    end;
   end;
 
 

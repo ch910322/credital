@@ -85,7 +85,7 @@ begin
   MatCol(2,-120,"Amount",0,Amount,false,0);
   MatCol(2,-60,"Currency",0,CurncyCode,false,0);
   RowMenuBegin("");
-  RowMenuItem(0,"OpenReceipt",'I','I',0,"ReceiptConnectionOpenReceiptDsm");
+  RowMenuItem(0,"Open Receipt",'I','I',0,"ReceiptConnectionOpenReceiptDsm");
   EndRowMenu;
   EndMatrix;
 

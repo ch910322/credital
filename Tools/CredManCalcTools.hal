@@ -547,8 +547,8 @@ begin
           if (monthtype2==kMonthTypeLast) then begin
             monthtype2 = kMonthTypeRegular;
           end;
-          AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype2,invdat,acumint,calcbal,frdat,todat,-1);
           if (i>=inCredManr.PrincipleDelayMonths) then begin
+            AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype2,invdat,acumint,  calcbal,frdat,todat,-1);
             AddInterest(inCredManr,CredManPayPlanr,CredManSetb,monthtype2,invdat,acumint,calcbal,frdat,todat,-1);
             AddInstalment(inCredManr,CredManPayPlanr,CredManSetb,1,monthtype,invdat,acumint,calcbal,frdat,todat,i);
           end else begin

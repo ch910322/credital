@@ -46,6 +46,7 @@ begin
   record CredManVc CredManr;
   string 255 finaldocname;
   record SysLevelBlock SysLevelb;
+  record CredManPmtGrntVc PGr;
 
   if (FindDocument(MDr,docname,loantype,maxf)) then begin
     rwcnt = MatRowCnt(MDr);
@@ -77,6 +78,9 @@ begin
       case "CredManLongForm":
         CredManr.SerNr = StringToLongint(id);
         printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+      case "PaymentCertificateForm":
+        PGr.CredManNr = StringToLongint(id);
+        printf = (ReadFirstKey("CredManNr",PGr,1,true) or id=="-2");
     end;
 
 
@@ -117,6 +121,8 @@ begin
             PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
           case "CredManLongForm":
             PrintDocumentWithSpec(CredManr,finaldocname,false,RepSpec);
+          case "PaymentCertificateForm":
+            PrintDocumentWithSpec(PGr,finaldocname,false,RepSpec);
         end;
       end;  
       if (enddocf) then begin

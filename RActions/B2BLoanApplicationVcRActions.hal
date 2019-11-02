@@ -1,4 +1,6 @@
+//<halrule>server-only</halrule>
 external function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
+external updating procedure ClearAgreementDocRecords(Longint,Integer);
 
 global
 function LongInt B2BLoanApplicationVcRecordDefaults(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt long3,LongInt long4)
@@ -82,3 +84,16 @@ begin
   return;
 end;
 
+
+global
+updating function LongInt B2BLoanApplicationVcRecordRemoveAfter(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;
+  
+  ClearAgreementDocRecords(LAr.SerNr,1);
+  
+  B2BLoanApplicationVcRecordRemoveAfter = res;
+  return;
+end;

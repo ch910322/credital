@@ -494,7 +494,7 @@ begin
     ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),CUr.BankAccount,"",8);
     WebOutString("</div>");
 
-    WebOutString("<div class='row input_row block_end'>")
+    WebOutString("<div class='row input_row block_end ltype" & MapLoanType(LAr.Type) & "'>")
     ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","",4);
     WebOutString("</div>");
 
@@ -1472,17 +1472,19 @@ begin
   addrtype = (WebGetArg("addrtype")=="1");
   addr2 = WebGetArg("address2");
 
-  if (blank(bankacc)) then begin
-    err = err + 8;
-  end;
-  if (paymentdate<1 or paymentdate>31) then begin
-    err = err + 8;
-  end;
+  LoadLoanSession(vSess);
+  LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+  if (ReadFirstMain(LAr,1,true)) then begin
+    if (blank(bankacc)) then begin
+      err = err + 8;
+    end;
 
-  if (err==0) then begin
-    LoadLoanSession(vSess);
-    LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
-    if (ReadFirstMain(LAr,1,true)) then begin
+    type = MapLoanType(LAr.Type);
+    if (type!=1 and type!=2 and (paymentdate<1 or paymentdate>31)) then begin
+      err = err + 8;
+    end;
+
+    if (err==0) then begin
       BlockLoad(CMb);
       RecordCopy(oldLAr,LAr);
       AddManagerAndSurety(LAr,mansurf,managercode);

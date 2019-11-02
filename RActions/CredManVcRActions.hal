@@ -1,9 +1,10 @@
+//<halrule>server-only</halrule>
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner procedure CUCreditLimit(record CUVc,Date,string,var val,var LongInt);
 external function val GetMonthlyPaymentAmount(record CredManVc,Integer);
+external updating procedure ClearAgreementDocRecords(Longint,Integer);
 
 
-//<halrule>server-only</halrule>
 global
 function LongInt CredManVcRecordDefaults(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
 BEGIN
@@ -297,5 +298,19 @@ begin
 
 LCredManPmtGrntVcRecordCheck:;
   CredManPmtGrntVcRecordCheck = res;
+  return;
+end;
+
+
+global
+updating function LongInt CredManVcRecordRemoveAfter(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  res = 0;
+  
+  ClearAgreementDocRecords(CredManr.SerNr,0);
+  
+  CredManVcRecordRemoveAfter = res;
   return;
 end;
