@@ -926,7 +926,7 @@ begin
       case 13:
         paidint = paidint + CredManPayPlanrw.Sum;
         lastpaiddate = CredManPayPlanrw.TransDate;
-        curbal = curbal - CredManPayPlanrw.Sum;
+        //curbal = curbal - CredManPayPlanrw.Sum;//CUST >> this should not affect balance
         if (lastevent!=CredManPayPlanrw.TransDate) then begin
           lastpaid = CredManPayPlanrw.Sum;
         end else begin
@@ -953,7 +953,7 @@ begin
       case 16:
         paidfee = paidfee + CredManPayPlanrw.Sum;
         lastpaiddate = CredManPayPlanrw.TransDate;
-        curbal = curbal - CredManPayPlanrw.Sum;
+        //curbal = curbal - CredManPayPlanrw.Sum;//CUST >> this should not affect balance
         if (lastevent!=CredManPayPlanrw.TransDate) then begin
           lastpaid = CredManPayPlanrw.Sum;
         end else begin

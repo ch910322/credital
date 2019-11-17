@@ -22,6 +22,7 @@ external procedure ValToText(val,Integer,string,string,var string);
 //external procedure CredManSetFax(record CUVc,record CredManVc);
 //CUST-BEGIN
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
+external outer procedure PrintDocumentSigner();
 
 global
 function Boolean FindCustomerRelationCred(string custcode,string contactname,var record CUVc ContactCUr)
@@ -161,6 +162,7 @@ begin
 
   amt = GetMonthlyPaymentAmount(CredManr,2);
   OUTFORMFIELD("F_INTEREST",amt);
+  PrintDocumentSigner;
 
   return;
 end;

@@ -69,7 +69,7 @@ begin
     end;
   end;
 
-  if (LAr.OrderClass!=LAr.OrderClass) then begin
+  if (LAr.OrderClass!=LA2r.OrderClass) then begin
     LAr.StateChangeDate = CurrentDate;
     LAr.StateChangeTime = CurrentTime;
     LAr.StateNotified = 0;
@@ -81,6 +81,46 @@ begin
 
 
   B2BLoanApplicationVcRecordCheck = res;
+  return;
+end;
+
+updating procedure CheckAndCloseLoanAppTasks(record B2BLoanApplicationVc LAr)
+begin
+  record CredManCloseTaskBlock CTb;
+  record ActVc Actr,oldActr;
+  record RLinkVc RLr;
+  Integer i;
+  
+  BlockLoad(CTb);
+  if (nonblank(CTb.LoanAppOrderClass)) then begin
+    if (nonblank(LAr.OrderClass) and SetInSet(LAr.OrderClass,CTb.LoanAppOrderClass)) then begin
+      i = 1;
+      while (ReadRecordLink(LAr,i,Actr,RLr)) begin
+        if (Actr.OKFlag==0) then begin
+          RecordCopy(oldActr,Actr);
+          Actr.OKFlag = 1;
+          RecordUpdate(oldActr,Actr,true);
+        end;
+        i = i + 1;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating function LongInt B2BLoanApplicationVcRecordUpdateAfter(var record B2BLoanApplicationVc LAr,record B2BLoanApplicationVc LA2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+
+  res = 0;
+
+  if (LAr.OrderClass!=LA2r.OrderClass) then begin
+    CheckAndCloseLoanAppTasks(LAr);
+  end;
+
+  B2BLoanApplicationVcRecordUpdateAfter = res;
   return;
 end;
 

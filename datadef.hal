@@ -249,11 +249,16 @@ begin
   RecordField(SignOrderClass,M4Code,5,OrderClassVc);
   RecordField(ActiveCredOrderClass,M4UStr,255,0);
   RecordField(AcceptedAppOrderClass,M4Code,5,OrderClassVc);
+  RecordField(PrivateDataYears,M4Int,0,0);
+  RecordField(DocumentSigner,M4Code,20,UserVc);
+  RecordField(DocumentSignerPosition,M4Str,255,0);
+  RecordField(SuretyInviteLetter,M4Str,255,0);
   
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
   RecordField(AccessToDataUntil,M4Date,0,0); 
+  RecordField(OldPassword,M4Long,0,0); 
   EndRecordAdd;
   
   RecordBegin(ScoringSupVc,-,"");
@@ -447,6 +452,7 @@ begin
   RecordField(CreatedDate,M4Date,0,0);
 
   RecordField(VINr,M4Long,0,0);
+ // RecordField(Classification,M4Code,5,OrderClassVc);
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -1105,6 +1111,27 @@ begin
   ArrayField(ActText,M4Str,255,0);
   EndArray;
   EndBlock;
+
+  BlockBegin(CredManCloseTaskBlock,-,"");
+  RecordField(CredManOrderClass,M4UStr,255,OrderClassVc);
+  RecordField(LoanAppOrderClass,M4UStr,255,OrderClassVc);
+  EndBlock;
+
+  RecordBegin(InvitationRequestVc,-,"");
+  NewAutosyncRegister(kSyncDirectionToClient,true);
+  RecordField(TransDate,M4Date,0,0);
+  RecordFIeld(TransTime,M4Time,0,0);
+  RecordField(ContactCode,M4Code,20,CUVc);
+  RecordField(Status,M4Int,0,0);
+  RecordField(FillDate,M4Date,0,0);
+  RecordField(FillTime,M4Time,0,0);
+  RecordField(LoanAppNr,M4Long,0,0);
+  MainKeyBegin(MainKey,0);
+  KeySegment(UUID);
+  KeyBegin(ContactCode);
+  KeySegment(ContactCode);
+  KeySegment(UUID);
+  EndRecord;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

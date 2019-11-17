@@ -93,7 +93,7 @@ begin
   
   url = GetDokobitUrl(SIb);
   qupdating.StartPaymentSessionDokobit(signerid,regname,id,paysessionid);
-  returnurl = "http://" & PublicHostName;//should be https://
+  returnurl = "https://" & PublicHostName;//should be https://
   callback = FormatLink("/WebAction.hal","action=dokobit.callback&session=" & paysessionid,true,true);
   callback = returnurl & callback;
   AddTextToArea("type=pdf",request);
@@ -204,6 +204,8 @@ begin
     MatRowGet(ADr,i,ADrw);
     if (ADrw.CustCode==custcode) then begin
       ADrw.Status = 1;
+      ADrw.SignatureDate = CurrentDate;
+      ADrw.SignatureTime = CurrentTime;
       MatRowPut(ADr,i,ADrw);
       i = rwcnt;
       res = true;
@@ -211,6 +213,44 @@ begin
   end;
 
   MarkCustomerAgreementDocSigned = res;
+  return;
+end;
+
+updating function Boolean ArchiveExistingDocument(record AgreementDocVc ADr)
+begin
+  record RLinkVc RLr,RL2r;
+  record Attach2Vc Attachr;
+  record ArchiveVc Archiver;
+  Boolean res;
+  
+  if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+    if (ReadRecordLink(ADr,1,Archiver,RL2r)==false) then begin
+      RecordNew(Archiver);
+      Archiver.SerNr = NextSerNr("ArchiveVc",CurrentDate,-1,false,"");
+      Archiver.FolderName = "OLD";
+      if (RecordStore(Archiver,true)) then begin
+        CreateRecordLink(ADr,CurrentCompany,Archiver,CurrentCompany);
+      end;
+    end;
+    res = true;
+    CreateRecordLink(Archiver,CurrentCompany,Attachr,CurrentCompany);
+    RecordRemove(RLr);
+  end;
+
+  ArchiveExistingDocument = res;
+  return;
+end;
+
+global
+procedure RemoveDokobitFile(string url,string token,string accesstoken)
+begin
+  area request,reply;
+  
+  SetAreaZeroSize(request);
+  if (SendWebRequest(url,443,-1,true,"POST","/api/signing/" & token & "/delete.json?access_token=" & accesstoken,"","",false,request,reply,30)) then begin
+    LogDokobit(reply,"dokobit_deletefile.txt");
+  end;
+
   return;
 end;
 
@@ -256,26 +296,25 @@ begin
 LAgreementDoc:;
                 ADr.SerNr = WPSr.RecordNr;
                 if (ReadFirstMain(ADr,1,true)) then begin
-                  fn = "Agreement_signed.pdf";
-                  WriteAreaToFile(reply,fn,0);
-                  RecordLinkFile(fn,0,ADr,CurrentCompany);
-                  Delete_File(fn);
-                  RecordCopy(oldADr,ADr);
-                  if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)==false) then begin
-                    ADr.SignedByUs = 1;
-                    ADr.SignedByUsDate = CurrentDate;
-                    ADr.SignedByUsTime = CurrentTime;
-                  end;
-                  if (RecordUpdate(oldADr,ADr,true)==0) then begin
-                    AllClientsRemoteAsync.DocumentSigningClientDone(WPSr.CustCode,ADr);
+                  if (ArchiveExistingDocument(ADr)) then begin
+                    fn = "Agreement_signed.pdf";
+                    WriteAreaToFile(reply,fn,0);
+                    RecordLinkFile(fn,0,ADr,CurrentCompany);
+                    Delete_File(fn);
+                    RecordCopy(oldADr,ADr);
+                    if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)==false) then begin
+                      ADr.SignedByUs = 1;
+                      ADr.SignedByUsDate = CurrentDate;
+                      ADr.SignedByUsTime = CurrentTime;
+                    end;
+                    if (RecordUpdate(oldADr,ADr,true)==0) then begin
+                      AllClientsRemoteAsync.DocumentSigningClientDone(WPSr.CustCode,ADr);
+                    end;
                   end;
                 end;
             end;
           //download file and 
-            SetAreaZeroSize(request);
-            if (SendWebRequest(url,443,-1,true,"POST","/api/signing/" & token & "/delete.json?access_token=" & SIb.AccessToken,"","",false,request,reply,30)) then begin
-              LogDokobit(reply,"dokobit_deletefile.txt");
-            end;
+            threadasync.RemoveDokobitFile(url,token,SIb.AccessToken);
           end;
         end;
       end;
@@ -321,7 +360,7 @@ end;
 global
 procedure DokobitActions(string action)
 begin
-  string 255 link,base,errstr,name,surname,sessionid;
+  string 255 link,base,errstr,name,surname,sessionid,method;
   record B2BLoanApplicationVc LAr;
   record CredManVc CredManr;
   record AgreementDocVc ADr;
@@ -370,7 +409,11 @@ begin
                 if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
                   fsz = AttachFileSize(Attachr);
                   LoadAttachFilePartToArea(Attachr,0,fsz,afile);
-                  if (StartSigningRequest("stationary",link,afile,Attachr.FileName,CurrentCust,name,surname,CUr.RegNr1,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
+                  method = WebGetArg("method");
+                  if (blank(method)) then begin
+                    method = "stationary";
+                  end;
+                  if (StartSigningRequest(method,link,afile,Attachr.FileName,CurrentCust,name,surname,CUr.RegNr1,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
                     //errstr = "Failed to initiate signing";
                   end else begin
                     res = true;
@@ -471,7 +514,7 @@ begin
     if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
       fsz = AttachFileSize(Attachr);
       LoadAttachFilePartToArea(Attachr,0,fsz,afile);
-      if (StartSigningRequest("stationary",link,afile,Attachr.FileName,CurrentUser,name,surname,Userr.IDCode,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
+      if (StartSigningRequest("mobile",link,afile,Attachr.FileName,CurrentUser,name,surname,Userr.IDCode,"AgreementDocVc",ADr.SerNr,sessionid,errstr)==false) then begin
         //errstr = "Failed to initiate signing";
       end else begin
         res = true;

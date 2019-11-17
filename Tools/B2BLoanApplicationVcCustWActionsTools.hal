@@ -30,20 +30,29 @@ begin
   return;
 end;
 
+global
+updating procedure CreateFileOnMainThread(string fn)
+begin
+  
+  CreateFile(fn);
+  CloseFile;
+  logtext(0,"doesnt exist");
+
+  return;
+end;
+
 procedure LogValue(string name,string func,val value,Integer debugf)
 begin
   string 255 tstr1,tstr2;
   area a;
-  
+
   if (debugf==1) then begin
     M4PadString(name,15," ",false,tstr1);
     M4PadString(value,10," ",false,tstr2);
     AddTextToArea(tstr1 & tstr2 & func,a);
     AddTextToArea(chr(13) & chr(10),a);
     if (FileExists("LoanCalc.log")==false) then begin
-      CreateFile("LoanCalc.log");
-      CloseFile;
-      logtext(0,"doesnt exist");
+      qupdating.CreateFileOnMainThread("LoanCalc.log");
     end;
     AppendAreaToFile("LoanCalc.log",a);  
   end;
@@ -159,6 +168,8 @@ begin
     majsalarycoef = ECb.MininumSalary + (SSr.Salary6Months-ECb.MininumSalary) * ECb.SalAboveMinCoef;
   end;
 
+  LogValue("N79","Sodros pajamos",majsalarycoef,ECb.Debug);
+
   pcoef = ECb.c300;
   if (LAr.CurProfit>=ECb.AnnualProfitHigh) then begin
     pcoef = ECb.c600;
@@ -172,13 +183,19 @@ begin
   */
   c2 = assetscoef;
 
+   //LogValue("N80","Sodros pajamos + turtas",assetscoef,ECb.Debug);
+ 
+
   if (LAr.CurProfit>ECb.AnnualProfitLow) then begin
     res = max(majsalarycoef+pcoef+c2,assetscoef);//MAX(Y+IF(X<N4;N5;N6)+IF(W-Y>0;W-Y;0);W)
   end else begin
     res = majsalarycoef+assetscoef;//max(salarycoef,assetscoef);
   end;
 
-  LogValue("N38","av. salarycoef - IF(N38>380;380+(N38?380)?0,79;380)",majsalarycoef,ECb.Debug);
+  LogValue("N81","Pajamos + pelnas + turtas",res,ECb.Debug);
+
+
+  //LogValue("N38","av. salarycoef - IF(N38>380;380+(N38?380)?0,79;380)",majsalarycoef,ECb.Debug);
   LogValue("","maj sixmonthsalary",sixmonthsalary,ECb.Debug);
 
   CalculateProfit = res;
@@ -189,7 +206,8 @@ function val CalculateRevenueCoef(record B2BLoanApplicationVc LAr,record EvalCon
 begin
   val res;
 
-  res = max(LAr.AnnualRevenue * 0.2,carsestate + min(LAr.CurTotal,0) * 0.5);
+  res = max(LAr.AnnualRevenue * 0.2,(carsestate + min(LAr.CurTotal,0)) * 0.5);
+  //res = max(LAr.AnnualRevenue * 0.2,(carsestate + min(LAr.CurTotal,0)) * 0.5);
 
   CalculateRevenueCoef = res;
   return;
@@ -256,11 +274,11 @@ begin
     end;
   end;
 
-  LogValue("Q91","Pajamos",res,ECb.Debug);
+  LogValue("KLM90","Paskolos °mokos ir pajam÷ santykis",res,ECb.Debug);
   LogValue("T48","¯sipareigojim÷ °mok÷ suma per m˜n.",T48,ECb.Debug);
 
   res= max((bx*res/100-T48)*25,0);
-  
+   
   CalculatePersonCoefMax = res;
   return;
 end;
@@ -749,7 +767,7 @@ begin
 
   N87 = (profit*perscoef/100-SSr.MonthlyOblPayment)*25;
   if (N87<0) then begin
-    N87 = 0;
+    //N87 = 0;
   end;
   if (suretycnt<=1) then begin
     mz = N87;
@@ -773,19 +791,26 @@ begin
   LogValue("mx","Company age",compyears,ECb.Debug);
   LogValue("no","Company age steps",ECb.CompAgeStep,ECb.Debug);
 
-
+/*
   LogValue("my","MY =MAX(A*0,2;(B+IF(C<0;C;0))*50%)",my,ECb.Debug);
   LogValue("a","MY =MAX(A*0,2;(B+IF(C<0;C;0))*50%)",LAr.AnnualRevenue,ECb.Debug);
   LogValue("b","MY =MAX(A*0,2;(B+IF(C<0;C;0))*50%)",b,ECb.Debug);
   LogValue("c","MY =MAX(A*0,2;(B+IF(C<0;C;0))*50%)",LAr.CurTotal,ECb.Debug);
+*/
+  LogValue("N4","MY=MAX(C46*0,2;(C44+IF(C41<0;C41;0))*50%)",my,ECb.Debug);
+  LogValue("C46","MY=MAX(C46*0,2;(C44+IF(C41<0;C41;0))*50%)",LAr.AnnualRevenue,ECb.Debug);
+  LogValue("C44","MY=MAX(C46*0,2;(C44+IF(C41<0;C41;0))*50%)",b,ECb.Debug);
+  LogValue("C41","MY=MAX(C46*0,2;(C44+IF(C41<0;C41;0))*50%)",LAr.CurTotal,ECb.Debug);
   
-  LogValue("mz","MZ = IF(S=1;(A*B-C)*25;SUM((A*B-C)*25;D)*0,8)",mz,ECb.Debug);
+  //LogValue("mz","MZ = IF(S=1;(A*B-C)*25;SUM((A*B-C)*25;D)*0,8)",mz,ECb.Debug);
+  LogValue("Q93","max surety IF(S=1;(A*B-C)*25;SUM((A*B-C)*25;D)*0,8)",mz,ECb.Debug);
   LogValue("a","A=IF(X>N1;MAX(Y+IF(X<N4;N5;N6)+IF(W-Y>0;W-Y;0);W);MAX(Y;W))",T80,ECb.Debug);
   LogValue("b","B=IF(P=2;IF(BX<N11;N16;IF(BX<N12;N17;N18));;IF(BX<N11;N13;IF(BX<N12;N14;N15)))",perscoef,ECb.Debug);
   LogValue("c","Majority owner surety provider scoring rate field Overall Monthly Obligation Payment",SSr.MonthlyOblPayment,ECb.Debug);
   LogValue("d","IF((BX*B-C)*25>0;(BX*B-C)*25;0)",d,ECb.Debug);
   LogValue("T84","=> paskolos suma",d,ECb.Debug);
-  LogValue("N87","=> paskolos suma",T84,ECb.Debug);
+  LogValue("N87","=> paskolos suma",N87,ECb.Debug);
+  LogValue("T84","=> paskolos suma",T84,ECb.Debug);
   LogValue("N81","",profit,ECb.Debug);
 
   LAr.MaxRecSum = res;

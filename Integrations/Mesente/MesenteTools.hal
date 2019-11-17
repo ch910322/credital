@@ -1,4 +1,5 @@
 //<halrule>server-only</halrule>
+external inner updating function Boolean MakeActSMS(record SMSVc,var record ActVc);
 
 procedure DoSendMessage(string receiver,string text,var string messageid)
 begin
@@ -6,6 +7,10 @@ begin
   string 255 headertxt,url,path;
   area request,reply;
   Longint pos;
+  record SMSVc SMSr;
+  record ASTBlock ASTb;
+  record ActVc Actr;
+  Boolean res;
 
   BlockLoad(MSb);
 
@@ -30,6 +35,13 @@ begin
     if (pos>0) then begin
       messageid = GetStringFromArea(reply,pos+15,GetAreaLength(reply)-pos-15);
       LogText(0,"MessageID::" & messageid);;
+      BlockLoad(ASTb);
+      if (nonblank(ASTb.SMS)) then begin
+        RecordNew(SMSr);
+        SetTextField(SMSr,text);
+        SMSr.PhoneNo = receiver;
+        res = qupdating.MakeActSMS(SMSr,Actr);
+      end;
     end;
   end else begin
     WriteAreaToFile(request,"sms_fail.txt",0);

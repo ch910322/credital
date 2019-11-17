@@ -35,6 +35,53 @@ begin
   return;
 end;
 
+function string 255 GetPdfFileList()
+begin
+  Integer cnt,i;
+  string 255 tstr,res;
+  Longint num,max;
+  
+  cnt = CountFilesInDir("pdftools");
+  for (i=0;i<cnt;i=i+1) begin
+    tstr = GetFileNameInDir("pdftools",i);
+    if (left(tstr,3)=="sep") then begin
+      num = StringToInt(mid(tstr,4,len(tstr)-8));
+      if (num>max) then begin
+        max = num;
+      end;
+    end;
+  end;
+
+  if (max>-1) then begin
+    for (i=0;i<max-1;i=i+1) begin
+      if (nonblank(res)) then begin
+        res = res & " ";
+      end;
+      res = res & "sep-" & (i+1) & ".pdf";
+    end;
+  end;
+
+  GetPdfFileList = res;
+  return;
+end;
+
+procedure RemoveLastDocPage(string fn)
+begin
+  string 255 tstr;
+  
+  CreateFolder("pdftools");
+  MoveFile(fn,"","pdftools");
+  RunShellScript("cd pdftools; pdfseparate " & fn & "  sep-%d.pdf; cd ..;");
+  tstr = GetPdfFileList;
+  if (nonblank(tstr)) then begin
+    Delete_File("pdftools/" & fn);
+    RunShellScript("cd pdftools; pdfunite " & tstr & " " & fn & "; cd ..;");
+  end;
+  MoveFile(fn,"pdftools","");
+  DeleteFolder("pdftools");
+  return;
+end;
+
 global
 updating procedure PrintMultiDocDocument2(string docname,string fn,string id,Integer loantype,Boolean maxf,record RcVc RepSpec)
 begin
@@ -128,6 +175,7 @@ begin
       if (enddocf) then begin
         RepSpec.MultiPageJob = 0;
         PrintDocumentWithSpec(RepSpec,"EmptyPageForm",false,RepSpec);
+        RemoveLastDocPage(fn);
       end;
       SetDocumentFilename("");
     end;

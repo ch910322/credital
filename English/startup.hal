@@ -24,6 +24,8 @@ begin
   Setting("Font Widths",FontWidthLClass,modCredMan);
   Setting("Credital Invoice Settings",CreditalInvoiceTClass,modCredMan);
   Setting("Automatic Tasks",CredManAutoTaskTClass,modCredMan);
+  Setting("Automatically Closed Tasks",CredManCloseTaskTClass,modCredMan);
+  Setting("Invitation Requests",InvitationRequestLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);

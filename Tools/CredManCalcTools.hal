@@ -13,6 +13,10 @@ enum begin
   kEventTypeIssueInterest = 6,
   kEventTypeIssueDeposit = 7,
   kEventTypeIssueFees = 8,
+  kEventTypePaidInterest = 13,
+  kEventTypePaidInstalment = 14,
+  kEventTypePaidDeposit = 15,
+  kEventTypePaidFees = 16
 end;
 
 enum begin
@@ -325,29 +329,29 @@ begin
   BlockLoad(CMSb);
   if (artcode==CMSb.InstalmentItem) then begin
     if (paidflag) then begin
-      res = kEventTypeIssueInstalment;
+      res = kEventTypePaidInstalment;
     end else begin
-      res = kEventTypeCalcInstalment;
+      res = kEventTypeIssueInstalment;
     end;
   end else begin
     if (artcode==CMSb.RateItem) then begin
       if (paidflag) then begin
-        res = kEventTypeIssueInterest;
+        res = kEventTypePaidInterest;
       end else begin
-        res = kEventTypeCalcInterest;
+        res = kEventTypeIssueInterest;
       end;
     end else begin
       if (artcode==CMSb.DepositItem) then begin
         if (paidflag) then begin
-          res = kEventTypeIssueDeposit;
+          res = kEventTypePaidDeposit;
         end else begin
-          res = kEventTypeCalcDeposit;
+          res = kEventTypeIssueDeposit;
         end;
       end else begin
         if (paidflag) then begin
-          res = kEventTypeIssueFees;
+          res = kEventTypePaidFees;
         end else begin
-          res = kEventTypeCalcFees;
+          res = kEventTypeIssueFees;
         end;
       end;
     end;
@@ -361,7 +365,7 @@ function Boolean IsInitialInvoice(record CredManVc CredManr,Date transdate,Longi
 begin
   Boolean res;
 
-  if (CredManr.startDate==transdate) then begin
+  if (CredManr.startDate==transdate or CredManr.FirstInvDate>transdate) then begin
     if (lastrecnr==-1 or firstinvf) then begin
       res = true;
     end;
@@ -373,7 +377,7 @@ end;
 
 procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf)
 begin
-  record CredHistVc CredHistr;
+  record CredHistVc CredHistr,PrevCredHistr;
   Boolean TrHs;
   Integer type;
   Longint lastrecnr;
@@ -387,16 +391,24 @@ begin
     if (CredHistr.CredManNr!=CredManr.SerNr) then begin
       TrHs = false;
     end else begin
-      type = GetCredHistType(CredHistr.ArtCode,true);
-      AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1);
-      if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
-        firstinvf = true;
-        vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
-      end else begin
-        if (CredHistr.RecordType==0) then begin//invoice
-          calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+ //     if (CredHistr.RecordType==0) then begin
+        if (CredHistr.RecordType==0) then begin
+          type = GetCredHistType(CredHistr.ArtCode,false);
+        end else begin
+          PrevCredHistr.SerNr = CredHistr.PreviousNr;
+          ReadFirstMain(PrevCredHistr,1,true);
+          type = GetCredHistType(PrevCredHistr.ArtCode,true);          
         end;
-      end;
+        AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1);
+        if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
+          firstinvf = true;
+          vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
+        end else begin
+          if (CredHistr.RecordType==0) then begin//invoice
+            calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+          end;
+        end;
+ //     end;
       lastrecnr = CredHistr.RecordNr;
     end;
   end;

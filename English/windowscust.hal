@@ -73,6 +73,8 @@ begin
 
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
   EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Years to access private data",Normal,PrivateDataYears,false,0);
+
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
  
@@ -89,6 +91,8 @@ begin
   EditField(h,v+=vs,100,"Surety Email",Normal,SuretyLetter,false,0);
   EditField(h,v+=vs,100,"Surety Email without Password",Normal,NoPassSuretyLetter,false,0);
   EditField(h,v+=vs,100,"New Customer Email",Normal,NewCustLetter,false,0);
+  EditField(h,v+=vs,100,"Surety Invitation Email",Normal,SuretyInviteLetter,false,0);
+
   EditField(h,v+=vs,100,"Mailing List",Normal,MailingList,false,PersColSClass);
 
   ButtonFrame(h,v+=40,150,2,"Surety Provider by default");
@@ -104,6 +108,8 @@ begin
   CheckBox(h,v+=20,0,"Automatically connect Prepayments to Invoices",AddPrepayments);
 
   EditField(h,v+=vs,100,"Additional Comment",Normal,InvoiceCommentStr,false,0);
+  EditField(h,v+=vs,100,"Document Signer",Normal,DocumentSigner,false,UserSClass);
+  EditField(h,v+=vs,100,"Signer's Job Description",Normal,DocumentSignerPosition,false,0);
 
   EndWindow;
 
@@ -926,6 +932,8 @@ begin
   SpecialMenu("Evaluation Report",' ',5,"DoEvalReportDsm");
   SpecialMenu("Customer Status",'e',6,"CUStatusB2BLoanAppDsm");
   SpecialMenu("Creditinfo.lt",'',6,"GetCreditinfoStatDsm");
+  SpecialMenu("Invite additional Surety Provider",'',6,"InviteSuretyDsm");
+  
   SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0); 
   SpecialMenu("E-mail",' ',1,""); 
   SpecialMenu("Credit Agreement",' ',1,"B2BLoanAppCreateCredManDsm"); 
@@ -1233,7 +1241,7 @@ begin
   InsertRowTest;
   DeleteRowTest;
   RowMenuBegin("");
-  RowMenuItem(0,"Sign Certificate",'I','I',0,"CredManPmtGrntOpenCertificateDsm");
+  RowMenuItem(0,"Sign Certificate",'','',0,"CredManPmtGrntOpenCertificateDsm");
   EndRowMenu;
   EndMatrix;
   SoftEditField(-280,-30,80,"Limit Total",ViewOnly,"credmanlimit",true,0,M4Val,0);
@@ -1466,6 +1474,22 @@ begin
   EditField(h,v=6,100,"Classification List",Normal,PartnerClass,false,CClassSClass);
   EndWindow;
 end;
+
+window CredManCloseTaskTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Automatically Closed Tasks",CredManCloseTaskTClass,CGSbl,-);
+  SetBlid(CredManCloseTaskBlock);
+  SetWRect(20,80,500,298);
+  vs=20; h=250; vs2=16; hm=-100;
+  EditField(h,v=6,100,"Close Tasks for Applications with Classes",Normal,LoanAppOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Close Tasks for Agreements with Classes",Normal,CredManOrderClass,false,OrderClassSClass);
+  EndWindow;
+end;
+
+  
+
 
 
 window PassSessLClass:1
@@ -1823,15 +1847,69 @@ begin
   SetBlid(CredManAutoTaskBlock);
   SetWRect(20,80,900,351);
   Sizeable(-1,-1,0,0);
-  MatrixBegin(h,v,-31,-20,-,199);
+  if (GuiType==kGuiCocoa) then begin
+    MatrixBegin(h,v,-31,-20,-,199);
+  end else begin
+    MatrixBegin(h,v+16,-18,-20,-,199);    
+  end;
   MatCol(1,24,"Type",0,Type,false,SetSClass);
   MatCol(1,130,"Class",0,OrderClass,false,OrderClassSClass);
   MatCol(1,200,"Del. Hours",0,DelayHours,false,0);
   MatCol(1,260,"Del. Days",0,DelayDays,false,0);
-  MatCol(1,320,"Person Type",0,PersonType,false,0);
-  MatCol(1,440,"Manager",0,Manager,false,SetSClass);
+  MatCol(1,320,"Person Type",0,PersonType,false,SetSClass);
+  MatCol(1,440,"Manager",0,Manager,false,UserSClass);
   MatCol(1,510,"Act. Type",0,ActType,false,ActTypeSClass);
   MatCol(1,580,"Act. Text",0,ActText,false,0);
   EndMatrix;
   EndWindow;
 end;
+
+window InvitationRequestLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Invitation Requests",InvitationRequestLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(InvitationRequestDClass);
+  UseView(InvitationRequestVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"UUID",UUID,false,MainKey);
+  RlCol(74,74,"Date",TransDate,false);
+  RlCol(204,204,"Time",TransTime,false);
+  RlColKey(300,300,"Contact",ContactCode,false,ContactCode);
+  RlCol(370,370,"Status",Status,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window InvitationRequestDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Invitation Request",InvitationRequestDClass,CGview,-);
+  SetWRect(20,80,600,339);
+  Sizeable(-1,-1,0,0);
+  UseView(InvitationRequestVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,50,"TransDate",Normal,TransDate,false,);
+  EditField(h,v+=vs,50,"ContactCode",Normal,ContactCode,false,CUSClass);
+  EditField(h,v+=vs,50,"Status",Normal,Status,false,0);
+  EditField(h,v+=vs,50,"FillDate",Normal,FillDate,false,0);
+  EditField(h,v+=vs,50,"FillTime",Normal,FillTime,false,0);
+  EndWindow;
+end;
+
+window InviteSuretyWClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2;
+  WindowBegin("Invite Additional Surety Provider",InviteSuretyWClass,CGOther,RcType);
+  SetWRect(20,80,400,189);
+  UseView(RcVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v+=vs,150,"Email Address",Normal,f1,false,0);
+  HalPushButton(h,v+=vs,h+150,v+=20,"InviteSuretyWClassSend","Send");
+  EndWindow;
+end;
+
+

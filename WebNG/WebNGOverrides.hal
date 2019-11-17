@@ -25,6 +25,7 @@ external inner function string 255 StrReplace(string,string,string);
 external inner function Boolean GetNextCustNr(var string);
 external procedure ShowNormalWebStrings();
 external updating procedure UpdatePasswordSession();
+external updating procedure FinishSuretyRegistration();
 external updating procedure PayseraActions(string);
 external procedure LoanAppSmartIDAction(string);
 external procedure ShowUpdatePasswordElement(record WebNGElementVc);
@@ -39,7 +40,7 @@ external updating procedure PrintMultiDocDocument(string,string,string,Integer,B
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function string 255 GetMainCustomerCodeFromContact(string);
-
+external procedure ShowRegisterSuretyElement(record WebNGELementVc);
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -78,6 +79,8 @@ begin
       ShowResetPasswordElement(WEr);
     case 134:
       ShowUpdatePasswordElement(WEr);
+    case 135:
+      ShowRegisterSuretyElement(WEr);
     otherwise
       res = false;
   end;
@@ -429,7 +432,11 @@ begin
     case 70391: res = "Download";
     case 70392: res = "Delspiningiai";
     case 70393: res = "Data Usage Agreement";
-
+    case 70394: res = "Jðs÷ telefono numeris";
+    case 70395: res = "¯veskite telefono numer°";
+    case 70396: res = "Your mobile phone number";
+    case 70397: res = "Enter Your mobile phone number";
+    case 70398: res = "Passwords don't match";
   end;
 
   CheckInternalStrings = res;
@@ -471,6 +478,9 @@ begin
         WebOutFile(fn);
         Delete_File(fn);
 
+        res = true;
+      case "finishsurety":
+        FinishSuretyRegistration;
         res = true;
     end;
   end;

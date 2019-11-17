@@ -15,6 +15,10 @@ external function string 255 MakeWebSafe(string);
 external inner function boolean IsNumeric(string);
 external inner function string 255 removenextnode(var string);
 external inner function string 10 CurrentWebLang();
+external inner procedure ShowRedirectHtml(string,boolean);
+external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
+external function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
+external inner function string 255 GetLoginPageStructLink();
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -773,7 +777,8 @@ begin
   WebOutString("web_strings['PutNewPassword'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70359)) & "';");
   WebOutString("web_strings['PutNewPassword2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70361)) & "';");
   WebOutString("web_strings['SpecifyCompany'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70374)) & "';");
-  
+  WebOutString("web_strings['CantBeBlank'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70377)) & "';");
+  WebOutString("web_strings['SamePasswords'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70398)) & "';");
   WebOutString("</script>");
 
   return;
@@ -1155,6 +1160,176 @@ begin
   end;
   if (nonblank(kw)) then begin
   gExtraHeadHTML = gExtraHeadHTML & "<meta name='keywords' content='" & kw & "'>";
+  end;
+
+  return;
+end;
+
+global webpublic
+procedure WebConnectUser()
+begin
+  string 255 link;
+
+  link = "/dologin?login=" & WebGetArg("custcode") & "&passwd=123123123&failed=" & UrlEncode("/WebUpdatingAction.hal?action=afterlogin&failed=1") & "&custpage=" & UrlEncode("/WebUpdatingAction.hal?action=afterlogin&cust=1") & "&cooksess=true";
+
+  link = AddParamToEncryptedLink("",link);
+
+  ShowRedirectHTML(link,WebSecureMode);
+
+  return;
+end;
+
+procedure ShowInputField(string label,string ph,string name,string value,string type)
+begin
+  
+  WebOutStringFormatNL("<div class='reset_password_line'><div class='reset_password_label'>" & label & "</div><div class='reset_password_input'><input type=""" & type & """ name=""" & name & """ placeholder='" & ph & "'><div class='ver_msg'></div></div></div>");//i'll reuse all the classnames
+
+  return;
+end;
+
+function Boolean FindSuretyInvitation(string sess,string cc,var record InvitationRequestVc IRr)
+begin
+  Boolean res;
+  
+  IRr.UUID = StringToUUID(sess);
+  if (ReadFirstMain(IRr,1,true)) then begin
+    if (IRr.ContactCode==cc) then begin
+      if (IRr.Status==0) then begin
+        res = true;
+      end;
+    end;
+  end;
+
+  FindSuretyInvitation = res;
+  return;
+end;
+
+global
+procedure ShowRegisterSuretyElement(record WebNGELementVc WEr)
+begin
+  record InvitationRequestVc IRr;
+
+  if (FindSuretyInvitation(WebGetArg("sess"),WebGetArg("cc"),IRr)) then begin  
+    WebOutString("<div class='new_surety_form'>");
+    ToolWebOutElementTextFormat(WEr);
+    WebOutTagOpen("<form method=""post"" action=""" & FormatLink("/WebUpdatingAction.hal","?action=finishsurety",true,true) & """>");
+    WebOutString("<input type='hidden' name='sess' value='" & IRr.UUID & "'><input type='hidden' name='cc' value='" & IRr.ContactCode & "' >");
+
+    ShowInputField(ToolWebNGTranslateText2(70244),ToolWebNGTranslateText2(70245),"name","","text");
+    ShowInputField(ToolWebNGTranslateText2(70246),ToolWebNGTranslateText2(70247),"persid","","text");
+    ShowInputField(ToolWebNGTranslateText2(70252),ToolWebNGTranslateText2(70253),"phone","","text");
+    ShowInputField(ToolWebNGTranslateText2(70127),ToolWebNGTranslateText2(70128),"address","","text");
+
+    ShowInputField(ToolWebNGTranslateText2(70266),ToolWebNGTranslateText2(70267),"passw1","","password");
+    ShowInputField(ToolWebNGTranslateText2(70268),ToolWebNGTranslateText2(70269),"passw2","","password");
+
+    WebOutString("<div class='reset_password_line submit'><div class='reset_password_submit'>" & ToolWebNGTranslateText2(70270) & "</div></div>");
+
+    WebOutString("</form></div>");
+  end else begin
+    
+  end;
+  return;
+end;
+
+global
+updating function Boolean DoFinishSuretyRegistration(record InvitationRequestVc IRr,string name,string id,string phone,string address,string passw1,string passw2)
+begin
+  record B2BLoanApplicationVc LAr,oldLAr;
+  record CUVc CUr,oldCUr;
+  record InvitationRequestVc oldIRr;
+  Integer scnt;
+  string 255 cc;
+  Boolean res;
+
+  LAr.SerNr = IRr.LoanAppNr;
+  if (ReadFirstMain(LAr,1,true)) then begin
+    CUr.Code = IRr.ContactCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      RecordCopy(oldCUr,CUr);
+      CUr.Name = name;
+      CUr.RegNr1 = id;
+      CUr.Phone = phone;
+      CUr.InvAddr0 = address;
+      CUr.Password = CalcPassword(passw1,CUr.Code,0);
+      if (RecordUpdate(oldCUr,CUr,false)==0) then begin//avoid record check because of missing classifications
+        CUVcRecordUpdate(CUr,oldCUr,Rs_Update,1);
+        scnt = 1;
+        cc = GetFieldValueByName(LAr,"SuretyProvider" & scnt,-1);
+        while (cc!=CUr.Code and scnt<4) begin
+          scnt = scnt + 1;
+          cc = GetFieldValueByName(LAr,"SuretyProvider" & scnt,-1);
+        end;
+        if (cc==CUr.Code) then begin
+          RecordCopy(oldLAr,LAr);
+          InsertSuretyInB2BApplication(LAr,scnt);
+          if (RecordUpdate(oldLAr,LAr,true)==0) then begin
+            res = true;
+            RecordCopy(oldIRr,IRr);
+            IRr.Status = 1;
+            IRr.FillDate = CurrentDate;
+            IRr.FillTime = CUrrentTime;
+            RecordUpdate(oldIRr,IRr,true);
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  DoFinishSuretyRegistration = res;
+  return;
+end;
+
+global
+procedure FinishSuretyRegistration()
+begin
+  string 255 name,id,phone,address,passw1,passw2;
+  array string 255 err;
+  record InvitationRequestVc IRr;
+  Integer i;
+  
+  if (FindSuretyInvitation(WebGetArg("sess"),WebGetArg("cc"),IRr)) then begin  
+
+    name = WebGetArg("name");
+    id = WebGetArg("persid");
+    phone = WebGetArg("phone");
+    address = WebGetArg("address");
+    passw1 = WebGetArg("passw1");
+    passw2 = WebGetArg("passw2");
+
+    if (blank(name)) then begin
+      err[err.length] = "name";
+    end;
+    if (blank(id)) then begin
+      err[err.length] = "persid";
+    end;
+    if (blank(phone)) then begin
+      err[err.length] = "phone";
+    end;
+    if (blank(address)) then begin
+      err[err.length] = "address";
+    end;
+    if (blank(passw1)) then begin
+      err[err.length] = "passw1";
+    end else begin
+      if (passw1!=passw2) then begin
+        err[err.length] = "passw2";
+      end;
+    end;  
+
+    if (err.length==0) then begin
+      if (qupdating.DoFinishSuretyRegistration(IRr,name,id,phone,address,passw1,passw2)==false) then begin
+        err[err.length] = "technical";
+      end;
+    end;
+
+    WebOutString("<res stat='" & err.length & "' link='" & GetLoginPageStructLink & "'>");
+    for (i=0;i<err.length;i=i+1) begin
+      WebOutString("<err name='" & err[i] & "'></err>");
+    end;
+
+    WebOutString("</res>");
+
   end;
 
   return;

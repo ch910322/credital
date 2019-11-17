@@ -12,6 +12,8 @@ begin
   if (ReadFirstMain(CredManr,1,true)) then begin
     Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
     Actr.TransDate = CurrentDate;
+    Actr.StartTime = CurrentTime;
+    Actr.Value = CredManr.InvSum4;
     Actr.CUCode = CredManr.CustCode;
     PasteCuInAct(Actr,warning);
     Actr.ActType = acttype;
@@ -21,6 +23,7 @@ begin
     Actr.TodoFlag = kTodoFlagTodo;
     if (RecordInsert(Actr,true)) then begin
       CreateRecordLink(Actr,CurrentCompany,CredManr,CurrentCompany);
+      CreateRecordLink(CredManr,CurrentCompany,Actr,CurrentCompany);
       RecordCopy(oldCredManr,CredManr);
       CredManr.StateNotified = 1;
       RecordUpdate(oldCredManr,CredManr,true)
@@ -40,6 +43,8 @@ begin
   if (ReadFirstMain(LAr,1,true)) then begin
     Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
     Actr.TransDate = CurrentDate;
+    Actr.StartTime = CurrentTime;
+    Actr.Value = LAr.Sum;
     Actr.CUCode = LAr.CustCode;
     PasteCuInAct(Actr,warning);
     Actr.ActType = acttype;
@@ -49,6 +54,7 @@ begin
     Actr.TodoFlag = kTodoFlagTodo;
     if (RecordInsert(Actr,true)) then begin
       CreateRecordLink(Actr,CurrentCompany,LAr,CurrentCompany);
+      CreateRecordLink(LAr,CurrentCompany,Actr,CurrentCompany);
       RecordCopy(oldLAr,LAr);
       LAr.StateNotified = 1;
       RecordUpdate(oldLAr,LAr,true)

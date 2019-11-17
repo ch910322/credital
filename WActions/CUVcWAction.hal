@@ -1,3 +1,7 @@
+remote updating procedure SetCustomerPassword(var record CUVc,var string);
+remote updating procedure ResetCustomerPassword(var record CUVc);
+
+
 global
 procedure OpenCUBankAccountsDsm()
 begin
@@ -18,3 +22,31 @@ begin
 
   return;
 end;
+
+global
+updating procedure OpenCustomerPortalDsm()
+begin
+  Integer wn,nwn;
+  record CUVc CUr;
+  string 255 link;
+
+  wn = CurWindow;
+  if (WindowState(wn)==Rs_Normal) then begin
+    GetWindowRecord(wn,CUr);
+    //update contact 1
+    SetCustomerPassword(CUr,link);
+    if (TestEnablerFile("EnLocalhost")) then begin
+      OpenWebBrowser("http://localhost:1201/WebConnectUser.hal?custcode=" & CUr.Code);
+    end else begin
+      OpenWebBrowser("https://noviti.lt/WebConnectUser.hal?custcode=" & CUr.Code);
+    end;
+    //OpenWebBrowser("http://192.168.2.51:1201/WebConnectUser.hal?custcode=" & CUr.Code);
+    //
+    Sleep(6);
+    ResetCustomerPassword(CUr);
+
+  end;
+
+  return;
+end;
+

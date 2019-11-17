@@ -490,7 +490,7 @@ function LongInt CredManVcRecordProtectFields(var record CredManVc CredManr,reco
 begin
   LongInt res;
   
-  CredManr.OrderClass = CredMan2r.OrderClass;
+  //CredManr.OrderClass = CredMan2r.OrderClass;
   CredManr.PauseDate = CredMan2r.PauseDate;
   CredManr.PauseMonths = CredMan2r.PauseMonths;
   //CredManr.endDate = CredMan2r.endDate;

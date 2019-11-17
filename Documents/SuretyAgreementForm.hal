@@ -5,6 +5,23 @@ external inner procedure OutAddress(string,string,string,string,string,string,st
 external inner procedure PrintCurrencyCode(string,string);
 external inner procedure ValToText(val,Integer,string,string,var string);
 
+global
+procedure PrintDocumentSigner()
+begin
+  record CMApplicationSetBlock ASb;
+  record UserVc Userr;
+  
+  BlockLoad(ASb);
+  Userr.Code = ASb.DocumentSigner;
+  if (ReadFIrstMain(Userr,1,true)) then begin
+    OUTFORMFIELD("F_DOCUMENTSIGNERNAME",Userr.Name);
+    OUTFORMFIELD("F_DOCUMENTSIGNERPOSITION",ASb.DocumentSignerPosition);
+    OUTFORMFIELD("F_DOCUMENTSIGNERCODE",Userr.Code);
+  end;
+
+  return;
+end;
+
 procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
 begin
   record CUVc CUr;
@@ -139,6 +156,7 @@ LBREAK:;
         OUTFORMFIELD("F_NUMMER",CredManr.SerNr);
         OUTFORMFIELD("F_KUNDNAMN",CUr.Name);
         OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
+        OutAddress("F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
         PrintCurrencyCode("F_VALUTA",CredManr.CurncyCode);
         OUTFORMFIELD("F_TOTSUM",CredManr.InvSum4);
         if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
@@ -151,6 +169,9 @@ LBREAK:;
           OUTFORMFIELD("F_CEONAME",CUr.Name);
           OUTFORMFIELD("F_CEOID",CUr.RegNr1);
         end;
+
+        PrintDocumentSigner;
+        
 
         CloseForm;        
       end else begin

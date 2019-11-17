@@ -11,6 +11,7 @@ external function string 255 GetLoanType(string);
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
 external inner procedure SetContentTypeForExtension(string);
 external procedure ShowWebLoanStrings();
+external function Integer MapLoanType(string);
 
 procedure DisplayAccDataField(string cls,string label,string value) 
 begin
@@ -200,14 +201,14 @@ begin
       TrHs = false;
     end else begin
       RecordClear(CredManr);
-      ReadRecordLink(LAr,1,CredManr,RLr);
       ClearRow(ORr,ORrw,1);
       ORrw.GroupOrdRow = LAr.SerNr;
       ORrw.ServiceDelDate = LAr.TransDate;
       ORrw.Location = LAr.OrderClass;
       //ORrw.PickingDate = LAr.StartDate;
       //ORrw.InloadingDate = LAr.EndDate;
-      if (CredManr.OKFlag==1) then begin
+      if (ReadRecordLink(LAr,1,CredManr,RLr)) then begin
+        ORrw.Location = CredManr.OrderClass;
         ORrw.PickingDate = CredManr.TransDate;
         ORrw.InloadingDate = CredManr.endDate;
         ORrw.Sum = CredManr.InvSum4;
@@ -221,13 +222,16 @@ begin
 
   return;
 end;
-/*
+
 procedure GetLoanAgreements(var record ORVc ORr)
 begin
   Integer rw;
   row ORVc ORrw;
   record CredManVc CredManr; 
+  record B2BLoanApplicationVc LAr; 
+  record RLinkVc RLr;
   Boolean TrHs;
+  
   
   rw = MatRowCnt(ORr);
   TrHs = true;
@@ -236,21 +240,22 @@ begin
     if (CredManr.CustCode!=GetSelectedCustomerCode) then begin
       TrHs = false;
     end else begin
-      ClearRow(ORr,ORrw,2);
-      ORrw.GroupOrdRow = CredManr.SerNr;
-      ORrw.ServiceDelDate = CredManr.TransDate;
-      ORrw.Location = CredManr.OrderClass;
-      //ORrw.PickingDate = LAr.StartDate;
-      //ORrw.InloadingDate = LAr.EndDate;
-      ORrw.Sum = CredManr.InvSum4;
-      MatRowPut(ORr,rw,ORrw);
-      rw = rw + 1;
+      if (ReadRecordLink(CredManr,1,LAr,RLr)==false) then begin
+        ClearRow(ORr,ORrw,2);
+        ORrw.GroupOrdRow = CredManr.SerNr;
+        ORrw.PickingDate = CredManr.TransDate;
+        ORrw.InloadingDate = CredManr.endDate;
+        ORrw.Location = CredManr.OrderClass;
+        ORrw.Sum = CredManr.InvSum4;
+        MatRowPut(ORr,rw,ORrw);
+        rw = rw + 1;
+      end;
     end;
   end;
   
   return;
 end;
-*/
+
 
 function string 255 GetWebColor(Integer color)
 begin
@@ -305,7 +310,7 @@ begin
   row ORVc ORrw;
   
   GetLoanApplications(ORr);
-//  GetLoanAgreements(ORr);
+  GetLoanAgreements(ORr);
 
   FillOrderClassData(vColor,vClass);
 
@@ -767,98 +772,134 @@ begin
   return;
 end;
 
-procedure GetAgreementInfo(string agreement,string type)
+procedure SendLoanApplicationDocuments(record B2BLoanApplicationVc LAr)
 begin
-  record B2BLoanApplicationVc LAr; 
-  record CredManVc CredManr;
-  val payment;
-  record CredManSetBlock CMb;
+  record AgreementDocVc ADr;
+  Boolean TrHs;
+
+  TrHs = true;
+  ADr.RecordNr = LAr.SerNr;
+  ADr.RecordType = 1;
+  while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+    if (ADr.RecordNr!=LAr.SerNr or ADr.RecordType!=1) then begin
+      TrHs = false;
+    end else begin
+      if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
+        WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='1'></document>");
+      end;
+    end;
+  end;
+
+
+  return;
+end;
+
+procedure SendAgreementData(record CredManVc CredManr,record B2BLoanApplicationVc LAr)
+begin
   record CMApplicationSetBlock CMSb;
   record CredManPayPlanVc CredManPayPlanr;
   record CreditalWebSetBlock WSb;
-  record AgreementDocVc ADr;
+  record AgreementDocVc ADr;  
+  record CredManSetBlock CMb;
+  Boolean TrHs;
+
+  BlockLoad(CMb);
+  BlockLoad(WSb);
+  BlockLoad(CMSb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+  WebOutString("<res ");
+  WebOutString("rectype='agreement' ");
+  WebOutString("type='" & FixLoanTypeStr(GetLoanType(CredManr.Type)) & "' ");
+  WebOutString("type2='" & MapLoanType(CredManr.Type) & "' ");
+  WebOutString("transdate='" & CredManr.TransDate & "' ");
+  WebOutString("startdate='" & DateToString(CredManr.startDate,"YYYY MM DD") & "' ");
+  WebOutString("amount='" & ValToString(CredManr.InvSum4,M4Val," ",",",1) & " &euro;' ");
+  WebOutString("enddate='" & DateToString(CredManr.endDate,"YYYY MM DD") & "' ");
+  WebOutString("fee='" & GetOneTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;'  ");
+  WebOutString("monthlyfee='" & GetMonthlyTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;' "); 
+  WebOutString("months='" & CredManr.InstalmentMonths & "' ");
+  WebOutString("delaymonths='" & ValToString(CredManr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
+  WebOutString("rate='" & CredManr.IntRate & "%' ");
+  WebOutString("suretylist='" & ShowSuretyCredMan(CredManr) & "' ");
+  WebOutString("bankacc='" & CredManr.BankAccount & "' ");
+  WebOutString("overdueprc='" & CredManr.OverduePercentage & "%' ");
+  WebOutString("sernr='" & CredManr.SerNr & "'>");
+
+  if (nonblank(CredManr.OrderClass) and SetInSet(CredManr.OrderClass,CMSb.ActiveCredOrderClass)) then begin
+    TrHs = true;
+    ADr.RecordNr = CredManr.SerNr;
+    ADr.RecordType = 0;
+    while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+      if (ADr.RecordNr!=CredManr.SerNr or ADr.RecordType!=0) then begin
+        TrHs = false;
+      end else begin
+        if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
+          WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='" & (CredManr.OrderClass==CMSb.SignOrderClass) & "'></document>");
+        end;
+      end;
+    end;
+  end;
+
+  SendLoanApplicationDocuments(LAr);
+
+  WebOutString("</res>");
+  
+  return;
+end;
+
+procedure SendLoanAppData(record B2BLoanApplicationVc LAr)
+begin
+  
+  WebOutString("<res ");
+  WebOutString("rectype='application' ");
+  WebOutString("type='" & FixLoanTypeStr(GetLoanType(LAr.Type)) & "' ");
+  WebOutString("type2='" & MapLoanType(LAr.Type) & "' ");
+  WebOutString("transdate='" & LAr.TransDate & "' ");
+  WebOutString("startdate='-' ");
+  WebOutString("amount='" & ValToString(LAr.Sum,M4Val," ",",",1) & " &euro;' ");
+  WebOutString("enddate='-' ");
+  WebOutString("fee='-' ");
+  WebOutString("monthlyfee='-' ");
+  WebOutString("months='" & LAr.Months & "' ");
+  WebOutString("delaymonths='" & ValToString(LAr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
+  WebOutString("rate='" & LAr.InterestRate & "%' ");
+  WebOutString("suretylist='" & ShowSuretyApp(LAr) & "' ");
+  WebOutString("bankacc='" & LAr.BankAccount & "' ");
+  WebOutString("overdueprc='-' ");
+  WebOutString("sernr='" & LAr.SerNr & "'>");
+
+  SendLoanApplicationDocuments(LAr);
+
+  WebOutString("</res>");
+
+  return;
+end;
+
+procedure GetAgreementInfo(string agreement,string type)
+begin
+  record B2BLoanApplicationVc LAr,bLAr; 
+  record CredManVc CredManr;
+  val payment;
   Boolean TrHs;
   record RLinkVc RLr;
   
-  LAr.SerNr = StringToLongint(agreement);
-  if (ReadFirstMain(LAr,1,true)) then begin
-    if (LAr.CustCode==GetSelectedCustomerCode) then begin
-      BlockLoad(CMSb);
-      ReadRecordLink(LAr,1,CredManr,RLr);
-      if (CredManr.OKFlag==0) then begin
-        payment = 0;//for now;
-        WebOutString("<res ");
-        WebOutString("rectype='application' ");
-        WebOutString("type='" & FixLoanTypeStr(GetLoanType(LAr.Type)) & "' ");
-        WebOutString("transdate='" & LAr.TransDate & "' ");
-        WebOutString("startdate='-' ");
-        WebOutString("amount='" & ValToString(LAr.Sum,M4Val," ",",",1) & " &euro;' ");
-        WebOutString("enddate='-' ");
-        WebOutString("fee='-' ");
-        WebOutString("monthlyfee='-' ");
-        WebOutString("months='" & LAr.Months & "' ");
-        WebOutString("delaymonths='" & ValToString(LAr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
-        WebOutString("rate='" & LAr.InterestRate & "%' ");
-        WebOutString("suretylist='" & ShowSuretyApp(LAr) & "' ");
-        WebOutString("bankacc='" & LAr.BankAccount & "' ");
-        WebOutString("overdueprc='-' ");
-        WebOutString("sernr='" & LAr.SerNr & "'>");
-      end else begin
-        BlockLoad(CMb);
-        BlockLoad(WSb);
-        BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
-
-        payment = 0;//for now;
-        WebOutString("<res ");
-        WebOutString("rectype='agreement' ");
-        WebOutString("type='" & FixLoanTypeStr(GetLoanType(CredManr.Type)) & "' ");
-        WebOutString("transdate='" & CredManr.TransDate & "' ");
-        WebOutString("startdate='" & DateToString(CredManr.startDate,"YYYY MM DD") & "' ");
-        WebOutString("amount='" & ValToString(CredManr.InvSum4,M4Val," ",",",1) & " &euro;' ");
-        WebOutString("enddate='" & DateToString(CredManr.endDate,"YYYY MM DD") & "' ");
-        WebOutString("fee='" & GetOneTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;'  ");
-        WebOutString("monthlyfee='" & GetMonthlyTimeFeeAmount(CredManr,CredManPayPlanr,WSb) & " &euro;' "); 
-        WebOutString("months='" & LAr.Months & "' ");
-        WebOutString("delaymonths='" & ValToString(CredManr.PrincipleDelayMonths,M4Val,"",",",1) & " " & ToolWebNGTranslateText2(70014) & "' ");
-        WebOutString("rate='" & CredManr.IntRate & "%' ");
-        WebOutString("suretylist='" & ShowSuretyCredMan(CredManr) & "' ");
-        WebOutString("bankacc='" & CredManr.BankAccount & "' ");
-        WebOutString("overdueprc='" & CredManr.OverduePercentage & "%' ");
-        WebOutString("sernr='" & CredManr.SerNr & "'>");
-        
-      end;
-
-      if (CredManr.SerNr>0 and nonblank(CredManr.OrderClass) and SetInSet(CredManr.OrderClass,CMSb.ActiveCredOrderClass)) then begin
-        TrHs = true;
-        ADr.RecordNr = CredManr.SerNr;
-        ADr.RecordType = 0;
-        while (LoopKey("RecordNr",ADr,2,TrHs)) begin
-          if (ADr.RecordNr!=CredManr.SerNr or ADr.RecordType!=0) then begin
-            TrHs = false;
-          end else begin
-            if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
-              WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='" & (CredManr.OrderClass==CMSb.SignOrderClass) & "'></document>");
-            end;
-          end;
-        end;
-      end;
-      TrHs = true;
-      ResetLoop(ADr);
-      RecordClear(ADr);
-      ADr.RecordNr = LAr.SerNr;
-      ADr.RecordType = 1;
-      while (LoopKey("RecordNr",ADr,2,TrHs)) begin
-        if (ADr.RecordNr!=LAr.SerNr or ADr.RecordType!=1) then begin
-          TrHs = false;
+  if (type=="application") then begin
+    LAr.SerNr = StringToLongint(agreement);
+    if (ReadFirstMain(LAr,1,true)) then begin
+      if (LAr.CustCode==GetSelectedCustomerCode) then begin
+        if (ReadRecordLink(LAr,1,CredManr,RLr)) then begin
+          SendAgreementData(CredManr,LAr);
         end else begin
-          if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
-            WebOutString("<document sernr='" & ADr.SerNr & "' type='" & ADr.Type & "' signed='" & GetCustomerSignatureStatus(ADr,CurrentCust) & "' allowsign='1'></document>");
-          end;
+          SendLoanAppData(LAr);
         end;
       end;
-
-      WebOutString("</res>");
-
+    end;
+  end else begin
+    CredManr.SerNr = StringToLongint(agreement);
+    if (ReadFirstMain(CredManr,1,true)) then begin
+      if (CredManr.CustCode==GetSelectedCustomerCode) then begin
+        SendAgreementData(CredManr,bLAr);
+      end;
     end;
   end;
 

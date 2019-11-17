@@ -108,7 +108,7 @@ begin
   SString(200071,"Agr. Date");
   SString(200072,"Instalm.");
 
-  SString(200080,"No.Sutarties Nr.: ");
+  SString(200080,"Sutarties Nr.: ");
   SString(200081,"Periodas: ");
 
 /*CredManInfoRn*/

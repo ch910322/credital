@@ -394,9 +394,41 @@ begin
   return;
 end;
 
+function string 255 GetDocumentSignerName()
+begin
+  record CMApplicationSetBlock ASb;
+  record UserVc Userr;
+  string 255 res;
+  
+  BlockLoad(ASb);
+  Userr.Code = ASb.DocumentSigner;
+  if (ReadFIrstMain(Userr,1,true)) then begin
+    res = Userr.Name;
+  end;
+
+  GetDocumentSignerName = res;
+  return;
+end;
+
+
+function string 255 GetDocumentSignerPosition()
+begin
+  record CMApplicationSetBlock ASb;
+  record UserVc Userr;
+  string 255 res;
+  
+  BlockLoad(ASb);
+  res = ASb.DocumentSignerPosition;
+
+  GetDocumentSignerPosition = res;
+  return;
+end;
+
+
 procedure ReFillWithRecordFields(record RCVc RepSpec,var record LTxtVc Ltxtr,record CredManVc CredManr,record B2BLoanApplicationVc LAr)
 begin
   record CUVc Cur,SCUr;
+  record CYBlock CYb;
   integer sp,ep,i,j,l,lcnt;
   string 30 fn;
   string 255 tstr,tstr2;
@@ -405,6 +437,7 @@ begin
   longint textsize,pos;
   boolean printf;
 
+  BlockLoad(CYb);
   recordNew(Ltxt2r);
   Ltxt2r.Code = Ltxtr.Code;
   textsize = SizeTextCnt(LTxtr);
@@ -463,8 +496,20 @@ begin
           tstr = left(tstr,sp-1) & DateToString(CurrentDate,"DD.MM.YYYY") & right(tstr,l-j-1);
           printf = true;
         end;
+        if (fn=="DocumentSignerName") then begin
+          tstr = left(tstr,sp-1) & GetDocumentSignerName & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (fn=="DocumentSignerPosition") then begin
+          tstr = left(tstr,sp-1) & GetDocumentSignerPosition & right(tstr,l-j-1);
+          printf = true;
+        end;
         if (left(fn,5)=="CUVc:") then begin
           tstr = left(tstr,sp-1) & GetFieldValueByName(Cur,right(fn,len(fn)-5),-1) & right(tstr,l-j-1);
+          printf = true;
+        end;
+        if (left(fn,4)=="CYb:") then begin
+          tstr = left(tstr,sp-1) & GetFieldValueByName(CYb,right(fn,len(fn)-4),-1) & right(tstr,l-j-1);
           printf = true;
         end;
         if (left(fn,8)=="SignCUr:") then begin
@@ -676,6 +721,7 @@ BEGIN
   Integer intdocnr;
   string 30 formcode,langcode;
   record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
 
   langcode = "";
   intdocnr = 1;
@@ -688,6 +734,7 @@ BEGIN
 LBREAK:;
     if (nonblank(formcode)) then begin
       if (OpenForm(formcode)) then begin
+        ReadRecordLink(CredManr,1,LAr,RLr);
         PrintCredManLongForm(RepSPec,CredManr,LAr,formcode,SysFormatRec,LangNrr,"");
         CloseForm;
       end else begin

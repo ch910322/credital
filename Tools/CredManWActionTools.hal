@@ -70,7 +70,7 @@ global
 procedure CredManSetDatesCust(var record CredManVc CredManr)
 begin
   record CredManSetBlock CredManSetb;
-  Date startd,finv,fint;
+  Date startd,finv,fint,tsd;
   Integer invday;
   
   invday = CredManr.MonthlyPaymentDay;
@@ -80,9 +80,10 @@ begin
   end;
   startd = CredManr.startDate;
   //finv = AddMonth(startd,1); //CUST-CHANGED
-  finv = AddDay(startd,25);
-  finv = AddDay(finv,invday - GetDay(finv));
-  if (startd.day>invday) then begin
+  finv = AddDay(startd,25);//29
+  tsd = finv;
+  finv = AddDay(finv,invday - GetDay(finv));//-14
+  if (tsd>finv) then begin
     finv = AddMonth(finv,1);
   end;
   CredManr.FirstInvDate = finv;

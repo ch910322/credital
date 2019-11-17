@@ -2,6 +2,10 @@ remote inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function roundmode SetRoundModeD(Integer);
 external  procedure CredManSetDatesCust(var record CredManVc);
 external procedure CalculateSuretyAge(record B2BLoanApplicationVc,Integer);
+external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
+external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
+external inner function Boolean GetNextCustNr(var string);
+external updating procedure CreateSuretyDataAgreement(string,record B2BLoanApplicationVc);
 
 global
 function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
@@ -323,5 +327,103 @@ begin
       AddBankAccountToArr(BArw.BankCode,BArw.BankAccount,arr_bankaccount);
     end;
   end;
+  return;
+end;
+
+updating function Boolean CreateAndLinkContactPerson(string custcode,string email,var string contactcode)
+begin
+  record CUVc CUr,ContactCUr;
+  string 255 tstr;
+  Boolean res;
+ 
+  CUr.Code = custcode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordNew(ContactCUr);
+    if (GetNextCustNr(tstr)) then begin end;
+    ContactCUr.Code = tstr;
+    ContactCUr.eMail = email;
+    if (RecordInsert(ContactCUr,true)) then begin
+      if (AddContactCUDsmRemote(CUr,ContactCUr.Code)) then begin
+        res = true;
+        contactcode = ContactCUr.Code;
+      end;
+    end;
+  end;
+
+  CreateAndLinkContactPerson = res;
+  return;
+end;
+
+updating function Boolean AddSuretyToApplication(var record B2BLoanApplicationVc LAr,string contactcode)
+begin
+  Boolean res;
+  Integer scnt;
+  record CMApplicationSetBlock CMb;
+  
+  if (nonblank(contactcode)) then begin
+    scnt = 1;
+    while (nonblank(GetFieldValueByName(LAr,"SuretyProvider" & scnt,-1))) begin
+      scnt = scnt + 1;
+    end;
+    if (scnt<4) then begin
+      BlockLoad(CMb);//loading this block twice....sorry, I know
+      SetFieldValueByName(LAr,"SuretyProvider" & scnt,contactcode,-1);
+      InsertSuretyInB2BApplication(LAr,scnt);
+      LAr.SuretyCnt = scnt;
+      LAr.OrderClass = CMb.OtherWebAppClass;
+      CreateSuretyDataAgreement(contactcode,LAr);
+      res = true;
+    end;
+  end;
+
+  AddSuretyToApplication = res;
+  return;
+end;
+
+updating procedure SendSuretyInvitationMail(Longint sernr,string email,string contactcode)
+begin
+  record InvitationRequestVc IRr;
+  record CMApplicationSetBlock CMb;
+  record RcVc RepSpec;
+  
+  BlockLoad(CMb);
+  RecordNew(IRr);
+  IRr.UUID = MakeUUID;
+  IRr.TransDate = CurrentDate;
+  IRr.TransTime = CurrentTime;
+  IRr.LoanAppNr = sernr;
+  IRr.ContactCode = contactcode;
+  if (RecordInsert(IRr,true)) then begin
+    RepSpec.searchstr = "?sess=" & IRr.UUID & "&cc=" & contactcode;
+    RepSpec.f1 = contactcode;
+    SendCustomerLetterWithDetails(RepSpec,CMb.SuretyInviteLetter,"",email);
+  end;
+
+  return;
+end;
+
+global
+updating function Boolean SendSuretyInvitation(record RcVc RepSpec,var record B2BLoanApplicationVc LAr)
+begin
+  Boolean res;
+  string 255 contactcode;
+  record B2BLoanApplicationVc oldLAr;
+
+  LAr.SerNr = RepSpec.long1;
+  if (ReadFirstMain(LAr,1,true)) then begin
+    if (CreateAndLinkContactPerson(LAr.CustCode,RepSpec.f1,contactcode)) then begin
+      RecordCopy(oldLAr,LAr);
+      //add surety
+      if (AddSuretyToApplication(LAr,contactcode)) then begin
+        //if (RecordUpdate(oldLAr,LAr,true)==0) then begin
+          SendSuretyInvitationMail(LAr.SerNr,RepSpec.f1,contactcode);
+          res = true;
+        //end;
+      end;
+    end;
+  end;
+
+
+  SendSuretyInvitation = res;
   return;
 end;

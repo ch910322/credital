@@ -203,7 +203,7 @@ begin
   if (missedtot>missedworst) then begin
     missedworst = missedtot;
   end;
-  due = shouldbesug - paidinst - paidint - paidfee - paiddep + addint - shouldbeint;
+  due = shouldbesug - paidinst - paidint - paidfee - paiddep + addint;// - shouldbeint;
   missednow = (due / CredManr.MonthlySum);
   
   BuildCredManPayPlanCust(CredManr,CredManPayPlan2r,CredManSetb,true,false); // This build is ONLY for Next Suggested Instalment......

@@ -173,6 +173,47 @@ LCredManVcRecordCheck:;
   return;
 END;
 
+
+updating procedure CheckAndCloseCredManTasks(record CredManVc CredManr)
+begin
+  record CredManCloseTaskBlock CTb;
+  record ActVc Actr,oldActr;
+  record RLinkVc RLr;
+  Integer i;
+  
+  BlockLoad(CTb);
+  if (nonblank(CTb.CredManOrderClass)) then begin
+    if (nonblank(CredManr.OrderClass) and SetInSet(CredManr.OrderClass,CTb.CredManOrderClass)) then begin
+      i = 1;
+      while (ReadRecordLink(CredManr,i,Actr,RLr)) begin
+        if (Actr.OKFlag==0) then begin
+          RecordCopy(oldActr,Actr);
+          Actr.OKFlag = 1;
+          RecordUpdate(oldActr,Actr,true);
+        end;
+        i = i + 1;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating function LongInt CredManVcRecordUpdateAfter(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+begin
+  Longint res;
+
+  res = 0;
+
+  if (CredManr.OrderClass!=CredMan2r.OrderClass) then begin
+    CheckAndCloseCredManTasks(CredManr);
+  end;
+
+  CredManVcRecordUpdateAfter = res;
+  return;
+end;
+
 global
 function val GetCustomerOpenInvoices(string custcode,Longint credmannr,var val openval)
 begin

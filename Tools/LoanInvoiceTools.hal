@@ -426,6 +426,7 @@ begin
   rwcnt = MatRowCnt(CredManPayPlanr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
+logtext(0,"TestCredManInvoicesFromPlan " & CredManPayPlanrw.PlanType & ":" & CredManPayPlanrw.TransDate);
     if (CredManPayPlanrw.PlanType<=4 and CredManPayPlanrw.TransDate<=ed) then begin
       if (lastd!=CredManPayPlanrw.TransDate) then begin
         //Setup new invoice

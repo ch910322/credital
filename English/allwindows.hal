@@ -211,6 +211,8 @@ begin
   EditField(h,v+=vs,120,"Sales Del. Mode",Normal,ShipMode,false,DMSClass);
   EditField(h2+50,v,70,"Purchase Del. Mode",Normal,VEShipMode,false,DMSClass);
   EditField(h,v+=vs,120,"Route",Normal,Sorting,false,DelRouteSClass);
+  EditField(h,v+=vs,120,"psw",Normal,Password,false,0);
+  EditField(h,v+=vs,120,"oldpsw",Normal,OldPassword,false,0);
 /* these fields were used for securities trading, this module doesnt exist in hansa anymore */
 /* Two of these fields are used in Russia and Ukraine */
 //  EditField(h,vm=(v+=vs),120,"Securities Acc.",Normal,SecAccount,false,0);
@@ -578,6 +580,9 @@ begin
     if (GuiType==kGuiiPhone) then begin
       SpecialMenu("Change Password",' ',1,"ChangePasswdCUDsm");
     end;
+  //CUST-BEGIN
+    SpecialMenu("Open Self-Service Portal",' ',1,"OpenCustomerPortalDsm");
+  //CUST-END
     SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
 //    SpecialMenu("Activity",'c',2,"NewActCUDsm");
     SpecialMenu("Linked Contact Person",' ',1,"NewContactCUDsm");

@@ -15,24 +15,31 @@ begin
   val totpayment,totinterest;
   record CredManSetBlock CredManSetb;
   record CUVc CUr;
+  Integer num;
  
   CUr.Code = CredManr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
   end;
   BlockLoad(CredManSetb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
+  ReadFirstMain(CredManr,1,true);
   BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
-
+  
   PrintCredManHeader(CredManr);
-
+/*
   OutFormField("F_EMAIL",CUr.eMail);//Email
   OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
   OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
-  OutFormField("F_MOBILE",CUr.Mobile);//Mobile
-  
+  OutFormField("F_MOBILE",CUr.Mobile);//Mobile 
+*/
+  ReadFirstMain(CredManr,1,true);
   rwcnt = MatRowCnt(SMr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(SMr,i,SMrw);
+    if (i==0 and SMrw.TransDate<CredManr.FirstInvDate) then begin
+      goto LNextRow;
+    end;
+    num = num + 1;
     OutFormField("F_TRANSDATUM",SMrw.TransDate);//Transaction Date (transdate)
     OutFormField("F_CREDINTEREST",SMrw.CredVal);//interest
     OutFormField("F_CREDFEES",SMrw.DebVal2);//fees
@@ -40,11 +47,12 @@ begin
     OutFormField("F_CREDINSTAL",SMrw.DebVal);//instalment
     OutFormField("F_CREDBAL",SMrw.CurCredVal);//Balance
     OutFormField("F_CREDINVTOT",SMrw.CredVal+SMrw.DebVal2+SMrw.DebVal);//Balance
-    OutFormField("F_ROWNR",i+1);
+    OutFormField("F_ROWNR",num);
     OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
     EndFormRow;
     totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
     totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
+LNextRow:;
   end;
   OUTFORMIMAGENAME(Docr,"F_CUSTIMAGE","line_black.png");
 

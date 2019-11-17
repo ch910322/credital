@@ -11,8 +11,9 @@ remote updating function Boolean B2BLoanAppCreateCredMan(var record B2BLoanAppli
 external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
-remote updating procedure GetCreditInfo(var record B2BLoanApplicationVc);
+remote procedure GetCreditInfo(var record B2BLoanApplicationVc,var Boolean);
 external inner function LongInt DateDiff(Date,Date);
+remote updating function Boolean SendSuretyInvitation(record RcVc,var record B2BLoanApplicationVc);
 
 function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
 begin
@@ -1137,15 +1138,17 @@ updating procedure GetCreditinfoStatDsm()
 begin
   Integer wn;
   record B2BLoanApplicationVc LAr;
+  Boolean res;
 
   wn = CurWindow;
   GetWindowRecord(wn,LAr);
 
-  GetCreditInfo(LAr);
+  threadremote.GetCreditInfo(LAr,res);
+  if (res) then begin
+    PutWindowRecord(wn,LAr);
+    WindowDoOK(wn,0);
+  end;
 
-  PutWindowRecord(wn,LAr);
-  //WindowDoOK(wn,0);
-  
   return;
 end;
 
@@ -1237,3 +1240,47 @@ begin
   return;
 end;
 
+global
+procedure InviteSuretyDsm()
+begin
+  Integer wn,nwn;
+  record B2BLoanApplicationVc LAr;
+  record RcVc RepSpec;
+  
+  wn = CurWindow;
+  if (WindowState(wn)==Rs_Normal) then begin
+    GetWindowRecord(wn,LAr);
+    RepSpec.long1 = LAr.SerNr;
+    nwn = OpenWindow("InviteSuretyWClass",0,0,"","",RepSpec);
+    GetWindowRecord(nwn,RepSpec);
+    RepSpec.ArtMode = wn;
+    PutWindowRecord(nwn,RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure InviteSuretyWClassSend()
+begin
+  Integer wn,mwn;
+  record RcVc RepSpec;
+  record B2BLoanApplicationVc LAr;
+
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+  GetWindowRecord(wn,RepSpec);
+  if (nonblank(RepSpec.f1) and RepSpec.long1>0) then begin
+    if (SendSuretyInvitation(RepSpec,LAr)) then begin
+      mwn = RepSpec.ArtMode;//Appliction window;
+      if (GetWindowClass(mwn)=="B2BLoanApplicationDClass") then begin
+        PutWindowRecord(mwn,LAr);
+        WindowDoOK(mwn,0);
+        RerunWindowDef(mwn);
+      end;
+      CloseWindow(wn);    
+    end;
+  end;
+
+  return;
+end;

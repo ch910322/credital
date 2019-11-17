@@ -1,0 +1,31 @@
+//<halrule>server-only</halrule>
+
+global
+updating procedure SetCustomerPassword(var record CUVc CUr,var string link)
+begin
+  record CUVc oldCUr;
+  
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordCOpy(oldCUr,CUr);
+    CUr.OldPassword = CUr.Password;
+    CUr.Password = CalcPassword("123123123",CUr.Code,0);
+    if (RecordUpdate(oldCUr,CUr,false)==0) then begin
+    end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure ResetCustomerPassword(var record CUVc CUr)
+begin
+  record CUVc oldCUr;
+  
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordCOpy(oldCUr,CUr);
+    CUr.Password = CUr.OldPassword;
+    RecordUpdate(oldCUr,CUr,false);
+  end;
+
+  return;
+end;

@@ -313,7 +313,7 @@ begin
         if (arrCredManr[credmannr]>0) then begin
           recval = arrCredManr[credmannr];
           arrCredManr[credmannr] = 0;
-          mainf = 1;
+          //mainf = 1;
         end;
         CreateCredHist(IPr.SerNr,10,ORrw.VECode,paid,rectype,"",IPr.TransDate,ORrw.TAX2Reb,IPr.TransDate,histnr,"","",mainf,ORrw.CUServiceHistNr,recval,-1);
       end;
