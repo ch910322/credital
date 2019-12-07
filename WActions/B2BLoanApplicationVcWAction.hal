@@ -11,7 +11,7 @@ remote updating function Boolean B2BLoanAppCreateCredMan(var record B2BLoanAppli
 external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
-remote procedure GetCreditInfo(var record B2BLoanApplicationVc,var Boolean);
+remote procedure GetCreditInfo(var record B2BLoanApplicationVc,var Boolean,var string);
 external inner function LongInt DateDiff(Date,Date);
 remote updating function Boolean SendSuretyInvitation(record RcVc,var record B2BLoanApplicationVc);
 
@@ -1139,14 +1139,19 @@ begin
   Integer wn;
   record B2BLoanApplicationVc LAr;
   Boolean res;
+  string 255 errstr;
 
   wn = CurWindow;
   GetWindowRecord(wn,LAr);
 
-  threadremote.GetCreditInfo(LAr,res);
+  threadremote.GetCreditInfo(LAr,res,errstr);
   if (res) then begin
     PutWindowRecord(wn,LAr);
     WindowDoOK(wn,0);
+  end else begin
+    if (nonblank(errstr)) then begin
+      StopAlert(errstr);
+    end;
   end;
 
   return;

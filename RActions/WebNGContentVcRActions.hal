@@ -1,0 +1,28 @@
+global
+function LongInt WebNGContentVcRecordCheck(var record WebNGContentVc WCr,record WebNGContentVc WC2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record WebNGContentVc tWCr;
+
+  if (nonblank(WCr.NodeName)) then begin
+    if (InString(WCr.NodeName,"/")>0 or InString(WCr.NodeName,".")>0 or InString(WCr.NodeName," ")>0) then begin
+      res = -1;
+      RecordCheckError(200202,"",-1,"NodeName");
+      goto LWebNGContentVcRecordCheck;
+    end;
+    tWCr.NodeName = WCr.NodeName;
+    if (ReadFirstKey("NodeName",tWCr,1,true)) then begin
+      if (tWCr.SerNr!=WCr.SerNr) then begin
+        res = -1;
+        RecordCheckError(200201,"",-1,"NodeName");
+        goto LWebNGContentVcRecordCheck;
+      end;
+    end;
+  end;
+
+  res = inner.WebNGContentVcRecordCheck(WCr,WC2r,stat,long4);
+
+LWebNGContentVcRecordCheck:;
+  WebNGContentVcRecordCheck = res;
+  return;
+end;

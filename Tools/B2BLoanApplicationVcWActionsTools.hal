@@ -5,7 +5,6 @@ external procedure CalculateSuretyAge(record B2BLoanApplicationVc,Integer);
 external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
 external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
 external inner function Boolean GetNextCustNr(var string);
-external updating procedure CreateSuretyDataAgreement(string,record B2BLoanApplicationVc);
 
 global
 function Boolean InsertContactName(var record B2BLoanApplicationVc LAr)
@@ -371,7 +370,6 @@ begin
       InsertSuretyInB2BApplication(LAr,scnt);
       LAr.SuretyCnt = scnt;
       LAr.OrderClass = CMb.OtherWebAppClass;
-      CreateSuretyDataAgreement(contactcode,LAr);
       res = true;
     end;
   end;

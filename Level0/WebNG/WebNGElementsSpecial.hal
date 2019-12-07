@@ -341,7 +341,13 @@ begin
     countrylink = "";
   end;
   
-  tstr = FormatSimpleLink(GetLinkToStruct(WCSr.HandlerAppNode,true) & countrylink & WCr.SerNr,true);
+//CUST-BEGIN
+  if (nonblank(WCr.NodeName)) then begin
+    tstr = FormatSimpleLink(GetLinkToStruct(WCSr.HandlerAppNode,true) & countrylink & WCr.NodeName,true);
+  end else begin
+    tstr = FormatSimpleLink(GetLinkToStruct(WCSr.HandlerAppNode,true) & countrylink & WCr.SerNr,true);
+  end;
+//CUST-END
   WebOutTagOpen("<a href=""" & tstr & """>");
   ToolWebOutContentTextFormat(WCr,true);
   WebOutTagClose("</a>");

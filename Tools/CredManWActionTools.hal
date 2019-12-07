@@ -367,13 +367,15 @@ begin
       AddSuretyToDocument(ADr,CredManr);
     case 6:
       AddSuretyToDocument(ADr,CredManr);
+      goto LAddCEO;
     otherwise
+LAddCEO:;
       if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
         if (nonblank(LAr.CEOCustCode)) then begin
           ClearRow(ADr,ADrw,1);
           ADrw.CustCode = LAr.CEOCustCode;
           ADrw.CustName = LAr.CEOName;
-          MatRowPut(ADr,0,ADrw);
+          MatRowPut(ADr,MatRowCnt(ADr),ADrw);
         end;
       end;
   end;

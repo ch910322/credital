@@ -1,5 +1,6 @@
 external procedure InitSMSReminderTask();
 external procedure InitCredManAutoTasks();
+external procedure InitAgreementDocReminderTask();
 
 global
 updating procedure OnApplicationStartupComplete()
@@ -9,6 +10,7 @@ begin
   if (ServerMode) then begin
     InitSMSReminderTask;
     InitCredManAutoTasks;
+    InitAgreementDocReminderTask;
   end;
 
   return;

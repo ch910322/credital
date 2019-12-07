@@ -764,6 +764,7 @@ begin
   RecordField(Style,M4Str,255,0);
   RecordField(Text1,M4Str,255,0);
   RecordField(Text2,M4Str,255,0);
+  RecordField(Link,M4Str,255,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(TypeStartDate);
@@ -982,6 +983,9 @@ begin
   RecordField(LinkContactActComment,M4Str,200,0);
   RecordField(OneFeeItem,M4Code,20,INVc);
   RecordField(MonthlyFeeItem,M4Code,20,INVc);
+  RecordField(PopupActType,M4Code,20,0);
+  RecordField(PopupPersons,M4UStr,100,0);
+  RecordField(PopupActComment,M4Str,200,0);
   EndBlock;
 
   RecordBegin(WebMetaTagVc,-,"");
@@ -1059,6 +1063,7 @@ begin
   RecordField(Math,M4Matrix,0,0);
   RecordField(RecordType,M4Set,2019,0);
   RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(SentReminder,M4Int,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(CustCode,M4Code,20,CUVc);
   ArrayField(CustName,M4Str,255,0);
@@ -1071,6 +1076,12 @@ begin
   KeyBegin(RecordNr);
   KeySegment(RecordNr);
   KeySegment(RecordType);
+  KeySegment(Type);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(Status);
+  StoreInBaseKey;
+  AppendMatrixFieldToKeyName(Status,0);
+  KeySegment(SentReminder);
   KeySegment(Type);
   KeySegment(SerNr);
   EndRecord;
@@ -1132,6 +1143,38 @@ begin
   KeySegment(ContactCode);
   KeySegment(UUID);
   EndRecord;
+
+  RecordBegin(DocumentReminderVc,-,"");
+  NewAutosyncRegister(kSyncDirectionToClient,true);
+  RecordField(Type,M4Set,2017,0);
+  RecordField(Delay,M4Int,0,0);
+  RecordField(ActiveFlag,M4Int,0,0);
+  RecordField(Text,M4Str,255,LTxtVc);  
+  MainKeyBegin(MainKey,0);
+  KeySegment(UUID);
+  KeyBegin(Type);
+  KeySegment(Type);
+  KeySegment(UUID);
+  EndRecord;
+
+  BlockBegin(CredManExtBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(OrderClass,M4Code,5,OrderClassVc);
+  ArrayField(ShowFlag,M4Set,2022,0);
+  EndArray;
+  EndBlock;
+
+  RecordAddBegin(WebNGContentVc,"WebNGContentVc_Cust");
+  RecordField(NodeName,M4Str,255,0);
+  KeyBegin(NodeName);
+  KeySegment(NodeName);
+  KeySegment(SerNr);
+  EndRecordAdd;
+
+  RecordAddBegin(WebNGStructVc,"WebNGStructVc_Cust");
+  ChangeField(Name,M4Str,50,0);
+  EndRecordAdd;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

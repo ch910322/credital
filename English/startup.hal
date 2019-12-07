@@ -18,7 +18,7 @@ begin
   Setting("Contact Credit Limits",CreditLimitLClass,modCredMan);
   Setting("SMS Reminders",SMSReminderLClass,modCredMan);
   Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
-  Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
+  //Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
   Setting("Multi Page Documents",MultiDocLClass,modCredMan);
   Setting("Agreement Documents",AgreementDocLClass,modCredMan);
   Setting("Font Widths",FontWidthLClass,modCredMan);
@@ -26,6 +26,8 @@ begin
   Setting("Automatic Tasks",CredManAutoTaskTClass,modCredMan);
   Setting("Automatically Closed Tasks",CredManCloseTaskTClass,modCredMan);
   Setting("Invitation Requests",InvitationRequestLClass,modCredMan);
+  Setting("Document Signing Reminders",DocumentReminderLClass,modCredMan);
+  Setting("Agreement/Application Extensions",CredManExtTClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -150,6 +152,8 @@ begin
 
 /*Web Codes 200200-200230*/
   SString(200200,"Banner with this type already registered in these days");
+  SString(200201,"Content with this URL already exists");
+  SString(200202,"URL contains restricted Characters");
 
 
   StrSetAdd(584);
@@ -304,6 +308,11 @@ begin
   SetBegin(2021);
   SetText(0,"Manager from Record");
   SetText(1,"Specified Person");
+  EndSet;
+
+  SetBegin(2022);
+  SetText(0,"Extended");
+  SetText(1,"Not Extended");
   EndSet;
 
   return;

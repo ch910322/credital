@@ -243,7 +243,7 @@ begin
   WindowBegin("Order Class Colors",OrderClassColorTClass,CGHBl,-);
   SetWRect(80,80,400,280);
   SetBlid(OrderClassColorBlock);
-  MatrixBegin(10,20,-30,-10,-,10);
+  MatrixBegin(10,20,-30,-10,-,50);
   MatCol(1,25,"Order Class",0,OrderClass,false,OrderClassSClass);
   MatCol(1,100,"Color",0,Color,false,SetSClass);
   EndMatrix;
@@ -578,6 +578,7 @@ begin
   EditField(h,v+=vs,-40,"Text 1",Normal,Text1,false,0);
   EditField(h,v+=vs,-40,"Text 2",Normal,Text2,false,0);
   EditField(h,v+=vs,-40,"Style",Normal,Style,false,0);
+  EditField(h,v+=vs,-40,"Link",Normal,Link,false,0);
   
 
   EndWindow;
@@ -1565,6 +1566,11 @@ begin
   EditField(h+100,v+=vs,100,"Activity Type",Normal,LinkContactActType,false,ActTypeSClass);
   EditField(h+100,v+=vs,100,"Activity Person",Normal,LinkContactPersons,false,UserSClass);
 
+  ButtonFrame(h,v+=60,300,4,"Loan Application from Popup");
+  EditField(h+100,v+=5,150,"Activity Comment",Normal,PopupActComment,false,0);
+  EditField(h+100,v+=vs,100,"Activity Type",Normal,PopupActType,false,ActTypeSClass);
+  EditField(h+100,v+=vs,100,"Activity Person",Normal,PopupPersons,false,UserSClass);
+
   EditField(h+100,v+=40,100,"News letter",Normal,NewsLetterMail,false,0);
   EditField(h+100,v+=vs,100,"One Time Fee Item",Normal,OneFeeItem,false,INSClass);
   EditField(h+100,v+=vs,100,"Monthly Fee Item",Normal,MonthlyFeeItem,false,INSClass);
@@ -1750,6 +1756,7 @@ begin
   UseView(AgreementDocVc);
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,90,"Number",Normal,SerNr,false,0);
+  CheckBox(h+280,v,0,"Reminder Sent",SentReminder);
   EditField(h,v+=vs,90,"Agreement",Normal,RecordNr,false,0);
   EditField(h,v+=vs,90,"Date",ViewOnly,TransDate,false,0);
   EditField(h2=300,v,90,"Time",ViewOnly,TransTime,false,0);
@@ -1912,4 +1919,53 @@ begin
   EndWindow;
 end;
 
+window DocumentReminderLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Document Signing Reminders",DocumentReminderLClass,CGmlist,-);
+  SetWRect(20,80,560,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(DocumentReminderDClass);
+  UseView(DocumentReminderVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Type",Type,false,Type);
+  RlCol(134,134,"Text",Text,false);
+  RlCol(260,260,"Delay",Delay,false);
+  RlColTL (-70,-70,"Active",M4Mark,ActiveFlag,false);
+  SearchField("Search");
+  EndWindow;
+end;
 
+window DocumentReminderDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Document Signing Reminder",DocumentReminderDClass,CGview,-);
+  SetWRect(20,80,500,339);
+  UseView(DocumentReminderVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,150,"Type",Normal,Type,false,SetSClass);
+  CheckBox(h+200,v,0,"Active",ActiveFlag);
+  EditField(h,v+=vs,150,"Delay",Normal,Delay,false,0);
+  EditField(h,v+=vs,150,"Text",Normal,Text,false,LTxtSClass);
+  EndWindow;
+end;
+
+window CredManExtTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Agreement/Application Extensions",CredManExtTClass,CGHbl,HBlRecType);
+  SetBlid(CredManExtBlock);
+  SetWRect(20,80,500,351);
+  Sizeable(-1,-1,0,0);
+  if (GuiType==kGuiCocoa) then begin
+    MatrixBegin(h,v,-31,-20,-,199);
+  end else begin
+    MatrixBegin(h,v+16,-18,-20,-,199);    
+  end;
+  MatCol(1,24,"Order Class",0,OrderClass,false,OrderClassSClass);
+  MatCol(1,130,"Action",0,ShowFlag,false,SetSClass);
+  EndMatrix;
+  EndWindow;
+end;

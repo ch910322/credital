@@ -19,6 +19,8 @@ external inner procedure ShowRedirectHtml(string,boolean);
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 external function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
 external inner function string 255 GetLoginPageStructLink();
+external updating procedure CreateSuretyDataAgreement(string,record B2BLoanApplicationVc);
+external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -149,20 +151,36 @@ begin
   Integer i;
   record Attach2Vc Attachr;
   record RLinkVc RLr;
+  Boolean imgf;
   
   i = 1;
   while (ReadRecordLink(WCr,i,Attachr,RLr)) begin
     if (blank(WCr.Image) or WCr.Image==Attachr.FileName) then begin
-      WebOutString("<div class='web-campaign'><div class='campaign_img'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div><div class='banner_text'><div class='banner_text1'>" & WCr.Text1 & "</div><div class='banner_text2'>" & WCr.Text2 & "</div></div></div>");
-      if (nonblank(WCr.Style)) then begin
-        WebOutString("<style>" & WCr.Style & "</style>");
-      end;
+      imgf = true;
       goto LShowSingleBanner;
     end;
     i = i + 1;
   end;
-
 LShowSingleBanner:;
+
+  WebOutString("<div class='web-campaign'>");
+  if (nonblank(WCr.Link)) then begin
+    WebOutString("<a href='" & WCr.Link & "' target='blank'>");
+  end;
+  if (imgf) then begin
+    WebOutString("<div class='campaign_img'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div>");
+  end;
+
+  WebOutString("<div class='banner_text'><div class='banner_text1'>" & WCr.Text1 & "</div><div class='banner_text2'>" & WCr.Text2 & "</div></div>");
+  if (nonblank(WCr.Link)) then begin
+    WebOutString("</a>");
+  end;
+
+  WebOutString("</div>");
+  if (nonblank(WCr.Style)) then begin
+    WebOutString("<style>" & WCr.Style & "</style>");
+  end;
+
   return;
 end;
 
@@ -549,12 +567,20 @@ end;
 
 procedure ShowSingleUserOnWeb(record UserVc Userr)
 begin
+  string 255 link;
    
+  link = Userr.Spec;
   WebOutString("<div class='col-auto single_emp justify-content-center'>");
+  if (nonblank(link)) then begin
+    WebOutString("<a href='" &  link & "' target='blank'>");
+  end;
   WebOutString("<div class='emp_pic'><img src='/WebShowEmpPic.hal?emp=" & Userr.Code & "'></div>")
   WebOutString("<div class='emp_name'>" & Userr.Name & "</div>")
   WebOutString("<div class='emp_descr'>" & Userr.Job & "</div>")
   WebOutString("</div>");
+  if (nonblank(link)) then begin
+    WebOutString("</a>");
+  end;
 
   return;
 end;
@@ -627,14 +653,14 @@ begin
       ShowContactLine("hours",ToolWebNGTranslateText2(70021));
       ShowContactLine("blank",GetWorkingHours(CYb));
       ShowContactLine("empty","");
-      ShowContactLine("phone",ToolWebNGTranslateText2(70022) & CYb.Phone);
-      ShowContactLine("email",ToolWebNGTranslateText2(70023) & CYb.emailAddr);
+      ShowContactLine("phone",ToolWebNGTranslateText2(70022) & "<span class='use_phone'>" & CYb.Phone & "</span>");
+      ShowContactLine("email",ToolWebNGTranslateText2(70023) & "<span class='use_mail'>" & CYb.emailAddr & "</span>");
 
     case "footer":
       //show content 2
       ShowContactLine("blank",CYb.Addr0);
-      ShowContactLine("phone",CYb.Phone);
-      ShowContactLine("email",CYb.emailAddr);
+      ShowContactLine("phone","<span class='use_phone'>" & CYb.Phone & "</span>");
+      ShowContactLine("email","<span class='use_mail'>" & CYb.emailAddr & "</span>");
   end;
 
   return;
@@ -779,6 +805,10 @@ begin
   WebOutString("web_strings['SpecifyCompany'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70374)) & "';");
   WebOutString("web_strings['CantBeBlank'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70377)) & "';");
   WebOutString("web_strings['SamePasswords'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70398)) & "';");
+  WebOutString("web_strings['EnterLoanAmount'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70399)) & "';");
+  WebOutString("web_strings['SubmitLoanApplication'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70400)) & "';");
+  WebOutString("web_strings['AfterSubmit'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70401)) & "';");
+
   WebOutString("</script>");
 
   return;
@@ -1270,6 +1300,8 @@ begin
             IRr.FillDate = CurrentDate;
             IRr.FillTime = CUrrentTime;
             RecordUpdate(oldIRr,IRr,true);
+            CreateSuretyDataAgreement(CUr.Code,LAr);
+
           end;
         end;
       end;
@@ -1331,6 +1363,77 @@ begin
     WebOutString("</res>");
 
   end;
+
+  return;
+end;
+
+procedure AddActrText(var record ActVc Actr,string text,var Integer rw)
+begin
+  row ActVc Actrw;
+  
+  ClearRow(Actr,Actrw,1);
+  Actrw.Text = text;
+  MatRowPut(Actr,rw,Actrw);
+  rw = rw + 1;
+
+  return;
+end;
+
+global
+updating procedure StorePopupLoanApplication()
+begin
+  Longint value;
+  string 255 email,phone,warning;
+  Integer type,rw;
+  record CreditalWebSetBlock WSb;
+  record ActVc Actr;
+
+  value = StringToLongint(WebGetArg("amount"));
+  type = StringToInt(WebGetArg("loantype"));
+  email = WebGetArg("email");
+  phone = WebGetArg("phone");
+  if (nonblank(email) and nonblank(phone) and type>0 and value>0) then begin
+    BlockLoad(WSb);
+    RecordNew(Actr);
+    Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+    Actr.TransDate = CurrentDate;
+    Actr.ActType = WSb.PopupActType;
+    PasteActTypeInAct2("",Actr,warning);
+    Actr.MainPersons = WSb.PopupPersons;
+    Actr.Comment = WSb.PopupActComment;
+    Actr.TodoFlag = kTodoFlagTodo;
+
+    rw = 0;
+    AddActrText(Actr,value & " EUR",rw);
+    AddActrText(Actr,ToolWebNGTranslateText2(70405+type),rw);
+    AddActrText(Actr,email,rw);
+    AddActrText(Actr,phone,rw);
+
+    if (RecordInsert(Actr,true)) then begin
+
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure ShowPopupWebStrings()
+begin
+  
+  WebOutString("<script>");
+  WebOutString("var pu_strings = {};");
+  WebOutString("pu_strings['LoanAmount'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70403)) & "';");
+  WebOutString("pu_strings['Next'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70404)) & "';");
+  WebOutString("pu_strings['LoanType'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70405)) & "';");
+  WebOutString("pu_strings['LoanType1'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70406)) & "';");
+  WebOutString("pu_strings['LoanType2'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70407)) & "';");
+  WebOutString("pu_strings['LoanType3'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70408)) & "';");
+  WebOutString("pu_strings['LoanType4'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70409)) & "';");
+  WebOutString("pu_strings['Contacts'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70410)) & "';");
+  WebOutString("pu_strings['Email'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70411)) & "';");
+  WebOutString("pu_strings['Phone'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70412)) & "';");
+  WebOutString("</script>");
 
   return;
 end;

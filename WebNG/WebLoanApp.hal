@@ -861,6 +861,7 @@ begin
   CUr.CountryCode = "LT";//hardcoded for now   
   if (RecordInsert(CUr,true)) then begin
     res = true;
+/*
     ReadFirstMain(CUr,1,true);
     BlockLoad(CMb);
     RecordNew(PSr);
@@ -873,6 +874,7 @@ begin
     end;
     RepSpec.f1 = CUr.Code;
     SendCustomerLetterWithDetails(RepSpec,CMb.NewCustLetter,CUr.LangCode,CUr.eMail);
+*/
   end;
 
   StoreLoanContact = res;
@@ -894,7 +896,8 @@ begin
   return;
 end;
 
-procedure CheckCustomer(string regnr,string email,string contactphone,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
+global
+procedure CheckLoanCustomer(string regnr,string email,string contactphone,Boolean ignoreloginf,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
 begin
   string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail;
   Boolean res;
@@ -906,6 +909,10 @@ begin
     contactf = true;
     if (ContactCUr.Code==CurrentCust) then begin
       loginf = true;
+    end else begin
+      if (ignoreloginf) then begin
+        contactf = false;
+      end;
     end;
   end else begin
     if (qupdating.StoreLoanContact(email,contactphone,ContactCUr)) then begin
@@ -1035,6 +1042,7 @@ begin
   return;
 end;
 
+global
 updating procedure CreateActivityForContactLinks(record CUVc CUr,record CUVc ContactCUr)
 begin
   record ActVc Actr;
@@ -1063,6 +1071,7 @@ begin
   return;
 end;
 
+global
 updating procedure AddToMailingList(record CMApplicationSetBlock CMb,record CUVc CUr)
 begin
   record PersColVc PersColr;
@@ -1214,7 +1223,7 @@ begin
   end;
 
   if (err==0) then begin
-    CheckCustomer(regnr,email,phone,CUr,ContactCUr,status);
+    CheckLoanCustomer(regnr,email,phone,false,CUr,ContactCUr,status);
     switch (status) begin
       case 0://we are logged in - all good
       case 1://we just created a new company and new contact - all good
@@ -1357,6 +1366,50 @@ begin
   return;
 end;
 
+
+global
+function Boolean GetLoanAppContact(string name,string custcode,var record CUVc CUr)
+begin
+  Boolean res;
+  record ContactRelVc CRr;
+
+  CRr.ContactName = name;
+  CRr.CustCode = custcode;
+  if (ReadFirstKey("Contact",CRr,2,true)) then begin
+    CUr.Code = CRr.ContactCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      res = true;
+    end;
+  end;
+
+  GetLoanAppContact = res;
+  return;
+end;
+
+global
+function Boolean FindWebLoanAppContact(string custcode,string name,string email,var record CUVc CUr)
+begin
+  Boolean res;
+  
+  if (GetLoanAppContact(name,custcode,CUr)) then begin
+    res = true;
+  end;
+  if (!res) then begin
+    RecordClear(CUr);
+    ResetLoop(CUr);
+    CUr.eMail = email;
+    if (ReadFirstKey("eMail",CUr,1,true)) then begin
+      if (CUr.Name==name) then begin
+        res = true;
+      end;
+    end;
+  end;
+
+  FindWebLoanAppContact = res;
+  return;
+end;
+
+
 updating procedure SendEmailsToSurety(record B2BLoanApplicationVc LAr)
 begin
   Integer i;
@@ -1385,15 +1438,30 @@ begin
                 RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
               end;
             end;
-          end;
-          RepSpec.f1 = LAr.CustCode;
-          if (nonblank(RepSpec.searchstr)) then begin
-            SendCustomerLetterWithDetails(RepSpec,CMb.NoPassSuretyLetter,CUr.LangCode,CUr.eMail);
-          end else begin
-            SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);          
+            RepSpec.f1 = LAr.CustCode;
+            if (nonblank(RepSpec.searchstr)) then begin
+              SendCustomerLetterWithDetails(RepSpec,CMb.NoPassSuretyLetter,CUr.LangCode,CUr.eMail);
+            end else begin
+              SendCustomerLetterWithDetails(RepSpec,CMb.SuretyLetter,CUr.LangCode,CUr.eMail);          
+            end;
           end;
         end;
       end;
+    end;
+  end;
+
+  if (FindWebLoanAppContact(LAr.CustCode,LAr.ContactName,LAr.ContacteMail,CUr)) then begin
+    if (CUr.AllowLogin==0) then begin
+      RecordNew(PSr);
+      PSr.UUID = MakeUUID;
+      PSr.CustCode = CUr.Code;
+      PSr.TransDate = CurrentDate;
+      PSr.TransTime = CurrentTime;
+      if (RecordInsert(PSr,true)) then begin
+        RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
+      end;
+      RepSpec.f1 = CUr.Code;
+      SendCustomerLetterWithDetails(RepSpec,CMb.NewCustLetter,CUr.LangCode,CUr.eMail);
     end;
   end;
 
@@ -1608,25 +1676,6 @@ begin
 end;
 
 global
-function Boolean GetLoanAppContact(string name,string custcode,var record CUVc CUr)
-begin
-  Boolean res;
-  record ContactRelVc CRr;
-
-  CRr.ContactName = name;
-  CRr.CustCode = custcode;
-  if (ReadFirstKey("Contact",CRr,2,true)) then begin
-    CUr.Code = CRr.ContactCode;
-    if (ReadFirstMain(CUr,1,true)) then begin
-      res = true;
-    end;
-  end;
-
-  GetLoanAppContact = res;
-  return;
-end;
-
-global
 procedure ProcessOtherVerification()
 begin
   vector string 255 vSess;
@@ -1671,29 +1720,6 @@ begin
     end;
   end;
 
-  return;
-end;
-
-global
-function Boolean FindWebLoanAppContact(string custcode,string name,string email,var record CUVc CUr)
-begin
-  Boolean res;
-  
-  if (GetLoanAppContact(name,custcode,CUr)) then begin
-    res = true;
-  end;
-  if (!res) then begin
-    RecordClear(CUr);
-    ResetLoop(CUr);
-    CUr.eMail = email;
-    if (ReadFirstKey("eMail",CUr,1,true)) then begin
-      if (CUr.Name==name) then begin
-        res = true;
-      end;
-    end;
-  end;
-
-  FindWebLoanAppContact = res;
   return;
 end;
 

@@ -1,0 +1,147 @@
+//<halrule>server-only</halrule>
+external inner function LongInt DateTimeDiff(date,time,date,time);
+external inner function Boolean CheckAttachedFilesSizeToLetter(record LetVc);
+external inner function string 255 LetVcDoReplaceToken(record RcVc,string);
+
+global
+function string 255 LtxtVcReplaceToken(record LTxtVc LTxtr,record RcVc RepSpec,string token)
+begin
+  LtxtVcReplaceToken = LetVcDoReplaceToken(RepSpec,token);
+end;
+
+global
+updating procedure SendEmailWithStdText(string txt,record RCVc RepSpec,string mailbox)
+begin
+  record EMailQueVc emqrp;
+  row EMailQueVc emarw;
+  string 255 tstr;
+  LongInt pos,l;
+  Integer i,emcnt,cscnt;
+  area a;
+  record MailSettingsBlock MSr;
+  record LTxtVc LTxtr;
+  
+  BlockLoad(MSr);
+
+  emarw.RowTyp = 1;
+  emarw.AddrCode = MSr.Postmaster;
+  MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+
+  emarw.RowTyp = 0;
+  emarw.AddrCode = mailbox;
+  MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+  emqrp.Header = LTxtr.Comment;
+  if (LTxtr.HtmlFlag==0) then begin
+    ParseTextField(a,LTxtr,RepSpec,"LtxtVcReplaceToken");
+    l = GetAreaLength(a);
+    pos = 0;
+    while (pos<l) begin
+      tstr = GetStringFromArea(a,pos,255);
+      AddToText(tstr,emqrp); 
+      pos = pos+255;
+    end;
+  end;
+  emqrp.SerNr = NextSerNr("EMailQueVc",CurrentDate,-1,false,"");
+  emqrp.OrgSerNr = -1;
+  emqrp.FileName = "";
+  emqrp.TransDate = CurrentDate;
+  emqrp.TransTime = CurrentTime;
+  emqrp.HasFileAtt = 0;
+  emqrp.HasRecAtt = 0;
+  emqrp.Priority = 1;
+  emqrp.EMailSent = 0;
+  emqrp.Lifespan = 0;
+  emqrp.QueDate = CurrentDate;
+  emqrp.QueTime = CurrentTime;
+  emqrp.HtmlFlag = LTxtr.HtmlFlag;
+
+  if (CheckAttachedFilesSizeToLetter(LTxtr)) then begin
+    if (RecordStore(emqrp,false)) then begin
+      CopyRecordLinks(LTxtr,emqrp);
+      if (LTxtr.HtmlFlag==1) then begin
+        ParseHtmlField(emqrp,RepSpec,"EMailQueVcReplaceToken");
+      end;
+    end;
+  end;
+  
+  return;
+end;
+
+global
+updating procedure SendSingleReminder(record AgreementDocVc ADr,string txt)
+begin
+  row AgreementDocVc ADrw;
+  Integer i,rwcnt;
+  record RcVc RepSpec;
+  record CUVc CUr;
+  record AgreementDocVc oldADr;
+  
+  if (ReadFirstMain(ADr,1,true)) then begin
+    rwcnt = MatRowCnt(ADr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(ADr,i,ADrw);
+      RecordClear(RepSpec);
+      RepSpec.f1 = ADrw.CustCode;
+      CUr.Code = ADrw.CustCode;
+      if (ReadFirstMain(CUr,1,true)) then begin
+/*
+        if (CUr.AllowLogin==0) then begin
+          RecordNew(PSr);
+          PSr.UUID = MakeUUID;
+          PSr.CustCode = CUr.Code;
+          PSr.TransDate = CurrentDate;
+          PSr.TransTime = CurrentTime;
+          if (RecordInsert(PSr,true)) then begin
+            RepSpec.searchstr = "?sess=" & PSr.UUID & "&cc=" & CUr.Code;
+          end;
+        end;
+*/
+        SendEmailWithStdText(txt,RepSpec,CUr.eMail);
+      end;
+    end;
+
+    RecordCopy(oldADr,ADr);
+    ADr.SentReminder = 1;
+    RecordUpdate(oldADr,ADr,true);
+  end;
+
+  return;
+end;
+
+global
+procedure AgreementDocReminderTask(string args)
+begin
+  record AgreementDocVc ADr;
+  record DocumentReminderVc DRr;
+  Boolean TrHs;
+  
+  while (LoopMain(DRr,1,true)) begin
+    if (DRr.ActiveFlag==1) then begin
+      TrHs = true;
+      ResetLoop(ADr);
+      RecordClear(ADr);
+      ADr.Type = DRr.Type;
+      ADr.SentReminder = 0;
+      while (LoopKey("Status:0",ADr,2,TrHs)) begin
+        if (ADr.Type!=DRr.Type or ADr.SentReminder!=0) begin
+          TrHs = false;
+        end else begin
+          if (DateTimeDiff(CurrentDate,CurrentTime,ADr.TransDate,ADr.TransTime)>=DRr.Delay) then begin
+            queued.SendSingleReminder(ADr,DRr.Text);
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure InitAgreementDocReminderTask()
+begin
+  
+  NewPeriodicTask2("AgreementDocReminderTask","AgreementDocReminderTask","AgreementDocReminderTask","",120,"");
+
+  return;
+end;

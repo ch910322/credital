@@ -26,12 +26,11 @@ begin
 end;
 
 global
-updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Boolean res)
+updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Boolean res,xml axml)
 begin
   Boolean debugf;
   string 255 lang,params,url,path,root,tstr,fn,name,surname,datestr,datestr1,datestr2;
   record CUVc oldCUr,tCUr;
-  xml axml;
   Date courtdate,td,enddate,maxdate;
   Longint pos;
   row B2BLoanApplicationVc LArw;
@@ -42,14 +41,9 @@ begin
 
 
   BlockLoad(ASb);
-  res = false;
   RecordCopy(oldCUr,CUr);
-  axml = ParseXmlArea(reply);
-  root = "root/BasicInfo";
-  if (XmlNodeExists(axml,root)==false) then begin
-    goto LGetCreditInfo;
-  end;
   res = true;
+  root = "root/BasicInfo";
   if (nonblank(XmlGet(axml,root & "/Registered"))) then begin
     LAr.Established = DateFromString(XmlGet(axml,root & "/Registered"),"YYYY.MM.DD");
     CUr.BirthDate = LAr.Established;
@@ -291,12 +285,11 @@ begin
   "/BailiffUrge";
   "/VptInfo";
 */
-LGetCreditInfo:;
   return;
 end;
 
 global
-procedure GetCreditInfo(var record B2BLoanApplicationVc LAr,var Boolean res)
+procedure GetCreditInfo(var record B2BLoanApplicationVc LAr,var Boolean res,var string errstr)
 begin
   record CreditinfoBlock CIb;
   Boolean debugf;
@@ -305,6 +298,7 @@ begin
   record CUVc CUr,oldCUr,tCUr;
   Boolean sslf;
   Longint port,pos;
+  xml axml;
 
   res = false;
   BlockLoad(CIb);
@@ -328,11 +322,20 @@ begin
     path = "/creditinfogroup_lt/SAIS/WebServices/getsais.asmx/GetSAIS";
 
     if (SendWebRequest(url,port,-1,sslf,"GET",path & "?" & params,"text/xml; charset=utf-8","",false,request,reply,10)) then begin
-      writeareatofile(reply,"_creditinfo.txt",0);
-      qupdating.TreatCreditInfoReply(LAr,CUr,reply,res);
+      axml = ParseXmlArea(reply);
+      root = "root/BasicInfo";
+      if (XmlNodeExists(axml,"KLAIDA")) then begin
+        errstr = XmlGet(axml,"KLAIDA");
+      end;
+      if (XmlNodeExists(axml,root)==false) then begin
+        goto LGetCreditInfo;
+      end;
+
+      qupdating.TreatCreditInfoReply(LAr,CUr,reply,res,axml);
 
     end;
   end;
 
+LGetCreditInfo:;
   return;
 end;

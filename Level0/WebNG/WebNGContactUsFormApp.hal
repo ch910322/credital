@@ -213,7 +213,9 @@ begin
   ClearRow(Mailr,Mailrw,1);
   Mailrw.RowTyp = type;
   Mailrw.AddrCode = addr;
-  ResolveMailboxNumber(Mailrw);
+  if (type==1) then begin//CUST
+    ResolveMailboxNumber(Mailrw);
+  end;
   MatRowPut(Mailr,MatRowCnt(Mailr),Mailrw);
 
   return;

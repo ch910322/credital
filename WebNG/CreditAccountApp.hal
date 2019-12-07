@@ -200,23 +200,27 @@ begin
     if (LAr.CustCode!=GetSelectedCustomerCode) then begin
       TrHs = false;
     end else begin
-      RecordClear(CredManr);
-      ClearRow(ORr,ORrw,1);
-      ORrw.GroupOrdRow = LAr.SerNr;
-      ORrw.ServiceDelDate = LAr.TransDate;
-      ORrw.Location = LAr.OrderClass;
+      if (ReadRecordLink(LAr,1,CredManr,RLr)==false) then begin
+        RecordClear(CredManr);
+        ClearRow(ORr,ORrw,1);
+        ORrw.GroupOrdRow = LAr.SerNr;
+        ORrw.ServiceDelDate = LAr.TransDate;
+        ORrw.Location = LAr.OrderClass;
       //ORrw.PickingDate = LAr.StartDate;
       //ORrw.InloadingDate = LAr.EndDate;
+/*
       if (ReadRecordLink(LAr,1,CredManr,RLr)) then begin
         ORrw.Location = CredManr.OrderClass;
         ORrw.PickingDate = CredManr.TransDate;
         ORrw.InloadingDate = CredManr.endDate;
         ORrw.Sum = CredManr.InvSum4;
       end else begin
+*/
         ORrw.Sum = LAr.Sum;
+        MatRowPut(ORr,rw,ORrw);
+        rw = rw + 1;
       end;
-      MatRowPut(ORr,rw,ORrw);
-      rw = rw + 1;
+//      end;
     end;
   end;
 
@@ -240,16 +244,17 @@ begin
     if (CredManr.CustCode!=GetSelectedCustomerCode) then begin
       TrHs = false;
     end else begin
-      if (ReadRecordLink(CredManr,1,LAr,RLr)==false) then begin
-        ClearRow(ORr,ORrw,2);
-        ORrw.GroupOrdRow = CredManr.SerNr;
-        ORrw.PickingDate = CredManr.TransDate;
-        ORrw.InloadingDate = CredManr.endDate;
-        ORrw.Location = CredManr.OrderClass;
-        ORrw.Sum = CredManr.InvSum4;
-        MatRowPut(ORr,rw,ORrw);
-        rw = rw + 1;
+      ClearRow(ORr,ORrw,2);
+      ORrw.GroupOrdRow = CredManr.SerNr;
+      ORrw.PickingDate = CredManr.TransDate;
+      ORrw.InloadingDate = CredManr.endDate;
+      ORrw.Location = CredManr.OrderClass;
+      ORrw.Sum = CredManr.InvSum4;
+      if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+        ORrw.ServiceDelDate = LAr.TransDate;
       end;
+      MatRowPut(ORr,rw,ORrw);
+      rw = rw + 1;
     end;
   end;
   
@@ -281,10 +286,12 @@ begin
   return;
 end;
 
-procedure FillOrderClassData(var vector string vColor,var vector string vClass)
+procedure FillOrderClassData(var vector string vColor,var vector string vClass,var vector string vLoad)
 begin
   record OrderClassColorBlock OCCb;
   row OrderClassColorBlock OCCbrw;
+  record CredManExtBlock CEb;
+  row CredManExtBlock CEbrw;
   Integer i,rwcnt;
   record OrderClassVc OCr;
 
@@ -293,6 +300,14 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(OCCb,i,OCCbrw);
     vColor[OCCbrw.OrderClass] = GetWebColor(OCCbrw.Color);
+  end;
+  BlockLoad(CEb);
+  rwcnt = MatRowCnt(CEb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CEb,i,CEbrw);
+    if (CEbrw.ShowFlag==0) then begin
+      vLoad[CEbrw.OrderClass] = 1;
+    end;
   end;
 
   while (LoopMain(OCr,1,true)) begin
@@ -305,14 +320,14 @@ end;
 procedure ShowCreditAccountAgreements()
 begin
   record ORVc ORr;
-  vector string 255 vColor,vClass;
+  vector string 255 vColor,vClass,vLoad;
   Integer i,rwcnt;
   row ORVc ORrw;
   
   GetLoanApplications(ORr);
   GetLoanAgreements(ORr);
 
-  FillOrderClassData(vColor,vClass);
+  FillOrderClassData(vColor,vClass,vLoad);
 
   SortRows(ORr,"Location",false);
 
@@ -330,7 +345,7 @@ begin
   rwcnt = MatRowCnt(ORr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(ORr,i,ORrw);    
-    WebOutString("<tr>");
+    WebOutString("<tr load='" & vLoad[ORrw.Location] & "'>");
     if (nonblank(vClass[ORrw.Location])) then begin
       WebOutString("<td><div class='or_status " & vColor[ORrw.Location] & "'>" & vClass[ORrw.Location] & "</div></td>");
     end else begin
