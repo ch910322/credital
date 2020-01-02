@@ -884,7 +884,7 @@ begin
 //CUST-BEGIN
 //  SpecialMenu("Invoice",'F',1,"InvoiceCredManDsm");
   SpecialMenu("Invoice",'F',1,"CreateCredManInvoiceDsm");
-  SpecialMenu("Payment",'F',1,"CredManMakePaymentDsm");
+  SpecialMenu("Payment",' ',1,"CredManMakePaymentDsm");
 //CUST-END
   SpecialMenu("Receipt",'r',1,"ReceiptCredManDsm");
   EndWindow;

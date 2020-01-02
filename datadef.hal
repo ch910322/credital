@@ -1189,6 +1189,7 @@ begin
   SourceFile("halcust\\Level0\\Documents", 0);
   SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
+  SourceFile("halcust\\Level0\\WActions", 0);
   SourceFile("halcust\\Level0\\WebNG", 0);
 
 /*Mesente SMS*/

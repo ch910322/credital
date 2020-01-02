@@ -545,11 +545,21 @@ begin
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
   UseView(SMSReminderQueueVc);
+  SpawnClass(SMSReminderQueueDClass);
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
   RlCol   (101,101,"Inv. Date",InvDate,false);
   RlCol   (201,201,"Invoice Nr.",InvoiceNr,false);
   RlColKeyTL(-30,-30,"Sent",M4Mark,SentFlag,false,SentFlag);
+  EndWindow;
+
+  WindowBegin("Campaign",SMSReminderQueueDClass,CGview,-);
+  SetWRect(20,80,460,380);
+  h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
+  UseView(SMSReminderQueueVc);
+  EditField(h,v,120,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h,v+=vs,120,"Inv. Date",Normal,InvDate,false,0);
+  EditField(h,v+=vs,120,"Invoice Nr.",Normal,InvoiceNr,false,0);
   EndWindow;
 
   WindowBegin("Campaigns",WebCampaignLClass,CGmList,-);

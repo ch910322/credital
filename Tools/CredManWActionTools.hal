@@ -574,7 +574,7 @@ updating procedure CredManMakePaymentRemote(var record CredManVc CredManr,var re
 begin
   record IVVc IVr;
 
-  if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=6) then begin
+  if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=5) then begin
     CreateSingleAgreementInvoice(CredManr,CredManr.endDate,IVr);
     CredManCreditAllInvoices(CredManr);
     CreateCredmanPurchaseInvoice(CredManr,VIr);

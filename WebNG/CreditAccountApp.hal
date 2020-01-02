@@ -743,7 +743,7 @@ begin
   Boolean res;
   
   if (ADr.Type==3 or ADr.Type==6) then begin
-    if (CustIsSurety(custcode,CredManr)) then begin
+    if (CustIsSurety(custcode,CredManr) or (ADr.Type==6 and CustIsCEO(custcode,CredManr))) then begin
       res = true;
       goto LContactShouldSeeDocument;
     end;
