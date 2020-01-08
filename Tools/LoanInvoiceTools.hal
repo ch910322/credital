@@ -111,6 +111,11 @@ begin
 
   IVr.CredFromDate = fromdate;
   IVr.CredToDate = todate;
+  if (CredManr.startDate==invdate) then begin
+    IVr.LangCode = CredManr.LangCode2;
+  end else begin
+    IVr.LangCode = CredManr.LangCode;
+  end;
 
   //we should always have in the plan first row instalment or interest where we have start and end date
   if (CMASb.DetailedInvoice==1) then begin

@@ -315,6 +315,8 @@ begin
     CredManr.SuretyInterestRate = CredManTyper.SuretyInterestRate;
     CredManr.StdProlongFee = CredManTyper.StdProlongFee;
     CredManr.StdProlongPrc = CredManTyper.StdProlongPrc;
+    CredManr.LangCode = CredManTyper.LangCode;
+    CredManr.LangCode2 = CredManTyper.LangCode2;
     if (CredManr.InstalmentType==4) then begin
       CredManr.InstalmentMonths = 1;
     end;

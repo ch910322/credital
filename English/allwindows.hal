@@ -774,6 +774,9 @@ begin
   EditField(h,vm=(v+=vs),100,"Quotation",ViewOnly,QTNr,false,0);
   EditField(h,v+=vs,40,"Price List",Normal,PriceList,false,PLDefSClass);
   EditField(h,v+=vs,40,"Language",Normal,LangCode,false,LangSClass);
+//CUST-BEGIN
+  EditField(h,v+=vs,40,"First Invoice Lang.",Normal,LangCode2,false,LangSClass);
+//CUST-END
   EditField(h,v+=vs,40,"Max Late Days",Normal,LateFeeDays,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Settlement Months",Normal,SettleLimit,false,0);
@@ -920,6 +923,8 @@ begin
   EditField(h,vm2=(v+=vs),40,"Fixed Deposit",Normal,DepositSum,true,0);//CUST 82>>40
   EditField(h2,v,82,"Princ. Delay Interest %",Normal,PrincipleDelayInterest,false,0);//CUST added
   //CUST-BEGIN
+  EditField(h,vm2=(v+=vs),40,"Language",Normal,LangCode,false,LangSClass);
+  EditField(h2,v,40,"First Invoice Language",Normal,LangCode2,false,LangSClass);
   h2 = h2 + 110;
   //CUST-END
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");

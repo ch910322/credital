@@ -453,6 +453,7 @@ begin
 
   RecordField(VINr,M4Long,0,0);
  // RecordField(Classification,M4Code,5,OrderClassVc);
+  RecordField(LangCode2,M4Code,5,0);
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -504,6 +505,9 @@ begin
   RecordField(LoanToValue,M4Qty,0,0);
   RecordField(PrincipleDelayMonths,M4Qty,0,0);
   RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(LangCode,M4Code,5,0);
+  RecordField(LangCode2,M4Code,5,0);
+  
   EndRecordAdd;
 
   BlockBegin(EvalConstBlock,0,"");
