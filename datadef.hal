@@ -1176,6 +1176,20 @@ begin
   ChangeField(Name,M4Str,50,0);
   EndRecordAdd;
 
+  BlockBegin(CMOrderClassBlock,-,"");
+  RecordField(DefOrderClass,M4Code,5,OrderClassVc)
+  RecordField(TerminatedOrderClass,M4Code,5,OrderClassVc);
+  RecordField(RefinClass,M4Code,5,OrderClassVc);
+  RecordField(WebAppClass,M4Code,5,OrderClassVc);
+  RecordField(VerWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(OtherWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(CheckWebAppClass,M4Code,5,OrderClassVc);
+  RecordField(AcceptedAppOrderClass,M4Code,5,OrderClassVc);
+  RecordField(CMCustSignedOrderClass,M4Code,5,OrderClassVc);
+  RecordField(CMUsSignedOrderClass,M4Code,5,OrderClassVc);
+  RecordField(CMDefOrderClass,M4Code,5,OrderClassVc);
+  EndBlock;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Documents", 3);

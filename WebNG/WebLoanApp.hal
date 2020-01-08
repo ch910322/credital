@@ -1090,9 +1090,11 @@ begin
   Boolean res;
   record CredManTypeVc CMTr;
   record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
   Integer type;
   
   BlockLoad(CMb);
+  BlockLoad(OCb);
   RecordNew(LAr);
   LAr.SerNr = NextSerNr("B2BLoanApplicationVc",CurrentDate,-1,false,"");
   LAr.TransDate = CurrentDate;
@@ -1101,9 +1103,9 @@ begin
   LAr.eMail = CUr.eMail;
 logtext(0,"status " & status);
   if (status==2) then begin
-    LAr.OrderClass = CMb.CheckWebAppClass;    
+    LAr.OrderClass = OCb.CheckWebAppClass;    
   end else begin
-    LAr.OrderClass = CMb.WebAppClass;
+    LAr.OrderClass = OCb.WebAppClass;
   end;
 
   LAr.ContacteMail = ContactCUr.eMail;
@@ -1587,7 +1589,7 @@ begin
   Boolean mansurf,addrtype,verf;
   vector string 255 vSess;
   record CUVc CUr,oldCUr;
-  record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
   
   bankacc = WebGetArg("bankacc");
   paymentdate = StringToInt(WebGetArg("paymentdate"));
@@ -1609,7 +1611,7 @@ begin
 
     if (err==0) then begin
       step = "3";
-      BlockLoad(CMb);
+      BlockLoad(OCb);
       RecordCopy(oldLAr,LAr);
       AddManagerAndSurety(LAr,mansurf,managercode);
       LAr.BankAccount = bankacc;
@@ -1626,8 +1628,8 @@ begin
         end;
         RecordUpdate(oldCUr,CUr,false);//skipping record actions here
       end;
-      if (LAr.OrderClass!=CMb.CheckWebAppClass) then begin
-        LAr.OrderClass = CMb.OtherWebAppClass;
+      if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
+        LAr.OrderClass = OCb.OtherWebAppClass;
       end;
       if (RecordUpdate(oldLAr,LAr,true)==0) then begin
         RemoveOldDocuments(LAr);
@@ -1635,10 +1637,10 @@ begin
         PrepareLoanApplicationVerification(LAr,managercode,verf);
         if (verf) then begin
           if (AllSuretyApplicationsSigned(LAr.SerNr)) then begin
-            BlockLoad(CMb);
-            if (LAr.OrderClass!=CMb.CheckWebAppClass) then begin
+            BlockLoad(OCb);
+            if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
               RecordCopy(oldLAr,LAr);
-              LAr.OrderClass = CMb.VerWebAppClass;
+              LAr.OrderClass = OCb.VerWebAppClass;
               RecordUpdate(oldLAr,LAr,true);
             end;
           end;
@@ -1662,12 +1664,12 @@ begin
   record CMApplicationSetBlock CMb;
   record B2BLoanApplicationVc LAr,oldLAr;
 /*  
-  BlockLoad(CMb);
+  BlockLoad(OCb);
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
     RecordCopy(oldLAr,LAr);
     switch (stat) begin
-      case 2: LAr.OrderClass = CMb.OtherWebAppClass;
+      case 2: LAr.OrderClass = OCb.OtherWebAppClass;
     end;
     RecordUpdate(oldLAr,LAr,true);
   end;

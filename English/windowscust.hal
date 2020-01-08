@@ -72,17 +72,17 @@ begin
   EditField(h,v+=vs,100,"Ownership Years",Normal,OwnershipYears,false,0);
 
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
-  EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Years to access private data",Normal,PrivateDataYears,false,0);
 
-  EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
  
-  EditField(h,v+=vs,100,"Accepted Appl. Class",Normal,AcceptedAppOrderClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Signed Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Not signed Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
-  EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Accepted Appl. Class",Normal,AcceptedAppOrderClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Signed Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Not signed Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Request Signature Class",Normal,SignOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Active Agreement Order Class",Normal,ActiveCredOrderClass,false,OrderClassSClass);
 
@@ -1977,5 +1977,39 @@ begin
   MatCol(1,24,"Order Class",0,OrderClass,false,OrderClassSClass);
   MatCol(1,130,"Action",0,ShowFlag,false,SetSClass);
   EndMatrix;
+  EndWindow;
+end;
+
+window CMOrderClassTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2,tilenr;
+  WindowBegin("Invoice Settings",CMOrderClassTClass,CGSbl,-);
+  SetBlid(CMOrderClassBlock);
+  h = 200;
+  SetWRect(20,80,550,298);
+  tilenr = 1;
+  Tile(0,20,false,"",DefOrderClass);
+  TileButton(tilenr,"Applications"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Agreements"); tilenr = tilenr + 1;  
+
+  Tile(1,95,false,"1",DefOrderClass);
+  vs=20; h=160; vs2=16; hm=-100;
+  EditField(h,v=6,100,"Default Class",Normal,DefOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Signed Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Not signed Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Accepted Appl. Class",Normal,AcceptedAppOrderClass,false,OrderClassSClass);
+
+  
+  Tile(2,95,false,"2",CMDefOrderClass);
+ 
+  EditField(h,v=6,100,"Default Class",Normal,CMDefOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Customer Signed Class",Normal,CMCustSignedOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Signed by Us Class",Normal,CMUsSignedOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
+
   EndWindow;
 end;

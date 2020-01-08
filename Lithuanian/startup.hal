@@ -19,6 +19,7 @@ begin
   Setting("SMS Reminders",SMSReminderLClass,modCredMan);
   Setting("Factoring Settings",FactoringTClass,modCredMan);
   Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
+  Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);

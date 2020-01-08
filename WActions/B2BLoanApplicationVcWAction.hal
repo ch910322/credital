@@ -794,8 +794,8 @@ begin
   record CUVc CUr;
 
   wn = CurWindow;
+  DeselectWindow(wn,true);
   GetWindowRecord(wn,LAr);
-
   if (WindowState(wn)==Rs_normal) then begin
     if (B2BLoanAppCreateCredMan(LAr,CredManr)) then begin
       PutWindowRecord(wn,LAr);

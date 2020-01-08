@@ -11,15 +11,19 @@ BEGIN
   LongInt res;
   record BaseCurBlock BCb;
   record CredManSetBlock CMb;
+  record CMOrderClassBlock OCb;
 
   BlockLoad(BCb);
   BlockLoad(CMb);
+  BlockLoad(OCb);
   CredManr.CurncyCode = BCb.BaseCur1;
   CredManr.MonthlyPaymentDay = CMb.InvDay;
 
   res = inner.CredManVcRecordDefaults(CredManr,CredMan2r,stat,long4);
   CredManVc_PasteType(CredManr);
-  
+
+  CredManr.OrderClass = OCb.CMDefOrderClass;
+
   CredManVcRecordDefaults = res;
   return;
 END;

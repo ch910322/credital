@@ -7,6 +7,7 @@ function LongInt B2BLoanApplicationVcRecordDefaults(var record B2BLoanApplicatio
 begin
   LongInt res;
   record CredManSetBlock CredManSb;
+  record CMOrderClassBlock OCb;
   
   res = 1;  
 
@@ -19,6 +20,9 @@ begin
  
   BlockLoad(CredManSb);
   LAr.MonthlyPaymentDay = CredManSb.InvDay;
+
+  BlockLoad(OCb);
+  LAr.OrderClass = OCb.DefOrderClass;
   
   B2BLoanApplicationVcRecordDefaults = res; 
   return;

@@ -223,10 +223,12 @@ updating function Boolean B2BLoanAppCreateCredMan(var record B2BLoanApplicationV
 begin
   record CUVc CUr;
   Boolean res;
-  record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
+  record CredManTypeVc CMTr;
 
   CUr.Code = LAr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
+    BlockLoad(OCb);
     RecordNew(CredManr);
     CredManr.SerNr = NextSerNr("CredManVc",CurrentDate,-1,false,"");
     CredManr.Type = LAr.Type;
@@ -236,9 +238,15 @@ begin
     CredManr.Addr0 = LAr.CustName;
     CredManr.SalesMan = LAr.Manager;
     CredManr.InvSum4 = LAr.Sum;
+    CredManr.OrderClass = OCb.CMDefOrderClass;
     CredManr.startDate = CurrentDate;//LAr.StartDate;
     CredManr.InstalmentMonths = LAr.Months;
-    CredManr.PayDeal = CUr.PayDeal;
+    CMTr.Code = LAr.Type;
+    if (ReadFirstMain(CMTr,1,true)) then begin
+      CredManr.PayDeal = CMTr.PayDeal;
+    end else begin  
+      CredManr.PayDeal = CUr.PayDeal;
+    end;
     CredManr.ClientContact = LAr.ContactName;
     CredManr.MonthlyPaymentDay = LAr.MonthlyPaymentDay;
     CredManr.DepositSum = Round(CredManr.DepositPrc/100 * CredManr.InvSum4,SetRoundModeD(2));
@@ -256,8 +264,7 @@ begin
     PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 3,-1),3);
 
     if (RecordInsert(CredManr,true)) then begin
-      BlockLoad(CMb);
-      LAr.OrderClass = CMb.AcceptedAppOrderClass;
+      LAr.OrderClass = OCb.AcceptedAppOrderClass;
 
       res = true;
       CreateRecordLink(LAr,CurrentCompany,CredManr,CurrentCompany);
@@ -357,7 +364,7 @@ updating function Boolean AddSuretyToApplication(var record B2BLoanApplicationVc
 begin
   Boolean res;
   Integer scnt;
-  record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
   
   if (nonblank(contactcode)) then begin
     scnt = 1;
@@ -365,11 +372,11 @@ begin
       scnt = scnt + 1;
     end;
     if (scnt<4) then begin
-      BlockLoad(CMb);//loading this block twice....sorry, I know
+      BlockLoad(OCb);//loading this block twice....sorry, I know
       SetFieldValueByName(LAr,"SuretyProvider" & scnt,contactcode,-1);
       InsertSuretyInB2BApplication(LAr,scnt);
       LAr.SuretyCnt = scnt;
-      LAr.OrderClass = CMb.OtherWebAppClass;
+      LAr.OrderClass = OCb.OtherWebAppClass;
       res = true;
     end;
   end;

@@ -12,6 +12,7 @@ external procedure AddInstalmentFixed(record CredManVc,record CredManPayPlanVc,r
 forward procedure GetCredManEventList2(Longint,var record ORVc);
 external inner procedure PasteARPayInIV(record IVVc,row IVVc,Integer);
 external updating procedure FindUnpaidCredHist(record ItemPriorityBlock,record IPVc,row IPVc,var array val,Integer);
+external inner function Boolean IVVc_PasteSum(var record IVVc,Integer,var Boolean,Integer);
 
 
 enum begin
@@ -319,6 +320,9 @@ begin
   val remval;
   Boolean TrHs;
   row IVVc IVrw;
+  record IVVc IV2r;
+  string 255 warning;
+  Boolean chsum;
   
   if (ASb.AddPrepayments) then begin
     remval = IVr.Sum4;
@@ -332,7 +336,12 @@ begin
         IVrw.Spec = USetStr(1288);
         IVrw.CUPNr = ARPayr.CUPNr;
         PasteARPayInIV(IVr,IVrw,-1);
-        MatRowInsert(IVr,MatRowCnt(IVr),IVrw);
+        MatRowInsert(IVr,0,IVrw);
+        if IVVc_PasteSum(IVr,0,chsum,1) then begin 
+          if (chsum) then begin
+            IVDchsum(IVr,0);
+          end;
+        end;  
         remval = remval - IVrw.BasePrice;
       end;
     end;

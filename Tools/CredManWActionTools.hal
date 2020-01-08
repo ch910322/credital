@@ -51,15 +51,15 @@ end;
 global
 updating procedure TerminateCredMan(var record CredManVc CredManr,var record IVVc IVr)
 begin
-  record CMApplicationSetBlock CMASb;
+  record CMOrderClassBlock OCb;
   record CredManVc oldCredManr;
    
-  BlockLoad(CMASb);
+  BlockLoad(OCb);
 
-  if (nonblank(CMASb.TerminatedOrderClass)) then begin
+  if (nonblank(OCb.TerminatedOrderClass)) then begin
     DoBuyOutAgreement(CredManr,IVr);
     RecordCopy(oldCredManr,CredManr);
-    CredManr.OrderClass = CMASb.TerminatedOrderClass;
+    CredManr.OrderClass = OCb.TerminatedOrderClass;
     RecordUpdate(oldCredManr,CredManr,true);
   end;
 
@@ -255,16 +255,16 @@ end;
 global
 updating function Boolean DoRefinCredMan(record RcVc RepSpec,var string msg,var record CredManVc nCredManr)
 begin
-  record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
   record IVVc IVr;
   record CredManVc CredManr,oldCredManr;
   Boolean res;
   
   CredManr.SerNr = RepSpec.long1;
   if (ReadFirstMain(CredManr,1,true)) then begin
-    BlockLoad(CMb);
+    BlockLoad(OCb);
     RecordCopy(oldCredManr,CredManr);
-    CredManr.OrderClass = CMb.RefinClass;
+    CredManr.OrderClass = OCb.RefinClass;
     if (RecordUpdate(oldCredManr,CredManr,true)==0) then begin
       CreateRefinCredMan(RepSpec,nCredManr);
       DoBuyOutAgreement(CredManr,IVr);

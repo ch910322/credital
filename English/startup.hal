@@ -28,6 +28,8 @@ begin
   Setting("Invitation Requests",InvitationRequestLClass,modCredMan);
   Setting("Document Signing Reminders",DocumentReminderLClass,modCredMan);
   Setting("Agreement/Application Extensions",CredManExtTClass,modCredMan);
+  Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
+
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);

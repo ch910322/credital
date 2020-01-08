@@ -44,6 +44,78 @@ begin
   return;
 end;
 
+function Boolean MatrixIsSigned(record AgreementDocVc ADr)
+begin
+  row AgreementDocVc ADrw;
+  Integer i,rwcnt;
+  Boolean res;
+
+  res = true;
+  rwcnt = MatRowCnt(ADr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ADr,i,ADrw);
+    if (ADrw.Status!=1) then begin
+      res = false;
+      i = rwcnt;
+    end;
+  end;
+
+  MatrixIsSigned = res;
+  return;
+end;
+
+function Boolean AllDocumentsSignedByCustomerCM(Longint sernr)
+begin
+  Boolean res;
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  Boolean TrHs;
+
+  TrHs = true;
+  res = true;
+  ADr.RecordType = 0;
+  ADr.RecordNr = sernr;
+  while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+    if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
+      TrHs = false;
+    end else begin
+      if (MatrixIsSigned(ADr)==false) then begin
+        res = false;
+        TrHs = false;
+      end;
+    end;
+  end;
+
+  AllDocumentsSignedByCustomerCM = res;
+  return;
+end;
+
+function Boolean AllDocumentsSignedByUsCM(Longint sernr)
+begin
+  Boolean res;
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  Boolean TrHs;
+
+  TrHs = true;
+  res = true;
+  ADr.RecordType = 0;
+  ADr.RecordNr = sernr;
+  while (LoopKey("RecordNr",ADr,2,TrHs)) begin
+    if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
+      TrHs = false;
+    end else begin
+      if (ADr.SignedByUs!=1) then begin
+        res = false;
+        TrHs = false;
+      end;
+    end;
+  end;
+
+  AllDocumentsSignedByUsCM = res;
+  return;
+end;
+
 global
 updating function LongInt AgreementDocVcRecordUpdateAfter(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
 begin
@@ -51,7 +123,10 @@ begin
   row AgreementDocVc ADrw;
   record B2BLoanApplicationVc LAr,oldLAr;
   record CMApplicationSetBlock CMb;
+  record CMOrderClassBlock OCb;
+  
   record CUVc CUr,oldCUr;
+  record CredManVc CMr,oldCMr;
 
   res = 0;
   
@@ -61,10 +136,10 @@ begin
       if (AllSuretyApplicationsSigned(ADr.RecordNr)) then begin
         LAr.SerNr = ADr.RecordNr;
         if (ReadFirstMain(LAr,1,true)) then begin
-          BlockLoad(CMb);
-          if (LAr.OrderClass!=CMb.CheckWebAppClass) then begin
+          BlockLoad(OCb);
+          if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
             RecordCopy(oldLAr,LAr);
-            LAr.OrderClass = CMb.VerWebAppClass;
+            LAr.OrderClass = OCb.VerWebAppClass;
             RecordUpdate(oldLAr,LAr,true);
           end;
         end;
@@ -80,6 +155,39 @@ begin
       end;
     end;
   end;  
+  if (ADr.Type==1 or ADr.Type==2 or ADr.Type==3) then begin
+    if (ADr.SignedByUs==1 and MatrixIsSigned(ADr)) then begin
+      CMr.SerNr = ADr.RecordNr;
+      if (ReadFirstMain(CMr,1,true)) then begin
+        RecordCopy(oldCMr,CMr);
+        switch (ADr.Type) begin
+          case 1: CMr.SignAgreement = 1;
+          case 2: CMr.SignSchedule = 1;
+          case 3: CMr.SignSurety = 1;
+        end;
+        RecordUpdate(oldCMr,CMr,true);
+      end;
+    end;
+  end;
+  if (ADr.RecordType==0) then begin
+    BlockLoad(OCb);
+    if (AllDocumentsSignedByCustomerCM(ADr.RecordNr)) then begin
+      CMr.SerNr = ADr.RecordNr;
+      if (ReadFirstMain(CMr,1,true)) then begin
+        RecordCopy(oldCMr,CMr);
+        CMr.OrderClass = OCb.CMCustSignedOrderClass;
+        RecordUpdate(oldCMr,CMr,true);
+      end;    
+    end;
+    if (AllDocumentsSignedByUsCM(ADr.RecordNr)) then begin
+      CMr.SerNr = ADr.RecordNr;
+      if (ReadFirstMain(CMr,1,true)) then begin
+        RecordCopy(oldCMr,CMr);
+        CMr.OrderClass = OCb.CMUsSignedOrderClass;
+        RecordUpdate(oldCMr,CMr,true);
+      end;    
+    end;
+  end;
 
   AgreementDocVcRecordUpdateAfter = res;
   return;
