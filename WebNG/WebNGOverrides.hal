@@ -26,7 +26,7 @@ external inner function Boolean GetNextCustNr(var string);
 external procedure ShowNormalWebStrings();
 external procedure ShowPopupWebStrings();
 external updating procedure UpdatePasswordSession();
-external updating procedure FinishSuretyRegistration();
+external procedure FinishSuretyRegistration();
 external updating procedure PayseraActions(string);
 external procedure LoanAppSmartIDAction(string);
 external procedure ShowUpdatePasswordElement(record WebNGElementVc);

@@ -85,7 +85,7 @@ begin
 end;
 
 global
-function LongInt CredManVcRecordCheck(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+updating function LongInt CredManVcRecordCheck(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
 BEGIN
   LongInt res;
   record CredManVc tCredManr;
