@@ -108,6 +108,24 @@ begin
   return;
 end;
 
+function Boolean DocTypeMatches(Integer type1,Integer type2)
+begin
+  Boolean res;
+
+  if (type1==1) then begin
+    if (type2<=6) then begin
+      res = true;
+    end;
+  end else begin
+    if (type2==type1) then begin
+      res = true;
+    end;
+  end;
+
+  DocTypeMatches = res;
+  return;
+end;
+
 global
 procedure AgreementDocReminderTask(string args)
 begin
@@ -123,7 +141,7 @@ begin
       ADr.Type = DRr.Type;
       ADr.SentReminder = 0;
       while (LoopKey("Status:0",ADr,2,TrHs)) begin
-        if (ADr.Type!=DRr.Type or ADr.SentReminder!=0) begin
+        if (DocTypeMatches(DRr.Type,ADr.Type)==false or ADr.SentReminder!=0) begin
           TrHs = false;
         end else begin
           if (DateTimeDiff(CurrentDate,CurrentTime,ADr.TransDate,ADr.TransTime)>=DRr.Delay) then begin

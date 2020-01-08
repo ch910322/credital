@@ -287,6 +287,7 @@ begin
   SetText(1,"Existing");
   EndSet;
 
+//when adding to 2017 set new things, add to 2023 as well
   SetBegin(2017);
   SetText(0,"-");
   SetText(1,"Agreement");
@@ -315,6 +316,13 @@ begin
   SetBegin(2022);
   SetText(0,"Extended");
   SetText(1,"Not Extended");
+  EndSet;
+
+  SetBegin(2023);
+  SetText(0,"-");
+  SetText(1,"Agreement Documents");
+  SetText(7,"Loan Application");
+  SetText(8,"Payment Certificate");
   EndSet;
 
   return;

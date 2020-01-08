@@ -1150,7 +1150,7 @@ begin
 
   RecordBegin(DocumentReminderVc,-,"");
   NewAutosyncRegister(kSyncDirectionToClient,true);
-  RecordField(Type,M4Set,2017,0);
+  RecordField(Type,M4Set,2023,0);
   RecordField(Delay,M4Int,0,0);
   RecordField(ActiveFlag,M4Int,0,0);
   RecordField(Text,M4Str,255,LTxtVc);  
