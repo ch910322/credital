@@ -253,6 +253,7 @@ begin
   RecordField(DocumentSigner,M4Code,20,UserVc);
   RecordField(DocumentSignerPosition,M4Str,255,0);
   RecordField(SuretyInviteLetter,M4Str,255,0);
+  RecordField(ContactInviteLetter,M4Str,255,0);
   
   EndBlock;
   

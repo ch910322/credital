@@ -92,6 +92,7 @@ begin
   EditField(h,v+=vs,100,"Surety Email without Password",Normal,NoPassSuretyLetter,false,0);
   EditField(h,v+=vs,100,"New Customer Email",Normal,NewCustLetter,false,0);
   EditField(h,v+=vs,100,"Surety Invitation Email",Normal,SuretyInviteLetter,false,0);
+  EditField(h,v+=vs,100,"New User Invitation Email",Normal,ContactInviteLetter,false,0);
 
   EditField(h,v+=vs,100,"Mailing List",Normal,MailingList,false,PersColSClass);
 

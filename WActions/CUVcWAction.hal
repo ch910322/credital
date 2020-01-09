@@ -1,5 +1,6 @@
 remote updating procedure SetCustomerPassword(var record CUVc,var string);
 remote updating procedure ResetCustomerPassword(var record CUVc);
+remote updating function Boolean SendNewUserInvite(record CUVc);
 
 
 global
@@ -50,3 +51,16 @@ begin
   return;
 end;
 
+
+global
+updating procedure SendRegistrationInviteDsm()
+begin
+  record CUVc CUr;
+
+  GetWindowRecord(CurWindow,CUr);
+  if (SendNewUserInvite(CUr)) then begin
+    MessageBox(200107,"");
+  end;
+
+  return;
+end;

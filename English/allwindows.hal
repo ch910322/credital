@@ -582,6 +582,7 @@ begin
     end;
   //CUST-BEGIN
     SpecialMenu("Open Self-Service Portal",' ',1,"OpenCustomerPortalDsm");
+    SpecialMenu("Send Registration Invitation E-mail",' ',1,"SendRegistrationInviteDsm");
   //CUST-END
     SpecMenuGroup("",kSpecMenuGroupTypeExtendedPlusMenu,0);
 //    SpecialMenu("Activity",'c',2,"NewActCUDsm");

@@ -1272,18 +1272,25 @@ begin
   string 255 cc;
   Boolean res;
 
-  LAr.SerNr = IRr.LoanAppNr;
-  if (ReadFirstMain(LAr,1,true)) then begin
-    CUr.Code = IRr.ContactCode;
-    if (ReadFirstMain(CUr,1,true)) then begin
-      RecordCopy(oldCUr,CUr);
-      CUr.Name = name;
-      CUr.RegNr1 = id;
-      CUr.Phone = phone;
-      CUr.InvAddr0 = address;
-      CUr.Password = CalcPassword(passw1,CUr.Code,0);
-      if (RecordUpdate(oldCUr,CUr,false)==0) then begin//avoid record check because of missing classifications
-        CUVcRecordUpdate(CUr,oldCUr,Rs_Update,1);
+  CUr.Code = IRr.ContactCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    RecordCopy(oldCUr,CUr);
+    CUr.Name = name;
+    CUr.RegNr1 = id;
+    CUr.Phone = phone;
+    CUr.InvAddr0 = address;
+    CUr.Password = CalcPassword(passw1,CUr.Code,0);
+    if (RecordUpdate(oldCUr,CUr,false)==0) then begin//avoid record check because of missing classifications
+      CUVcRecordUpdate(CUr,oldCUr,Rs_Update,1);
+      
+      RecordCopy(oldIRr,IRr);
+      IRr.Status = 1;
+      IRr.FillDate = CurrentDate;
+      IRr.FillTime = CUrrentTime;
+      RecordUpdate(oldIRr,IRr,true);
+
+      LAr.SerNr = IRr.LoanAppNr;
+      if (ReadFirstMain(LAr,1,true)) then begin
         scnt = 1;
         cc = GetFieldValueByName(LAr,"SuretyProvider" & scnt,-1);
         while (cc!=CUr.Code and scnt<4) begin
@@ -1295,13 +1302,7 @@ begin
           InsertSuretyInB2BApplication(LAr,scnt);
           if (RecordUpdate(oldLAr,LAr,true)==0) then begin
             res = true;
-            RecordCopy(oldIRr,IRr);
-            IRr.Status = 1;
-            IRr.FillDate = CurrentDate;
-            IRr.FillTime = CUrrentTime;
-            RecordUpdate(oldIRr,IRr,true);
             CreateSuretyDataAgreement(CUr.Code,LAr);
-
           end;
         end;
       end;

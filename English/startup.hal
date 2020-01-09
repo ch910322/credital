@@ -151,11 +151,13 @@ begin
   SString(200104,"Credit Limit can't be lower than Currently Open Invoices. Current open Amount: ");
   SString(200105,"Maximum Monthly Payment can't be less than Monthly Interest and Service Fees");
   SString(200106,"Paysera Payment");
+  SString(200107,"Invitation sent successfully");
 
 /*Web Codes 200200-200230*/
   SString(200200,"Banner with this type already registered in these days");
   SString(200201,"Content with this URL already exists");
   SString(200202,"URL contains restricted Characters");
+
 
 
   StrSetAdd(584);

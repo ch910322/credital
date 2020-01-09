@@ -1,4 +1,5 @@
 //<halrule>server-only</halrule>
+external inner updating procedure SendCustomerLetterWithDetails(record RCVc,string,string,string);
 
 global
 updating procedure SetCustomerPassword(var record CUVc CUr,var string link)
@@ -27,5 +28,31 @@ begin
     RecordUpdate(oldCUr,CUr,false);
   end;
 
+  return;
+end;
+
+global
+updating function Boolean SendNewUserInvite(record CUVc CUr)
+begin
+  record InvitationRequestVc IRr;
+  record CMApplicationSetBlock CMb;
+  record RcVc RepSpec;
+  Boolean res;
+  
+  BlockLoad(CMb);
+  RecordNew(IRr);
+  IRr.UUID = MakeUUID;
+  IRr.TransDate = CurrentDate;
+  IRr.TransTime = CurrentTime;
+  IRr.LoanAppNr = -1;
+  IRr.ContactCode = CUr.Code;
+  if (RecordInsert(IRr,true)) then begin
+    res = true;
+    RepSpec.searchstr = "?sess=" & IRr.UUID & "&cc=" & CUr.Code;
+    RepSpec.f1 = CUr.Code;
+    SendCustomerLetterWithDetails(RepSpec,CMb.SuretyInviteLetter,"",CUr.eMail);
+  end;  
+
+  SendNewUserInvite = res;
   return;
 end;
