@@ -50,7 +50,7 @@ begin
     res = true;
     RepSpec.searchstr = "?sess=" & IRr.UUID & "&cc=" & CUr.Code;
     RepSpec.f1 = CUr.Code;
-    SendCustomerLetterWithDetails(RepSpec,CMb.SuretyInviteLetter,"",CUr.eMail);
+    SendCustomerLetterWithDetails(RepSpec,CMb.ContactInviteLetter,"",CUr.eMail);
   end;  
 
   SendNewUserInvite = res;
