@@ -497,7 +497,7 @@ begin
   EndMatrix;
   EndWindow;
 
-  WindowBegin("SMS Reminders",SMSReminderLClass,CGmList,-);
+  WindowBegin("Reminders",SMSReminderLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
   SpawnClass(SMSReminderDClass);
@@ -509,14 +509,15 @@ begin
   RlColKeyTL(-30,-30,"Act.",M4Mark,ActiveFlag,false,ActiveFlag);
   EndWindow;
 
-  WindowBegin("SMS Reminder",SMSReminderDClass,CGview,-);
+  WindowBegin("Reminder",SMSReminderDClass,CGview,-);
   SetWRect(20,80,760,380);
   h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
   UseView(SMSReminderVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
-  CheckBox(h2,v,0,"Active",ActiveFlag);
+  CheckBox(h2-50,v,0,"Active",ActiveFlag);
   EditField(h,v+=vs,250,"Name",Normal,Comment,false,0);
-  EditField(h,v+=vs,120,"Type",Normal,Type,false,0);
+  EditField(h,v+=vs,120,"Reminder Type",Normal,ReminderType,false,SetSClass);
+  EditField(h2,v,70,"Type",Normal,Type,false,SetSClass);
   EditField(h,v+=vs,120,"Days",Normal,Days,false,0);
   EditField(h,v+=vs,120,"Last Sent",Normal,LastSentDate,false,0);
   CheckBox(h,v+=vs,0,"Mondays",Day1);
@@ -536,12 +537,13 @@ begin
 
   CheckBox(h,v+=vs,0,"Bank Holidays",BankHolidays);
 
-  StaticText(420,v=26,"Text",false);
-  TextField(420,v+=10,-20,190,Message,0);
+  EditField(h2=420,v=10,-20,"Email Subject",Normal,Subject,false,0);
+  StaticText(h2,v+=30,"Text",false);
+  TextField(h2,v+=10,-20,190,Message,0);
 
   EndWindow;
 
-  WindowBegin("SMS Reminder queue",SMSReminderQueueLClass,CGmList,-);
+  WindowBegin("SMS Reminder Queues",SMSReminderQueueLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
   UseView(SMSReminderQueueVc);
@@ -553,13 +555,17 @@ begin
   RlColKeyTL(-30,-30,"Sent",M4Mark,SentFlag,false,SentFlag);
   EndWindow;
 
-  WindowBegin("Campaign",SMSReminderQueueDClass,CGview,-);
+  WindowBegin("SMS Reminder Queue",SMSReminderQueueDClass,CGview,-);
   SetWRect(20,80,460,380);
   h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
   UseView(SMSReminderQueueVc);
   EditField(h,v,120,"Ser. No.",Normal,SerNr,false,0);
   EditField(h,v+=vs,120,"Inv. Date",Normal,InvDate,false,0);
   EditField(h,v+=vs,120,"Invoice Nr.",Normal,InvoiceNr,false,0);
+  ButtonFrame(h,v=v+40,150,3,"Status");
+  RadioButton(h,v,0,0,"Created",SentFlag);
+  RadioButton(h,v+=16,1,0,"Sent",SentFlag);
+  RadioButton(h,v+=16,2,0,"Paid before sending",SentFlag);  
   EndWindow;
 
   WindowBegin("Campaigns",WebCampaignLClass,CGmList,-);

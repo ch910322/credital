@@ -442,7 +442,7 @@ begin
   EndMatrix;
   EndWindow;
 
-  WindowBegin("SMS Reminders",SMSReminderLClass,CGmList,-);
+  WindowBegin("Reminders",SMSReminderLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
   SpawnClass(SMSReminderDClass);

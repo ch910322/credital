@@ -16,7 +16,7 @@ begin
   Setting("Item Priority",ItemPriorityTClass,modCredMan);
   Setting("Credit History Support",CredHistLClass,modCredMan);
   Setting("Contact Credit Limits",CreditLimitLClass,modCredMan);
-  Setting("SMS Reminders",SMSReminderLClass,modCredMan);
+  Setting("Reminders",SMSReminderLClass,modCredMan);
   Setting("Factoring Invoices",CredManFactInvoiceLClass,modCredMan);
   //Setting("Seller's Reports",CredManGrntReportsLClass,modCredMan);
   Setting("Multi Page Documents",MultiDocLClass,modCredMan);
@@ -323,6 +323,11 @@ begin
   SetText(1,"Agreement Documents");
   SetText(7,"Loan Application");
   SetText(8,"Payment Certificate");
+  EndSet;
+
+  SetBegin(2024);
+  SetText(0,"SMS");
+  SetText(1,"Email");
   EndSet;
 
   return;

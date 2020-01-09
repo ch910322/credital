@@ -708,7 +708,7 @@ begin
   RecordBegin(SMSReminderVc,-,"");//this should be called MessageReminderVc
   RecordField(SerNr,M4Long,0,0);
   RecordField(Comment,M4Str,255,0);
-  RecordField(ReminderType,M4Set,2018,0);
+  RecordField(ReminderType,M4Set,2024,0);
   RecordField(Type,M4Set,2012,0);
   RecordField(Days,M4Long,0,0);
   RecordField(Day1,M4Int,0,0);
@@ -729,6 +729,7 @@ begin
   RecordFIeld(ActiveFlag,M4Int,0,0);
   RecordField(LastSentDate,M4Date,0,0);
   RecordField(Message,M4TextField,0,0);
+  RecordField(Subject,M4Str,255,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(ActiveFlag);
@@ -740,7 +741,7 @@ begin
   RecordField(SerNr,M4Long,0,0);
   RecordField(InvoiceNr,M4Long,0,0);
   RecordField(SentFlag,M4Int,0,0);
-  RecordField(InvDate,M4Date,0,0);
+  RecordField(InvDate,M4Date,0,0);//Actually due date
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(SentFlag);

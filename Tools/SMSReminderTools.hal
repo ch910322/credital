@@ -4,14 +4,34 @@ global
 function string 255 SMSReminderVcReplaceToken(record SMSReminderVc SMSReminder,record RcVc RepSpec,string token)
 begin
   string 255 res;
-  
-  switch (token) begin
-    case "CustName":
-      res = RepSpec.searchstr;
-    case "InvAmount":
-      res = RepSpec.vals0;
-    case "InvDate":
-      res = DateToString(RepSpec.d1,"YYYY/MM/DD");;
+  record CYBlock CYb;
+  Longint pos;
+  string 255 recname,field;
+
+  if (InString(token,".")) then begin
+    GetNextSubString(token,pos,".",recname);
+    GetNextSubString(token,pos,".",field);
+    switch (recname) begin
+      case "CYb":
+        BlockLoad(CYb);
+        switch (field) begin
+          case "CompName":   res = CYb.CompName;
+          case "Bank1":      res = CYb.Bank1;
+          case "Bank2":      res = CYb.Bank2;
+          case "BankName":   res = CYb.BankName;
+          case "Phone":      res = CYb.Phone;
+          case "emailAddr":  res = CYb.emailAddr;
+        end;
+    end;    
+  end else begin
+    switch (token) begin
+      case "CustName":
+        res = RepSpec.searchstr;
+      case "InvAmount":
+        res = RepSpec.vals0;
+      case "InvDate":
+        res = DateToString(RepSpec.d1,"YYYY/MM/DD");;
+    end;
   end;
 
   SMSReminderVcReplaceToken = res;
@@ -59,6 +79,76 @@ LSendSMSReminder:;
   return;
 end;
 
+
+global
+updating procedure DoSendEmailReminder(record SMSReminderVc SMSReminder,record IVVc IVr)
+begin
+  record RcVc RepSpec;
+  area a;
+  string 255 text,tstr;
+  Integer i;
+  Longint l,pos;
+  record CUVc CUr;
+  record EMailQueVc emqrp;
+  row EMailQueVc emarw;
+  record CYBlock CYb;
+  record MailSettingsBlock MSb;
+  
+  CUr.Code = IVr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    if (CUr.NoLetterPosting!=0) then begin
+      goto LSendSMSReminder;
+    end;
+    if (blank(CUr.eMail)) then begin
+      LogText(0,"Skipping Email reminder for contact " & CUr.Code & " - " & CUr.Name & ". No Email specified");
+      goto LSendSMSReminder;
+    end;
+
+    BlockLoad(MSb);
+    emarw.RowTyp = 1;
+    emarw.AddrCode = MSb.Postmaster;
+    MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+
+    emarw.RowTyp = 0;
+    emarw.AddrCode = CUr.eMail;
+    MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+    emqrp.Header = SMSReminder.Subject;
+
+    BlockLoad(CYb);
+    RepSpec.searchstr = CUr.Name;
+    RepSpec.vals0 = IVr.Sum4;
+    RepSpec.d1 = IVr.InvDate;
+    ParseTextField(a,SMSReminder,RepSpec,"SMSReminderVcReplaceToken");
+
+    l = GetAreaLength(a);
+    pos = 0;
+    while (pos<l) begin
+      tstr = GetStringFromArea(a,pos,255);
+      AddToText(tstr,emqrp); 
+      pos = pos+255;
+    end;
+    emqrp.SerNr = NextSerNr("EMailQueVc",CurrentDate,-1,false,"");
+    emqrp.OrgSerNr = -1;
+    emqrp.FileName = "";
+    emqrp.TransDate = CurrentDate;
+    emqrp.TransTime = CurrentTime;
+    emqrp.HasFileAtt = 0;
+    emqrp.HasRecAtt = 0;
+    emqrp.Priority = 1;
+    emqrp.EMailSent = 0;
+    emqrp.Lifespan = 0;
+    emqrp.QueDate = CurrentDate;
+    emqrp.QueTime = CurrentTime;
+
+    if (RecordStore(emqrp,false)) then begin
+      
+    end;
+  end;
+
+LSendSMSReminder:;
+  return;
+end;
+
 function Boolean ShouldTrigerSMSReminder(record SMSReminderVc SMSReminder)
 begin
   Boolean res;
@@ -98,19 +188,49 @@ begin
   return;
 end;
 
-global
-updating procedure SendSMSReminder(record SMSReminderQueueVc SRQr,record SMSReminderVc SMSReminder,record IVVc IVr)
+global updating
+procedure Cust_SetReminderStatus(record SMSReminderQueueVc SRQr,Integer status)
 begin
   record SMSReminderQueueVc oldSRQr;
-
-  threadasync.DoSendSMSReminder(SMSReminder,IVr);
-
+  
   RecordCopy(oldSRQr,SRQr);
-  SRQr.SentFlag = 1;
+  SRQr.SentFlag = status;
   RecordUpdate(oldSRQr,SRQr,true);
 
   return;
 end;
+
+global
+updating procedure Cust_SendReminder(record SMSReminderQueueVc SRQr,record SMSReminderVc SMSReminder,record IVVc IVr)
+begin
+
+  if (SMSReminder.ReminderType==0) then begin
+    threadasync.DoSendSMSReminder(SMSReminder,IVr);
+  end else begin    
+    DoSendEmailReminder(SMSReminder,IVr);
+  end;
+  Cust_SetReminderStatus(SRQr,1);
+
+  return;
+end;
+
+global
+updating procedure Cust_SendReminder2(record SMSReminderVc SMSReminder,record IVVc IVr)
+begin
+  record SMSReminderQueueVc SRQr;
+
+  threadasync.DoSendSMSReminder(SMSReminder,IVr);
+
+  RecordNew(SRQr);
+  SRQr.SerNr = NextSerNr("SMSReminderQueueVc",CurrentDate,-1,false,"");
+  SRQr.InvoiceNr = IVr.SerNr;
+  SRQr.InvDate = CurrentDate;
+  SRQr.SentFlag = 1;
+  RecordInsert(SRQr,true);
+
+  return;
+end;
+
 
 procedure FindAndSendInvoiceReminders(record SMSReminderVc SMSReminder)
 begin
@@ -133,7 +253,13 @@ begin
         end else begin
           IVr.SerNr = SRQr.InvoiceNr;
           if (ReadFirstMain(IVr,1,true)) then begin
-            queued.SendSMSReminder(SRQr,SMSReminder,IVr);
+            ARr.InvoiceNr = IVr.SerNr;
+            ReadFirstMain(ARr,1,true);
+            if (ARr.RVal>0) then begin
+              queued.Cust_SendReminder(SRQr,SMSReminder,IVr);
+            end else begin
+              queued.Cust_SetReminderStatus(SRQr,2);
+            end;
           end;
         end;
       end;
@@ -146,7 +272,7 @@ begin
         end else begin
           IVr.SerNr = ARr.InvoiceNr;
           if (ReadFirstMain(IVr,1,true)) then begin
-            queued.SendSMSReminder(SRQr,SMSReminder,IVr);
+            queued.Cust_SendReminder2(SMSReminder,IVr);
           end;
         end;
       end;
@@ -197,7 +323,7 @@ begin
       RecordNew(SRQr);
       SRQr.SerNr = NextSerNr("SMSReminderQueueVc",CurrentDate,-1,false,"");
       SRQr.InvoiceNr = IVr.SerNr;
-      SRQr.InvDate = IVr.InvDate;
+      SRQr.InvDate = IVr.PayDate;
       RecordInsert(SRQr,true);
     end;
   end else begin
