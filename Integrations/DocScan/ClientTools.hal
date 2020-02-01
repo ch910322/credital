@@ -1,0 +1,61 @@
+//<halrule>server-only</halrule>
+external function Boolean SendScanDocFile(area,Integer,var vector string);
+
+function string 255 GetTypeString(string type)
+begin
+  string 255 res;
+
+  switch (type) begin
+    case 1: res = "Company Name";
+    case 2: res = "Reg. Nr.";
+    case 3: res = "VAT Nr.";
+    case 5: res = "Amount";
+    case 6: res = "Invoice Number";
+    case 7: res = "Invoice Date";
+    case 8: res = "Due Date";
+    case 9: res = "Bank Account";
+    case 10: res = "Phone Number";
+    case 11: res = "Email";
+
+    case 100: res = "Customer's Company Name";
+    case 101: res = "Our Company Name";
+    case 102: res = "Customer's Reg. No.";
+    case 103: res = "Our Reg. No.";
+    case 104: res = "Customer's VAT No.";
+    case 105: res = "Our  VAT No.";
+    case 106: res = "Customer's Bank Account";
+    case 107: res = "Our  Bank Account";
+    case 108: res = "Customer's Phone";
+    case 109: res = "Our Phone";
+    case 110: res = "Customer's Email";
+    case 111: res = "Our Email";
+  end;
+
+  GetTypeString = res;
+  return;
+end;
+
+global
+procedure FinishDocFileUpload(string sess,string filename,string id,string tag)
+begin
+  string 255 fn;
+  area filearea;
+  vector string 255 vVals;
+  array string 255 aVals;
+  Integer i;
+
+  fn = "tmp/" & tag & "/" & sess;
+  if (FileExists(fn)) then begin
+    AddFileToArea(fn,filearea,0);
+    SendScanDocFile(filearea,1,vVals);
+    GetVectorTags(vVals,aVals);
+    WebOutString("<reply><res>");
+    for (i=0;i<aVals.length;i=i+1) begin
+      WebOutString("<field><label>" & GetTypeString(aVals[i]) & "</label><value>" & vVals[aVals[i]] & "</value></field>");
+    end;
+    WebOutString("</res></reply>");
+    Delete_File(fn);
+  end;
+
+  return;
+end;

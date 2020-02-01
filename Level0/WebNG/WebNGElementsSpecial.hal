@@ -227,6 +227,24 @@ begin
   if (DisplayStdIDLoginLink==false) then begin
     WebOutTagOpen("<form method=""POST"" action=""" & FormatLink("/dologin","",true,true) & """>");
   end;
+//CUST-BEGIN::moved error text here
+  if (GetSessionString("loginfailed")=="true") then begin
+    PutSessionString("loginfailed","");
+    WebOutStringFormat("<div class=""error"">" & ToolWebNGTranslateText(20081)); //Login failed
+    if (GetSessionString("login_err")!="") then begin
+      err = StringToLongint(GetSessionString("login_err"));
+      switch (err) begin
+        case 1:
+          WebOutString("<br>" & ToolWebNGTranslateText(25842));
+        case 2:
+          WebOutString("<br>" & ToolWebNGTranslateText2(70382));
+      end;
+      PutSessionString("loginfailed","");
+      PutSessionString("login_err","");//CUST
+    end;
+    WebOutStringFormat("</div>");
+  end;
+//CUST-END
   if (nonblank(GetCookie("HSESSION")) or nonblank(GetCookie("langcode")) or nonblank(GetCookie("country"))) then begin
     WebOutStringFormatNL("<input type=""hidden"" id=""cooksess"" name=""cooksess"" value=""true"">");
   end;
@@ -277,10 +295,6 @@ begin
       switch (err) begin
         case 1:
           WebOutString("<br>" & ToolWebNGTranslateText(25842));
-//CUST-BEGIN
-        case 2:
-          WebOutString("<br>" & ToolWebNGTranslateText2(70382));
-//CUST-END
       end;
       PutSessionString("loginfailed","");
       PutSessionString("login_err","");//CUST

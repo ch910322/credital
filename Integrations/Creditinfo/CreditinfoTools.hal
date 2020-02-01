@@ -25,8 +25,56 @@ begin
   return;
 end;
 
+function string 2 ReplaceStrings(string tstr,string realstr,var integer movep)
+begin
+  string 2 res;
+
+  res = realstr;
+  movep = 1;
+
+  if left(tstr,4)=="&lt;" then begin
+    res = "<";
+    movep = 4;
+  end;
+  if left(tstr,4)=="&gt;" then begin
+    res = ">";
+    movep = 4;
+  end;
+  if left(tstr,6)=="&apos;" then begin
+    res = "'";
+    movep = 6;
+  end;
+  if left(tstr,6)=="&quot;" then begin
+    res = """";
+    movep = 6;
+  end;
+
+  ReplaceStrings = res;
+  return;
+end;
+
+function string 255 ReplaceWebStrings(string rstr)
+begin
+  longint ln,i;
+  string 10 tstr,tmp;
+  integer movep;
+  string 255 res;
+
+  i = 0;
+  while (i < len(rstr)) begin
+    tmp = mid(rstr,i,1);
+    tstr = mid(rstr,i,6);
+    tmp = ReplaceStrings(tstr,tmp,movep);
+    res = res & tmp;
+    i = i + movep;
+  end;
+
+  ReplaceWebStrings = res;
+  return;
+end;
+
 global
-updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Boolean res,xml axml)
+updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Boolean res)
 begin
   Boolean debugf;
   string 255 lang,params,url,path,root,tstr,fn,name,surname,datestr,datestr1,datestr2;
@@ -38,11 +86,13 @@ begin
   record ContactRelVc CRr;
   record CMApplicationSetBlock ASb;
   string 255 lastcode,lastname;
+  xml axml;
 
 
   BlockLoad(ASb);
   RecordCopy(oldCUr,CUr);
   res = true;
+  axml = ParseXmlArea(reply);
   root = "root/BasicInfo";
   if (nonblank(XmlGet(axml,root & "/Registered"))) then begin
     LAr.Established = DateFromString(XmlGet(axml,root & "/Registered"),"YYYY.MM.DD");
@@ -149,7 +199,7 @@ begin
     GetNextSubstring(datestr,pos,"/",datestr2);
     LArw.ClaimDate = DateFromString(datestr1,"YYYY.MM.DD");
     LArw.PaymentDate = DateFromString(datestr2,"YYYY.MM.DD");
-    LArw.CreditorName = XmlGetAttribute(axml,root & "[" & i & "]","CreditorName");
+    LArw.CreditorName = ReplaceWebStrings(XmlGetAttribute(axml,root & "[" & i & "]","CreditorName"));
     LArw.CreditAmount = ValFromString(XmlGetAttribute(axml,root & "[" & i & "]","Amount"),","," ");
     if (nonblank(LArw.CreditAmount)) then begin
       MatRowPut(LAr,MatRowCnt(LAr),LArw);
@@ -331,7 +381,7 @@ begin
         goto LGetCreditInfo;
       end;
 
-      qupdating.TreatCreditInfoReply(LAr,CUr,reply,res,axml);
+      qupdating.TreatCreditInfoReply(LAr,CUr,reply,res);
 
     end;
   end;

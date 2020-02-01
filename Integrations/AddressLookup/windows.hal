@@ -1,0 +1,36 @@
+event startup
+begin
+  
+  SetLangMode(LangEnglish,"ENG",0);
+
+  Setting("Company registration date WEB service",EBSAddrLookupTClass,modSY);
+  
+  SetBegin(400001);
+  SetText(0,"-");
+  SetText(1,"rekvizitai.lt");
+  SetText(2,"Lursoft");
+  EndSet;
+
+  return;
+end;
+
+event DefineWindows
+begin
+  real h,v,vs;
+
+  vs = 20;
+
+  SetLangMode(LangEnglish,"ENG",0);
+
+  WindowBegin("Company registration date WEB service",EBSAddrLookupTClass,CGHbl,SRType);
+  SetBlid(EBSAddrLookupBlock);
+  SetWRect(80,80,400,280);
+  MatrixBegin(10,20,-30,-10,-,99);
+  MatCol(1,25,"Country",0,CountryCode,false,CountrySClass);
+  MatCol(1,-150,"Service",0,LookupType,false,SetSClass);
+  EndMatrix;
+  
+  EndWindow;
+
+  return;
+end;

@@ -404,7 +404,8 @@ begin
   PutWindowString(wn,"buyoutvalue",RepSpec.vals2);
   PutWindowString(wn,"remainingprinciple",RepSpec.vals3);
   PutWindowString(wn,"totaldue",RepSpec.vals4);
-
+  PutWindowString(wn,"acumpenalty",RepSpec.f12);
+ 
   return;
 end;
 

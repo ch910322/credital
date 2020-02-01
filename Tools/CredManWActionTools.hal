@@ -573,13 +573,16 @@ global
 updating procedure CredManMakePaymentRemote(var record CredManVc CredManr,var record VIVc VIr)
 begin
   record IVVc IVr;
+  record CMOrderClassBlock OCb;
 
   if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=5) then begin
-    CreateSingleAgreementInvoice(CredManr,CredManr.endDate,IVr);
+    CreateSingleAgreementInvoice(CredManr,CredManr.startDate,IVr);
     CredManCreditAllInvoices(CredManr);
     CreateCredmanPurchaseInvoice(CredManr,VIr);
     if (VIr.SerNr>0) then begin
+      BlockLoad(OCb);
       CredManr.VINr = VIr.SerNr;
+      CredManr.OrderClass = OCb.ActiveCredOrderClass;
     end;
   end;
 

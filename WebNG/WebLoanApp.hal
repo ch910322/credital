@@ -11,7 +11,7 @@ external inner function Boolean GetNextCustNr(var string);
 external inner function Date DateFromString(string,string);
 external inner procedure ShowRedirectHtml(string,boolean);
 external inner function string 255 GetLinkToMyAccount();
-external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string);
+external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,string);
 external function Boolean InsertContactName(var record B2BLoanApplicationVc);
 external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
 external remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
@@ -254,6 +254,8 @@ begin
   ShowRegNrField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),false,curtic);
   ShowInputField2("email",ToolWebNGTranslateText2(70114),ToolWebNGTranslateText2(70115),"","",0,"email");
   ShowInputField2("phone",ToolWebNGTranslateText2(70394),ToolWebNGTranslateText2(70395),"","",0,"text");
+  ShowInputField2("comment",ToolWebNGTranslateText2(70413),ToolWebNGTranslateText2(70414),"","",0,"text");
+
   WebOutString("</div>");
 
   ShowCheckBox("datasec",ToolWebNGTranslateText2(70116));
@@ -459,6 +461,7 @@ begin
     if (nonblank(ContactCUr.eMail)) then begin
       readonly = "readonly";
     end;
+    WebOutString("<div class='loan_back top'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
     WebOutString("<div class='row input_row'>")
     ShowInputField("compname",ToolWebNGTranslateText2(70125),ToolWebNGTranslateText2(70126),LAr.CustName,"readonly",4);
     ShowInputField("regnr",ToolWebNGTranslateText2(70112),ToolWebNGTranslateText2(70113),CUr.RegNr1,"readonly",4);
@@ -511,7 +514,7 @@ begin
     ShowCheckBox("mainsurety",ToolWebNGTranslateText2(70141));
     WebOutString("</div>");//surety_block
 
-    WebOutString("<div class='surety_add'><div class='surety_add_plus'></div><div class='surety_add_text'>" & ToolWebNGTranslateText2(70256) & "</div></div>");
+    WebOutString("<div class='surety_add'><div class='surety_add_plus'><i class='fas fa-plus'></i></div><div class='surety_add_text'>" & ToolWebNGTranslateText2(70256) & "</div></div>");
 
     WebOutString("<div class='surety_list'>");
     WebOutString("</div>");//surety_list
@@ -600,6 +603,8 @@ begin
   CredManr.MonthlyPaymentDay = LAr.MonthlyPaymentDay;
   CredManSetDatesCust(CredManr);
 
+  WebOutString("<div class='loan_back top'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
+
   WebOutString("<div class='summary_table'>");
   //DisplaySummaryLine(ToolWebNGTranslateText2(70205),DateToString(LAr.StartDate,"YYYY MM DD"));
   DisplaySummaryLine(ToolWebNGTranslateText2(70206),GetLoanType(LAr.Type));
@@ -623,7 +628,7 @@ procedure ShowVerificatonMethod(string type,string image,string name)
 begin
   
   WebOutString("<div class='ver_item ver_item" & type & "' type='" & type & "'>")
-  WebOutString("<div class='ver_item_image'><img src='/files?file=" & image & "'></div>");
+  WebOutString("<div class='ver_item_image'><img src='/files?file=" & image & "' alt='Verification - " & image & "'></div>");
   WebOutString("<div class='ver_item_text'>" & name & "</div>");
   WebOutString("</div>");
 
@@ -634,7 +639,8 @@ procedure ShowLoanAppVerification(record B2BLoanApplicationVc LAr)
 begin
   
   //smartid,paysera and e-signature
-  WebOutString("<h2>" & ToolWebNGTranslateText2(70231) & "</h2>");
+  WebOutString("<h2 class='verification_head'>" & ToolWebNGTranslateText2(70231) & "</h2>");
+  WebOutString("<div class='verification_options'>")
   if (LAr.ContactName==LAr.Surety1Name) then begin
     ShowVerificatonMethod("esig","esignature.svg",ToolWebNGTranslateText2(70225));
     ShowVerificatonMethod("ebank","ebank.svg",ToolWebNGTranslateText2(70226));
@@ -643,6 +649,7 @@ begin
   end else begin
     ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70373));
   end;
+  WebOutString("</div>");
   WebOutString("<div class='clear'></div>");
   return;
 end;
@@ -650,7 +657,7 @@ end;
 procedure ShowDataProcessing()
 begin
   
-  WebOutString("<div class='data_wrap'><div class='data_img gradient'><img src='/files?file=dataproc.svg'></div><div class='data_text'><h3>" & ToolWebNGTranslateText2(70228) & "</h3><p>" & ToolWebNGTranslateText2(70229) & "</p><p>" & ToolWebNGTranslateText2(70230) & "</p></div></div>");
+  WebOutString("<div class='data_wrap'><div class='data_img gradient'><img src='/files?file=dataproc.svg' alt='" & ToolWebNGTranslateText2(70228) & "'></div><div class='data_text'><h3>" & ToolWebNGTranslateText2(70228) & "</h3><p>" & ToolWebNGTranslateText2(70229) & "</p><p>" & ToolWebNGTranslateText2(70230) & "</p></div><div class='clear'></div></div>");
 
   return;
 end;
@@ -677,6 +684,7 @@ begin
     ShowDataProcessing;
 
     ShowLoanAppVerification(LAr);
+    WebOutString("<div class='loan_back'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
   end else begin
     //display error message?
   end;
@@ -699,7 +707,7 @@ begin
   WebOutString("<div class='loan_app_content'>");
   WebOutString("<div class='loan_head loan_step4'><h2>" & ToolWebNGTranslateText2(70201) & "</h2><p>" & ToolWebNGTranslateText2(70202) & "</p></div>");//" & ToolWebNGTranslateText2(70100) & "
   
-  WebOutString("<div class='loan_app_finish_center'><div class='loan_app_finish_image'></div></div>");
+  WebOutString("<div class='loan_app_finish_center'><div class='loan_app_finish_image_wrap'><div class='loan_app_finish_image'></div></div></div>");
 
   if (nonblank(CurrentCust)) then begin
     link = GetLinkToMyAccount;
@@ -942,7 +950,7 @@ begin
     if (len(regnr)==11) then begin
       name = regnr;
     end else begin
-      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr);
+      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,"");
     end;
     if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
       res = true;
@@ -1085,7 +1093,7 @@ begin
 end;
 
 global
-updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause)
+updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause,string comment)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -1114,6 +1122,7 @@ logtext(0,"status " & status);
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
   LAr.Months = term;
+  LAr.Comment = comment;
   
   LAr.Type = GetAgreementType(LAr,WLCr.Type,WLCr.CredManType);
   CMTr.Code = LAr.Type;
@@ -1180,7 +1189,7 @@ procedure LoanApplicationStoreStep1()
 begin
   Integer type,err;
   Longint amount,term;
-  string 255 regnr,email,datasec,datause,link,name,errstr,phone;  
+  string 255 regnr,email,datasec,datause,link,name,errstr,phone,comment;  
   record B2BLoanApplicationVc LAr;
   record WebLoanCalcVc WLCr;
   record CUVc CUr,ContactCUr;
@@ -1194,6 +1203,7 @@ begin
   name = WebGetArg("name");//maybe we want this to be taken from the server instead
   email = WebGetArg("email");
   phone = WebGetArg("phone");
+  comment = WebGetArg("comment");
   datasec = WebGetArg("datasec");
   datause = WebGetArg("datause");
 
@@ -1250,7 +1260,7 @@ begin
       link = link & "2";
     end else begin
 */
-      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause)) then begin
+      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause,comment)) then begin
         StoreSessionLoan(LAr.SerNr,status);
         link = GetLinkToLoanApp;
         link = link & "2";

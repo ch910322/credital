@@ -307,6 +307,7 @@ LAgreementDoc:;
                       ADr.SignedByUsDate = CurrentDate;
                       ADr.SignedByUsTime = CurrentTime;
                     end;
+                    logtext(0,"updating Agreement doc " & ADr.SerNr & ":" & CurrentCust);
                     if (RecordUpdate(oldADr,ADr,true)==0) then begin
                       AllClientsRemoteAsync.DocumentSigningClientDone(WPSr.CustCode,ADr);
                     end;

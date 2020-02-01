@@ -33,6 +33,8 @@ begin
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
+	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modCredMan);
+
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
   Maintenance("Create Payment Guarantee Invoices",PmtGrntInvoiceVClass,PmtGrntInvoiceMn,modCredMan);
@@ -61,6 +63,9 @@ begin
   Setting("Credital Web Settings",CreditalWebSetTClass,modWebShopNG);
   Setting("Meta Tags",WebMetaTagLClass,modWebShopNG);
   Setting("Meta Tags Translations",WebMetaTagTransLClass,modWebShopNG);
+
+/*Sales ledger*/
+	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);
 
 
   SString(200000,"Evaluation report");
@@ -252,13 +257,14 @@ begin
   SetText(7,"Invoiced Deposit");
   SetText(8,"Invoiced Fees");
   SetText(9,"Invoices Late Fees");
-  SetText(10,"Paid invoice");
+  SetText(10,"Paid Invoice");
   EndSet;
 
   SetBegin(2011);
   SetText(0,"Invoice");
   SetText(1,"Receipt");
   SetText(2,"Prepayment");
+  SetText(3,"Credit Note");
   EndSet;
 
   SetBegin(2012);

@@ -1,0 +1,85 @@
+//Very careful with this function. Needs to be checked with master every now and then
+external function string 255 GetFirstCompanyCountryCode();
+
+//CUST-BEGIN
+function Integer GetVATLawFromLookupType(Integer type)
+begin
+  Integer res;
+  
+  switch (type) begin
+    case 1: res = 24;//Lithuania
+    case 2: res = 209;//Latvia
+  end;
+
+  GetVATLawFromLookupType = res;
+  return;
+end;
+//CUST-END
+
+global
+procedure StartDataTransfer(string partner,var Area request)
+begin
+  record CYBlock CYb;
+  Integer vatlaw;
+
+  if (IsStandardProduct) then begin
+    vatlaw = ProductVATLaw;
+    if (vatlaw<0) then begin
+      BlockLoad(CYb);
+      vatlaw = CYb.VATLaw;
+    end;
+  end else begin
+    BlockLoad(CYb);
+    vatlaw = CYb.VATLaw;
+  end;
+
+//CUST-BEGIN
+  //this can actually work for any service. It will use fallback - company country code
+  begin
+    record EBSAddrLookupBlock ALb;
+    row EBSAddrLookupBlock ALbrw;
+    Integer i,rwcnt;
+    transaction string 255 gEBSAddrLookupCountry;
+    Integer countrynumber;
+    string 255 countrystr;
+    record CYBlock CYb;
+    transaction Integer gEBSAddrLookupVATLaw;
+
+    
+    countrystr = gEBSAddrLookupCountry;
+    
+    if (blank(countrystr)) then begin
+      BlockLoad(CYb);
+      countrystr = CYb.CountryCode;
+    end;
+    
+    BlockLoad(ALb);
+    rwcnt = MatRowCnt(ALb);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(ALb,i,ALbrw);
+      if (ALbrw.CountryCode==countrystr) then begin
+        vatlaw = GetVATLawFromLookupType(ALbrw.LookupType);
+        gEBSAddrLookupVATLaw = vatlaw;
+      end;
+    end;
+    
+  end;
+//CUST-END
+
+  AddLongToArea(0,request);
+  AddTextToArea(chr(13) & chr(10),request);
+  AddTextToArea("53.0" & chr(9),request); // General Version number
+  AddTextToArea(partner & chr(9),request); 
+  AddTextToArea(BuildProductCode & chr(9),request); 
+  if (IsStandardProduct) then begin
+    AddTextToArea(GetFirstCompanyCountryCode & chr(9),request); 
+  end else begin
+    AddTextToArea("" & chr(9),request); 
+  end;
+  AddTextToArea(ProgramVersion & chr(9),request); 
+  AddTextToArea(IsStandardProduct & chr(9),request); 
+  AddTextToArea(vatlaw & chr(9),request); 
+  AddTextToArea(RunningBuild & chr(9),request); 
+  AddTextToArea(chr(13) & chr(10),request);
+  return;
+end;

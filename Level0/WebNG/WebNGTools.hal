@@ -1098,7 +1098,11 @@ begin
   WebOutString("<div class='content_image " & typecls & " " & addcls &"'>");
   if ((type==1 and nonblank(WCr.ThumbnailImage)) or (type==2 and nonblank(WCr.CoverImage))) then begin//CUST
     if (nonblank(link)) then begin
-      WebOutString("<img src='" & link & "'>");
+      WebOutString("<img src='" & link & "'");
+      if (nonblank(WCr.ImgAlt)) then begin
+        WebOutString(" alt='" & WCr.ImgAlt & "'");
+      end;
+      WebOutString(">");
     end;
   end else begin
     WebOutString("<div class='empty_image " & typecls & "'></div>");

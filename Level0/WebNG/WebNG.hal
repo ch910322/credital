@@ -634,6 +634,16 @@ begin
   transaction boolean gJustLoggedIn;
   
   //if (GoToOldPage(WebHost)) then begin goto LWeb; end; //Enable to allow sites from "old web module" (do not use in Single Server User mode)
+//CUST-BEGIN
+  if (WebSecureMode==false) then begin
+    if (TestEnablerFile("EnLocalhost")==false) then begin
+      ShowRedirectHTML(FormatSimpleLink(WebGetArg("path"),true),true);
+      oldcomp = CurrentCompany;
+      goto LWeb;
+    end;
+  end;
+//CUST-END
+
   if (GetSessionString("justloggedin")=="true") then begin
     gJustLoggedIn = true;
     PutSessionString("justloggedin","");

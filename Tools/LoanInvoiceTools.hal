@@ -631,6 +631,7 @@ begin
   RepSpec.vals2 = dueamount + IVr.Sum4;
   RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr);
   RepSpec.vals4 = dueamount;
+  RepSpec.f12 = (RepSpec.vals2-RepSpec.vals3-RepSpec.vals4);
 
 
   return;
@@ -773,20 +774,58 @@ begin
   return;
 end;
 
+function Boolean FindMatchingRow(record IVVc credIVr,Longint histnr,var row IVVc tIVrw)
+begin
+  Integer i,rwcnt;
+  row IVVc IVrw;
+  Boolean res;
+  
+  rwcnt = MatRowCnt(credIVr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(credIVr,i,IVrw);
+    if (IVrw.CredHistNr==histnr) then begin
+      res = true;
+      MatRowGet(credIVr,i,tIVrw);
+      i = rwcnt;
+    end;
+  end;
+
+  FindMatchingRow = res;
+  return;
+end;
+
 global
 updating procedure UpdateCredHistInvoice(var record IVVc IVr,record IVVc IV2r)
 begin
-  row IVVc IVrw;
+  row IVVc IVrw,tIVrw,prepIVrw;
   Integer i,rwcnt;
+  Boolean prepayf;
   Longint histnr;
   Integer firstf;
+  record IVVc credIVr;
 
   firstf = 1;
   if (IVr.InvType==kInvoiceTypeCredit) then begin
     //Currently remove only whole invoice. it's too much work now for checking each row separately
     if (IVr.OKFlag==1 and IV2r.OKFlag!=1) then begin
       if (IVr.CredInv>0) then begin
-        RemoveCredHist(IVr.CredInv,kCredHistRecTypeInvoice);
+        credIVr.SerNr = IVr.CredInv;
+        if (ReadFirstMain(credIVr,1,true)) then begin
+          //RemoveCredHist(IVr.CredInv,kCredHistRecTypeInvoice);
+          rwcnt = MatRowCnt(IVr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(IVr,i,IVrw);
+            if (IVrw.ChargeType>0) then begin
+              if (FindMatchingRow(credIVr,IVrw.CredHistNr,tIVrw)) then begin
+                CreateCredHist(IVr.SerNr,10,IVr.CustCode,tIVrw.Sum,3,"",IVr.TransDate,IVr.CustCredManNr,IVr.TransDate,histnr,"","",0,tIVrw.CredHistNr,IVrw.Sum,-1);
+
+                IVrw.CredHistNr = histnr;
+                MatRowPut(IVr,i,IVrw);
+                firstf = 0;
+              end;
+            end;
+          end;
+        end;
       end;
     end;
   end else begin
@@ -805,11 +844,15 @@ begin
           MatRowPut(IVr,i,IVrw);
           firstf = 0;
         end;
-        if (IVrw.stp==kInvoiceRowTypePrepayment and firstf==0) then begin
+        if (IVrw.stp==kInvoiceRowTypePrepayment) then begin
           if (IVrw.BasePrice>0) then begin
-            MakeFakeReceiptHist(IVr,IVrw);
+            MatRowGet(IVr,i,prepIVrw);
+            prepayf = true;
           end;
         end;
+      end;
+      if (prepayf) then begin
+        MakeFakeReceiptHist(IVr,prepIVrw);
       end;
     end;
   end;

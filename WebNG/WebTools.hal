@@ -79,7 +79,7 @@ begin
             if (nonblank(CUr.wwwAddr)) then begin
               WebOutString("<a href='" & CUr.wwwAddr & "' target='_blank'>");        
             end;
-            WebOutString("<div><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
+            WebOutString("<div><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "' alt='" & CUr.Name & "'></div>");
             if (nonblank(CUr.wwwAddr)) then begin
               WebOutString("</a>");
             end;
@@ -168,7 +168,7 @@ LShowSingleBanner:;
     WebOutString("<a href='" & WCr.Link & "' target='blank'>");
   end;
   if (imgf) then begin
-    WebOutString("<div class='campaign_img'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "'></div>");
+    WebOutString("<div class='campaign_img'><img src='/WebShowCampaignImage.hal?id=" & WCr.SerNr & "' alt='" & WCr.Text1 & "'></div>");
   end;
 
   WebOutString("<div class='banner_text'><div class='banner_text1'>" & WCr.Text1 & "</div><div class='banner_text2'>" & WCr.Text2 & "</div></div>");
@@ -221,7 +221,7 @@ begin
   WebOutString("<div class='col faq_cat_list'>");
   WebOutString("<div class='row'>");
   while (LoopMain(FCr,1,true)) begin
-    WebOutString("<div class='faq_cat col-auto' id='" & FCr.Code & "'>" & FCr.Comment & "</div>");//possibly we should do a translation, but not yet
+    WebOutString("<div class='faq_cat col' id='" & FCr.Code & "'>" & FCr.Comment & "</div>");//possibly we should do a translation, but not yet
   end;
   WebOutString("</div>");
   WebOutString("</div>");
@@ -574,7 +574,7 @@ begin
   if (nonblank(link)) then begin
     WebOutString("<a href='" &  link & "' target='blank'>");
   end;
-  WebOutString("<div class='emp_pic'><img src='/WebShowEmpPic.hal?emp=" & Userr.Code & "'></div>")
+  WebOutString("<div class='emp_pic'><img src='/WebShowEmpPic.hal?emp=" & Userr.Code & "' alt='" & Userr.Name & "'></div>")
   WebOutString("<div class='emp_name'>" & Userr.Name & "</div>")
   WebOutString("<div class='emp_descr'>" & Userr.Job & "</div>")
   WebOutString("</div>");
@@ -742,7 +742,7 @@ begin
     RecordClear(Cur);
     while (LoopKey("Classification:" & tstr,CUr,1,true)) begin
       if (ReadRecordLink(CUr,1,Attachr,RLr)) then begin
-        WebOutString("<div class='single-partner' category='" & tstr & "'><div class='partner-image-wrap'><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "'></div>");
+        WebOutString("<div class='single-partner' category='" & tstr & "'><div class='partner-image-wrap'><img src='/WebShowPartnerImage.hal?id=" & CUr.UUID & "&code=" & CUr.Code & "' alt='" & CUr.Name & "'></div>");
         WebOutString("<div class='description'>");
         OutputContactHTMLNote(CUr);
         if (nonblank(CUr.wwwAddr)) then begin
@@ -860,7 +860,7 @@ begin
         WebOutString("<div class='gallery_title'><span class='gallery_title_text'>" & ToolWebNGTranslateText2(70200) & "</span><span class='highlight'>" & aImages.length & "</span></div>")
         for (i=0;i<aImages.length;i=i+1) begin
           link = WebGetArg("path") & "/images?image=" & aImages[i];
-          WebOutString("<a class='fancybox' rel='group' href='" & link & "'><img src='" & link & "'></a>")
+          WebOutString("<a class='fancybox' rel='group' href='" & link & "'><img src='" & link & "' alt='" & WCr.ImgAlt & " - " & (i+1) & "'></a>")
         end;
         WebOutString("</div>");
         WebOutString("</div>");
@@ -873,19 +873,20 @@ LDisplayContentGallery:;
 end;
 
 global
-procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr)
+procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,string countrycode)
 begin
   area a_req,a_reply;
   string 255 fres,err,tstr;
   record TXServiceReplyVc TXSrvReplyr;
   Boolean res;
+  string 255 gEBSAddrLookupCountry;
   
   name = "";
   SendFunctionVersion("54.0","",a_req);
   SendTextParameter("web",a_req);
   SendTextParameter(regnr,a_req);
   SendTextParameter(0,a_req);
-  
+  gEBSAddrLookupCountry = countrycode;
   res = SendServiceRequestNonUpdating("UPDATECOMPANYDATA",false,true,a_req,a_reply,true,false,60,"");      
   ReadTXServiceReply(TXSrvReplyr,a_reply,true);
   if (res) then begin
@@ -935,7 +936,7 @@ begin
         fres = CUr.Name;
       end else begin
         if (len(compid)==9) then begin//only for companies (9 chars) not persons (12 chars)
-          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr);
+          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,"");
         end;
         if (len(compid)==11) then begin
           fres = " ";
@@ -1166,6 +1167,7 @@ begin
   transaction string 255 gExtraHeadHTML;
   transaction string 255 gExtraSiteTitle;
   string 255 node,path,title,kw,descr;
+  record CreditalWebSetBlock CWb;
   
   path = mpath;
 
@@ -1186,10 +1188,15 @@ begin
     gExtraSiteTitle = " " & title;
   end;
   if (nonblank(descr)) then begin
-  gExtraHeadHTML = gExtraHeadHTML & "<meta name='description' content='" & descr & "'>";
+    gExtraHeadHTML = gExtraHeadHTML & "<meta name='description' content='" & descr & "'>";
   end;
   if (nonblank(kw)) then begin
-  gExtraHeadHTML = gExtraHeadHTML & "<meta name='keywords' content='" & kw & "'>";
+    gExtraHeadHTML = gExtraHeadHTML & "<meta name='keywords' content='" & kw & "'>";
+  end;
+  //canonical link
+  BlockLoad(CWb);
+  if (nonblank(CWb.CanonicalBase)) then begin
+    gExtraHeadHTML = gExtraHeadHTML & "<link rel='canonical' href='" & CWb.CanonicalBase & WebGetArg("path") & "'>";
   end;
 
   return;

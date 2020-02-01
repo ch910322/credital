@@ -334,11 +334,11 @@ begin
   //show titles
   WebOutString("<div class='agreement-table-wrap'><table id='agreement-table' cellspacing=0>")
   WebOutString("<thead>");
-  WebOutString("<th>" & ToolWebNGTranslateText2(70331) & "<i class='fas fa-angle-down'></i></th>");
-  WebOutString("<th>" & ToolWebNGTranslateText2(70332) & "<i class='fas fa-angle-down'></i></th>");
-  WebOutString("<th>" & ToolWebNGTranslateText2(70333) & "<i class='fas fa-angle-down'></i></th>");
-  WebOutString("<th>" & ToolWebNGTranslateText2(70334) & "<i class='fas fa-angle-down'></i></th>");
-  WebOutString("<th>" & ToolWebNGTranslateText2(70335) & "<i class='fas fa-angle-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70331) & "<i class='fas fa-chevron-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70332) & "<i class='fas fa-chevron-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70333) & "<i class='fas fa-chevron-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70334) & "<i class='fas fa-chevron-down'></i></th>");
+  WebOutString("<th>" & ToolWebNGTranslateText2(70335) & "<i class='fas fa-chevron-down'></i></th>");
   WebOutString("<th></th>");
   WebOutString("</thead>");
   WebOutString("<tbody>");
@@ -352,10 +352,10 @@ begin
       WebOutString("<td></td>");
     end;
 
-    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70331) & "'>" & ORrw.ServiceDelDate & "</td>");
-    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70332) & "'>" & ORrw.PickingDate & "</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70331) & "'>" & DateToString(ORrw.ServiceDelDate,"YYYY MM DD") & "</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70332) & "'>" & DateToString(ORrw.PickingDate,"YYYY MM DD") & "</td>");
     WebOutString("<td data-label='" & ToolWebNGTranslateText2(70333) & "'>" & ValToString(ORrw.Sum,M4Val," ",".",1) & "&euro;</td>");
-    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70334) & "'>" & ORrw.InloadingDate & "</td>");
+    WebOutString("<td data-label='" & ToolWebNGTranslateText2(70334) & "'>" & DateToString(ORrw.InloadingDate,"YYYY MM DD") & "</td>");
     WebOutString("<td class='row-expand-col' type='" & ORrw.stp & "' nr='" & ORrw.GroupOrdRow & "'><div class='row-expand'>" & ToolWebNGTranslateText2(70316) & "</div></td>");
     WebOutString("</tr>");
     WebOutString("<tr class='child-row'><td colspan=6></td></tr>")
@@ -397,6 +397,8 @@ begin
   WebOutString("acc_str['DocType7'] = '" & ToolWebNGTranslateText2(70393) & "';");
   WebOutString("acc_str['Download'] = '" & ToolWebNGTranslateText2(70391) & "';");
   WebOutString("acc_str['OverduePrc'] = '" & ToolWebNGTranslateText2(70392) & "';");
+  WebOutString("acc_str['Expand'] = '" & ToolWebNGTranslateText2(70316) & "';");
+  WebOutString("acc_str['Hide'] = '" & ToolWebNGTranslateText2(70317) & "';");
   WebOutString("</script>");
 
   return;
@@ -405,7 +407,7 @@ end;
 procedure ShowPersonalID(record CUVc CUr)
 begin
   
-  WebOutString("<div class='col-md'><div class='profile_label top'>" & ToolWebNGTranslateText2(70350) & "</div><div class='profile_value'>" & CUr.RegNr1 & "</div></div>");
+  WebOutString("<div class='col-auto'><div class='profile_label top'>" & ToolWebNGTranslateText2(70350) & "</div><div class='profile_value'>" & CUr.RegNr1 & "</div></div>");
 
   return;
 end;
@@ -460,8 +462,8 @@ begin
   WebOutString("<div class='row profile_wrap'>");
 
   //profile left
-  WebOutString("<div class='col profile_left'>");
-  WebOutString("<div class='row'><div class='col-auto user-img'><img src='/images/def_user.png'></div><div class='col plt'>");
+  WebOutString("<div class='col-lg profile_left'>");
+  WebOutString("<div class='row'><div class='col-auto user-img'><img src='/files?file=User-settings.svg'></div><div class='col plt'>");
   WebOutString("<div class='row username'><div class='col'>" & CUr.Name & "</div></div>");
   WebOutString("<div class='row info'>");
   ShowPersonalID(CUr);
@@ -481,7 +483,7 @@ begin
 
 
   //profile right
-  WebOutString("<div class='col profile_right'>");
+  WebOutString("<div class='col-lg profile_right'>");
 
   WebOutString("<div class='row passw_title'><div class='col'>" & ToolWebNGTranslateText2(70355) & "</div></div>");//row
   WebOutString("<div class='row'>");
@@ -817,16 +819,20 @@ begin
   record AgreementDocVc ADr;  
   record CredManSetBlock CMb;
   Boolean TrHs;
+  vector string 255 vColor,vClass,vLoad;
 
   BlockLoad(CMb);
   BlockLoad(WSb);
   BlockLoad(CMSb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+  FillOrderClassData(vColor,vClass,vLoad);
   WebOutString("<res ");
   WebOutString("rectype='agreement' ");
   WebOutString("type='" & FixLoanTypeStr(GetLoanType(CredManr.Type)) & "' ");
   WebOutString("type2='" & MapLoanType(CredManr.Type) & "' ");
-  WebOutString("transdate='" & CredManr.TransDate & "' ");
+  WebOutString("color='" & vColor[CredManr.OrderClass] & "' ");
+  WebOutString("classname='" & vClass[CredManr.OrderClass] & "' ");
+  WebOutString("transdate='" & DateToString(CredManr.TransDate,"YYYY MM DD") & "' ");
   WebOutString("startdate='" & DateToString(CredManr.startDate,"YYYY MM DD") & "' ");
   WebOutString("amount='" & ValToString(CredManr.InvSum4,M4Val," ",",",1) & " &euro;' ");
   WebOutString("enddate='" & DateToString(CredManr.endDate,"YYYY MM DD") & "' ");
@@ -864,12 +870,17 @@ end;
 
 procedure SendLoanAppData(record B2BLoanApplicationVc LAr)
 begin
+  vector string 255 vColor,vClass,vLoad;
   
   WebOutString("<res ");
+
+  FillOrderClassData(vColor,vClass,vLoad);
   WebOutString("rectype='application' ");
   WebOutString("type='" & FixLoanTypeStr(GetLoanType(LAr.Type)) & "' ");
   WebOutString("type2='" & MapLoanType(LAr.Type) & "' ");
-  WebOutString("transdate='" & LAr.TransDate & "' ");
+  WebOutString("color='" & vColor[LAr.OrderClass] & "' ");
+  WebOutString("classname='" & vClass[LAr.OrderClass] & "' ");
+  WebOutString("transdate='" & DateToString(LAr.TransDate,"YYYY MM DD") & "' ");
   WebOutString("startdate='-' ");
   WebOutString("amount='" & ValToString(LAr.Sum,M4Val," ",",",1) & " &euro;' ");
   WebOutString("enddate='-' ");

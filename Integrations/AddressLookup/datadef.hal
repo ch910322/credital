@@ -1,0 +1,12 @@
+begin
+  
+  BlockBegin(EBSAddrLookupBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(CountryCode,M4Code,20,CountryVc);
+  ArrayField(LookupType,M4Set,400001,0);
+  EndArray;
+  EndBlock;
+
+  return;
+end;

@@ -459,6 +459,8 @@ begin
     case 70410: res = "Susisiekime";
     case 70411: res = "El. paäto adresas";
     case 70412: res = "Telefono nr.";
+    case 70413: res = "Komentaras";
+    case 70414: res = "¯veskite komentarˆ";
   end;
 
   CheckInternalStrings = res;

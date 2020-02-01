@@ -908,7 +908,23 @@ BEGIN
   RETURN;
 END;
 
-
+global
+procedure EBSIncomeAnalysisRClassReportDefaults(Integer wn)
+BEGIN
+  record RcVc RepSpec;
+  Date td;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"EBSIncomeAnalysisRClass");  
+  td = CurrentDate;
+  td.Day = DaysInMonth(GetYear(CurrentDate),td.month);
+  RepSpec.d1 = td;
+  RepSpec.flags[0] = 12;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  RETURN;
+END;
 
 global
 procedure DblB2BLoanAppVc(string dblstr,string l,Integer currepwn)

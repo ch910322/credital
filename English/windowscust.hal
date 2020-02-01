@@ -405,13 +405,15 @@ begin
 
   WindowBegin("Check Buy-out Value",CheckBuyoutValueWClass,CGother,RcType);
   UseView(RcVc);
-  SetWRect(20,80,400,200);
+  SetWRect(20,80,400,220);
   AutoSizeWindow(false);  
   h = 150; h2 = 250; v=450;
   EditFieldTL(h,v=6,120,"Buy-out Date",M4Date,Normal,0,d1,false,PasteCurDate);
-  EditFieldTL(h,v+=vs,120,"Total Dept",M4Val,Normal,0,vals0,false,0);
-  EditFieldTL(h,v+=vs,120,"Last Invoice Value",M4Val,Normal,0,vals1,false,0);
-  EditFieldTL(h,v+=vs,120,"Expected Payment",M4Val,Normal,0,vals2,false,0);
+  EditFieldTL(h,v+=vs,120,"Total Dept",M4Val,ViewOnly,0,vals0,true,0);
+  EditFieldTL(h,v+=vs,120,"Accumulated Penalty",M4Str,ViewOnly,255,f12,true,0);
+  EditFieldTL(h,v+=vs,120,"Last Invoice Value",M4Val,ViewOnly,0,vals1,true,0);
+  EditFieldTL(h,v+=vs,120,"Expected Payment",M4Val,ViewOnly,0,vals2,true,0);
+
   HalPushButton(h,v+=vs,h+120,v+20,"CalculateBuyOutValue","Calculate");
   EndWindow;
 
@@ -516,10 +518,11 @@ begin
   UseView(SMSReminderVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
   CheckBox(h2-50,v,0,"Active",ActiveFlag);
-  EditField(h,v+=vs,250,"Name",Normal,Comment,false,0);
+  EditField(h,v+=vs,250,"Comment",Normal,Comment,false,0);
   EditField(h,v+=vs,120,"Reminder Type",Normal,ReminderType,false,SetSClass);
   EditField(h2,v,70,"Type",Normal,Type,false,SetSClass);
   EditField(h,v+=vs,120,"Days",Normal,Days,false,0);
+  EditField(h2,v,70,"Customer",Normal,CustCode,false,CUSClass);
   EditField(h,v+=vs,120,"Last Sent",Normal,LastSentDate,false,0);
   CheckBox(h,v+=vs,0,"Mondays",Day1);
   EditField(h2,v,70,"Time",Normal,Time1,false,PasteCurTime);
@@ -553,6 +556,7 @@ begin
   RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
   RlCol   (101,101,"Inv. Date",InvDate,false);
   RlCol   (201,201,"Invoice Nr.",InvoiceNr,false);
+  RlCol   (271,271,"Reminder",ReminderNr,false);
   RlColKeyTL(-30,-30,"Sent",M4Mark,SentFlag,false,SentFlag);
   EndWindow;
 
@@ -563,6 +567,7 @@ begin
   EditField(h,v,120,"Ser. No.",Normal,SerNr,false,0);
   EditField(h,v+=vs,120,"Inv. Date",Normal,InvDate,false,0);
   EditField(h,v+=vs,120,"Invoice Nr.",Normal,InvoiceNr,false,0);
+  EditField(h,v+=vs,120,"Reminder Nr.",Normal,ReminderNr,false,0);
   ButtonFrame(h,v=v+40,150,3,"Status");
   RadioButton(h,v,0,0,"Created",SentFlag);
   RadioButton(h,v+=16,1,0,"Sent",SentFlag);
@@ -710,6 +715,8 @@ begin
   EditField(h2=400,v,120,"Bank Code",Normal,BankCode,false,BankSClass);
   EditField(h2,v+=vs,120,"Bank Name",Normal,BankName,false,0);
   EditField(h2,v+=vs,120,"Bank Account",Normal,BankAccount,false,BankAccountSClass);
+  EditField(h2,v+=vs,-40,"Comment",Normal,Comment,false,0);
+  
   CheckBox(h3,v=6,0,"Request Direct Debit",RequestDirectDebit);
   
   v = vm + v;
@@ -1588,9 +1595,11 @@ begin
   EditField(h+100,v+=vs,100,"Activity Type",Normal,PopupActType,false,ActTypeSClass);
   EditField(h+100,v+=vs,100,"Activity Person",Normal,PopupPersons,false,UserSClass);
 
-  EditField(h+100,v+=40,100,"News letter",Normal,NewsLetterMail,false,0);
-  EditField(h+100,v+=vs,100,"One Time Fee Item",Normal,OneFeeItem,false,INSClass);
-  EditField(h+100,v+=vs,100,"Monthly Fee Item",Normal,MonthlyFeeItem,false,INSClass);
+  EditField(h+=100,v+=40,100,"News letter",Normal,NewsLetterMail,false,0);
+  EditField(h,v+=vs,100,"One Time Fee Item",Normal,OneFeeItem,false,INSClass);
+  EditField(h,v+=vs,100,"Monthly Fee Item",Normal,MonthlyFeeItem,false,INSClass);
+
+  EditField(h,v+=40,100,"Canonical Base Link",Normal,CanonicalBase,false,0)
 
 
   EndWindow;
@@ -2017,6 +2026,30 @@ begin
   EditField(h,v+=vs,100,"Signed by Us Class",Normal,CMUsSignedOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
+  EditField(h,v+=vs,100,"Active Class",Normal,ActiveCredOrderClass,false,OrderClassSClass);
 
+  EndWindow;
+end;
+
+
+window EBSIncomeAnalysisRClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vm,vs;
+  WindowBegin("Specify Income Analysis",EBSIncomeAnalysisRClass,CGRcW,RcType);
+  SetWRect(20,80,420,310);
+  vs = 20;
+  EditFieldTL(h=150,v=10,82,"To Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EditFieldTL(h,v+=vs,150,"Customer",   M4UStr,Normal,41,f1,false,CUSClass);
+  EditFieldTL(h,v+=vs,50,"Customer Category",M4UStr,Normal,5,f7,false,CCatSClass);
+  EditFieldTL(h,v+=vs,150,"Customer Classification",M4UStr,Normal,30,Stext,false,CClassSClass);
+  EditFieldTL(h,v+=vs,150,"Item",M4Str,Normal,60,f5,false,INSClass);   
+  EditFieldTL(h,v+=vs,82, "Item Group",   M4UStr,Normal,10,AccStr,false,ITSClass);
+  EditFieldTL(h,v+=vs,150,"Item Classification",M4UStr,Normal,100,f6,false,DISClass);
+  EditFieldTL(h,v+=vs,82,"Inv. Date",M4Date,Normal,0,RegDate,false,PasteCurDate);
+  ButtonFrame(h,vm=(v+=41),123,3,"Months");
+  RadioButton(h,v,3,0,"3",flags[0]);
+  RadioButton(h,v+=16,6,0,"6",flags[0]);
+  RadioButton(h,v+=16,12,0,"12",flags[0]);//Default value
   EndWindow;
 end;

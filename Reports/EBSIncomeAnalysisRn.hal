@@ -1,0 +1,203 @@
+external inner function Boolean SetInSet2(string,string);
+external inner function Boolean ReadFirstItem(string,var record INVc,Boolean,Boolean);
+external inner procedure HTItemClass(string,var string);
+external inner procedure HTArtGroup(string, var string);    
+external inner procedure HTCustCat(string,var string);
+external inner procedure HTCustClass(string,var string);
+external inner procedure HTItem(string,var string);
+external inner procedure HT2Per(Date, Date , var string);
+
+global
+procedure EBSIncomeAnalysisRn(record RcVc RepSpec)
+begin
+  record CredHistVc CredHistr,tCredHistr;
+  record CUVc CUr;
+  record INVc INr;
+  string 255 frcu,tocu,itgroupfr,itgroupto,tstr,id,tmp;
+  Longint num,basemonth,pos;
+  Integer i,j,cs,step,rw;
+  Date sd,td;
+  vector val vtot;
+  vector Boolean vitems;
+  array string 255 atot,aitems;
+  Boolean testf,TrHs;
+  array val amonth,atotmonth;
+  val itemtot;
+  
+  StartReportJob("Income Analysis");
+  rw = 1;
+  if (nonblankdate(RepSpec.d1)) or (nonblankdate(RepSpec.d2)) then begin
+    HT2Per(RepSpec.d1,RepSpec.d2,tstr);
+    Header(rw,tstr,1);
+    rw = rw + 1;
+  end;
+  if (nonblank(RepSpec.f5)) then begin
+    HTItem(RepSpec.f5,tstr);  
+    tstr = tstr & RepSpec.f5;
+    Header(rw,tstr,1);  
+    rw = rw + 1;  
+  end;  
+  HTItemClass(RepSpec.f6,tstr);
+  if (nonblank(tstr)) then begin
+    Header(rw,tstr,1);
+    rw = rw + 1;
+  end; 
+  HTArtGroup(RepSpec.AccStr,tstr);
+  if (nonblank(tstr)) then begin
+    Header(rw,tstr,1);
+    rw = rw + 1;
+  end;
+  HTCustCat(RepSpec.f7,tstr);
+  if (nonblank(tstr)) then begin
+    Header(rw,tstr,1);
+    rw = rw + 1;
+  end;
+  HTCustClass(RepSpec.Stext,tstr);
+  if (nonblank(tstr)) then begin
+    Header(rw,tstr,1);
+    rw = rw + 1;
+  end;
+  EndHeader;
+  SetRepCol(2,430);
+  frcu = FirstInRange(RepSpec.f1,20);
+  tocu = LastInRange(RepSpec.f1,20);
+  itgroupfr = FirstInRange(RepSpec.AccStr,20);
+  itgroupto = LastInRange(RepSpec.AccStr,20);  
+
+  StartFormat(15);
+  OutString(0,0,USetStr(12002),false);
+  OutString(80,0,USetStr(12003),false);
+  sd = AddMonth(RepSpec.d1,-(RepSpec.flags[0]-1));
+  basemonth = (GetYear(sd)*12) + GetMonth(sd);
+  cs = 175;
+  switch (RepSpec.flags[0]) begin
+    case 3: step = 60;
+    case 6: step = 50;
+    case 12: step = 25;
+  end;
+  for (j=0;j<RepSpec.flags[0];j=j+1) begin
+    td = AddMonth(sd,j);
+    OutString(cs+(j*step),0,USetStr(2870+GetMonth(td)),true);
+  end;
+  OutString(cs+(RepSpec.flags[0]*step),0,USetStr(16789),true);
+  EndFormat;
+  StartFormat(1);
+  Gray_divider(0,1);
+  EndFormat;
+  TrHs = true;
+  CredHistr.TransDate = sd;
+  while (LoopKey("TransDate",CredHistr,1,TrHs)) begin
+    testf = true;
+    if (CredHistr.TransDate>RepSpec.d1) then begin
+      TrHs = false;
+    end else begin
+      testf = true;
+      if (CredHistr.RecordType!=1 and CredHistr.RecordType!=2) then begin
+        testf = false;
+      end;
+      if (testf) then begin
+        if (nonblank(RepSpec.f1)) then begin
+          if (tocu<CredHistr.CustCode) then begin testf = false; end;
+          if (frcu>CredHistr.CustCode) then begin testf = false; end;
+        end;
+        if (testf) then begin
+          CUr.Code = CredHistr.CustCode;
+          if (ReadFirstMain(CUr,1,true)==false) then begin testf = false; end;
+          if (nonblank(RepSpec.Stext) and testf) then begin
+            if (SetInSet2(RepSpec.Stext,CUr.Classification)==false) then begin
+              testf = false;
+            end;
+          end;
+        end;
+        if (testf) then begin
+          if (nonblank(RepSpec.f7)) then begin
+            if (RepSpec.f7!=CUr.CustCat) then begin
+              testf = false;
+            end;
+          end;
+        end;    
+       if (testf) then begin
+          tCredHistr.SerNr = CredHistr.PreviousNr;
+          if (ReadFirstMain(tCredHistr,1,true)) then begin
+
+            if (ReadFirstItem(tCredHistr.ArtCode,INr,true,false)==false) then begin  testf = false; end;
+            if (testf) then begin
+              if (nonblank(itgroupfr)) then begin      
+                if (INr.Group<itgroupfr) then begin testf = false; end;
+              end;
+              if (nonblank(itgroupto)) then begin 
+                if (INr.Group>itgroupto) then begin testf = false; end;
+              end;
+            end;
+            if (testf) then begin
+              if (nonblank(RepSpec.f6)) then begin
+                if (SetInSet2(RepSpec.f6,INr.DispGroups)==false) then begin
+                  testf = false;
+                end;
+              end;
+            end;               
+            if (testf) then begin
+              if (nonblank(RepSpec.f5) and tCredHistr.ArtCode!=RepSpec.f5) then begin
+                testf = false;  
+              end;
+            end;
+          end;
+        end;
+      end;
+      if (testf) then begin
+        id = tCredHistr.ArtCode & ":" & (GetYear(CredHistr.TransDate)*12) + GetMonth(CredHistr.TransDate);
+        vtot[id] = vtot[id] + CredHistr.Sum;
+        vitems[tCredHistr.ArtCode] = true;
+      end;
+    end;
+  end;
+
+  GetVectorTags(vtot,atot);
+
+  GetVectorTags(vitems,aitems);
+  for (i=0;i<aitems.length;i=i+1) begin
+    INr.Code = aitems[i];
+    ReadFirstMain(INr,1,true);
+    for (j=0;j<RepSpec.flags[0];j=j+1) begin
+      amonth[j] = 0;
+    end;
+    for (j=0;j<atot.length;j=j+1) begin
+      pos = -1;
+      GetNextSubstring(atot[j],pos,":",tmp);
+      if (tmp==aitems[i]) then begin
+        GetNextSubstring(atot[j],pos,":",tmp);
+        num = StringToLongint(tmp)-basemonth;
+        amonth[num] = vtot[atot[j]];
+      end;
+    end;  
+
+    itemtot = 0;
+    StartFormat(15);
+    OutString(0,"DblINVc",INr.Code,false);
+    OutString(80,0,INr.Name,false);
+    for (j=0;j<RepSpec.flags[0];j=j+1) begin
+      OutString(cs+(j*step),0,amonth[j],true);
+      itemtot = itemtot + amonth[j];
+      atotmonth[j] = atotmonth[j] + amonth[j];
+    end;
+    OutString(cs+(RepSpec.flags[0]*step),0,itemtot,true);
+    EndFormat;
+  end;
+
+  StartFormat(1);
+  Gray_divider(0,1);
+  EndFormat;
+  StartFormat(15);
+  
+  itemtot = 0;
+  OutString(0,0,"",false);
+  OutString(80,0,"",false);
+  for (j=0;j<RepSpec.flags[0];j=j+1) begin
+    OutString(cs+(j*step),0,atotmonth[j],true);
+    itemtot = itemtot + atotmonth[j];
+  end;
+  OutString(cs+(RepSpec.flags[0]*step),0,itemtot,true);
+  EndJob;
+
+  return;
+end;

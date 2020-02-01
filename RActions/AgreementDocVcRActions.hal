@@ -1,4 +1,3 @@
-//<halrule>server-only</halrule>
 
 global
 function LongInt AgreementDocVcRecordCheck(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
@@ -16,7 +15,7 @@ begin
 end;
 
 global
-function Boolean AllSuretyApplicationsSigned(Longint sernr)
+function Boolean AllSuretyApplicationsSigned(Longint sernr,record AgreementDocVc tADr)
 begin
   Boolean res;
   record AgreementDocVc ADr;
@@ -32,10 +31,18 @@ begin
     if (ADr.RecordNr!=sernr or ADr.RecordType!=1 or ADr.Type!=7) then begin
       TrHs = false;
     end else begin
-      MatRowGet(ADr,0,ADrw);
-      if (ADrw.Status!=1) then begin
-        res = false;
-        TrHs = false;
+      if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
+        MatRowGet(tADr,0,ADrw);
+        if (ADrw.Status!=1) then begin
+          res = false;
+          TrHs = false;
+        end;
+      end else begin
+        MatRowGet(ADr,0,ADrw);
+        if (ADrw.Status!=1) then begin
+          res = false;
+          TrHs = false;
+        end;
       end;
     end;
   end;
@@ -64,7 +71,7 @@ begin
   return;
 end;
 
-function Boolean AllDocumentsSignedByCustomerCM(Longint sernr)
+function Boolean AllDocumentsSignedByCustomerCM(Longint sernr,record AgreementDocVc tADr)
 begin
   Boolean res;
   record AgreementDocVc ADr;
@@ -79,9 +86,16 @@ begin
     if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
       TrHs = false;
     end else begin
-      if (MatrixIsSigned(ADr)==false) then begin
-        res = false;
-        TrHs = false;
+      if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
+        if (MatrixIsSigned(tADr)==false) then begin
+          res = false;
+          TrHs = false;
+        end;
+      end else begin
+        if (MatrixIsSigned(ADr)==false) then begin
+          res = false;
+          TrHs = false;
+        end;
       end;
     end;
   end;
@@ -90,7 +104,7 @@ begin
   return;
 end;
 
-function Boolean AllDocumentsSignedByUsCM(Longint sernr)
+function Boolean AllDocumentsSignedByUsCM(Longint sernr,record AgreementDocVc tADr)
 begin
   Boolean res;
   record AgreementDocVc ADr;
@@ -105,9 +119,16 @@ begin
     if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
       TrHs = false;
     end else begin
-      if (ADr.SignedByUs!=1) then begin
-        res = false;
-        TrHs = false;
+      if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
+        if (tADr.SignedByUs!=1) then begin
+          res = false;
+          TrHs = false;
+        end;
+      end else begin
+        if (ADr.SignedByUs!=1) then begin
+          res = false;
+          TrHs = false;
+        end;
       end;
     end;
   end;
@@ -117,7 +138,7 @@ begin
 end;
 
 global
-updating function LongInt AgreementDocVcRecordUpdateAfter(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
+updating function LongInt AgreementDocVcRecordUpdate(var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
 begin
   Longint res;
   row AgreementDocVc ADrw;
@@ -130,14 +151,20 @@ begin
 
   res = 0;
   
+logtext(0,"AgreementDocVcRecordUpdate updating " & ADr.SerNr);
   if (ADr.Type==7) then begin
+logtext(0,"AgreementDocVcRecordUpdate2");
     MatRowGet(ADr,0,ADrw);
     if (ADrw.Status==1) then begin
-      if (AllSuretyApplicationsSigned(ADr.RecordNr)) then begin
+logtext(0,"AgreementDocVcRecordUpdate3");
+      if (AllSuretyApplicationsSigned(ADr.RecordNr,ADr)) then begin
+logtext(0,"AgreementDocVcRecordUpdate4");
         LAr.SerNr = ADr.RecordNr;
         if (ReadFirstMain(LAr,1,true)) then begin
           BlockLoad(OCb);
+logtext(0,"AgreementDocVcRecordUpdate5");
           if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
+logtext(0,"AgreementDocVcRecordUpdate6");
             RecordCopy(oldLAr,LAr);
             LAr.OrderClass = OCb.VerWebAppClass;
             RecordUpdate(oldLAr,LAr,true);
@@ -170,8 +197,10 @@ begin
     end;
   end;
   if (ADr.RecordType==0) then begin
+logtext(0,"AgreementDocVcRecordUpdate7");
     BlockLoad(OCb);
-    if (AllDocumentsSignedByCustomerCM(ADr.RecordNr)) then begin
+    if (AllDocumentsSignedByCustomerCM(ADr.RecordNr,ADr)) then begin
+logtext(0,"AgreementDocVcRecordUpdate8");
       CMr.SerNr = ADr.RecordNr;
       if (ReadFirstMain(CMr,1,true)) then begin
         RecordCopy(oldCMr,CMr);
@@ -179,7 +208,8 @@ begin
         RecordUpdate(oldCMr,CMr,true);
       end;    
     end;
-    if (AllDocumentsSignedByUsCM(ADr.RecordNr)) then begin
+    if (AllDocumentsSignedByUsCM(ADr.RecordNr,ADr)) then begin
+logtext(0,"AgreementDocVcRecordUpdate8");
       CMr.SerNr = ADr.RecordNr;
       if (ReadFirstMain(CMr,1,true)) then begin
         RecordCopy(oldCMr,CMr);
@@ -189,7 +219,7 @@ begin
     end;
   end;
 
-  AgreementDocVcRecordUpdateAfter = res;
+  AgreementDocVcRecordUpdate = res;
   return;
 end;
 
@@ -249,5 +279,26 @@ begin
     end;
   end;
 
+  return;
+end;
+
+global
+updating function LongInt AgreementDocVcRecordUpdateClient(LongInt wn,var record AgreementDocVc ADr,record AgreementDocVc AD2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  Integer nwn;
+  record CredManVc CredManr;
+  
+  nwn = FindWindow("CredManDClass");
+  if (nwn>0) then begin
+    if (WindowState(nwn)==Rs_Normal) then begin
+      GetWindowRecord(nwn,CredManr);
+      if (ReadFirstMain(CredManr,1,true)) then begin
+        PutWindowRecord(nwn,CredManr);
+      end;
+    end;
+  end;
+
+  AgreementDocVcRecordUpdateClient = res;
   return;
 end;
