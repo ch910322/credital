@@ -1,0 +1,179 @@
+event startup
+begin
+  
+  SetLangMode(LangEnglish,"ENG",0);
+
+  Setting("Landing Pages",WebLandingPageLClass,modWebShopNG);
+  Setting("Landing Page Settings",WebLandingPageTClass,modWebShopNG);
+
+  SString(5000000,"Structure with this Link already exists");
+
+end;
+
+
+SetLangMode(LangEnglish,"ENG",0);
+
+window WebLandingPageLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Landing Pages",WebLandingPageLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(WebLandingPageDClass);
+  UseView(WebLandingPageVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Link",Link,false,Link);
+  RlCol   (120,120,"Name",Name,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+
+window WebLandingPageDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,h4,t,v,vm,vs,ord,label;
+
+  WindowBegin("Landing Page",WebLandingPageDClass,CGview,-);
+  SetWRect(20,80,700,500);
+//  Sizeable(-1,-1,0,0);
+  UseView(WebLandingPageVc);
+
+  h = 120; h2 = 360; h4 = 760; vs = 20; ord = 50;
+  h3 = 480;
+  Tile(0,230,false,"",Link);
+  EditField(h,v=6, 150,"Link",St_i,Link,false,0);
+  EditField(h,v+=vs,150,"Name",Normal,Name,false,0);
+  EditField(h,v+=vs,82,"Manager",Normal,Manager,false,UserSClass);
+  EditField(h,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+//  EditField(h,v+=vs,82,"Credit Agr. Type",Normal,CredManType,false,CredManTypeSClass);//??
+
+  TileButton(1,"Content");
+  TileButton(2,"Calculator");
+  TileButton(3,"Company Survey");
+  Tile(1,500,true,"",ContCalcFlag);
+  
+  v = 6;
+  CheckBox(h,v,0,"Display Calculator",ContCalcFlag);
+  EditField(h2,v,50,"Order",Normal,ContCalcOrder,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Calculator Result",ContCalcResultFlag);
+  EditField(h2,v,50,"Order",Normal,ContCalcResultOrder,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Survey",ContSurveyFlag);
+  EditField(h2,v,50,"Order",Normal,ContSurveyOrder,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Picture 1",ContPicture1Flag);
+  EditField(h2,v,50,"Order",Normal,ContPicture1Order,false,0);
+  EditField(h3,v,100,"Name",Normal,ContPicture1Name,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Picture 2",ContPicture2Flag);
+  EditField(h2,v,50,"Order",Normal,ContPicture2Order,false,0);
+  EditField(h3,v,100,"Name",Normal,ContPicture2Name,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Picture 3",ContPicture3Flag);
+  EditField(h2,v,50,"Order",Normal,ContPicture3Order,false,0);
+  EditField(h3,v,100,"Name",Normal,ContPicture3Name,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Html Code 1",ContHtml1Flag);
+  EditField(h2,v,50,"Order",Normal,ContHtml1Order,false,0);
+  EditField(h3,v,100,"Name",Normal,ContHtml1Name,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Display Html Code 2",ContHtml2Flag);
+  EditField(h2,v,50,"Order",Normal,ContHtml2Order,false,0);
+  EditField(h3,v,100,"Name",Normal,ContHtml2Name,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Allow Submitting",ContSubmitFlag);
+  EditField(h2,v,50,"Order",Normal,ContSubmitOrder,false,0);
+
+  Tile(2,400,true,"2",CalcType);
+
+  EditField(h,v=6,150,"Type",Normal,CalcType,false,SetSClass);
+  EditField(h,v+=vs,100,"Amount Min",Normal,CalcAmountMin,false,0);
+  EditField(h,v+=vs,100,"Amount Max",Normal,CalcAmountMax,false,0);
+  EditField(h,v+=vs,100,"Amount Step",Normal,CalcAmountStep,false,0);
+  EditField(h,v+=vs,100,"Term Min",Normal,CalcTermMin,false,0);
+  EditField(h,v+=vs,100,"Term Max",Normal,CalcTermMax,false,0);
+  EditField(h,v+=vs,100,"Term Step",Normal,CalcTermStep,false,0);
+  ButtonFrame(h,v+=40,150,2,"Term Type");
+  RadioButton(h,v,0,0,"Months",CalcTermType);
+  RadioButton(h,v+=16,1,0,"Days",CalcTermType);  
+
+  MatrixBegin(10,v+=vs+40,-40,-20,-,99);
+  MatCol(1,24,"Months",0,Months,false,0);
+  MatCol(1,74,"Rate",0,Rate,false,0);
+  EndMatrix;
+
+  Tile(3,500,true,"3",SurveyRegFlag);
+  v = 6;
+  CheckBox(h,v,0,"Request Reg. No.",SurveyRegFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyRegOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyRegLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Name",SurveyNameFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyNameOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyNameLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Telephone",SurveyPhoneFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyPhoneOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyPhoneLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Email",SurveyEmailFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyEmailOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyEmailLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person",SurveyContactNameFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyContactNameOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyContactNameLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Email",SurveyContactEmailFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyContactEmailOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyContactEmailLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Mobile",SurveyContactMobileFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyContactMobileOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyContactMobileLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Job Title",SurveyContactJobFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyContactJobOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyContactJobLabel,false,0);
+  v = v + vs;
+  CheckBox(h,v,0,"Request VAT Nr.",SurveyVATNrFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyVATNrOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyVATNrLabel,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Request Address",SurveyAddressFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyAddressOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyAddressLabel,false,0);
+  v = v + vs;
+  
+  CheckBox(h,v,0,"Request Payment Day",SurveyPaymentDayFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyPaymentDayOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyPaymentDayLabel,false,0);
+  v = v + vs;
+  
+  EndWindow;
+  
+  return;
+end;
+
+window WebLandingPageTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm,h2;
+  WindowBegin("Landing Page Settings",WebLandingPageTClass,CGSbl,-);
+  SetBlid(WebLandingPageBlock);
+  h = 200;
+  SetWRect(20,80,550,298);
+  vs=20; h=160; vs2=16; hm=-100;
+  EditField(h,v=6,120,"Default Template",Normal,TemplatePage,false,WebNGPageSClass);
+  EndWindow;
+end;

@@ -1,0 +1,26 @@
+//<halrule>server-only</halrule>
+
+global
+updating function LongInt CMApplicationSetBlockCheck(var record CMApplicationSetBlock CMSb,record CMApplicationSetBlock CMS2b,LongInt stat,LongInt long4)
+BEGIN
+  Longint res;
+
+  res = 0;
+
+  if (CMSb.AutoInvoiceFlag==1) then begin
+    if (blank(CMSb.AutoInvoiceTime)) then begin
+      RecordCheckError(1058,"",-1,"AutoInvoiceTime");   
+      res = -1;
+      goto LCMApplicationSetBlockCheck;
+    end;
+  end;
+/*
+  if (CMSb.AutoInvoiceFlag!=CMS2b.AutoInvoiceFlag) then begin
+    MessageBox(200108,"");
+  end;
+*/
+
+LCMApplicationSetBlockCheck:;  
+  CMApplicationSetBlockCheck = res;
+  return;
+end;

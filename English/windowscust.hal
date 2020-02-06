@@ -72,21 +72,10 @@ begin
   EditField(h,v+=vs,100,"Ownership Years",Normal,OwnershipYears,false,0);
 
   EditField(h,v+=vs,100,"CEO Title",Normal,CEOTitle,false,JobTitleSClass);
-//  EditField(h,v+=vs,100,"Default Application Class",Normal,DefOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Years to access private data",Normal,PrivateDataYears,false,0);
 
-//  EditField(h,v+=vs,100,"Termination Class",Normal,TerminatedOrderClass,false,OrderClassSClass);
-//  EditField(h,v+=vs,100,"Refinance Class",Normal,RefinClass,false,OrderClassSClass);
- 
-//  EditField(h,v+=vs,100,"Accepted Appl. Class",Normal,AcceptedAppOrderClass,false,OrderClassSClass);
-//  EditField(h,v+=vs,100,"Unfinished Appl. Class",Normal,WebAppClass,false,OrderClassSClass);
-//  EditField(h,v+=vs,100,"Signed Appl. Class",Normal,VerWebAppClass,false,OrderClassSClass);
-//  EditField(h,v+=vs,100,"Not signed Appl. Class",Normal,OtherWebAppClass,false,OrderClassSClass);
-//  EditField(h,v+=vs,100,"Appl. Class to check Contacts",Normal,CheckWebAppClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Request Signature Class",Normal,SignOrderClass,false,OrderClassSClass);
   EditField(h,v+=vs,100,"Active Agreement Order Class",Normal,ActiveCredOrderClass,false,OrderClassSClass);
-
-
 
   EditField(h,v+=vs,100,"Surety Email",Normal,SuretyLetter,false,0);
   EditField(h,v+=vs,100,"Surety Email without Password",Normal,NoPassSuretyLetter,false,0);
@@ -107,6 +96,9 @@ begin
   
   CheckBox(h,v+=30,0,"Details on Invoice",DetailedInvoice);
   CheckBox(h,v+=20,0,"Automatically connect Prepayments to Invoices",AddPrepayments);
+
+  EditField(h,v+=30,100,"Time",Normal,AutoInvoiceTime,false,PasteCurTime);
+  CheckBox(h+120,v,0,"Automatically issue and send invoices",AutoInvoiceFlag);
 
   EditField(h,v+=vs,100,"Additional Comment",Normal,InvoiceCommentStr,false,0);
   EditField(h,v+=vs,100,"Document Signer",Normal,DocumentSigner,false,UserSClass);
@@ -1008,6 +1000,7 @@ begin
   RecordList(4,17,-21,-39);
   RlColKey(4,4,"Ser. No.",SerNr,false,SerNr);
   RlCol   (101,101,"Name",Question,false);
+  RlCol   (-180,-180,"Language",LangCode,false);
   RlCol   (-90,-90,"Class.",Class,false);
   EndWindow;
 end;
@@ -1021,9 +1014,9 @@ begin
   h = 120; v = 6; vs=20;
   UseView(WebFAQVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h+200,v,100,"Language",Normal,LangCode,false,WebNGLanguageSClass);
   EditField(h,v+=vs,120,"Class",Normal,Class,false,WebFAQCategorySClass);
   EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
-
   v = v + 30;
   TextField(0,v,-1,-1,Answer,0);
 
@@ -1038,6 +1031,7 @@ begin
   h = 120; v = 6; vs=20;
   UseView(WebFAQVc);
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
+  EditField(h+200,v,100,"Language",Normal,LangCode,false,WebNGLanguageSClass);
   EditField(h,v+=vs,120,"Class",Normal,Class,false,WebFAQCategorySClass);
   EditField(h,v+=vs,-40,"Question",Normal,Question,false,0);
 
@@ -1126,6 +1120,10 @@ begin
   vs=20; h=120; vs2=16; hm=-100;
   EditField(h,v=6,100,"Code",Normal,Code,false,);
   EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
+  MatrixBegin(10,v+=vs+40,-40,-20,-,99);
+  MatCol(1,24,"Language",0,LangCode,false,WebNGLanguageSClass);
+  MatCol(1,104,"Text",0,Text,false,0);
+  EndMatrix;
   EndWindow;
 end;
 
@@ -1600,6 +1598,7 @@ begin
   EditField(h,v+=vs,100,"Monthly Fee Item",Normal,MonthlyFeeItem,false,INSClass);
 
   EditField(h,v+=40,100,"Canonical Base Link",Normal,CanonicalBase,false,0)
+  EditField(h,v+=40,100,"Payment Days",Normal,WebPaymentDays,false,0)
 
 
   EndWindow;

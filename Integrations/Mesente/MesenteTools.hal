@@ -42,6 +42,8 @@ begin
         SMSr.PhoneNo = receiver;
         res = qupdating.MakeActSMS(SMSr,Actr);
       end;
+    end else begin
+      WriteAreaToFile(reply,"sms_fail2.txt",0);
     end;
   end else begin
     WriteAreaToFile(request,"sms_fail.txt",0);

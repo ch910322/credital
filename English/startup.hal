@@ -158,6 +158,8 @@ begin
   SString(200106,"Paysera Payment");
   SString(200107,"Invitation sent successfully");
 
+  SString(200108,"These Changes require Server Restart");
+
 /*Web Codes 200200-200230*/
   SString(200200,"Banner with this type already registered in these days");
   SString(200201,"Content with this URL already exists");

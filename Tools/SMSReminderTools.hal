@@ -75,7 +75,7 @@ begin
       end;
       text = text & tstr;
     end;
-  
+
     SendMessenteMessage(CUr.Mobile,text);
 
   end;
@@ -132,6 +132,7 @@ begin
       AddToText(tstr,emqrp); 
       pos = pos+255;
     end;
+
     emqrp.SerNr = NextSerNr("EMailQueVc",CurrentDate,-1,false,"");
     emqrp.OrgSerNr = -1;
     emqrp.FileName = "";
@@ -145,8 +146,7 @@ begin
     emqrp.QueDate = CurrentDate;
     emqrp.QueTime = CurrentTime;
 
-    if (RecordStore(emqrp,false)) then begin
-      
+    if (RecordStore(emqrp,false)==false) then begin
     end;
   end;
 
@@ -224,8 +224,11 @@ updating procedure Cust_SendReminder2(record SMSReminderVc SMSReminder,record IV
 begin
   record SMSReminderQueueVc SRQr;
 
-  threadasync.DoSendSMSReminder(SMSReminder,IVr);
-
+  if (SMSReminder.ReminderType==0) then begin
+    threadasync.DoSendSMSReminder(SMSReminder,IVr);
+  end else begin
+    DoSendEmailReminder(SMSReminder,IVr);
+  end;
   RecordNew(SRQr);
   SRQr.SerNr = NextSerNr("SMSReminderQueueVc",CurrentDate,-1,false,"");
   SRQr.InvoiceNr = IVr.SerNr;

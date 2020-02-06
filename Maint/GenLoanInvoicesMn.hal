@@ -2,7 +2,7 @@
 external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 
 global
-updating function Boolean LoopAndGenLoanAgreementInvoice(var record RcVc RepSpec)
+updating function Boolean LoopAndGenLoanAgreementInvoice(var record RcVc RepSpec,var record IVVc nIVr)
 begin
   Boolean res,TrHs,testf;
   record CredManVc CredManr;
@@ -29,6 +29,7 @@ begin
       end;
       if (testf) then begin
         CreateSingleAgreementInvoice(CredManr,RepSpec.d1,IVr);
+        RecordCopy(nIVr,IVr);
         TrHs = false;
       end;
     end;
@@ -41,8 +42,9 @@ end;
 global
 procedure GenLoanInvoicesMn(record RcVc RepSpec)
 begin
+  record IVVc nIVr;
   
-  while (qupdating.LoopAndGenLoanAgreementInvoice(RepSpec)) begin
+  while (qupdating.LoopAndGenLoanAgreementInvoice(RepSpec,nIVr)) begin//nIVr is needed for auto invoicing
 
   end;
 

@@ -1,0 +1,97 @@
+begin
+  
+  RecordBegin(WebLandingPageVc,-,"");
+  RecordField(Link,M4Str,255,0);
+  RecordField(Name,M4Str,255,0);
+  RecordField(Manager,M4Code,20,UserVc);
+  RecordField(OrderClass,M4Code,5,OrderClassVc);
+  RecordField(CredManType,M4Code,20,CredManTypeVc);
+//Content flip
+  RecordField(ContCalcFlag,M4Int,0,0);
+  RecordField(ContCalcResultFlag,M4Int,0,0);
+  RecordField(ContSurveyFlag,M4Int,0,0);
+  RecordField(ContPicture1Flag,M4Int,0,0);
+  RecordField(ContPicture2Flag,M4Int,0,0);
+  RecordField(ContPicture3Flag,M4Int,0,0);
+  RecordField(ContHtml1Flag,M4Int,0,0);
+  RecordField(ContHtml2Flag,M4Int,0,0);//this can't be done
+  RecordField(ContSubmitFlag,M4Int,0,0);
+  
+  RecordField(ContCalcOrder,M4Long,0,0);
+  RecordField(ContCalcResultOrder,M4Long,0,0);
+  RecordField(ContSurveyOrder,M4Long,0,0);
+  RecordField(ContPicture1Order,M4Long,0,0);
+  RecordField(ContPicture2Order,M4Long,0,0);
+  RecordField(ContPicture3Order,M4Long,0,0);
+  RecordField(ContHtml1Order,M4Long,0,0);
+  RecordField(ContHtml2Order,M4Long,0,0);//this can't be done
+  RecordField(ContSubmitOrder,M4Long,0,0);
+
+  RecordField(ContPicture1Name,M4Str,255,0);
+  RecordField(ContPicture2Name,M4Str,255,0);
+  RecordField(ContPicture3Name,M4Str,255,0);
+  RecordField(ContHtml1Name,M4Str,255,0);
+  RecordField(ContHtml2Name,M4Str,255,0);
+  
+//Calculator
+  RecordField(CalcType,M4Set,2013,0);
+  RecordField(CalcAmountMin,M4Int,0,0);
+  RecordField(CalcAmountMax,M4Int,0,0);
+  RecordField(CalcAmountStep,M4Int,0,0);
+  RecordField(CalcTermMin,M4Int,0,0);
+  RecordField(CalcTermMax,M4Int,0,0);
+  RecordField(CalcTermStep,M4Int,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  RecordField(CalcTermType,M4Int,0,0);
+  
+//Survey
+  RecordField(SurveyRegFlag,M4Int,0,0);
+  RecordField(SurveyNameFlag,M4Int,0,0);
+  RecordField(SurveyPhoneFlag,M4Int,0,0);
+  RecordField(SurveyEmailFlag,M4Int,0,0);
+  RecordField(SurveyContactNameFlag,M4Int,0,0);
+  RecordField(SurveyContactEmailFlag,M4Int,0,0);
+  RecordField(SurveyContactMobileFlag,M4Int,0,0);
+  RecordField(SurveyContactJobFlag,M4Int,0,0);
+  RecordField(SurveyVATNrFlag,M4Int,0,0);
+  RecordField(SurveyAddressFlag,M4Int,0,0);
+  RecordField(SurveyPaymentDayFlag,M4Int,0,0);
+
+  RecordField(SurveyRegOrder,M4Long,0,0);
+  RecordField(SurveyNameOrder,M4Long,0,0);
+  RecordField(SurveyPhoneOrder,M4Long,0,0);
+  RecordField(SurveyEmailOrder,M4Long,0,0);
+  RecordField(SurveyContactNameOrder,M4Long,0,0);
+  RecordField(SurveyContactEmailOrder,M4Long,0,0);
+  RecordField(SurveyContactMobileOrder,M4Long,0,0);
+  RecordField(SurveyContactJobOrder,M4Long,0,0);
+  RecordField(SurveyVATNrOrder,M4Long,0,0);
+  RecordField(SurveyAddressOrder,M4Long,0,0);
+  RecordField(SurveyPaymentDayOrder,M4Long,0,0);
+
+  RecordField(SurveyRegLabel,M4Str,255,0);
+  RecordField(SurveyNameLabel,M4Str,255,0);
+  RecordField(SurveyPhoneLabel,M4Str,255,0);
+  RecordField(SurveyEmailLabel,M4Str,255,0);
+  RecordField(SurveyContactNameLabel,M4Str,255,0);
+  RecordField(SurveyContactEmailLabel,M4Str,255,0);
+  RecordField(SurveyContactMobileLabel,M4Str,255,0);
+  RecordField(SurveyContactJobLabel,M4Str,255,0);
+  RecordField(SurveyVATNrLabel,M4Str,255,0);
+  RecordField(SurveyAddressLabel,M4Str,255,0);
+  RecordField(SurveyPaymentDayLabel,M4Str,255,0);
+  
+  ArrayBegin(Math,-,1);
+  ArrayField(Months,M4Val,0,0);
+  ArrayField(Rate,M4Val,0,0);
+  EndArray;
+  MainKeyBegin(Link,0);
+  KeySegment(Link);
+  EndRecord;
+
+  BlockBegin(WebLandingPageBlock,-,"");
+  RecordField(TemplatePage,M4Code,20,WebNGPageVc);
+  EndBlock;
+
+  return;
+end;

@@ -13,3 +13,12 @@ begin
 
   return;
 end;
+
+global
+function Boolean CMApplicationSetTClassAutoInvoiceFlagButtonAction(Integer wn,Integer value)
+begin
+  
+  MessageBox(200108,"");
+  CMApplicationSetTClassAutoInvoiceFlagButtonAction = true;
+  return;
+end;

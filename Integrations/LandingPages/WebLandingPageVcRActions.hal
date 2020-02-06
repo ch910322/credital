@@ -1,0 +1,20 @@
+
+global
+function LongInt WebLandingPageVcRecordCheck(var record WebLandingPageVc LPr,record WebLandingPageVc LP2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record WebNGStructVc WSr;
+
+  res = 0;
+
+  WSr.Name = LPr.Link;
+  if (ReadFirstKey("Name",WSr,1,true)) then begin
+    RecordCheckError(5000000,"",-1,"Link");
+    res = -1;
+    goto LWebLandingPageVcRecordCheck;
+  end;
+  
+LWebLandingPageVcRecordCheck:;
+  WebLandingPageVcRecordCheck = res;
+  return;
+end;

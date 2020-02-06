@@ -29,7 +29,7 @@ external updating procedure AddContactToMailingList(record PersColVc,record CUVc
 external function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc,record CUVc,record AgreementDocVc);
 external function string 255 GetLinkToCreditAccount();
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
-external function Boolean AllSuretyApplicationsSigned(Longint);
+external function Boolean AllSuretyApplicationsSigned(Longint,record AgreementDocVc);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -132,6 +132,7 @@ begin
   return;
 end;
 
+global
 procedure DisplayLoanSlideBars()
 begin
    
@@ -154,6 +155,7 @@ begin
   return;
 end;
 
+global
 procedure DisplayLoanPayments()
 begin
   
@@ -195,13 +197,30 @@ begin
   return;
 end;
 
+global
 procedure ShowPaymentDateField(string name,string label,string ph,string value,string add,Integer colcnt)
 begin
-  
+  record CreditalWebSetBlock CWSb;
+  string 255 daystr,tmp;
+  Integer n;
+  Longint pos;
+
+  BlockLoad(CWSb);
+  daystr = CWSb.WebPaymentDays;
+  if (blank(daystr)) then begin
+    daystr = "5,15,25";
+  end;
+
   if (colcnt>0) then begin
     WebOutString("<div class='col-md-" & colcnt & "'>");
   end;
-  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><select " & add & ">" & ShowOption("",ph) & ShowOption(5,5) & ShowOption(15,15) & ShowOption(25,25) & "</select></div></div>");
+  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><select " & add & ">");
+  WebOutString(ShowOption("",ph));
+  while (GetNextSubstring(daystr,pos,",",tmp)) begin
+    n = StringToInt(tmp);
+    WebOutString(ShowOption(n,n));
+  end;
+  WebOutString("</select></div></div>");
   if (colcnt>0) then begin
     WebOutString("</div>");
   end;
@@ -1011,6 +1030,7 @@ begin
   return;
 end;
 
+global
 function string 255 GetAgreementType(record B2BLoanApplicationVc LAr,Integer type,string fallbacktype)
 begin
   string 255 res;
@@ -1600,6 +1620,7 @@ begin
   vector string 255 vSess;
   record CUVc CUr,oldCUr;
   record CMOrderClassBlock OCb;
+  record AgreementDocVc ADr;
   
   bankacc = WebGetArg("bankacc");
   paymentdate = StringToInt(WebGetArg("paymentdate"));
@@ -1646,7 +1667,7 @@ begin
         SendEmailsToSurety(LAr);
         PrepareLoanApplicationVerification(LAr,managercode,verf);
         if (verf) then begin
-          if (AllSuretyApplicationsSigned(LAr.SerNr)) then begin
+          if (AllSuretyApplicationsSigned(LAr.SerNr,ADr)) then begin
             BlockLoad(OCb);
             if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
               RecordCopy(oldLAr,LAr);

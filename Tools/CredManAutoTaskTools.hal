@@ -1,6 +1,8 @@
 //<halrule>server-only</halrule>
 external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
+external inner updating procedure IVToMailMn(record RcVc);
+external updating function Boolean LoopAndGenLoanAgreementInvoice(var record RcVc,var record IVVc);
 
 global
 updating procedure CreateTaskActivityCredMan(record CredManVc CredManr,string person,string acttype,string acttext)
@@ -140,6 +142,126 @@ procedure InitCredManAutoTasks()
 begin
   
   NewPeriodicTask2("CredManAutoTask","CredManAutoTask","CredManToolsCheckRecord","",300,"")
+
+  return;
+end;
+
+function Boolean GetInvoiceSequence(array record IVVc aIVr,var Longint invfr,var Longint invto,var Date datefr,var Date dateto)
+begin
+  Boolean res;
+  Integer i;
+  record IVVc IVr;
+  Longint lastsernr;
+
+  res = true;
+  for (i=0;i<aIVr.length;i=i+1) begin
+    IVr = aIVr[i];
+    if (lastsernr!=-1) then begin
+      if (IVr.SerNr-1!=lastsernr) then begin
+        res = false;
+        goto LGetInvoiceSequence;
+      end;
+    end;
+    if (datefr>IVr.TransDate or blank(datefr)) then begin
+      datefr = IVr.TransDate;
+    end;
+    if (dateto<IVr.TransDate or blank(dateto)) then begin
+      dateto = IVr.TransDate;
+    end;
+    lastsernr = IVr.SerNr;
+  end;
+
+  IVr = aIVr[0];
+  invfr = IVr.SerNr;
+  IVr = aIVr[aIVr.length-1];
+  invto = IVr.SerNr;
+
+LGetInvoiceSequence:;
+  GetInvoiceSequence = res;
+  return;
+end;
+
+global
+procedure CredManAutoInvoiceTask(string args)
+begin
+  record RcVc RepSpec;
+  array record IVVc aIVr;
+  Integer i;
+  Longint invfr,invto;
+  record IVVc nIVr,IVr;
+  record CMApplicationSetBlock CMSb;
+  Date td,datefr,dateto;
+  Time tt;
+  
+  RepSpec.d1 = CurrentDate;
+  while (qupdating.LoopAndGenLoanAgreementInvoice(RepSpec,nIVr)) begin//nIVr is needed for auto invoicing
+    if (nIVr.SerNr>-1) then begin
+      aIVr[aIVr.length] = nIVr;
+    end;
+  end;
+/*
+  for (i=0;i<aIVr.length;i=i+1) begin
+    
+  end;
+*/
+  RecordClear(RepSpec);
+  ReportDefaults(RepSpec,"IVToMailVClass");
+  if (GetInvoiceSequence(aIVr,invfr,invto,datefr,dateto)) then begin
+    RepSpec.f2 = invfr & ":" & invto;
+    RepSpec.sStartDate = datefr;
+    RepSpec.sEndDate = dateto;
+    RepSpec.ArtMode = 0;
+    RepSpec.flags[1] = 1;
+    RepSpec.flags[4] = 1;
+    RepSpec.flags[5] = 1;
+    RepSpec.flags[6] = 1;
+    RepSpec.flags[7] = 1;
+    RepSpec.flags[3] = 1;
+    qupdating.IVToMailMn(RepSpec);
+  end else begin
+    RepSpec.ArtMode = 0;
+    RepSpec.flags[1] = 1;
+    RepSpec.flags[4] = 1;
+    RepSpec.flags[5] = 1;
+    RepSpec.flags[6] = 1;
+    RepSpec.flags[7] = 1;
+    RepSpec.flags[3] = 1;
+    for (i=0;i<aIVr.length;i=i+1) begin
+      IVr = aIVr[i];
+      RepSpec.sStartDate = IVr.TransDate;
+      RepSpec.sEndDate = IVr.TransDate;
+
+      RepSpec.f2 = IVr.SerNr;
+      qupdating.IVToMailMn(RepSpec);
+    end;
+  end;
+  BlockLoad(CMSb);
+  if (CMSb.AutoInvoiceFlag==1) then begin
+    RemoveTask("CredManAutoInvoiceTask");
+    td = AddDay(CurrentDate,1);
+    tt = CMSb.AutoInvoiceTime;
+    NewTimedTask2("CredManAutoInvoiceTask","CredManAutoInvoiceTask","CredManAutoInvoiceTask","",td,tt,"","");
+  end;
+
+  return;
+end;
+
+global
+procedure InitAutoInvoiceTask()
+begin
+  record CMApplicationSetBlock CMSb;
+  Date td;
+  Time tt;
+
+  BlockLoad(CMSb);
+  if (CMSb.AutoInvoiceFlag==1) then begin
+    td = CurrentDate;
+    tt = CMSb.AutoInvoiceTime;
+    if (tt<CurrentTime) then begin
+      td = AddDay(td,1);
+    end;
+    NewTimedTask2("CredManAutoInvoiceTask","CredManAutoInvoiceTask","CredManAutoInvoiceTask","",td,tt,"","");
+  end;
 
   return;
 end;

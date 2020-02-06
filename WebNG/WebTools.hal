@@ -204,6 +204,26 @@ begin
   return;
 end;
 
+function string 255 GetFAQCategoryName(record WebFAQCategoryVc FCr,string langcode)
+begin
+  string 255 res;
+  Integer i,rwcnt;
+  row WebFAQCategoryVc FCrw;
+
+  res = FCr.Comment;
+  rwcnt = MatRowCnt(FCr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(FCr,i,FCrw);
+    if (FCrw.LangCode==langcode) then begin
+      res = FCrw.Text;
+      i = rwcnt;
+    end;
+  end;
+
+  GetFAQCategoryName = res;
+  return;
+end;
+
 global
 procedure ShowFAQList()
 begin
@@ -213,15 +233,16 @@ begin
   area a;
   Longint asz,pos,l;
   xml x;
-  string 255 tstr;
+  string 255 tstr,langcode;
   record WebFAQCategoryVc FCr;
 
+  langcode = CurrentWebLang;
   //Show categories
   WebOutString("<div class='row faq_cat_list_wrap'>");
   WebOutString("<div class='col faq_cat_list'>");
   WebOutString("<div class='row'>");
   while (LoopMain(FCr,1,true)) begin
-    WebOutString("<div class='faq_cat col' id='" & FCr.Code & "'>" & FCr.Comment & "</div>");//possibly we should do a translation, but not yet
+    WebOutString("<div class='faq_cat col' id='" & FCr.Code & "'>" & GetFAQCategoryName(FCr,langcode) & "</div>");//possibly we should do a translation, but not yet
   end;
   WebOutString("</div>");
   WebOutString("</div>");
@@ -233,32 +254,34 @@ begin
 
   WebOutString("<div class='row faq_item_list'>");
   while (LoopMain(WFr,1,true)) begin
-    if (ReadRecordLink(WFr,1,Attachr,RLr)) begin
-      SetAreaZeroSize(a);
-      asz = AttachFileSize(Attachr);    
-      LoadAttachFilePartToArea(Attachr,0,asz,a);
-
-      WebOutString("<div class='faq-item' category='" & WFr.Class & "'>");
-      WebOutString("<div class='faq-q'>" & WFr.Question & "</div>");
-      WebOutString("<div class='faq-answer'>");
-      tstr = "";
-      pos = FindStringInArea("<body",a);
-      if (pos>0) then begin
-        pos = pos + 6;
-        l = GetAreaLength(a)-pos-13;
-        tstr = GetStringFromArea(a,pos,l);
+    if (WFr.LangCode==langcode or blank(WFr.LangCode)) then begin
+      if (ReadRecordLink(WFr,1,Attachr,RLr)) begin
         SetAreaZeroSize(a);
-        AddTextToArea(tstr,a);
-        pos = FindStringInArea(">",a);
+        asz = AttachFileSize(Attachr);    
+        LoadAttachFilePartToArea(Attachr,0,asz,a);
+
+        WebOutString("<div class='faq-item' category='" & WFr.Class & "'>");
+        WebOutString("<div class='faq-q'>" & WFr.Question & "</div>");
+        WebOutString("<div class='faq-answer'>");
+        tstr = "";
+        pos = FindStringInArea("<body",a);
         if (pos>0) then begin
-          pos = pos + 1;
-          tstr = GetStringFromArea(a,pos,GetAreaLength(a)-pos-1);
+          pos = pos + 6;
+          l = GetAreaLength(a)-pos-13;
+          tstr = GetStringFromArea(a,pos,l);
+          SetAreaZeroSize(a);
+          AddTextToArea(tstr,a);
+          pos = FindStringInArea(">",a);
+          if (pos>0) then begin
+            pos = pos + 1;
+            tstr = GetStringFromArea(a,pos,GetAreaLength(a)-pos-1);
+          end;
         end;
+    
+        WebOutString(tstr);
+        WebOutString("</div>");
+        WebOutString("</div>");
       end;
-  
-      WebOutString(tstr);
-      WebOutString("</div>");
-      WebOutString("</div>");
     end;
   end;
   WebOutString("</div>");
@@ -924,7 +947,7 @@ end;
 global webpublic
 procedure WebCheckCompanyName()
 begin
-  string 255 fres,compid,err,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr;
+  string 255 fres,compid,err,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,addrstr;
   record CUVc CUr;
 
   if (GetSessionString("LoanAppVer")==WebGetArg("scall")) then begin
@@ -934,9 +957,12 @@ begin
       CUr.RegNr1 = compid;
       if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
         fres = CUr.Name;
+        vatnr = CUr.VATNr;
+        addrstr = CUr.InvAddr0;
       end else begin
         if (len(compid)==9) then begin//only for companies (9 chars) not persons (12 chars)
           GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,"");
+          addrstr = addr0 & "," & addr1 & "," & addr2 & "," & addr3;
         end;
         if (len(compid)==11) then begin
           fres = " ";
@@ -949,7 +975,7 @@ begin
     err = ToolWebNGTranslateText2(70074);
   end;
 
-  WebOutString("<res err='" & err & "' name='" & fres & "' ></res>");
+  WebOutString("<res err='" & err & "' name='" & fres & "' vatnr='" & vatnr & "' address='" & addrstr & "'></res>");
 
   return;
 end;
@@ -1206,12 +1232,14 @@ global webpublic
 procedure WebConnectUser()
 begin
   string 255 link;
-
+/*
   link = "/dologin?login=" & WebGetArg("custcode") & "&passwd=123123123&failed=" & UrlEncode("/WebUpdatingAction.hal?action=afterlogin&failed=1") & "&custpage=" & UrlEncode("/WebUpdatingAction.hal?action=afterlogin&cust=1") & "&cooksess=true";
 
-  link = AddParamToEncryptedLink("",link);
+  //link = AddParamToEncryptedLink("",link);
 
   ShowRedirectHTML(link,WebSecureMode);
+*/
+  WebOutString("<html><head></head><body><form  method='POST' action='/dologin' name='loginform' style='display:none'><input type='text' name='login' value='" & WebGetArg("custcode") & "'><input type='text' name='passwd' value='123123123'><input type='text' name='failed' value='/WebUpdatingAction.hal?action=afterlogin&failed=1'><input type='text' name='custpage' value='/WebUpdatingAction.hal?action=afterlogin&cust=1'><input type='submit' value='ddd'></form><script>document.loginform.submit();</script></body></html>")
 
   return;
 end;

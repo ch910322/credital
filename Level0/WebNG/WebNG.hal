@@ -64,6 +64,8 @@ external outer function Boolean ShowInternalWebApp(Integer,record WebNGStructVc,
 external procedure WebNGFastLinkApp(record WebNGStructVc,string);
 //CUST-BEGIN
 external outer procedure OuterSetPageMetaData(record WebNGStructVc,string);
+external outer function Boolean CheckIfLandingPage(string);
+external outer procedure ShowLandingPage(string,string);
 
 //CUST-END
 
@@ -495,6 +497,12 @@ begin
     end;
     
     WSr.Name = node;
+//CUST-BEGIN
+    if (CheckIfLandingPage(node)) then begin
+      ShowLandingPage(node,mpath);
+      goto LHandlePathOut;
+    end;
+//CUST-END
 
     lasttype = -1;
     if (ReadFirstKey("Mother",WSr,2,true)) then begin
