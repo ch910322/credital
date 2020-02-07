@@ -10,6 +10,10 @@ external inner function string 255 StrReplace(string,string,string);
 external function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc,record CUVc,record AgreementDocVc);
 external function Boolean MarkCustomerAgreementDocSigned(record AgreementDocVc,string);
 external function Boolean FindWebLoanAppContact(string,string,string,var record CUVc);
+external updating procedure FinishDocumentSigning(string,Longint,string,area);
+external function Boolean GetLoanAppContact(string,string,var record CUVc);
+external function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc,string,record AgreementDocVc);
+external function Boolean ContactShouldSeeDocument(record CredManVc,string,record AgreementDocVc);
 
 updating function string 255 StartPaymentSession(string custcode,string currency,val amount,Longint recid,string rectype)
 begin
@@ -70,34 +74,69 @@ begin
   record AgreementDocVc ADr;
   row AgreementDocVc ADrw;
   record CUVc CUr;
+  Boolean cufoundf,showf;
+  record CredManVc CredManr;
 
-  if (nonblank(WebGetArg("docid"))) then begin
-    ADr.SerNr = StringToLongint(WebGetArg("docid"));
-    if (ReadFirstMain(ADr,1,true)) then begin
-      LAr.SerNr = ADr.RecordNr;
-      if (ReadFirstMain(LAr,1,true)) then begin
-        rectype = "AgreementDocVc";
-        recid = ADr.SerNr;
-        MatRowGet(ADr,0,ADrw);
-        CUr.Code = ADrw.CustCode;
-        if (ReadFirstMain(CUr,1,true)) then begin
-          contactname = CUr.Name;
-          contactemail = CUr.eMail;
+  switch (WebGetArg("rectype")) begin
+    case "agreementdoc":
+      ADr.SerNr = StringToLongint(WebGetArg("id"));
+      if (ReadFirstMain(ADr,1,true)) then begin
+        switch (ADr.Type) begin
+          case 7:
+            LAr.SerNr = ADr.RecordNr;
+            if (ReadFirstMain(LAr,1,true)) then begin
+              if (ContactShouldSeeDocument2(LAr,CurrentCust,ADr)) then begin
+                showf = true;
+              end;
+            end;
+
+          otherwise
+            CredManr.SerNr = ADr.RecordNr;
+            if (ReadFirstMain(CredManr,1,true)) then begin
+              if (ContactShouldSeeDocument(CredManr,CurrentCust,ADr)) then begin
+                showf = true;
+              end;
+            end;
+        end;
+        if (showf) then begin
+          CUr.Code = CUrrentCust;
+          if (ReadFirstMain(CUr,1,true)) then begin
+            rectype = "AgreementDocVc";
+            recid = ADr.SerNr;
+            contactname = CUr.Name;
+            contactemail = CUr.eMail;
+          end;
         end;
       end;
-    end;
-  end else begin
-    LoadLoanSession(vSess)
-    LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
-    if (ReadFirstMain(LAr,1,true)) then begin
-      rectype = "LoanApp";
-      recid = LAr.SerNr;
-      contactname = LAr.ContactName;
-      contactemail = LAr.ContacteMail;
-    end;
+    otherwise
+      LoadLoanSession(vSess);
+      LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
+      if (ReadFirstMain(LAr,1,true)) then begin
+        if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+          cufoundf = true;
+        end;
+        if (!cufoundf) then begin
+          RecordClear(CUr);
+          ResetLoop(CUr);
+          CUr.eMail = LAr.ContacteMail;
+          if (ReadFirstKey("eMail",CUr,1,true)) then begin
+            if (CUr.Name==LAr.ContactName) then begin
+              cufoundf = true;
+            end;
+          end;
+        end;
+        if (cufoundf) then begin
+          if (FindSuretyApplicationDoc(LAr,CUr,ADr)) then begin
+            rectype = "AgreementDocVc2";
+            recid = ADr.SerNr;
+            contactname = LAr.ContactName;
+            contactemail = LAr.ContacteMail;
+          end;
+        end;
+      end;
   end;
 
-  if (nonblank(rectype) and FindWebLoanAppContact(LAr.CustCode,contactname,contactemail,CUr)) then begin
+  if (nonblank(rectype)) then begin// and FindWebLoanAppContact(LAr.CustCode,contactname,contactemail,CUr)
     BlockLoad(Pb);
     BlockLoad(CYb);
     crncy = "EUR";
@@ -245,6 +284,7 @@ begin
   record CUVc CUr;
   record AgreementDocVc ADr,oldADr;
   Boolean foundf;
+  area a;
   
   WPSr.UUID = WebGetArg("session");
 
@@ -265,34 +305,18 @@ Logtext(0,"FinalizePayseraPayment session=" & WPSr.UUID & ";" & WebGetArg("ss1")
         RecordCopy(oldWPSr,WPSr);
         WPSr.Status = 10+kCCStatusPaymentOK;
         if (RecordUpdate(oldWPSr,WPSr,false)==0) then begin   
-          switch (WPSr.PayMentDesc) begin
-            case "LoanApp":
-              LAr.SerNr = WPSr.RecordNr;
-              if (ReadFirstMain(LAr,1,true)) then begin
-                CUr.Code = WPSr.CustCode;
-              if (FindSuretyApplicationDoc(LAr,CUr,ADr)) then begin
-                  foundf = true;
-                end;
-              end;
-            case "AgreementDocVc":
-              ADr.SerNr = WPSr.RecordNr;
-              if (ReadFirstMain(ADr,1,true)) then begin
-                foundf = true;
-              end;
-          end;
-          if (foundf) then begin
-            RecordCopy(oldADr,ADr);
-            if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)) then begin
-              if (RecordUpdate(oldADr,ADr,true)==0) then begin
-                RecordNew(Noter);
-                Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
-                SetTextField(Noter,CurrentDate & " " & CurrentTime);
-                if (RecordStore(Noter,false)) then begin
-                  CreateRecordLink(ADr,CurrentCompany,Noter,CurrentCompany);  
-                  if (ReadRecordLink(ADr,1,Noter,RLr)) then begin
-                    RLr.Comment = USetStr(200106) & " " & str;
-                    if (RecordStore(RLr,true)) then begin
-                    end;
+          FinishDocumentSigning(WPSr.PayMentDesc,WPSr.RecordNr,WPSr.CustCode,a);//empty area so we skip archiving existing documents
+          if (WPSr.PayMentDesc=="AgreementDocVc2" or WPSr.PayMentDesc=="AgreementDocVc") then begin
+            ADr.SerNr = WPSr.RecordNr;
+            if (ReadFirstMain(ADr,1,true)) then begin
+              RecordNew(Noter);
+              Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
+              SetTextField(Noter,CurrentDate & " " & CurrentTime);
+              if (RecordStore(Noter,false)) then begin
+                CreateRecordLink(ADr,CurrentCompany,Noter,CurrentCompany);  
+                if (ReadRecordLink(ADr,1,Noter,RLr)) then begin
+                  RLr.Comment = USetStr(200106) & " " & str;
+                  if (RecordStore(RLr,true)) then begin
                   end;
                 end;
               end;

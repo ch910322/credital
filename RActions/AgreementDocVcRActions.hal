@@ -119,15 +119,17 @@ begin
     if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
       TrHs = false;
     end else begin
-      if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
-        if (tADr.SignedByUs!=1) then begin
-          res = false;
-          TrHs = false;
-        end;
-      end else begin
-        if (ADr.SignedByUs!=1) then begin
-          res = false;
-          TrHs = false;
+      if (ADr.Type!=6) then begin
+        if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
+          if (tADr.SignedByUs!=1) then begin
+            res = false;
+            TrHs = false;
+          end;
+        end else begin
+          if (ADr.SignedByUs!=1) then begin
+            res = false;
+            TrHs = false;
+          end;
         end;
       end;
     end;
@@ -183,7 +185,7 @@ logtext(0,"AgreementDocVcRecordUpdate6");
     end;
   end;  
   if (ADr.Type==1 or ADr.Type==2 or ADr.Type==3) then begin
-    if (ADr.SignedByUs==1 and MatrixIsSigned(ADr)) then begin
+    if ((ADr.Type==6 or ADr.SignedByUs==1) and MatrixIsSigned(ADr)) then begin
       CMr.SerNr = ADr.RecordNr;
       if (ReadFirstMain(CMr,1,true)) then begin
         RecordCopy(oldCMr,CMr);
@@ -191,6 +193,7 @@ logtext(0,"AgreementDocVcRecordUpdate6");
           case 1: CMr.SignAgreement = 1;
           case 2: CMr.SignSchedule = 1;
           case 3: CMr.SignSurety = 1;
+          case 6: CMr.SignVekselis = 1;
         end;
         RecordUpdate(oldCMr,CMr,true);
       end;

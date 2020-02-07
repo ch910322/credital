@@ -458,6 +458,8 @@ begin
  // RecordField(Classification,M4Code,5,OrderClassVc);
   RecordField(LangCode2,M4Code,5,0);
 
+  RecordField(VersionNo,M4Long,0,0);
+
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  

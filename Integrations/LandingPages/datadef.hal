@@ -80,7 +80,32 @@ begin
   RecordField(SurveyVATNrLabel,M4Str,255,0);
   RecordField(SurveyAddressLabel,M4Str,255,0);
   RecordField(SurveyPaymentDayLabel,M4Str,255,0);
+
+  RecordField(SurveyRegMand,M4Int,0,0);
+  RecordField(SurveyNameMand,M4Int,0,0);
+  RecordField(SurveyPhoneMand,M4Int,0,0);
+  RecordField(SurveyEmailMand,M4Int,0,0);
+  RecordField(SurveyContactNameMand,M4Int,0,0);
+  RecordField(SurveyContactEmailMand,M4Int,0,0);
+  RecordField(SurveyContactMobileMand,M4Int,0,0);
+  RecordField(SurveyContactJobMand,M4Int,0,0);
+  RecordField(SurveyVATNrMand,M4Int,0,0);
+  RecordField(SurveyAddressMand,M4Int,0,0);
+  RecordField(SurveyPaymentDayMand,M4Int,0,0);
+
+  RecordField(SurveyAmountFlag,M4Int,0,0);
+  RecordField(SurveyAmountOrder,M4Long,0,0);
+  RecordField(SurveyAmountLabel,M4Str,255,0);
+  RecordField(SurveyAmountMand,M4Int,0,0);
+
+  RecordField(SurveyTermFlag,M4Int,0,0);
+  RecordField(SurveyTermOrder,M4Long,0,0);
+  RecordField(SurveyTermLabel,M4Str,255,0);
+  RecordField(SurveyTermMand,M4Int,0,0);
   
+  RecordField(ContHeaderFlag,M4Int,0,0);
+  RecordField(ContFooterFlag,M4Int,0,0);
+
   ArrayBegin(Math,-,1);
   ArrayField(Months,M4Val,0,0);
   ArrayField(Rate,M4Val,0,0);
@@ -91,6 +116,8 @@ begin
 
   BlockBegin(WebLandingPageBlock,-,"");
   RecordField(TemplatePage,M4Code,20,WebNGPageVc);
+  RecordField(PageHeader,M4Code,60,WebNGElementVc);
+  RecordField(PageFooter,M4Code,60,WebNGElementVc);
   EndBlock;
 
   return;

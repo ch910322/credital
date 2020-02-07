@@ -16,7 +16,8 @@ enum begin
   kEventTypePaidInterest = 13,
   kEventTypePaidInstalment = 14,
   kEventTypePaidDeposit = 15,
-  kEventTypePaidFees = 16
+  kEventTypePaidFees = 16,
+  kEventTypePartialBuyout = 17,
 end;
 
 enum begin
@@ -124,6 +125,7 @@ begin
     case kEventTypeIssueInstalment: res = true;
     case kEventTypeIssueDeposit:    res = true;
     case kEventTypeCalcDeposit:     res = true;
+    case kEventTypePartialBuyout:   res = true;
   end;
   
   TypeAffectsBalance = res;
@@ -287,6 +289,7 @@ end;
 procedure AddInstalment(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Integer type,Integer monthtypef,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate,Integer month)
 begin
   val sum,curpayment;
+  Integer months;
   
   switch (type) begin
     case 0:
@@ -381,13 +384,15 @@ begin
   return;
 end;
 
-procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf)
+procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf,record CredManSetBlock CredManSetb,var Integer months)
 begin
   record CredHistVc CredHistr,PrevCredHistr;
   Boolean TrHs;
   Integer type;
   Longint lastrecnr;
   vector Boolean vFirstInv;
+  val monthlypayment,buyoutamount;
+  Integer reducemonths;
 
   firstinvf = false;
   calculatedmonths = 0;
@@ -398,24 +403,35 @@ begin
       TrHs = false;
     end else begin
  //     if (CredHistr.RecordType==0) then begin
-        if (CredHistr.RecordType==0) then begin
-          type = GetCredHistType(CredHistr.ArtCode,false);
-        end else begin
-          PrevCredHistr.SerNr = CredHistr.PreviousNr;
-          ReadFirstMain(PrevCredHistr,1,true);
-          type = GetCredHistType(PrevCredHistr.ArtCode,true);          
+        switch (CredHistr.RecordType) begin
+          case 0: type = GetCredHistType(CredHistr.ArtCode,false);
+          case 4: 
+            type = kEventTypePartialBuyout;
+            buyoutamount = buyoutamount + CredHistr.Sum;
+          otherwise
+            PrevCredHistr.SerNr = CredHistr.PreviousNr;
+            ReadFirstMain(PrevCredHistr,1,true);
+            type = GetCredHistType(PrevCredHistr.ArtCode,true);          
         end;
         AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1);
         if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
           firstinvf = true;
           vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
         end else begin
-          if (CredHistr.RecordType==0) then begin//invoice
+          if (CredHistr.RecordType==0 and CredHistr.ArtCode!=CredManSetb.LateRateItem) then begin//invoice
             calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
           end;
         end;
  //     end;
       lastrecnr = CredHistr.RecordNr;
+    end;
+  end;
+
+  if (buyoutamount>0) then begin
+    if (CredManr.InstalmentType==2 or CredManr.InstalmentType==6) then begin
+      monthlypayment = (CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths;
+      reducemonths = buyoutamount/monthlypayment;
+      months = months - reducemonths;
     end;
   end;
 
@@ -513,7 +529,7 @@ begin
   calcbal = inCredManr.InvSum4;
 
   if (withactuals) then begin
-    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf);
+    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf,CredManSetb,months);
   end;
   
   for(i=calculatedmonths;i<months;i=i+1) begin

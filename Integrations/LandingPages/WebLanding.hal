@@ -23,6 +23,7 @@ external function string 255 GetAgreementType(record B2BLoanApplicationVc,Intege
 external function Integer MapLoanType(string);
 external updating procedure CreateActivityForContactLinks(record CUVc,record CUVc);
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
+external inner procedure ShowWebElement(string);
 
 global
 function Boolean CheckIfLandingPage(string node)
@@ -48,6 +49,22 @@ begin
     SMrw.Comment = flname;
     SMrw.DebVal = order;
     SMrw.ExtraComment = label;
+    MatRowPut(SMr,MatRowCnt(SMr),SMrw);
+  end;
+
+  return;
+end;
+
+procedure AddToArray2(Integer flag,Longint order,string label,Integer mandatory,string flname,var record SMVc SMr)
+begin
+  row SMVc SMrw;
+  
+  if (flag==1) then begin
+    ClearRow(SMr,SMrw,1);
+    SMrw.Comment = flname;
+    SMrw.DebVal = order;
+    SMrw.ExtraComment = label;
+    SMrw.RowSimStat = mandatory;
     MatRowPut(SMr,MatRowCnt(SMr),SMrw);
   end;
 
@@ -141,17 +158,20 @@ end;
 procedure SetSurveyDetails(record WebLandingPageVc LPr,var record SMVc SMr)
 begin
   
-  AddToArray(LPr.SurveyRegFlag,LPr.SurveyRegOrder,LPr.SurveyRegLabel,"RegNr",SMr);
-  AddToArray(LPr.SurveyNameFlag,LPr.SurveyNameOrder,LPr.SurveyNameLabel,"Name",SMr);
-  AddToArray(LPr.SurveyPhoneFlag,LPr.SurveyPhoneOrder,LPr.SurveyPhoneLabel,"Phone",SMr);
-  AddToArray(LPr.SurveyEmailFlag,LPr.SurveyEmailOrder,LPr.SurveyEmailLabel,"Email",SMr);
-  AddToArray(LPr.SurveyContactNameFlag,LPr.SurveyContactNameOrder,LPr.SurveyContactNameLabel,"ContactName",SMr);
-  AddToArray(LPr.SurveyContactEmailFlag,LPr.SurveyContactEmailOrder,LPr.SurveyContactEmailLabel,"ContactEmail",SMr);
-  AddToArray(LPr.SurveyContactMobileFlag,LPr.SurveyContactMobileOrder,LPr.SurveyContactMobileLabel,"ContactMobile",SMr);
-  AddToArray(LPr.SurveyContactJobFlag,LPr.SurveyContactJobOrder,LPr.SurveyContactJobLabel,"ContactJob",SMr);
-  AddToArray(LPr.SurveyVATNrFlag,LPr.SurveyVATNrOrder,LPr.SurveyVATNrLabel,"VATNr",SMr);
-  AddToArray(LPr.SurveyAddressFlag,LPr.SurveyAddressOrder,LPr.SurveyAddressLabel,"Address",SMr);
-  AddToArray(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,"PaymentDay",SMr);
+  AddToArray2(LPr.SurveyRegFlag,LPr.SurveyRegOrder,LPr.SurveyRegLabel,LPr.SurveyRegMand,"RegNr",SMr);
+  AddToArray2(LPr.SurveyNameFlag,LPr.SurveyNameOrder,LPr.SurveyNameLabel,LPr.SurveyNameMand,"Name",SMr);
+  AddToArray2(LPr.SurveyPhoneFlag,LPr.SurveyPhoneOrder,LPr.SurveyPhoneLabel,LPr.SurveyPhoneMand,"Phone",SMr);
+  AddToArray2(LPr.SurveyEmailFlag,LPr.SurveyEmailOrder,LPr.SurveyEmailLabel,LPr.SurveyEmailMand,"Email",SMr);
+  AddToArray2(LPr.SurveyContactNameFlag,LPr.SurveyContactNameOrder,LPr.SurveyContactNameLabel,LPr.SurveyContactNameMand,"ContactName",SMr);
+  AddToArray2(LPr.SurveyContactEmailFlag,LPr.SurveyContactEmailOrder,LPr.SurveyContactEmailLabel,LPr.SurveyContactEmailMand,"ContactEmail",SMr);
+  AddToArray2(LPr.SurveyContactMobileFlag,LPr.SurveyContactMobileOrder,LPr.SurveyContactMobileLabel,LPr.SurveyContactMobileMand,"ContactMobile",SMr);
+  AddToArray2(LPr.SurveyContactJobFlag,LPr.SurveyContactJobOrder,LPr.SurveyContactJobLabel,LPr.SurveyContactJobMand,"ContactJob",SMr);
+  AddToArray2(LPr.SurveyVATNrFlag,LPr.SurveyVATNrOrder,LPr.SurveyVATNrLabel,LPr.SurveyVATNrMand,"VATNr",SMr);
+  AddToArray2(LPr.SurveyAddressFlag,LPr.SurveyAddressOrder,LPr.SurveyAddressLabel,LPr.SurveyAddressMand,"Address",SMr);
+  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
+  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
+  AddToArray2(LPr.SurveyAmountFlag,LPr.SurveyAmountOrder,LPr.SurveyAmountLabel,LPr.SurveyAmountMand,"Amount",SMr);
+  AddToArray2(LPr.SurveyTermFlag,LPr.SurveyTermOrder,LPr.SurveyTermLabel,LPr.SurveyTermMand,"Term",SMr);
 
   return;
 end;
@@ -172,10 +192,19 @@ begin
   return;
 end;
 
-procedure ShowSimpleInput(string name,string label,string type)
+procedure ShowSimpleInput(string name,string label,string type,Integer mandf)
 begin
-  
-  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><input type='" & type & "' placeholder='" & label & "'></div></div>");
+  string 255 mand;
+
+  if (mandf==1) then begin
+    mand = "dnam";
+  end;
+
+  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label);
+  if (mandf==1) then begin
+    WebOutString("*");
+  end;
+  WebOutString("</div><div class='input'><input type='" & type & "' placeholder='" & label & "' " & mand & "></div></div>");
 
   return;
 end;
@@ -194,26 +223,31 @@ end;
 procedure ShowLandingSurvey(record WebLandingPageVc LPr)
 begin
   record SMVc SMr;
+  row SMVc SMrw;
   array string 255 aDet,aDetLabel;
-  Integer i;
+  Integer i,rwcnt;
   
   WebOutString("<div class='landing_survey'>");
 
   SetSurveyDetails(LPr,SMr);
-  GetSurveyDetails(SMr,aDet,aDetLabel);
-  for (i=0;i<aDet.length;i=i+1) begin
-    switch (aDet[i]) begin
-      case "RegNr":         ShowSimpleInput("regnr",aDetLabel[i],"text");
-      case "Name":          ShowSimpleInput("name",aDetLabel[i],"text");
-      case "Phone":         ShowSimpleInput("phone",aDetLabel[i],"text");
-      case "Email":         ShowSimpleInput("email",aDetLabel[i],"text");
-      case "ContactName":   ShowSimpleInput("contactname",aDetLabel[i],"text");
-      case "ContactEmail":  ShowSimpleInput("contactemail",aDetLabel[i],"text");
-      case "ContactMobile": ShowSimpleInput("contactmobile",aDetLabel[i],"text");
-      case "ContactJob":    ShowSimpleInput("contactjob",aDetLabel[i],"text");
-      case "VATNr":         ShowSimpleInput("vatnr",aDetLabel[i],"text");
-      case "Address":       ShowSimpleInput("address",aDetLabel[i],"text");
-      case "PaymentDay":    ShowPaymentDateField("paymentday",aDetLabel[i],aDetLabel[i],"","",0);
+  SortRows(SMr,"DebVal",true);
+  rwcnt = MatRowCnt(SMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(SMr,i,SMrw);
+    switch (SMrw.Comment) begin
+      case "RegNr":         ShowSimpleInput("regnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "Name":          ShowSimpleInput("name",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "Phone":         ShowSimpleInput("phone",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "Email":         ShowSimpleInput("email",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "ContactName":   ShowSimpleInput("contactname",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "ContactEmail":  ShowSimpleInput("contactemail",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "ContactMobile": ShowSimpleInput("contactmobile",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "ContactJob":    ShowSimpleInput("contactjob",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "VATNr":         ShowSimpleInput("vatnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "Address":       ShowSimpleInput("address",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,"","",0);
+      case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat);
     end;
   end;
 
@@ -342,6 +376,9 @@ begin
           LoadWebPage(LPb.TemplatePage,WPr);
         end;
         ShowWebAppPageStart(WPr,"landing");
+        if (LPr.ContHeaderFlag==1) then begin
+          ShowWebElement(LPb.PageHeader);
+        end;
         SetLandingPageDetails(LPr,SMr);
         GetLandingPageDetails(SMr,aDet);
         for (i=0;i<aDet.length;i=i+1) begin
@@ -358,6 +395,9 @@ begin
           end;
         end;
         ShowWebAppPageEnd(WPr);
+        if (LPr.ContFooterFlag==1) then begin
+          ShowWebElement(LPb.PageFooter);
+        end;
     end;
   end;
 
@@ -453,8 +493,9 @@ procedure WebLandingPage()
 begin
   record WebLandingPageVc LPr;
   record SMVc SMr;
+  row SMVc SMrw;
   array string 255 aDet,aDetLabel;
-  Integer i,status,err;
+  Integer i,status,err,rwcnt;
   Longint amount,term;
   record CUVc CUr,ContactCUr;
   string 255 errstr;
@@ -467,9 +508,17 @@ begin
     LPr.Link = WebGetArg("link");
     if (ReadFirstMain(LPr,1,true)) then begin
       SetSurveyDetails(LPr,SMr);
-      GetSurveyDetails(SMr,aDet,aDetLabel);
-      for (i=0;i<aDet.length;i=i+1) begin
-        switch (aDet[i]) begin
+      SortRows(SMr,"DebVal",true);
+      rwcnt = MatRowCnt(SMr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(SMr,i,SMrw);
+        if (SMrw.RowSimStat==1) then begin
+          if (blank(WebGetArg(SMrw.Comment))) then begin
+            err = err + 4;
+            i = rwcnt;
+          end;
+        end;
+        switch (SMrw.Comment) begin
           case "RegNr":         regnr = WebGetArg("regnr");
           case "Name":          name = WebGetArg("name");
           case "Phone":         phone = WebGetArg("phone");
@@ -481,22 +530,26 @@ begin
           case "VATNr":         vatnr = WebGetArg("vatnr");
           case "Address":       address = WebGetArg("address");
           case "PaymentDay":    paymentday = StringToInt(WebGetArg("paymentday"));
+          case "Amount":        address = WebGetArg("amount");
+          case "Term":          address = WebGetArg("term");
         end;
       end;
       amount = StringToLongint(WebGetArg("amount"));
       term = StringToLongint(WebGetArg("term"));
-      CheckLoanCustomer(regnr,contactemail,contactmobile,false,CUr,ContactCUr,status);
-      switch (status) begin
-        case 0://we are logged in - all good
-        case 1://we just created a new company and new contact - all good
-        case 2://the company exists, but not linked to contact (new or existing - doesn't matter) - allow to proceed, but with different Order Class
-          
-        case 3://contact exists - require login. if they haven't set the password. we should notify
-          err = err + 128;
-        case 4://contact exists - not validated
-          err = err + 512;
-        case 5://failed to store either contact or customer
-          err = err + 1024;
+      if (err==0) then begin
+        CheckLoanCustomer(regnr,contactemail,contactmobile,false,CUr,ContactCUr,status);
+        switch (status) begin
+          case 0://we are logged in - all good
+          case 1://we just created a new company and new contact - all good
+          case 2://the company exists, but not linked to contact (new or existing - doesn't matter) - allow to proceed, but with different Order Class
+            
+          case 3://contact exists - require login. if they haven't set the password. we should notify
+            err = err + 128;
+          case 4://contact exists - not validated
+            err = err + 512;
+          case 5://failed to store either contact or customer
+            err = err + 1024;
+        end;
       end;
       if (err==0) then begin
         if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday)==false) then begin
@@ -506,6 +559,9 @@ begin
         errstr = ToolWebNGTranslateText2(70122);
       end;
       WebOutString("<res err='" & errstr & "'>");
+      if (BitAnd(err,4)) then begin
+        WebOutString("<err id='missing_data'></err>");
+      end;
       if (BitAnd(err,128)) then begin
         WebOutString("<err id='require_login'></err>");
       end;

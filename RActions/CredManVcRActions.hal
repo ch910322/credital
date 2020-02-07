@@ -43,6 +43,7 @@ BEGIN
   CredManr.StateChangeDate = CurrentDate;
   CredManr.StateChangeTime = CurrentTime;
   CredManr.StateNotified = 0;
+  CredManr.VersionNo = -1;
 /*
   CredManr.FactInvAmount = t;
   CredManr.LoanToValue = t;
@@ -168,6 +169,14 @@ BEGIN
 
   if (blank(CredManr.CreatedDate)) then begin
     CredManr.CreatedDate = CurrentDate;
+  end;
+
+  if (CredManr.OKFlag!=0 and CredMan2r.OKFlag==0) then begin
+    if (blank(CredManr.PayDeal)) then begin
+      RecordCheckError(1058,"",-1,"PayDeal");
+      res = -1;
+      goto LCredManVcRecordCheck;
+    end;
   end;
 
   res = inner.CredManVcRecordCheck(CredManr,CredMan2r,stat,long4);

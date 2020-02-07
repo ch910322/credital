@@ -233,7 +233,7 @@ end;
 
 
 
-global procedure BankFillIProws(var record IPVc IPr,string RecName,var string CurncyCode,var val remsum,string cucode,boolean cufnd,string instr,string origcomm)
+global procedure BankFillIProws(var record IPVc IPr,string RecName,var string CurncyCode,var val remsum,string cucode,boolean cufnd,string instr,string origcomm,Boolean allf)
 begin
 	row IPVc IPrw;
 	boolean installmentf;
@@ -609,7 +609,7 @@ begin
 		resetloop(ARr);
 	end;
 
-	if(remsum>0)then begin
+	if(remsum>0 and allf) then begin
 		if(cufnd)then begin
 			clearrow(IPr,IPrw,1);
 			CUr.Code = cucode;

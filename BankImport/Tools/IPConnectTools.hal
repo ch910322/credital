@@ -1,5 +1,5 @@
 external function string 255 BPI_ParseInvStr(string);
-external procedure BankFillIProws(var record IPVc,string,var string,var val,string,boolean,string,string);
+external procedure BankFillIProws(var record IPVc,string,var string,var val,string,boolean,string,string,Boolean);
 external procedure BankFillOProws(var record OPVc,string,string,var val,string,boolean,string,string);
 
 function Boolean FilterReceiptInBankTrans(record BankTRVc BTr,Longint ivnr)
@@ -239,7 +239,7 @@ begin
     FindCustomer(BTr,CUr);
     instr = BPI_ParseInvStr(BTr.PayReference);
     remsum = BTr.Sum;
-    BankFillIProws(IPr,CUr.Name,BTr.CurncyCode,remsum,CUr.Code,nonblank(CUr.Code),instr,BTr.PayReference);
+    BankFillIProws(IPr,CUr.Name,BTr.CurncyCode,remsum,CUr.Code,nonblank(CUr.Code),instr,BTr.PayReference,true);
     if (MatRowCnt(IPr)>0) then begin
       RecordInsert(IPr,true);
     end;

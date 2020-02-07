@@ -7,9 +7,9 @@ external function string 255 GetLinkToLoanApp();
 external inner procedure BitSafeBase64EncodeAnArea(var area); 
 external inner function string 255 StrReplace(string,string,string);
 external inner function Boolean FindTheUser(var record UserVc);
-remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
 external function Boolean ContactShouldSeeDocument(record CredManVc,string,record AgreementDocVc);
 external function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc,string,record AgreementDocVc);
+external updating procedure FinishDocumentSigning(string,Longint,string,area);
 
 procedure LogDokobit(area a,string fn)
 begin
@@ -193,55 +193,6 @@ begin
 end;
 
 global
-function Boolean MarkCustomerAgreementDocSigned(record AgreementDocVc ADr,string custcode)
-begin
-  Integer i,rwcnt;
-  row AgreementDocVc ADrw;
-  Boolean res;
-  
-  rwcnt = MatRowCnt(ADr);
-  for (i=0;i<rwcnt;i=i+1) begin
-    MatRowGet(ADr,i,ADrw);
-    if (ADrw.CustCode==custcode) then begin
-      ADrw.Status = 1;
-      ADrw.SignatureDate = CurrentDate;
-      ADrw.SignatureTime = CurrentTime;
-      MatRowPut(ADr,i,ADrw);
-      i = rwcnt;
-      res = true;
-    end;
-  end;
-
-  MarkCustomerAgreementDocSigned = res;
-  return;
-end;
-
-updating function Boolean ArchiveExistingDocument(record AgreementDocVc ADr)
-begin
-  record RLinkVc RLr,RL2r;
-  record Attach2Vc Attachr;
-  record ArchiveVc Archiver;
-  Boolean res;
-  
-  if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
-    if (ReadRecordLink(ADr,1,Archiver,RL2r)==false) then begin
-      RecordNew(Archiver);
-      Archiver.SerNr = NextSerNr("ArchiveVc",CurrentDate,-1,false,"");
-      Archiver.FolderName = "OLD";
-      if (RecordStore(Archiver,true)) then begin
-        CreateRecordLink(ADr,CurrentCompany,Archiver,CurrentCompany);
-      end;
-    end;
-    res = true;
-    CreateRecordLink(Archiver,CurrentCompany,Attachr,CurrentCompany);
-    RecordRemove(RLr);
-  end;
-
-  ArchiveExistingDocument = res;
-  return;
-end;
-
-global
 procedure RemoveDokobitFile(string url,string token,string accesstoken)
 begin
   area request,reply;
@@ -254,13 +205,12 @@ begin
   return;
 end;
 
+
 global
 updating procedure TreatDokobitCallBack(area post,string session)
 begin
   area request,reply;
   string 255 action,status,fn,url,path,token;
-  record B2BLoanApplicationVc LAr;
-  record AgreementDocVc ADr,oldADr;
   record WebNGPaySessionVc WPSr,oldWPSr;
   JSON js;
   record SmartIDBlock SIb;
@@ -280,40 +230,7 @@ begin
           ExtractFileUrl(StrReplace(JSONGet(js,"file"),"\\",""),url,path,fn);
           BlockLoad(SIb);
           if (SendWebRequest(url,443,-1,true,"POST",path & "?access_token=" & SIb.AccessToken,"","",false,request,reply,30)) then begin
-
-            switch (WPSr.PayMentDesc) begin
-              case "B2BLoanApplicationVc":
-                LAr.SerNr = WPSr.RecordNr;
-                if (ReadFirstMain(LAr,1,true)) then begin
-                  fn = "Agreement_signed.pdf";
-                  WriteAreaToFile(reply,fn,0);
-                  RecordLinkFile(fn,0,LAr,CurrentCompany);
-                  Delete_File(fn);
-                end;
-              case "AgreementDocVc2":
-                goto LAgreementDoc;
-              case "AgreementDocVc":
-LAgreementDoc:;
-                ADr.SerNr = WPSr.RecordNr;
-                if (ReadFirstMain(ADr,1,true)) then begin
-                  if (ArchiveExistingDocument(ADr)) then begin
-                    fn = "Agreement_signed.pdf";
-                    WriteAreaToFile(reply,fn,0);
-                    RecordLinkFile(fn,0,ADr,CurrentCompany);
-                    Delete_File(fn);
-                    RecordCopy(oldADr,ADr);
-                    if (MarkCustomerAgreementDocSigned(ADr,WPSr.CustCode)==false) then begin
-                      ADr.SignedByUs = 1;
-                      ADr.SignedByUsDate = CurrentDate;
-                      ADr.SignedByUsTime = CurrentTime;
-                    end;
-                    logtext(0,"updating Agreement doc " & ADr.SerNr & ":" & CurrentCust);
-                    if (RecordUpdate(oldADr,ADr,true)==0) then begin
-                      AllClientsRemoteAsync.DocumentSigningClientDone(WPSr.CustCode,ADr);
-                    end;
-                  end;
-                end;
-            end;
+            FinishDocumentSigning(WPSr.PayMentDesc,WPSr.RecordNr,WPSr.CustCode,reply);
           //download file and 
             threadasync.RemoveDokobitFile(url,token,SIb.AccessToken);
           end;

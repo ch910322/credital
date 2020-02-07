@@ -39,7 +39,7 @@ begin
 //  Sizeable(-1,-1,0,0);
   UseView(WebLandingPageVc);
 
-  h = 120; h2 = 360; h4 = 760; vs = 20; ord = 50;
+  h = 120; h2 = 360; h4 = 600; vs = 20; ord = 50;
   h3 = 480;
   Tile(0,230,false,"",Link);
   EditField(h,v=6, 150,"Link",St_i,Link,false,0);
@@ -93,6 +93,10 @@ begin
   CheckBox(h,v,0,"Allow Submitting",ContSubmitFlag);
   EditField(h2,v,50,"Order",Normal,ContSubmitOrder,false,0);
 
+  CheckBox(h,v+=vs,0,"Show Header",ContHeaderFlag);
+
+  CheckBox(h,v+=vs,0,"Show Footer",ContFooterFlag);
+
   Tile(2,400,true,"2",CalcType);
 
   EditField(h,v=6,150,"Type",Normal,CalcType,false,SetSClass);
@@ -116,49 +120,79 @@ begin
   CheckBox(h,v,0,"Request Reg. No.",SurveyRegFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyRegOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyRegLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyRegMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Name",SurveyNameFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyNameOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyNameLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyNameMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Telephone",SurveyPhoneFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyPhoneOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyPhoneLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyPhoneMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Email",SurveyEmailFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyEmailOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyEmailLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyEmailMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person",SurveyContactNameFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyContactNameOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyContactNameLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyContactNameMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Email",SurveyContactEmailFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyContactEmailOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyContactEmailLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyContactEmailMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Mobile",SurveyContactMobileFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyContactMobileOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyContactMobileLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyContactMobileMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Job Title",SurveyContactJobFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyContactJobOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyContactJobLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyContactJobMand);
+
   v = v + vs;
   CheckBox(h,v,0,"Request VAT Nr.",SurveyVATNrFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyVATNrOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyVATNrLabel,false,0);
-  v = v + vs;
-  
+  CheckBox(h4,v,0,"Mandatory",SurveyVATNrMand);
+
+  v = v + vs;  
   CheckBox(h,v,0,"Request Address",SurveyAddressFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyAddressOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyAddressLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyAddressMand);
+
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Amount",SurveyAmountFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyAmountOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyAmountLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyAmountMand);
+
   v = v + vs;
-  
+  CheckBox(h,v,0,"Request Term",SurveyTermFlag);
+  EditField(h2,v,ord,"Order",Normal,SurveyTermOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,SurveyTermLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyTermMand);
+ 
+  v = v + vs;  
   CheckBox(h,v,0,"Request Payment Day",SurveyPaymentDayFlag);
   EditField(h2,v,ord,"Order",Normal,SurveyPaymentDayOrder,false,0);
   EditField(h3,v,100,"Label",Normal,SurveyPaymentDayLabel,false,0);
-  v = v + vs;
+  CheckBox(h4,v,0,"Mandatory",SurveyPaymentDayMand);
   
   EndWindow;
   
@@ -175,5 +209,7 @@ begin
   SetWRect(20,80,550,298);
   vs=20; h=160; vs2=16; hm=-100;
   EditField(h,v=6,120,"Default Template",Normal,TemplatePage,false,WebNGPageSClass);
+  EditField(h,v+=vs,120,"Header Element",Normal,PageHeader,false,WebNGElementSClass);
+  EditField(h,v+=vs,120,"Footer Element",Normal,PageFooter,false,WebNGElementSClass);
   EndWindow;
 end;

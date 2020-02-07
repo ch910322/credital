@@ -1,0 +1,48 @@
+remote updating procedure ReceiptEntryCreateReceipts(record SMVc,Boolean,var val);
+
+
+global
+updating procedure ReceiptEntryWClassProceed()
+begin
+  Integer wn;
+  record SMVc SMr;
+  val tval;
+  
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+
+  GetWindowRecord(wn,SMr);
+  ReceiptEntryCreateReceipts(SMr,true,tval);
+  CloseWindow(wn);
+
+  return;
+end;
+
+global
+function Boolean ReceiptEntryWClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+BEGIN
+  Boolean res;
+  record SMVc SMr;
+  row SMVc SMrw;
+  record CUVc CUr;
+  record BaseCurBlock BCb;
+
+  switch (fieldname) begin
+    case "Objects": 
+      if (changed!=0) then begin
+        GetWindowRecord(wn,SMr);
+        MatRowGet(SMr,rownr,SMrw);
+        BlockLoad(BCb);
+        SMrw.CurncyCode = BCb.BaseCur1;
+        CUr.Code = SMrw.Objects;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          SMrw.Comment = CUr.Name;
+          MatRowPut(SMr,rownr,SMrw);
+          PutWindowRecord(wn,SMr);
+        end;
+      end;
+  end;
+
+  ReceiptEntryWClassAfterEditField = false;
+  return;
+end;

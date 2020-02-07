@@ -29,7 +29,7 @@ begin
   Setting("Document Signing Reminders",DocumentReminderLClass,modCredMan);
   Setting("Agreement/Application Extensions",CredManExtTClass,modCredMan);
   Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
-
+  Setting("Receipt Entry",ReceiptEntryWClass,modSL);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -38,6 +38,7 @@ begin
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
   Maintenance("Create Payment Guarantee Invoices",PmtGrntInvoiceVClass,PmtGrntInvoiceMn,modCredMan);
+  Maintenance("Create Overdue Invoices",GenOverdueInvVClass,GenOverdueInvMn,modCredMan);
 
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
@@ -260,6 +261,8 @@ begin
   SetText(8,"Invoiced Fees");
   SetText(9,"Invoices Late Fees");
   SetText(10,"Paid Invoice");
+  SetText(11,"Partial Buy-out");
+//new types should be added to function MapChargeTypes
   EndSet;
 
   SetBegin(2011);
@@ -267,6 +270,7 @@ begin
   SetText(1,"Receipt");
   SetText(2,"Prepayment");
   SetText(3,"Credit Note");
+  SetText(4,"Partial Buy-out");
   EndSet;
 
   SetBegin(2012);

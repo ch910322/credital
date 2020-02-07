@@ -8,7 +8,6 @@ external function string 255 GetPlanTypeTextCust(Integer);
 external inner procedure CalcCredManSums(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var val,var val,var val,var val,var val,var val,var val,var val,
                                    var val,var val,var val,var val,var val,var val,var val,var val,var val,var val,var val,var val,
                                    var val,var Date,var val,var val,var LongInt);
-external procedure GetCredManOverdueInvoices(record CredManVc,record CredManSetBlock,Date,Date,var Integer,var val);
 external inner function LongInt DateDiff(Date,Date);
 external procedure TestCredManInvoicesFromPlan(record CredManVc,record CredManSetBlock,record CredManPayPlanVc,Date,var array record IVVc);
 external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
@@ -276,6 +275,29 @@ begin
   return;
 end;
 
+procedure AddBuyOutToList(val sum,Date td,var record SMVc SMr,var val calcbal)
+begin
+  Integer i,rwcnt;
+  row IVVc IVrw;
+  val inst,intrate,fees,pen;
+  row SMVc SMrw;
+  
+  calcbal = calcbal - sum;
+  ClearRow(SMr,SMrw,1);
+  SMrw.TransDate = td;
+  SMrw.RowSimStat = 4;//type
+  SMrw.DebVal = sum;
+  SMrw.CredVal = intrate;
+  SMrw.DebVal2 = fees;
+  SMrw.CredVal2 = pen;
+  SMrw.CurDebVal = sum;
+  SMrw.CurCredVal = calcbal;
+  MatRowPut(SMr,MatRowCnt(SMr),SMrw);
+
+  return;
+end;
+
+
 global
 procedure BuildCredManInfoMatrix(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,var record SMVc SMr)
 begin
@@ -297,16 +319,19 @@ begin
       if (ReadFirstMain(CredHistr,1,true)) then begin
         if (vRec[CredHistr.RecordType & ":" & CredHistr.RecordNr]==false) then begin
           vRec[CredHistr.RecordType & ":" & CredHistr.RecordNr] = true;
-          if (CredHistr.RecordType==0) then begin//invoice
-            IVr.SerNr = CredHistr.RecordNr;
-            if (ReadFirstMain(IVr,1,true)) then begin
-              AddInvoiceToList(IVr,SMr,calcbal);
-            end;
-          end else begin
-            IPr.SerNr = CredHistr.RecordNr;
-            if (ReadFirstMain(IPr,1,true)) then begin
-              //AddReceiptToList(IPr,SMr);
-            end;
+          switch (CredHistr.RecordType) begin//invoice
+            case 0:
+              IVr.SerNr = CredHistr.RecordNr;
+              if (ReadFirstMain(IVr,1,true)) then begin
+                AddInvoiceToList(IVr,SMr,calcbal);
+              end;
+            case 4:
+              AddBuyOutToList(CredHistr.Sum,CredHistr.TransDate,SMr,calcbal);
+            otherwise
+              IPr.SerNr = CredHistr.RecordNr;
+              if (ReadFirstMain(IPr,1,true)) then begin
+                //AddReceiptToList(IPr,SMr);
+              end;
           end;
         end;
       end;

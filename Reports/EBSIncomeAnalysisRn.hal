@@ -141,10 +141,13 @@ begin
                 testf = false;  
               end;
             end;
+          end else begin
+            //testf = false;
           end;
         end;
       end;
       if (testf) then begin
+        logtext(0,"dd " & tCredHistr.SerNr & ":" & CredHistr.SerNr);
         id = tCredHistr.ArtCode & ":" & (GetYear(CredHistr.TransDate)*12) + GetMonth(CredHistr.TransDate);
         vtot[id] = vtot[id] + CredHistr.Sum;
         vitems[tCredHistr.ArtCode] = true;

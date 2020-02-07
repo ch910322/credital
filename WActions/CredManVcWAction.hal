@@ -18,6 +18,7 @@ remote procedure PrepareAgreementDocSigningSession(record AgreementDocVc,var str
 remote function Boolean GetAgreementDoc(record CredManVc,Integer,var record AgreementDocVc);
 remote updating procedure CredManMakePaymentRemote(var record CredManVc,var record VIVc);
 remote function Boolean GetAgreementDoc2(Longint,string,Integer,var record AgreementDocVc);
+remote updating procedure CredManPartialBuyoutDo(Date,val,Longint);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -632,6 +633,22 @@ begin
 end;
 
 global
+procedure RefinCredManWClassPartial()
+begin
+  Integer wn;
+  record RcVc RepSpec,RepSpec2;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,RepSpec);
+  
+  //GetRefinCredManData(RepSpec.long1,type,RepSpec2,true);
+
+  CloseWindow(wn);
+  OpenWindow("RefinCredManPartialWClass",0,0,"","",RepSpec);
+  return;
+end;
+
+global
 procedure RefinCredManDsm()
 begin
   record RcVc RepSpec;
@@ -643,6 +660,24 @@ begin
     GetWindowRecord(wn,CredManr);
     RepSpec.long1 = CredManr.SerNr;
     OpenWindow("RefinCredManWClass",0,0,"","",RepSpec);
+  end;
+
+  return;
+end;
+
+global
+updating procedure RefinCredManPartialWClassSubmit()
+begin
+  Integer wn;
+  record RcVc RepSpec;
+
+  wn = CurWindow;
+  DeselectWindow(wn,true);
+  GetWindowRecord(wn,RepSpec);
+  
+  if (nonblank(RepSpec.d1) and RepSpec.vals0>0) then begin
+    CredManPartialBuyoutDo(RepSpec.d1,RepSpec.vals0,RepSpec.long1);
+    CloseWindow(wn);
   end;
 
   return;

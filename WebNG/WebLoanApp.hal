@@ -30,6 +30,7 @@ external function Boolean FindSuretyApplicationDoc(record B2BLoanApplicationVc,r
 external function string 255 GetLinkToCreditAccount();
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 external function Boolean AllSuretyApplicationsSigned(Longint,record AgreementDocVc);
+remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -1735,6 +1736,7 @@ begin
   if (ReadFirstMain(WPSr,1,true)) then begin
     switch (WPSr.PayMentDesc) begin
       case "LoanApp":
+LLoapApp:;
         if (WPSr.Status==10+kCCStatusPaymentOK) then begin
           nextf = true;
           LoadLoanSession(vSess);
@@ -1750,6 +1752,8 @@ begin
       case "AgreementDocVc":
         base = GetLinkToCreditAccount;
         ShowRedirectHTML(base & "contracts",WebSecureMode);
+      case "AgreementDocVc2":
+        goto LLoapApp;
     end;
   end;
 
@@ -1825,3 +1829,100 @@ begin
   return;
 end;
 
+
+global
+function Boolean MarkCustomerAgreementDocSigned(record AgreementDocVc ADr,string custcode)
+begin
+  Integer i,rwcnt;
+  row AgreementDocVc ADrw;
+  Boolean res;
+  
+  rwcnt = MatRowCnt(ADr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ADr,i,ADrw);
+    if (ADrw.CustCode==custcode) then begin
+      ADrw.Status = 1;
+      ADrw.SignatureDate = CurrentDate;
+      ADrw.SignatureTime = CurrentTime;
+      MatRowPut(ADr,i,ADrw);
+      i = rwcnt;
+      res = true;
+    end;
+  end;
+
+  MarkCustomerAgreementDocSigned = res;
+  return;
+end;
+
+updating function Boolean ArchiveExistingDocument(record AgreementDocVc ADr)
+begin
+  record RLinkVc RLr,RL2r;
+  record Attach2Vc Attachr;
+  record ArchiveVc Archiver;
+  Boolean res;
+  
+  if (ReadRecordLink(ADr,1,Attachr,RLr)) then begin
+    if (ReadRecordLink(ADr,1,Archiver,RL2r)==false) then begin
+      RecordNew(Archiver);
+      Archiver.SerNr = NextSerNr("ArchiveVc",CurrentDate,-1,false,"");
+      Archiver.FolderName = "OLD";
+      if (RecordStore(Archiver,true)) then begin
+        CreateRecordLink(ADr,CurrentCompany,Archiver,CurrentCompany);
+      end;
+    end;
+    res = true;
+    CreateRecordLink(Archiver,CurrentCompany,Attachr,CurrentCompany);
+    RecordRemove(RLr);
+  end;
+
+  ArchiveExistingDocument = res;
+  return;
+end;
+
+global
+updating procedure FinishDocumentSigning(string vcname,Longint sernr,string custcode,area reply)
+begin
+  record AgreementDocVc ADr,oldADr;
+  record B2BLoanApplicationVc LAr;
+  string 255 fn;
+
+  switch (vcname) begin
+    case "B2BLoanApplicationVc":
+      if (GetAreaLength(reply)>0) then begin
+        LAr.SerNr = sernr;
+        if (ReadFirstMain(LAr,1,true)) then begin
+          fn = "Agreement_signed.pdf";
+          WriteAreaToFile(reply,fn,0);
+          RecordLinkFile(fn,0,LAr,CurrentCompany);
+          Delete_File(fn);
+        end;
+      end;
+    case "AgreementDocVc2":
+      goto LAgreementDoc;
+    case "AgreementDocVc":
+LAgreementDoc:;
+      ADr.SerNr = sernr;
+      if (ReadFirstMain(ADr,1,true)) then begin
+        if (GetAreaLength(reply)>0) then begin
+          if (ArchiveExistingDocument(ADr)) then begin
+            fn = "Agreement_signed.pdf";
+            WriteAreaToFile(reply,fn,0);
+            RecordLinkFile(fn,0,ADr,CurrentCompany);
+            Delete_File(fn);
+          end;
+        end;
+        RecordCopy(oldADr,ADr);
+        if (MarkCustomerAgreementDocSigned(ADr,custcode)==false) then begin
+          ADr.SignedByUs = 1;
+          ADr.SignedByUsDate = CurrentDate;
+          ADr.SignedByUsTime = CurrentTime;
+        end;
+        logtext(0,"updating Agreement doc " & ADr.SerNr & ":" & CurrentCust);
+        if (RecordUpdate(oldADr,ADr,true)==0) then begin
+          AllClientsRemoteAsync.DocumentSigningClientDone(custcode,ADr);
+        end;
+      end;
+  end;
+
+  return;
+end;

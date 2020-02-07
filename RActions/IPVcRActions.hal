@@ -1,5 +1,5 @@
 //<halrule>server-only</halrule>
-external updating procedure SplitLoanPaymentsInReceipt(record IPVc);
+external updating procedure SplitLoanPaymentsInReceipt(record IPVc,Boolean);
 external updating procedure UpdateFactoringInvoiceReceipt(record IPVc,Boolean);
 external updating procedure UpdatePmtGrntReportReceipt(record IPVc,Boolean);
 
@@ -11,11 +11,12 @@ BEGIN
   res = inner.IPVcRecordUpdateAfter(IPr,IP2r,stat,long4);
 
   if (IPr.OKFlag==1 and IP2r.OKFlag==0) then begin
-    SplitLoanPaymentsInReceipt(IPr);
+    SplitLoanPaymentsInReceipt(IPr,true);
     UpdateFactoringInvoiceReceipt(IPr,true);
     UpdatePmtGrntReportReceipt(IPr,true);
   end;
   if (IPr.OKFlag==0 and IP2r.OKFlag==1) then begin
+    SplitLoanPaymentsInReceipt(IPr,false);
     UpdateFactoringInvoiceReceipt(IPr,false);
     UpdatePmtGrntReportReceipt(IPr,false);
   end;
@@ -32,7 +33,7 @@ BEGIN
   res = inner.IPVcRecordSaveAfter(IPr,IP2r,stat,long4);
 
   if (IPr.OKFlag==1) then begin
-    SplitLoanPaymentsInReceipt(IPr);
+    SplitLoanPaymentsInReceipt(IPr,true);
     UpdateFactoringInvoiceReceipt(IPr,true);
     UpdatePmtGrntReportReceipt(IPr,true);
   end;

@@ -1,0 +1,53 @@
+external procedure GetCredManOverdueInvoices(record CredManVc,record CredManSetBlock,Date,Date,var Integer,var val);
+external procedure SetupLoanInvoice(record CredManVc,record CredManSetBlock,var record IVVc,Date,Date,Date,Boolean,Boolean);
+external procedure AddLateFees(record CredManVc,record CredManSetBlock,var record IVVc,Integer,val);
+
+
+function Date GetLastInvoiceDate(record CredManVc CredManr,Date ed)
+begin
+  Date res;
+
+  res = ed;
+  res.day = GetDay(CredManr.FirstInvDate);
+  if (res>ed) then begin
+    res = AddMonth(res,-1);
+  end;
+
+  GetLastInvoiceDate = res;
+  return;
+end;
+
+global
+updating procedure GenOverdueInvMn(record RcVc RepSpec)
+begin
+  record CredManVc CredManr;
+  Date sd,ed;
+  record CredManSetBlock CMb;
+  val lateamount;
+  Integer latedays;
+  record IVVc IVr;
+  
+  if (blank(RepSpec.d1)) then begin
+    goto LGenOverdueInvMn;
+  end;
+  BlockLoad(CMb);
+  while (LoopMain(CredManr,1,true)) begin
+    if (CredManr.OKFlag==1) then begin
+      
+      sd = CredManr.FirstInvDate;
+      ed = GetLastInvoiceDate(CredManr,RepSpec.d1);
+      GetCredManOverdueInvoices(CredManr,CMb,ed,sd,latedays,lateamount);
+      if (lateamount>0) then begin
+        SetupLoanInvoice(CredManr,CMb,IVr,CurrentDate,sd,ed,true,false);
+        AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+        if (IVr.SerNr>-1) then begin
+          IVr.OKFlag = 1;
+          RecordInsert(IVr,true);
+        end;
+      end;
+    end;
+  end;
+
+LGenOverdueInvMn:;
+  return;
+end;

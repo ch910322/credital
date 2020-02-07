@@ -1187,7 +1187,7 @@ begin
 end;
 
 window CMOrderClassTClass:1
-  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+  wtag("language","LIT"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,v,vs,v2,vs2,hm,h2,tilenr;
   WindowBegin("Invoice Settings",CMOrderClassTClass,CGSbl,-);

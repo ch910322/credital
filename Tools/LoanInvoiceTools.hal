@@ -13,7 +13,7 @@ forward procedure GetCredManEventList2(Longint,var record ORVc);
 external inner procedure PasteARPayInIV(record IVVc,row IVVc,Integer);
 external updating procedure FindUnpaidCredHist(record ItemPriorityBlock,record IPVc,row IPVc,var array val,Integer);
 external inner function Boolean IVVc_PasteSum(var record IVVc,Integer,var Boolean,Integer);
-
+external function Date GetLastInvoiceDate(record CredManVc,Date);
 
 enum begin
   kCredHistRecTypeInvoice = 0,
@@ -81,6 +81,7 @@ begin
 end;
 
 
+global
 procedure SetupLoanInvoice(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Date invdate,Date fromdate,Date todate,Boolean sernrf,Boolean forcecustf)
 begin
   record LocalMachineBlock LMb;
@@ -179,6 +180,7 @@ begin
   return;
 end;
 
+global
 procedure AddLateFees(record CredManVc CredManr,record CredManSetBlock CMb,var record IVVc IVr,Integer latedays,val lateamount)
 begin
   val laterate;
@@ -248,10 +250,10 @@ begin
   lateamount = 0;
   //we should go through the history and check for late payments
   TrHs = true;
-  CredHistr.ArtCode = CMb.RateItem;
+  CredHistr.ArtCode = CMb.InstalmentItem;
   CredHistr.CredManNr = CredManr.SerNr;
   while (LoopKey("ArtCode",CredHistr,2,TrHs)) begin
-    if (CredHistr.ArtCode!=CMb.RateItem or CredHistr.CredManNr!=CredManr.SerNr) then begin
+    if (CredHistr.ArtCode!=CMb.InstalmentItem or CredHistr.CredManNr!=CredManr.SerNr) then begin
       TrHs = false;
     end else begin
       //Construct an array of days with amount that is over due starting with the first day of period
@@ -440,7 +442,6 @@ begin
   rwcnt = MatRowCnt(CredManPayPlanr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
-logtext(0,"TestCredManInvoicesFromPlan " & CredManPayPlanrw.PlanType & ":" & CredManPayPlanrw.TransDate);
     if (CredManPayPlanrw.PlanType<=4 and CredManPayPlanrw.TransDate<=ed) then begin
       if (lastd!=CredManPayPlanrw.TransDate) then begin
         //Setup new invoice
@@ -620,18 +621,22 @@ begin
   record CredManSetBlock CMb;
   record CredManPayPlanVc CredManPayPlanr;
   record IVVc IVr;
-  val dueamount,openamount;
+  val dueamount,openamount,lateamount;
+  Integer latedays;
+  Date sd;
   
   BlockLoad(CMb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
   CreateBuyOutInvoiceFromPlan(CredManr,CMb,CredManPayPlanr,RepSpec.d1,IVr);
   CheckUnpaidInvoices(CredManr,dueamount,openamount);
+  sd = GetLastInvoiceDate(CredManr,RepSpec.d1);
+  GetCredManOverdueInvoices(CredManr,CMb,RepSpec.d1,sd,latedays,lateamount);
   RepSpec.vals1 = IVr.Sum4;
   RepSpec.vals0 = dueamount;//should this be openamount?
   RepSpec.vals2 = dueamount + IVr.Sum4;
   RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr);
   RepSpec.vals4 = dueamount;
-  RepSpec.f12 = (RepSpec.vals2-RepSpec.vals3-RepSpec.vals4);
+  RepSpec.f12 = lateamount;//(RepSpec.vals2-RepSpec.vals3-RepSpec.vals4);
 
 
   return;
@@ -645,6 +650,7 @@ begin
   switch (type) begin
     case 9:  res = type;
     case 10: res = type;
+    case 11: res = type;
     otherwise
       res = type + 4;
   end;
@@ -654,7 +660,7 @@ begin
 end;
 
 global
-updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf,Longint previousnr,val invsum,Longint factinv)
+updating procedure CreateCredHist(Longint recnr,Integer chargetype,string custcode,val sum,Integer rectype,string item,Date duedate,Longint agreementnr,Date invdate,var Longint histnr,Date perfrom,Date perto,Integer mainf,Longint previousnr,val invsum,Longint factinv,val paidval)
 begin
   record CredHistVc CredHistr;
   
@@ -678,6 +684,12 @@ begin
   CredHistr.FactoringInvoice = factinv;
   if (nonblank(CredHistr.CredFromDate)) then begin
     CredHistr.Comment2 = CredHistr.CredFromDate & ":" & CredHistr.CredToDate;
+  end;
+  if (paidval>0) then begin
+    CredHistr.PaidSum = paidval;
+    if (CredHistr.PaidSum==CredHistr.InvSum) then begin
+      CredHistr.PaidFlag = 1;
+    end;
   end;
 
   CredHistr.Sum = sum;
@@ -753,6 +765,36 @@ begin
   return;
 end;
 
+global
+updating procedure UpdateCredHistBalancePartialBuyout(Longint credmannr,Longint credhistnr)
+begin
+  record ORVc ORr;
+  Integer i,rwcnt;
+  record CredHistVc CredHistr,oldCredHistr;
+  row ORVc ORrw;
+  Boolean TrHs;
+  val bal;
+  
+  GetCredManEventList2(credmannr,ORr);
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    if (ORrw.CUServiceHistNr==credhistnr) then begin
+      bal = ORrw.rowGP;
+      i = rwcnt;
+    end;
+  end;
+  TrHs = true;
+  CredHistr.SerNr = credhistnr;
+  if (ReadFirstMain(CredHistr,1,true)) begin
+    RecordCopy(oldCredHistr,CredHistr);
+    CredHistr.Balance = bal;
+    RecordUpdate(oldCredHistr,CredHistr,true);
+  end;
+
+  return;
+end;
+
 updating procedure MakeFakeReceiptHist(record IVVc IVr,row IVVc IVrw)
 begin
   record ItemPriorityBlock IPb;
@@ -817,7 +859,7 @@ begin
             MatRowGet(IVr,i,IVrw);
             if (IVrw.ChargeType>0) then begin
               if (FindMatchingRow(credIVr,IVrw.CredHistNr,tIVrw)) then begin
-                CreateCredHist(IVr.SerNr,10,IVr.CustCode,tIVrw.Sum,3,"",IVr.TransDate,IVr.CustCredManNr,IVr.TransDate,histnr,"","",0,tIVrw.CredHistNr,IVrw.Sum,-1);
+                CreateCredHist(IVr.SerNr,10,IVr.CustCode,tIVrw.Sum,3,"",IVr.TransDate,IVr.CustCredManNr,IVr.TransDate,histnr,"","",0,tIVrw.CredHistNr,IVrw.Sum,-1,0);
 
                 IVrw.CredHistNr = histnr;
                 MatRowPut(IVr,i,IVrw);
@@ -839,7 +881,7 @@ begin
       for (i=0;i<rwcnt;i=i+1) begin
         MatRowGet(IVr,i,IVrw);
         if (IVrw.ChargeType>0) then begin
-          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf,-1,IVr.Sum4,IVrw.FactoringInvoice);
+          CreateCredHist(IVr.SerNr,IVrw.ChargeType,IVr.CustCode,CalculateRowSumWithVAT(IVr,IVrw),kCredHistRecTypeInvoice,IVrw.ArtCode,IVr.PayDate,IVr.CustCredManNr,IVr.InvDate,histnr,IVr.CredFromDate,IVr.CredToDate,firstf,-1,IVr.Sum4,IVrw.FactoringInvoice,0);
           IVrw.CredHistNr = histnr;
           MatRowPut(IVr,i,IVrw);
           firstf = 0;
@@ -914,13 +956,10 @@ begin
         AddCredHistToArray(ORr,prevCredHistr,balance);
       end;
       if (CredHistr.RecordType==kCredHistRecTypeInvoice and (CredHistr.ChargeType==kEventTypeIssueInstalment or CredHistr.ChargeType==kEventTypeIssueDeposit)) then begin
-        if (CredManr.SerNr==190058) then begin
-          logtext(0,"check before " & CredHistr.SerNr & ":" & CredHistr.Sum & ":" & balance);
-        end;
         balance = balance - CredHistr.Sum;
-        if (CredManr.SerNr==190058) then begin
-          logtext(0,"check after " & CredHistr.SerNr & ":" & CredHistr.Sum & ":" & balance);
-        end;
+      end;
+      if (CredHistr.RecordType==4) then begin//partial buyout
+        balance = balance - CredHistr.Sum;
       end;
       firstf = true;
       RecordCopy(prevCredHistr,CredHistr);
@@ -990,37 +1029,3 @@ begin
   return;
 end; 
 
-/*
-global
-updating procedure CreateFactoringFinalInvoice(record CredManVc CredManr)
-begin
-  record CMApplicationSetBlock ASb;
-  record CredManSetBlock CMSb;
-
-  val prc_perday;
-  record IVVc IVr;
-  Longint ivnr;
-  Date paydate;
-  Integer factdays;
-  
-  //calculate %
-  //calculate days from full payment
-  //setup loan invoice
-  
-  BlockLoad(ASb);
-  BlockLoad(CMSb);
-  if (BuyerPaidInvoice(CredManr,ivnr)) then begin
-    if (GetFactoringDays(CredManr,paydate,factdays)) then begin
-      prc_perday = CredManr.InvSum4*(CredManr.IntRate*12/ASb.DaysInYear/100);
-      SetupLoanInvoice(CredManr,CMSb,IVr,CurrentDate,CredManr.startDate,paydate,true,true);
-      SetupInvoiceRowAndAdd(IVr,CMSb.RateItem,"",1,prc_perday*factdays,0,2);
-      IVr.OKFlag = 1;
-      if (RecordInsert(IVr,true)==false) then begin
-        LogText(0,"Failed to store Factoring Invoice " & RecordCheckLastErrorNo);
-      end;
-    end;
-  end;
-  return;
-end;
-
-*/

@@ -19,6 +19,9 @@ external inner procedure VICalcVals(var record VIVc);
 external inner procedure VISumup(record VIVc,var val);
 external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
 external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBlock,var Integer,var Integer);
+external updating procedure ReceiptEntryCreateReceipts(record SMVc,Boolean,var val);
+external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint,val,Longint,val);
+external updating procedure UpdateCredHistBalancePartialBuyout(Longint,Longint);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -587,5 +590,57 @@ begin
   end;
 
 
+  return;
+end;
+
+function string 255 GetDefaultPayMode()
+begin
+  record PMBlock PMb;
+  row PMBlock PMbrw;
+  string 255 res;
+
+  BlockLoad(PMb);
+  MatRowGet(PMb,0,PMbrw);
+  res = PMbrw.Code;
+
+  GetDefaultPayMode = res;
+  return;
+end;
+
+global
+updating procedure CredManPartialBuyoutDo(Date td,val buyoutval,Longint sernr)
+begin
+  record CredManVc CredManr,oldCredManr;
+  record SMVc SMr;
+  row SMVc SMrw;
+  val tval;
+  Longint histnr;
+  record BaseCurBlock BCb;
+
+  CredManr.SerNr = sernr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    RecordCopy(oldCredManr,CredManr);
+    if (CredManr.VersionNo<0) then begin
+      CredManr.VersionNo = 0;
+    end;
+    CredManr.VersionNo = CredManr.VersionNo + 1;
+    RecordUpdate(oldCredManr,CredManr,true);
+
+    BlockLoad(BCb);
+    SMr.RegDate = td;
+    SMr.Sign = GetDefaultPayMode;
+    ClearRow(SMr,SMrw,1);
+    SMrw.Objects = CredManr.CustCode;
+    SMrw.DebVal = buyoutval;
+    SMrw.CurncyCode = BCb.BaseCur1;
+    MatRowPut(SMr,0,SMrw);
+
+    ReceiptEntryCreateReceipts(SMr,false,tval);
+    if (tval>0) then begin
+      CreateCredHist(-1,11,CredManr.CustCode,tval,4,"",td,CredManr.SerNr,td,histnr,"","",1,CredManr.SerNr,tval,-1,tval);
+      UpdateCredHistBalancePartialBuyout(CredManr.SerNr,histnr);
+    end;
+  end;
+  
   return;
 end;
