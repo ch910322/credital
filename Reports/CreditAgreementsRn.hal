@@ -23,12 +23,14 @@ begin
 	record CredManPayPlanVc CredManPayr;
 	row CredManPayPlanVc CredManPayrw;
 	Integer rwcnt,i;
+  val open;
 
 	res = blankval;
 	BuildCredManPayPlanCust(CredManr,CredManPayr,CredManSetb,true,false);
 	rwcnt = MatRowCnt(CredManPayr);
 	for (i=rwcnt-1;i>=0;i=i-1) begin
 		MatRowGet(CredManPayr,i,CredManPayrw);
+    open = open + CredManPayrw.OpenAmount;
 		if (CredManPayrw.TransDate<=baldate) then begin
 			res = CredManPayrw.Bal;
 			i = 0;
@@ -37,7 +39,9 @@ begin
 	if (res==blankval) then begin
 		MatRowGet(CredManPayr,0,CredManPayrw);
 		res = CredManPayrw.Bal;
-	end;
+	end else begin
+    res = res + open;
+  end;
 
 	GetFutureCredManBalance = res;
 	return;
@@ -49,8 +53,9 @@ begin
 	boolean TrHs,testf;
 	record CredManEventVc CMEventr;
 	string 200 thekey;
-	val curbal;
+	val curbal,totamount,totdep,totmonth,totbal;
 	record CredManSetBlock CredManSetb;
+
 
 	BlockLoad(CredManSetb);
 	startreportjob(USetStr(1000005));
@@ -61,27 +66,27 @@ begin
     RepSpec.d1 = CurrentDate;
   end;
 	
-	startformat(15);
-		outstring(0,0,"Nr",false);
+	StartFormat(15);
+		OutString(0,0,"Nr",false);
 		if(RepSpec.Media==mtExcel)then begin
-			outstring(35,0,"Sustabdytos",false);
-			outstring(70,0,"Nutrauktos",false);
-			outstring(70,0,"Nepatvirtintos",false);
-			outstring(70,0,"Be OK",false);
-			outstring(70,0,"Baigtos",false);
+			OutString(35,0,"Sustabdytos",false);
+			OutString(70,0,"Nutrauktos",false);
+			OutString(70,0,"Nepatvirtintos",false);
+			OutString(70,0,"Be OK",false);
+			OutString(70,0,"Baigtos",false);
 		end;
-		outstring(35,0,"Klientas",false);
-		outstring(70,0,"Pavadinimas",false);
-		outstring(140,0,"Pradžios data",false);
-		outstring(175,0,"Pabaigos data",false);
-		outstring(210,0,"Viso suma",false);
-		outstring(245,0,"Užstato suma",false);
-		outstring(280,0,"Užstato %",false);
-		outstring(315,0,"Mėnesiai",false);
-		outstring(350,0,"Palūkanų %",false);
-		outstring(385,0,"Mėnesiniai įnašai",false);
-		outstring(1,0,"Balansų vertė",true);
-	endformat;
+		OutString(35,0,"Klientas",false);
+		OutString(70,0,"Pavadinimas",false);
+		OutString(140,0,"Pradžios data",false);
+		OutString(175,0,"Pabaigos data",false);
+		OutString(210,0,"Viso suma",false);//totoals
+		OutString(245,0,"Užstato suma",false);//totals
+		OutString(280,0,"Užstato %",false);
+		OutString(315,0,"Mėnesiai",false);
+		OutString(350,0,"Palūkanų %",false);
+		OutString(385,0,"Mėnesiniai įnašai",false);//totals
+		OutString(1,0,"Balansų vertė",true);//totals
+	EndFormat;
 	
 	TrHs = true;
 	CredManr.startDate = RepSpec.sStartDate;
@@ -101,28 +106,47 @@ begin
 		end;
 		
 		if(testf)then begin
-			startformat(15);
-				outstring(0,"DblCredManVc",CredManr.SerNr,false);
-				if(RepSpec.Media==mtExcel)then begin
-					outstring(70,0,Checkbocout(CredManr.Approved==0),false);
-					outstring(70,0,Checkbocout(CredManr.OKFlag==0),false);
-					outstring(70,0,Checkbocout(curbal==0),false);
-				end;
-				outstring(35,"DblCUVc",CredManr.CustCode,false);
-				outstring(70,0,CredManr.Addr0,false);
-				outstring(140,0,CredManr.startDate,false);
-				outstring(175,0,CredManr.endDate,false);
-				outstring(210,0,CredManr.InvSum4,false);
-				outstring(245,0,CredManr.DepositSum,false);
-				outstring(280,0,CredManr.DepositPrc,false);
-				outstring(315,0,CredManr.InstalmentMonths,false);
-				outstring(350,0,CredManr.IntRate,false);
-				outstring(385,0,CredManr.MonthlySum,false);
-				outstring(1,0,curbal,true);
-			endformat;
+			StartFormat(15);
+      OutString(0,"DblCredManVc",CredManr.SerNr,false);
+      if(RepSpec.Media==mtExcel)then begin
+        OutString(70,0,Checkbocout(CredManr.Approved==0),false);
+        OutString(70,0,Checkbocout(CredManr.OKFlag==0),false);
+        OutString(70,0,Checkbocout(curbal==0),false);
+      end;
+      OutString(35,"DblCUVc",CredManr.CustCode,false);
+      OutString(70,0,CredManr.Addr0,false);
+      OutString(140,0,CredManr.startDate,false);
+      OutString(175,0,CredManr.endDate,false);
+      OutString(210,0,CredManr.InvSum4,false);
+      OutString(245,0,CredManr.DepositSum,false);
+      OutString(280,0,CredManr.DepositPrc,false);
+      OutString(315,0,CredManr.InstalmentMonths,false);
+      OutString(350,0,CredManr.IntRate,false);
+      OutString(385,0,CredManr.MonthlySum,false);
+      OutString(1,0,curbal,true);
+      totamount = totamount + CredManr.InvSum4;
+      totdep = totdep + CredManr.DepositSum;
+      totmonth = totmonth + CredManr.MonthlySum;
+      totbal = totbal + curbal;
+			EndFormat;
 		end;
-	
 	end;
+  StartFormat(1);
+  Gray_divider(0,1);
+  EndFormat;
+  StartFormat(15);
+  OutString(0,0,"",false);
+  OutString(70,0,"",false);
+  OutString(140,0,"",false);
+  OutString(175,0,"",false);
+  OutString(210,0,totamount,false);
+  OutString(245,0,totdep,false);
+  OutString(280,0,"",false);
+  OutString(315,0,"",false);
+  OutString(350,0,"",false);
+  OutString(385,0,totmonth,false);
+  OutString(1,0,totbal,true);
+  EndFormat;
 	
 	endjob;
 

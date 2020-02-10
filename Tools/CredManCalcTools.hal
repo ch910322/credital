@@ -145,7 +145,7 @@ begin
   return;
 end;
 
-procedure AddCredPayPlanLine(record CredManPayPlanVc CredManPayPlanr,Date transdate,string item,string itemname,Integer type,val sum,val reb,var val acumint,var val calcbal,Date frdate,Date todate,Longint histnr,Longint factinv)
+procedure AddCredPayPlanLine(record CredManPayPlanVc CredManPayPlanr,Date transdate,string item,string itemname,Integer type,val sum,val reb,var val acumint,var val calcbal,Date frdate,Date todate,Longint histnr,Longint factinv,val openamount)
 begin
   row CredManPayPlanVc CredManPayPlanrw;
   val v;
@@ -172,6 +172,7 @@ begin
     end else begin
       CredManPayPlanrw.Bal = calcbal;
     end;
+    CredManPayPlanrw.OpenAmount = openamount;
     MatRowPut(CredManPayPlanr,MatRowCnt(CredManPayPlanr),CredManPayPlanrw);
     acumint = CredManPayPlanrw.AcumulatedInt;
     calcbal = CredManPayPlanrw.Bal;
@@ -184,7 +185,7 @@ global
 procedure AddInterest(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Integer monthtypef,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate,Longint factinv)
 begin
 
-  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.RateItem,"",kEventTypeCalcInterest,GetRateAmount(CredManr,CredManr.IntRate,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv);
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.RateItem,"",kEventTypeCalcInterest,GetRateAmount(CredManr,CredManr.IntRate,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv,0);
 
   return;
 end;
@@ -193,7 +194,7 @@ global
 procedure AddInterestDelay(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Integer monthtypef,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate,Longint factinv)
 begin
 
-  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.RateItem,"",kEventTypeCalcInterest,GetRateAmount(CredManr,CredManr.PrincipleDelayInterest,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv);
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.RateItem,"",kEventTypeCalcInterest,GetRateAmount(CredManr,CredManr.PrincipleDelayInterest,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv,0);
 
   return;
 end;
@@ -210,9 +211,9 @@ begin
     if ((type==kPlannedFeesMonthly and MonthlyChargeType(CredManrw.ChargeType)) or 
         (type==kPlannedFeesOneTime and MonthlyChargeType(CredManrw.ChargeType)==false)) then begin
       if (CalculatedChargeType(CredManrw.ChargeType)) then begin
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,GetRateAmount(CredManr,CredManrw.vRebate,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,GetRateAmount(CredManr,CredManrw.vRebate,monthtypef,frdate,todate,calcbal),0,acumint,calcbal,frdate,todate,-1,factinv,0);
       end else begin
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,CredManrw.Price,CredManrw.vRebate,acumint,calcbal,frdate,todate,-1,factinv);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CredManrw.ArtCode,"",kEventTypeCalcFees,CredManrw.Price,CredManrw.vRebate,acumint,calcbal,frdate,todate,-1,factinv,0);
       end;
     end;
   end;
@@ -223,7 +224,7 @@ end;
 procedure AddDeposit(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
 begin
   
-  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.DepositItem,"",kEventTypeCalcDeposit,CredManr.DepositSum,0,acumint,calcbal,frdate,todate,-1,-1);
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.DepositItem,"",kEventTypeCalcDeposit,CredManr.DepositSum,0,acumint,calcbal,frdate,todate,-1,-1,0);
 
   return;
 end;
@@ -293,10 +294,10 @@ begin
   
   switch (type) begin
     case 0:
-      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate,-1,-1);
+      AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,CredManr.InvSum4,0,acumint,calcbal,frdate,todate,-1,-1,0);
     case 1:
       if (monthtypef==kMonthTypeLast) then begin
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1,-1);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1,-1,0);
       end else begin
         //for max monthly payments we need to check the instalment amount. 
         sum = (CredManr.InvSum4-CredManr.DepositSum)/CredManr.InstalmentMonths;
@@ -307,14 +308,14 @@ begin
             sum = CredManr.MaxMonthlyPayment-(curpayment-sum);
           end;
         end;
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,sum,0,acumint,calcbal,frdate,todate,-1,-1);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,sum,0,acumint,calcbal,frdate,todate,-1,-1,0);
       end;
     case 2:
       if (monthtypef==kMonthTypeLast) then begin
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1,-1);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,calcbal,0,acumint,calcbal,frdate,todate,-1,-1,0);
       end else begin
         sum = FIN_PPMT(CredManr.IntRate/100, CredManr.InstalmentMonths, (CredManr.InvSum4-CredManr.DepositSum), (month+1));
-        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,sum,0,acumint,calcbal,frdate,todate,-1,-1);
+        AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,sum,0,acumint,calcbal,frdate,todate,-1,-1,0);
       end;
   end;
  return;
@@ -324,7 +325,7 @@ global
 procedure AddInstalmentFixed(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,val amount,Date invdate,var val acumint,var val calcbal,Date frdate,Date todate)
 begin
   
-  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,amount,0,acumint,calcbal,frdate,todate,-1,-1);
+  AddCredPayPlanLine(CredManPayPlanr,invdate,CMb.InstalmentItem,"",kEventTypeCalcInstalment,amount,0,acumint,calcbal,frdate,todate,-1,-1,0);
 
   return;
 end;
@@ -391,7 +392,7 @@ begin
   Integer type;
   Longint lastrecnr;
   vector Boolean vFirstInv;
-  val monthlypayment,buyoutamount;
+  val monthlypayment,buyoutamount,openamount;
   Integer reducemonths;
 
   firstinvf = false;
@@ -403,8 +404,11 @@ begin
       TrHs = false;
     end else begin
  //     if (CredHistr.RecordType==0) then begin
+        openamount = 0;
         switch (CredHistr.RecordType) begin
-          case 0: type = GetCredHistType(CredHistr.ArtCode,false);
+          case 0: 
+            type = GetCredHistType(CredHistr.ArtCode,false); 
+            openamount = CredHistr.Sum-CredHistr.PaidSum;
           case 4: 
             type = kEventTypePartialBuyout;
             buyoutamount = buyoutamount + CredHistr.Sum;
@@ -413,7 +417,7 @@ begin
             ReadFirstMain(PrevCredHistr,1,true);
             type = GetCredHistType(PrevCredHistr.ArtCode,true);          
         end;
-        AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1);
+        AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1,openamount);
         if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
           firstinvf = true;
           vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice

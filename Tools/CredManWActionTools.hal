@@ -530,7 +530,7 @@ begin
   return;
 end;
 
-updating procedure CreateCredmanPurchaseInvoice(record CredManVc CredManr,var record VIVc VIr)
+updating procedure CreateCredmanPurchaseInvoice(record CredManVc CredManr,val credsum,var record VIVc VIr)
 begin
   record CreditalInvoiceBlock CIb;
   record VIVc oldVIr;
@@ -549,7 +549,7 @@ begin
   VIr.PayDeal = CIb.PaymentPayDeal;
   VIVc_PastePayDeal(VIr);
   VIr.Objects =  AddObjectToObjectList(VIr.Objects,CIb.PaymentObject);
-  VIr.PayVal = CredManr.InvSum4;
+  VIr.PayVal = CredManr.InvSum4-credsum;
   ClearRow(VIr,VIrw,1);
   VIrw.AccNumber = CIb.PaymentAccount;
   MatRowPut(VIr,0,VIrw);
@@ -559,7 +559,7 @@ begin
   MatRowPut(VIr,0,VIrw);
   VIDDefault(0,"VATCode",VIr);
   MatRowGet(VIr,0,VIrw);
-  VIrw.Sum = CredManr.InvSum4;
+  VIrw.Sum = CredManr.InvSum4-credsum;
   MatRowPut(VIr,0,VIrw);
   VICalcVals(VIr);
   VISumup(VIr,ct);
@@ -581,7 +581,7 @@ begin
   if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=5) then begin
     CreateSingleAgreementInvoice(CredManr,CredManr.startDate,IVr);
     CredManCreditAllInvoices(CredManr);
-    CreateCredmanPurchaseInvoice(CredManr,VIr);
+    CreateCredmanPurchaseInvoice(CredManr,IVr.Sum4,VIr);
     if (VIr.SerNr>0) then begin
       BlockLoad(OCb);
       CredManr.VINr = VIr.SerNr;

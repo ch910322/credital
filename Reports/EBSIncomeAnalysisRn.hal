@@ -7,6 +7,52 @@ external inner procedure HTCustClass(string,var string);
 external inner procedure HTItem(string,var string);
 external inner procedure HT2Per(Date, Date , var string);
 
+procedure GetOpenPrepayments(record RcVc RepSpec,Date sd,Date ed,var array val amonth,Integer basemonth)
+begin
+  Boolean TrHs,testf;
+  record ARPayVc ARPayr;
+  string 255 id,frcu,tocu;
+  record CUVc CUr;
+
+  frcu = FirstInRange(RepSpec.f1,20);
+  tocu = LastInRange(RepSpec.f1,20);
+  TrHs = true;
+  ARPayr.PayDate = sd;
+  while (LoopKey("PayDate",ARPayr,1,TrHs)) begin
+    if (ARPayr.PayDate>ed) then begin
+      TrHs = false;
+    end else begin
+      testf = true;
+      if (nonblank(RepSpec.f1)) then begin
+        if (tocu<ARPayr.CustCode) then begin testf = false; end;
+        if (frcu>ARPayr.CustCode) then begin testf = false; end;
+      end;
+      if (testf) then begin
+        CUr.Code = ARPayr.CustCode;
+        if (ReadFirstMain(CUr,1,true)==false) then begin testf = false; end;
+        if (nonblank(RepSpec.Stext) and testf) then begin
+          if (SetInSet2(RepSpec.Stext,CUr.Classification)==false) then begin
+            testf = false;
+          end;
+        end;
+      end;
+      if (testf) then begin
+        if (nonblank(RepSpec.f7)) then begin
+          if (RepSpec.f7!=CUr.CustCat) then begin
+            testf = false;
+          end;
+        end;
+      end;    
+      if (testf) then begin
+        id = ((GetYear(ARPayr.PayDate)*12) + GetMonth(ARPayr.PayDate))-basemonth;
+        amonth[id] = amonth[id] + ARPayr.RVal;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
 global
 procedure EBSIncomeAnalysisRn(record RcVc RepSpec)
 begin
@@ -116,7 +162,7 @@ begin
             end;
           end;
         end;    
-       if (testf) then begin
+        if (testf) then begin
           tCredHistr.SerNr = CredHistr.PreviousNr;
           if (ReadFirstMain(tCredHistr,1,true)) then begin
 
@@ -147,7 +193,6 @@ begin
         end;
       end;
       if (testf) then begin
-        logtext(0,"dd " & tCredHistr.SerNr & ":" & CredHistr.SerNr);
         id = tCredHistr.ArtCode & ":" & (GetYear(CredHistr.TransDate)*12) + GetMonth(CredHistr.TransDate);
         vtot[id] = vtot[id] + CredHistr.Sum;
         vitems[tCredHistr.ArtCode] = true;
@@ -186,6 +231,21 @@ begin
     OutString(cs+(RepSpec.flags[0]*step),0,itemtot,true);
     EndFormat;
   end;
+
+  ClearArray(amonth);
+ // ClearArray(atotmonth);
+  itemtot = 0;
+  GetOpenPrepayments(RepSpec,sd,RepSpec.d1,amonth,basemonth);
+  StartFormat(15);
+  OutString(0,0,"Prepayments",false);
+  OutString(80,0,"",false);
+  for (j=0;j<RepSpec.flags[0];j=j+1) begin
+    OutString(cs+(j*step),0,amonth[j],true);
+    itemtot = itemtot + amonth[j];
+    atotmonth[j] = atotmonth[j] + amonth[j];
+  end;
+  OutString(cs+(RepSpec.flags[0]*step),0,itemtot,true);
+  EndFormat;
 
   StartFormat(1);
   Gray_divider(0,1);

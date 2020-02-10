@@ -1192,8 +1192,11 @@ procedure OuterSetPageMetaData(record WebNGStructVc WSr,string mpath)
 begin
   transaction string 255 gExtraHeadHTML;
   transaction string 255 gExtraSiteTitle;
-  string 255 node,path,title,kw,descr;
+  string 255 node,path,title,kw,descr,fullpath;
   record CreditalWebSetBlock CWb;
+  record ExitPopupLinksBlock EPb;
+  row ExitPopupLinksBlock EPbrw;
+  Integer i,rwcnt;
   
   path = mpath;
 
@@ -1223,6 +1226,19 @@ begin
   BlockLoad(CWb);
   if (nonblank(CWb.CanonicalBase)) then begin
     gExtraHeadHTML = gExtraHeadHTML & "<link rel='canonical' href='" & CWb.CanonicalBase & WebGetArg("path") & "'>";
+  end;
+
+  if (blank(GetCookie("exitpopup"))) then begin
+    fullpath = WebGetArg("path");
+    BlockLoad(EPb);
+    rwcnt = MatRowCnt(EPb);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(EPb,i,EPbrw);
+      if (fullpath==EPbrw.Link) then begin
+        gExtraHeadHTML = gExtraHeadHTML & "<script src='/scripts/exitpopup.js'></script>";
+        i = rwcnt;
+      end;
+    end;
   end;
 
   return;
@@ -1449,6 +1465,42 @@ begin
 
     end;
   end;
+
+  return;
+end;
+
+global
+updating procedure StoreExitPopupActivity()
+begin
+  Longint value;
+  string 255 email,warning;
+  Integer rw;
+  record CreditalWebSetBlock WSb;
+  record ActVc Actr;
+
+  value = StringToLongint(WebGetArg("value"));
+  email = WebGetArg("email");
+
+  if (nonblank(email) and value>0) then begin
+    BlockLoad(WSb);
+    RecordNew(Actr);
+    Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+    Actr.TransDate = CurrentDate;
+    Actr.ActType = WSb.PopupActType;
+    PasteActTypeInAct2("",Actr,warning);
+    Actr.MainPersons = WSb.PopupPersons;
+    Actr.Comment = WSb.PopupActComment;
+    Actr.TodoFlag = kTodoFlagTodo;
+
+    rw = 0;
+    AddActrText(Actr,value & " EUR",rw);
+    AddActrText(Actr,email,rw);
+
+    if (RecordInsert(Actr,true)) then begin
+
+    end;
+  end;
+
 
   return;
 end;

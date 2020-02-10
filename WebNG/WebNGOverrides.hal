@@ -32,6 +32,7 @@ external procedure LoanAppSmartIDAction(string);
 external procedure ShowUpdatePasswordElement(record WebNGElementVc);
 external updating procedure SendResetPasswordMail();
 external updating procedure StorePopupLoanApplication();
+external updating procedure StoreExitPopupActivity();
 external procedure ProcessOtherVerification();
 external procedure DokobitActions(string);
 external procedure CreditAccountActions(string);
@@ -511,6 +512,9 @@ begin
       case "StorePopupApplication":
         StorePopupLoanApplication;
         res = true;
+      case "registerexitpopup":
+        StoreExitPopupActivity;
+        res = true;
     end;
   end;
 
@@ -574,6 +578,9 @@ begin
       end else begin
         WebOutString("<res stat='SUCCESS'></res>");
       end;
+      res = true;
+    case "setexitpopup":
+      SetDetailedCookie("exitpopup","true","Exit popup","","/",15552000); //180days
       res = true;
   end;
 

@@ -11,7 +11,7 @@ begin
 
   BlockLoad(IEb);
   BlockLoad(Mb);
-  CallService("46.109.118.145:4455").ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
+  CallService("80.79.119.36:1402").ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
   
   SendScanDocFile = res;
   return;

@@ -64,6 +64,7 @@ begin
   Setting("Credital Web Settings",CreditalWebSetTClass,modWebShopNG);
   Setting("Meta Tags",WebMetaTagLClass,modWebShopNG);
   Setting("Meta Tags Translations",WebMetaTagTransLClass,modWebShopNG);
+  Setting("Exit Popup Links",ExitPopupLinksTClass,modWebShopNG);
 
 /*Sales ledger*/
 	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);

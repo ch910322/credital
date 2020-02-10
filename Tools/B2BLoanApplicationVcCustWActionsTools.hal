@@ -183,7 +183,7 @@ begin
   */
   c2 = assetscoef;
 
-   //LogValue("N80","Sodros pajamos + turtas",assetscoef,ECb.Debug);
+   LogValue("N80","Sodros pajamos + turtas",c2,ECb.Debug);
  
 
   if (LAr.CurProfit>ECb.AnnualProfitLow) then begin
@@ -497,6 +497,10 @@ begin
     res = ECb.UABScore;
     goto LGetCompTypeScore;
   end;
+  if (left(LAr.CustName,3)=="UAB") then begin
+    res = ECb.UABScore;
+    goto LGetCompTypeScore;
+  end;
   if (right(LAr.CustName,2)=="MB") then begin
     res = ECb.MBScore;
     goto LGetCompTypeScore;
@@ -658,6 +662,7 @@ begin
   row ScoringSupVc SSrw;
   
   res = 0;
+/* I think this is wrong*/
   switch (SSr.AssetsType) begin
     case 0: res = ECb.NoAssetCoef;
     case 1: res = ECb.MortgageCoef;
@@ -880,9 +885,9 @@ begin
   j11 = GetJ11Score(LAr,ECb,SS3r);
 
 
-  j8 = j2+bestSRrw.Score+j5+j6+j7+j9+min(j3,j10)+j11;
+  j8 = j2+bestSRrw.Score+j5+j6+j9+min(j3,j10)+j11;//j7
 
-  j1 = j2+j3+bestSRrw.Score+j4+j5+j6+j7;
+  j1 = j2+j3+bestSRrw.Score+j4+j5+j6;//+j7;
   
   if (suretycnt==1) then begin
     if (j1>ECb.SuretyScoreHigh) then begin

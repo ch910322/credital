@@ -2015,6 +2015,24 @@ begin
   EndWindow;
 end;
 
+window ExitPopupLinksTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Exit Popup Links",ExitPopupLinksTClass,CGHbl,HBlRecType);
+  SetBlid(ExitPopupLinksBlock);
+  SetWRect(20,80,500,351);
+  Sizeable(-1,-1,0,0);
+  if (GuiType==kGuiCocoa) then begin
+    MatrixBegin(h,v,-31,-20,-,199);
+  end else begin
+    MatrixBegin(h,v+16,-18,-20,-,199);    
+  end;
+  MatCol(1,24,"Link",0,Link,false,0);
+  EndMatrix;
+  EndWindow;
+end;
+
 window CMOrderClassTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin

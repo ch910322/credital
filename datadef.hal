@@ -702,6 +702,7 @@ begin
   ArrayField(Spec,M4Str,200,0);
   ArrayField(Reb,M4Val,0,0);
   ArrayField(FactoringInvoice,M4Long,0,0);
+  ArrayField(OpenAmount,M4Val,0,0);
   EndRecordAdd;
 
   BlockBegin(ItemPriorityBlock,-,"");
@@ -1224,6 +1225,13 @@ begin
   ChangeField(DivClass,M4Str,255,0);
   ChangeField(ContentDivClass,M4Str,255,0);
   EndRecordAdd;
+
+  BlockBegin(ExitPopupLinksBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Link,M4Str,255,0);
+  EndArray;
+  EndBlock;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
