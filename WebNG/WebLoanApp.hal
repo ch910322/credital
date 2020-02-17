@@ -31,6 +31,7 @@ external function string 255 GetLinkToCreditAccount();
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 external function Boolean AllSuretyApplicationsSigned(Longint,record AgreementDocVc);
 remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
+external function string 255 CreditalFixPhone(string,string);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -853,12 +854,13 @@ begin
   CUr.InvAddr0 = addr0;
   CUr.InvAddr2 = addr2;
   CUr.InvAddr3 = addr3;
-  CUr.Phone = phone;
-  CUr.Mobile = mobile;
+  CUr.Phone = CreditalFixPhone(phone,CUr.CountryCode);
+  CUr.Mobile = CreditalFixPhone(mobile,CUr.CountryCode);
   CUr.Fax = fax;
   CUr.wwwAddr = homepage;
   CUr.VATNr = vatnr;
   CUr.CUType = 1;
+  CUr.VEType = 1;
   if (RecordInsert(CUr,true)) then begin
     res = true;
     ReadFirstMain(CUr,1,true);
@@ -881,7 +883,7 @@ begin
   if (GetNextCustNr(tstr)) then begin end;
   CUr.Code = tstr;
   CUr.eMail = email;
-  CUr.Mobile = phone;
+  CUr.Mobile = CreditalFixPhone(phone,CUr.CountryCode);;
   CUr.CUType = 0;
   CUr.CustCat = "";
   CUr.CustType = 1;
@@ -1138,7 +1140,7 @@ logtext(0,"status " & status);
   end;
 
   LAr.ContacteMail = ContactCUr.eMail;
-  LAr.ContactMobile = phone;
+  LAr.ContactMobile = ContactCUr.Mobile;
   LAr.Manager = WLCr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
@@ -1340,11 +1342,11 @@ begin
   if (updatef==false or manf) then begin
     CUr.eMail = WebGetArg(ind & "email");
     CUr.Name = WebGetArg(ind & "name");
-    CUr.Phone = WebGetArg(ind & "phone");
+    CUr.Phone = CreditalFixPhone(WebGetArg(ind & "phone"),CUr.CountryCode);
     CUr.RegNr1 = WebGetArg(ind & "id");
     SplitAddress(CUr,WebGetArg(ind & "addr"));
     if (manf) then begin
-      CUr.Mobile = WebGetArg(ind & "mobile");
+      CUr.Mobile = CreditalFixPhone(WebGetArg(ind & "mobile"),CUr.CountryCode);
     end;
   end;
   if (updatef) then begin

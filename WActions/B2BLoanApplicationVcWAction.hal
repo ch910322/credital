@@ -11,9 +11,10 @@ remote updating function Boolean B2BLoanAppCreateCredMan(var record B2BLoanAppli
 external inner procedure ActVcRecordDefClient(var record ActVc);
 external updating function Boolean MakeActFromB2BLoanApp(var record B2BLoanApplicationVc,var record ActVc);
 remote inner procedure SetupCustPS2Rn(string,var record RcVc);
-remote procedure GetCreditInfo(var record B2BLoanApplicationVc,var Boolean,var string);
+remote procedure GetCreditInfo(var record B2BLoanApplicationVc,var Integer,var string,var array Date,var array val,var array Integer,var array Longint,Boolean);
 external inner function LongInt DateDiff(Date,Date);
 remote updating function Boolean SendSuretyInvitation(record RcVc,var record B2BLoanApplicationVc);
+remote procedure GetCreditInfoHistory(var record B2BLoanApplicationVc,var Integer,var string,Integer,Longint);
 
 function Boolean B2BLoanApplicationDClassCustCodeEFAfter(Integer wn,Integer changed)
 begin
@@ -1149,26 +1150,120 @@ begin
   return;
 end;
 
-global
-updating procedure GetCreditinfoStatDsm()
+procedure OpenCompanyInfoChooseWindow(Integer wn,record B2BLoanApplicationVc LAr,array Date arrDate,array val arrAmount,array Integer arrSource,array Longint arrID)
+begin
+  record ORVc ORr;
+  row ORVc ORrw;
+  Integer rw,i,nwn;
+
+  for (i=0;i<arrDate.length;i=i+1) begin
+    ClearRow(ORr,ORrw,1);
+    ORrw.PickingDate = arrDate[i];
+    ORrw.Price = arrAmount[i];
+    ORrw.Perceptions = arrSource[i];
+    ORrw.GroupOrdRow = arrID[i];
+    MatRowPut(ORr,rw,ORrw);
+    rw = rw + 1;
+  end;
+
+  ORr.SHShipSetToZero = wn;
+  
+  nwn = OpenWindow("CompanyInfoChooseWClass",0,0,"","",ORr);
+
+  return;
+end;
+
+updating procedure GetCreditInfoStat(Boolean newf)
 begin
   Integer wn;
   record B2BLoanApplicationVc LAr;
-  Boolean res;
+  Integer res;
   string 255 errstr;
+  array Date arrDate;
+  array val arrAmount;
+  array Integer arrSource;
+  array Longint arrID;
 
   wn = CurWindow;
   GetWindowRecord(wn,LAr);
 
-  threadremote.GetCreditInfo(LAr,res,errstr);
-  if (res) then begin
-    PutWindowRecord(wn,LAr);
-    WindowDoOK(wn,0);
+  threadremote.GetCreditInfo(LAr,res,errstr,arrDate,arrAmount,arrSource,arrID,newf);
+  switch (res) begin
+    case 1:
+      PutWindowRecord(wn,LAr);
+      WindowDoOK(wn,0);
+    case 2:
+      OpenCompanyInfoChooseWindow(wn,LAr,arrDate,arrAmount,arrSource,arrID);
+    case 0:
+      if (nonblank(errstr)) then begin
+        StopAlert(errstr);
+      end;
+  end;
+
+  return;
+end;
+
+global
+updating procedure GetCreditinfoStatDsm()
+begin
+
+  GetCreditInfoStat(false);
+
+  return;
+end;
+
+global
+updating procedure CompanyInfoChooseWClassNew()
+begin
+  
+  CloseWindow(CurWindow);
+  GetCreditInfoStat(true);
+
+  return;
+end;
+
+global
+updating procedure CompanyInfoChooseWClassSelect()
+begin
+  Integer wn,mwn;
+  record ORVc ORr;
+  record B2BLoanApplicationVc LAr;
+  string 255 tmp,tag,errstr;
+  Longint pos,id;
+  Integer source;
+  Integer res;
+
+  wn = CurWindow;
+  GetWindowRecord(wn,ORr);
+
+  mwn = ORr.SHShipSetToZero;
+  GetWindowRecord(mwn,LAr);
+  
+  tag = PushButtonTag;
+  GetNextSubstring(tag,pos,":",tmp);
+  source = StringToInt(tmp);
+  GetNextSubstring(tag,pos,":",tmp);
+  id = StringToLongint(tmp);
+  CloseWindow(wn);
+
+  threadremote.GetCreditInfoHistory(LAr,res,errstr,source,id);
+  if (res==1) then begin
+    PutWindowRecord(mwn,LAr);
+    WindowDoOK(mwn,0);
   end else begin
     if (nonblank(errstr)) then begin
       StopAlert(errstr);
     end;
   end;
+
+  return;
+end;
+
+global
+procedure CompanyInfoChooseWClassCancel()
+begin
+  
+  CloseWindow(CurWindow);
 
   return;
 end;

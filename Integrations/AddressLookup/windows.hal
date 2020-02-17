@@ -5,7 +5,7 @@ begin
 
   Setting("Company registration date WEB service",EBSAddrLookupTClass,modSY);
   
-  SetBegin(400001);
+  SetBegin(31501);
   SetText(0,"-");
   SetText(1,"rekvizitai.lt");
   SetText(2,"Lursoft");

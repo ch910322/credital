@@ -48,6 +48,7 @@ external procedure CheckLoanCustomer(string,string,string,Boolean,var record CUV
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 external updating procedure CreateActivityForContactLinks(record CUVc,record CUVc);
 external updating procedure AddToMailingList(record CMApplicationSetBlock,record CUVc);
+external function string 255 CreditalFixPhone(string,string);
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -845,7 +846,7 @@ begin
         if (GetNextCustNr(tstr)) then begin end;
         ContactCUr.Code = tstr;
         ContactCUr.eMail = mail;
-        ContactCUr.Phone = value[4];
+        ContactCUr.Phone = CreditalFixPhone(value[4],ContactCUr.CountryCode);
         ContactCUr.Name = value[2];
         RecordStore(ContactCUr,true);
       end;

@@ -3,7 +3,7 @@ begin
   
   SetLangMode(LangEnglish,"ENG",0);
 
-  Setting("Smart ID",SmartIDTClass,modSY);
+  Setting("Document Signing Integrations",SmartIDTClass,modSY);
 
 end;
 
@@ -15,15 +15,24 @@ begin
 
   SetLangMode(LangEnglish,"ENG",0);
 
-  WindowBegin("Smart ID",SmartIDTClass,CGSbl,SRType);
+  WindowBegin("Document signing integrations",SmartIDTClass,CGSbl,SRType);
   SetBlid(SmartIDBlock);
-  SetWRect(20,80,570,298);
-  Sizeable(-1,-1,0,0);
-  EditField(h=150,v=6,200,"E-Signature Access Token",Normal,AccessToken,false,0);
-  EditField(h=150,v+=vs,200,"Smart ID Access Token",Normal,SmartIDAccessToken,false,0);
+  SetWRect(20,80,570,348);
+  Tile(0,100,false,"",AccessToken);
+  TileButton(1,"Dokobit");
+  TileButton(2,"MarkID");
+  Tile(1,100,false,"",AccessToken);
+  EditField(h=150,v+=6,200,"Dokobit Access Token",Normal,AccessToken,false,0);
+  CheckBox(h+220,v,0,"Default",DokobitDefault);
   ButtonFrame(h,v=v+40,100,2,"Mode");
   RadioButton(h,v,0,0,"Test",Mode);
   RadioButton(h,v+=16,1,0,"Live",Mode);
+  Tile(2,100,false,"",MarkIDAccessToken);
+  EditField(h=150,v=6,200,"Mark ID Access Token",Normal,MarkIDAccessToken,false,0);
+  CheckBox(h+220,v,0,"Default",MarkIDDefault);
+  ButtonFrame(h,v=v+40,100,2,"Mode");
+  RadioButton(h,v,0,0,"Test",MarkMode);
+  RadioButton(h,v+=16,1,0,"Live",MarkMode);
   
   EndWindow;
 

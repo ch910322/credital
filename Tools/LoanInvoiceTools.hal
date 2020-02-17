@@ -193,7 +193,7 @@ begin
   return;
 end;
 
-procedure GetLatePaymentPlan(record CredHistVc CredHistr,Date sd,Date ed,var array val amounts)
+procedure GetLatePaymentPlan(record CredManVc CredManr,record CredHistVc CredHistr,Date sd,Date ed,var array val amounts)
 begin
   Date tempsd;
   record CredHistVc CredPayr;//CredPayr - same credhistvc register, just for payments
@@ -206,6 +206,10 @@ begin
   if (tempsd<=CredHistr.PayDate) then begin
     tempsd = AddDay(CredHistr.PayDate,1);
   end;
+  if (CredManr.LateFeeDays>0) then begin
+    tempsd = AddDay(tempsd,CredManr.LateFeeDays);
+  end;
+
   TrHs = true;
   CredPayr.PreviousNr = CredHistr.SerNr;
   while (LoopKey("PreviousNr",CredPayr,1,TrHs)) begin
@@ -237,35 +241,50 @@ begin
   return;
 end;
 
-global
-procedure GetCredManOverdueInvoices(record CredManVc CredManr,record CredManSetBlock CMb,Date invdate,Date prevtd,var Integer latedays,var val lateamount)
+procedure CheckOverdueInvoicesForItem(record CredManVc CredManr,record CredManSetBlock CMb,Date invdate,Date prevtd,var Integer latedays,var val lateamount,string item)
 begin
   record CredHistVc CredHistr;
   Boolean TrHs;
   array val amounts;
   val latefee;
   Integer i;
-
-  latedays = 0;
-  lateamount = 0;
-  //we should go through the history and check for late payments
+ 
   TrHs = true;
-  CredHistr.ArtCode = CMb.InstalmentItem;
+  CredHistr.ArtCode = item;
   CredHistr.CredManNr = CredManr.SerNr;
   while (LoopKey("ArtCode",CredHistr,2,TrHs)) begin
-    if (CredHistr.ArtCode!=CMb.InstalmentItem or CredHistr.CredManNr!=CredManr.SerNr) then begin
+    if (CredHistr.ArtCode!=item or CredHistr.CredManNr!=CredManr.SerNr) then begin
       TrHs = false;
     end else begin
       //Construct an array of days with amount that is over due starting with the first day of period
-      GetLatePaymentPlan(CredHistr,AddDay(prevtd,1),invdate,amounts);
+      GetLatePaymentPlan(CredManr,CredHistr,AddDay(prevtd,1),invdate,amounts);
       for (i=0;i<amounts.length;i=i+1) begin
         latefee = latefee + (amounts[i]*(CredManr.OverduePercentage/100));
       end;
     end;
   end;
 
-  lateamount = latefee;
+  lateamount = lateamount + latefee;
 
+  return;
+end;
+
+global
+procedure GetCredManOverdueInvoices(record CredManVc CredManr,record CredManSetBlock CMb,Date invdate,Date prevtd,var Integer latedays,var val lateamount)
+begin
+  record CMApplicationSetBlock CMSb;
+  record INVc INr;
+
+  BlockLoad(CMSb);
+
+  latedays = 0;
+  lateamount = 0;
+  //we should go through the history and check for late payments
+  if (nonblank(CMSb.OverdueItemClass)) then begin
+    while (LoopKey("DICode:" & CMSb.OverdueItemClass,INr,1,true)) begin
+      CheckOverdueInvoicesForItem(CredManr,CMb,invdate,prevtd,latedays,lateamount,INr.Code);
+    end;
+  end;
   return;
 end;
 

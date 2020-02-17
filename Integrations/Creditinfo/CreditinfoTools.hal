@@ -3,6 +3,9 @@ external inner function Date DateFromString(string,string);
 external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
 external inner function Boolean GetNextCustNr(var string);
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
+external function Boolean CheckIfCompanyInfoAvailable(string,string,var array Date,var array val,var array Integer,var array Longint);
+external function Boolean GetExistingCompanyInfo(string,string,Longint,var area);
+external procedure SendCompanyInfo(string,string,Integer,var area);
 
 function Integer YearDiff(Date d1,Date d2)
 begin
@@ -74,7 +77,7 @@ begin
 end;
 
 global
-updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Boolean res)
+updating procedure TreatCreditInfoReply(var record B2BLoanApplicationVc LAr,var record CUVc CUr,area reply,var Integer res)
 begin
   Boolean debugf;
   string 255 lang,params,url,path,root,tstr,fn,name,surname,datestr,datestr1,datestr2;
@@ -91,7 +94,7 @@ begin
 
   BlockLoad(ASb);
   RecordCopy(oldCUr,CUr);
-  res = true;
+  res = 1;
   axml = ParseXmlArea(reply);
   root = "root/BasicInfo";
   if (nonblank(XmlGet(axml,root & "/Registered"))) then begin
@@ -338,8 +341,7 @@ begin
   return;
 end;
 
-global
-procedure GetCreditInfo(var record B2BLoanApplicationVc LAr,var Boolean res,var string errstr)
+procedure DoGetCreditInfo(var record B2BLoanApplicationVc LAr,var Integer res,var string errstr)
 begin
   record CreditinfoBlock CIb;
   Boolean debugf;
@@ -350,7 +352,7 @@ begin
   Longint port,pos;
   xml axml;
 
-  res = false;
+  res = 0;
   BlockLoad(CIb);
   CUr.Code = LAr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
@@ -382,10 +384,61 @@ begin
       end;
 
       qupdating.TreatCreditInfoReply(LAr,CUr,reply,res);
-
+      threadasync.SendCompanyInfo(CUr.RegNr1,CUr.CountryCode,1,reply);
     end;
   end;
 
 LGetCreditInfo:;
+  return;
+end;
+
+
+global
+procedure GetCreditInfo(var record B2BLoanApplicationVc LAr,var Integer res,var string errstr,var array Date arrDate,var array val arrAmount,var array Integer arrSource,var array Longint arrID,Boolean forcenewf)
+begin
+  record CompanyInfoBlock CIb;
+  Boolean showoptionsf;
+  record CUVc CUr;
+  
+  BlockLoad(CIb);
+  if (CIb.CheckHistory==1 and !forcenewf) then begin
+    CUr.Code = LAr.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+
+      if (CheckIfCompanyInfoAvailable(CUr.RegNr1,CUr.CountryCode,arrDate,arrAmount,arrSource,arrID)) then begin
+        //Show options
+        showoptionsf = true;
+      end;
+    end;
+  end;
+
+  if (showoptionsf) then begin
+    res = 2;//get back to client and open window with possible options
+  end else begin
+    DoGetCreditInfo(LAr,res,errstr);
+  end;
+
+  return;
+end;
+
+global
+procedure GetCreditInfoHistory(var record B2BLoanApplicationVc LAr,var Integer res,var string errstr,Integer source,Longint id)
+begin
+  record CUVc CUr;
+  area comparea;
+  
+logtext(0,"GetCreditInfoHistory1 " & source & ":" & id);
+  CUr.Code = LAr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+logtext(0,"GetCreditInfoHistory2");
+    if (GetExistingCompanyInfo(CUr.RegNr1,CUr.CountryCode,id,comparea)) then begin
+logtext(0,"GetCreditInfoHistory3");
+      switch (source) begin
+        case 1:
+          qupdating.TreatCreditInfoReply(LAr,CUr,comparea,res);
+      end;
+    end;
+  end;
+
   return;
 end;

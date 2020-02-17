@@ -12,6 +12,7 @@ external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPa
 external inner procedure SetContentTypeForExtension(string);
 external procedure ShowWebLoanStrings();
 external function Integer MapLoanType(string);
+external function string 255 CreditalFixPhone(string,string);
 
 procedure DisplayAccDataField(string cls,string label,string value) 
 begin
@@ -940,7 +941,7 @@ begin
   CUr.Code = CurrentCust;
   if (ReadFirstMain(CUr,1,true)) then begin
     RecordCopy(oldCUr,CUr);
-    CUr.Phone = phone;
+    CUr.Phone = CreditalFixPhone(phone,CUr.CountryCode);
     CUr.InvAddr0 = address;
     if (RecordUpdate(oldCUr,CUr,true)==0) then begin
       res = true;

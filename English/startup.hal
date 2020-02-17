@@ -29,6 +29,7 @@ begin
   Setting("Document Signing Reminders",DocumentReminderLClass,modCredMan);
   Setting("Agreement/Application Extensions",CredManExtTClass,modCredMan);
   Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
+  Setting("Telephone Prefixes",PhonePrefixTClass,modCredMan);
   Setting("Receipt Entry",ReceiptEntryWClass,modSL);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
@@ -65,6 +66,7 @@ begin
   Setting("Meta Tags",WebMetaTagLClass,modWebShopNG);
   Setting("Meta Tags Translations",WebMetaTagTransLClass,modWebShopNG);
   Setting("Exit Popup Links",ExitPopupLinksTClass,modWebShopNG);
+  Setting("Contact Page Companies",LangCompanyMapTClass,modWebShopNG);
 
 /*Sales ledger*/
 	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);

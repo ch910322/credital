@@ -1,0 +1,33 @@
+global
+function Boolean SmartIDTClassDokobitDefaultButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record SmartIDBlock SIb;
+  
+  GetWindowRecord(wn,SIb);
+  res = true;
+  if (SIb.DokobitDefault==0) then begin
+    SIb.MarkIDDefault = 0;
+    PutWindowRecord(wn,SIb);
+  end;
+
+  SmartIDTClassDokobitDefaultButtonAction = res;
+  return;
+end;
+
+global
+function Boolean SmartIDTClassMarkIDDefaultButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record SmartIDBlock SIb;
+
+  GetWindowRecord(wn,SIb);
+  res = true;
+  if (SIb.MarkIDDefault==0) then begin
+    SIb.DokobitDefault = 0;
+    PutWindowRecord(wn,SIb);
+  end;
+
+  SmartIDTClassMarkIDDefaultButtonAction = res;
+  return;
+end;

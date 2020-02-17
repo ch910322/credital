@@ -4,6 +4,12 @@ begin
   SetLangMode(LangEnglish,"ENG",0);
 
   Setting("Creditinfo.lt",CreditinfoTClass,modSY);
+  Setting("Company Info Settings",CompanyInfoTClass,modSY);
+
+  SetBegin(30900);
+  SetText(0,"-");
+  SetText(1,"Creditinfo.lt");
+  EndSet;
 
 end;
 
@@ -25,6 +31,48 @@ begin
   RadioButton(h,v,0,0,"Test",Mode);
   RadioButton(h,v+=16,1,0,"Live",Mode);
   
+  EndWindow;
+
+  WindowBegin("Company Info Settings",CompanyInfoTClass,CGSbl,SRType);
+  SetBlid(CompanyInfoBlock);
+  SetWRect(20,80,570,200);
+  Sizeable(-1,-1,0,0);
+  CheckBox(h,v=20,0,"Search for Historic Data",CheckHistory);
+  
+  EndWindow;
+
+  return;
+end;
+
+window CompanyInfoChooseWClass:3
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,v,vm,vs,vs2;
+  record ORVc ORr;
+  row ORVc ORrw;
+  Integer i,rwcnt;
+
+  WindowBegin("Get Existing Company Info",CompanyInfoChooseWClass,CGother,-);
+  UseView(ORVc);
+  DynamicWindow;
+  if (CurWindow>0) then begin
+    GetWindowRecord(CurWindow,ORr);
+    rwcnt = MatRowCnt(ORr);
+  end;
+
+  SetWRect(20,80,370,170+(35*rwcnt));
+  AutoSizeWindow(false);  
+
+  h = 50; h2 = 250; v=20; vs = 30;
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    HalPushButtonTag(h,v,h+250,v+20,"CompanyInfoChooseWClassSelect",ORrw.PickingDate & " (" & ORrw.Price & ") - " & StringFromSet(30900,ORrw.Perceptions) ,ORrw.Perceptions & ":" & ORrw.GroupOrdRow);
+    v = v + vs;
+  end;
+  v = v+10;
+  HalPushButton(h,v,h+250,v+20,"CompanyInfoChooseWClassNew","Receive New Data");
+  h = h + 50;
+  HalPushButton(h,v+=vs,h+150,v+20,"CompanyInfoChooseWClassCancel","Cancel");
   EndWindow;
 
   return;

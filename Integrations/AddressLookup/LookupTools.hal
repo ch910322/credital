@@ -45,14 +45,14 @@ begin
     record CYBlock CYb;
     transaction Integer gEBSAddrLookupVATLaw;
 
-    
     countrystr = gEBSAddrLookupCountry;
+    vatlaw = gEBSAddrLookupVATLaw;
     
     if (blank(countrystr)) then begin
       BlockLoad(CYb);
       countrystr = CYb.CountryCode;
     end;
-    
+
     BlockLoad(ALb);
     rwcnt = MatRowCnt(ALb);
     for (i=0;i<rwcnt;i=i+1) begin
@@ -60,9 +60,9 @@ begin
       if (ALbrw.CountryCode==countrystr) then begin
         vatlaw = GetVATLawFromLookupType(ALbrw.LookupType);
         gEBSAddrLookupVATLaw = vatlaw;
+        i = rwcnt;
       end;
     end;
-    
   end;
 //CUST-END
 

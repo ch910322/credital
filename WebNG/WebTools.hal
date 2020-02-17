@@ -21,6 +21,7 @@ external function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplica
 external inner function string 255 GetLoginPageStructLink();
 external updating procedure CreateSuretyDataAgreement(string,record B2BLoanApplicationVc);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
+forward function string 255 CreditalFixPhone(string,string);
 
 global
 procedure GetWebCampaignAttachedImages(record WebCampaignVc WCr,var array string aName)
@@ -567,6 +568,38 @@ begin
   return;
 end;
 
+procedure SetLanguageCompany(var Integer oldcomp)
+begin
+  record LangCompanyMapBlock LCb;
+  row LangCompanyMapBlock LCbrw;
+  Integer i,rwcnt;
+  string 255 langcode;
+  
+  oldcomp = CurrentCompany;
+  langcode = CurrentWebLang;
+  BlockLoad(LCb);
+  rwcnt = MatRowCnt(LCb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(LCb,i,LCbrw);
+    if (LCbrw.LangCode==langcode and LCbrw.CompanyNr>0) then begin
+      SetCompany(LCBrw.CompanyNr,false);
+      i = rwcnt;
+    end;
+  end;
+
+  return;
+end;
+
+procedure ResetLanguageCompany(var Integer oldcomp)
+begin
+  
+  if (CurrentCompany!=oldcomp) then begin
+    ResetCompany(oldcomp);
+  end;
+
+  return;
+end;
+
 global webpublic
 procedure WebShowEmpPic()
 begin 
@@ -618,6 +651,9 @@ begin
   record EGVc EGr;
   array record UserVc aUser;
   Integer i;
+  Integer oldcomp;
+
+  SetLanguageCompany(oldcomp);
 
   EGr.Code = WEr.HALFunc;
   if (ReadFirstMain(EGr,1,true)) then begin
@@ -637,6 +673,9 @@ begin
     end;
     WebOutString("</div>");
   end;
+
+  ResetLanguageCompany(oldcomp);
+
 
   return;
 end;
@@ -662,6 +701,9 @@ global
 procedure ShowContactInfo(record WebNGElementVc WEr)
 begin
   record CYBlock CYb;
+  Integer oldcomp;
+
+  SetLanguageCompany(oldcomp);
 
   BlockLoad(CYb);
 
@@ -685,6 +727,8 @@ begin
       ShowContactLine("phone","<span class='use_phone'>" & CYb.Phone & "</span>");
       ShowContactLine("email","<span class='use_mail'>" & CYb.emailAddr & "</span>");
   end;
+
+  ResetLanguageCompany(oldcomp);
 
   return;
 end;
@@ -1328,7 +1372,7 @@ begin
     RecordCopy(oldCUr,CUr);
     CUr.Name = name;
     CUr.RegNr1 = id;
-    CUr.Phone = phone;
+    CUr.Phone = CreditalFixPhone(phone,CUr.CountryCode);
     CUr.InvAddr0 = address;
     CUr.Password = CalcPassword(passw1,CUr.Code,0);
     if (RecordUpdate(oldCUr,CUr,false)==0) then begin//avoid record check because of missing classifications
@@ -1523,5 +1567,51 @@ begin
   WebOutString("pu_strings['Phone'] = '" & MakeWebSafe(ToolWebNGTranslateText2(70412)) & "';");
   WebOutString("</script>");
 
+  return;
+end;
+
+
+global
+function string 255 CreditalFixPhone(string phone,string countrycode)
+begin
+  record PhonePrefixBlock PPb;
+  row PhonePrefixBlock PPbrw;
+  Integer i,rwcnt;
+  string 255 prefix,rprefix,res;
+  
+  res = phone;
+  if (blank(res)) then begin
+    goto LCreditalFixPhone;
+  end;
+
+  BlockLoad(PPb);
+  rwcnt = MatRowCnt(PPb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(PPb,i,PPbrw);
+    if (blank(PPbrw.CountryCode) or PPbrw.CountryCode==countrycode) then begin
+      prefix = PPbrw.Prefix;
+      rprefix = PPbrw.ReplacePrefix;
+    end;
+  end;
+
+  if (nonblank(prefix)) then begin
+    if (left(phone,1)=="+" or left(phone,2)=="00") then begin
+      //do nothing?
+    end else begin
+      if (left(phone,len(prefix))==prefix) then begin
+        res = "+" & res;
+      end else begin
+        if (nonblank(rprefix)) then begin
+          if (left(phone,len(rprefix))==rprefix) then begin
+            res = right(res,len(res)-len(rprefix));
+          end;
+        end;
+        res = "+" & prefix & res;
+      end;
+    end;
+  end;
+
+LCreditalFixPhone:;
+  CreditalFixPhone = res;
   return;
 end;

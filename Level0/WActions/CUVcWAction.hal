@@ -2220,6 +2220,7 @@ begin
 //CUST-BEGIN
     begin
       transaction string 255 gEBSAddrLookupCountry;
+
       if (GetWindowFileName(wn)=="CUVc") then begin
         gEBSAddrLookupCountry = CUr.CountryCode;
       end;

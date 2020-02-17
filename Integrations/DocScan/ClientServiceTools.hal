@@ -1,6 +1,21 @@
-//<halrule>server-only</halrule>
 //Using hardcoded ip address in the beginning
 external procedure ReadScanDocFile(area,Integer,string,Longint,string,Date,var vector string,var Boolean);
+external procedure CompanyHasData(string,string,string,Longint,string,Date,var array Date,var array val,var array Integer,var array Longint,var Boolean);
+external procedure CompanyGetData(string,string,Longint,var area,string,Longint,string,Date,var Boolean);
+external procedure CompanyStoreData(string,string,area,Integer,string,Longint,string,Date,var Boolean);
+
+function string 255 GetServiceIPAddress()
+begin
+  string 255 ip;
+  
+  ip = "80.79.119.36:1402";
+  if (TestEnablerFile("EnLocalhost")) then begin  
+    ip = "127.0.0.1:1402";
+  end;
+
+  GetServiceIPAddress = ip;
+  return;
+end;
 
 global
 function Boolean SendScanDocFile(area a,Integer type,var vector string vVals)
@@ -8,11 +23,74 @@ begin
   record InternetEnablerBlock IEb;
   record ModuleBlock Mb;
   Boolean res;
+  string 255 ip;
 
   BlockLoad(IEb);
   BlockLoad(Mb);
-  CallService("80.79.119.36:1402").ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
+  ip = GetServiceIPAddress;
+  
+  CallService(ip).ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
   
   SendScanDocFile = res;
   return;
 end;
+
+global
+function Boolean CheckIfCompanyInfoAvailable(string regnr,string country,var array Date arrDate,var array val arrAmount,var array Integer arrSource,var array Longint arrID)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  Boolean res;
+  string 255 ip;
+
+
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  
+  CallService(ip).CompanyHasData(regnr,country,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,arrDate,arrAmount,arrSource,arrID,res);
+
+  CheckIfCompanyInfoAvailable = res;
+  return;
+end;
+
+global
+function Boolean GetExistingCompanyInfo(string regnr,string country,Longint id,var area comparea)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  Boolean res;
+  string 255 ip;
+
+
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  
+  CallService(ip).CompanyGetData(regnr,country,id,comparea,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,res);
+
+  GetExistingCompanyInfo = res;
+  return;
+end;
+
+global
+procedure SendCompanyInfo(string regnr,string country,Integer source,var area comparea)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  Boolean res;
+  string 255 ip;
+
+
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  logtext(0,"sending to " & ip);
+  CallService(ip).CompanyStoreData(regnr,country,comparea,source,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,res);
+
+  //we should retry if it fails...
+
+  return;
+end;
+
+

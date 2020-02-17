@@ -6,5 +6,11 @@ begin
   RecordField(Mode,M4Int,0,0);
   EndBlock;
 
+  BlockBegin(CompanyInfoBlock,-,"");
+  RecordField(CheckHistory,M4Int,0,0);
+  EndBlock;
+
+  
+
   return;
 end;

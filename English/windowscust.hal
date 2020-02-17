@@ -103,6 +103,8 @@ begin
   EditField(h,v+=vs,100,"Additional Comment",Normal,InvoiceCommentStr,false,0);
   EditField(h,v+=vs,100,"Document Signer",Normal,DocumentSigner,false,UserSClass);
   EditField(h,v+=vs,100,"Signer's Job Description",Normal,DocumentSignerPosition,false,0);
+  EditField(h,v+=vs,100,"Overdue Item Class",Normal,OverdueItemClass,false,DISClass);
+  
 
   EndWindow;
 
@@ -2115,4 +2117,41 @@ begin
 
   EndWindow;
   return;
+end;
+
+window PhonePrefixTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Telephone Prefixes",PhonePrefixTClass,CGHbl,HBlRecType);
+  SetBlid(PhonePrefixBlock);
+  SetWRect(20,80,330,351);
+  if (GuiType==kGuiCocoa) then begin
+    MatrixBegin(h,v,-31,-20,-,199);
+  end else begin
+    MatrixBegin(h,v+16,-18,-20,-,199);    
+  end;
+  MatCol(1,24,"Country",0,CountryCode,false,CountrySClass);
+  MatCol(1,130,"Prefix",0,Prefix,false,0);
+  MatCol(1,210,"Repl. Prefix",0,ReplacePrefix,false,0);
+  EndMatrix;
+  EndWindow;
+end;
+
+window LangCompanyMapTClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Contact Page Companies",LangCompanyMapTClass,CGHbl,HBlRecType);
+  SetBlid(LangCompanyMapBlock);
+  SetWRect(20,80,240,351);
+  if (GuiType==kGuiCocoa) then begin
+    MatrixBegin(h,v,-31,-20,-,199);
+  end else begin
+    MatrixBegin(h,v+16,-18,-20,-,199);    
+  end;
+  MatCol(1,24,"Language",0,LangCode,false,WebNGLanguageSClass);
+  MatCol(1,130,"Company",0,CompanyNr,false,Companies2SClass);
+  EndMatrix;
+  EndWindow;
 end;
