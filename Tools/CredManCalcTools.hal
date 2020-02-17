@@ -418,16 +418,18 @@ begin
             type = GetCredHistType(PrevCredHistr.ArtCode,true);          
         end;
         AddCredPayPlanLine(CredManPayPlanr,CredHistr.TransDate,CredHistr.ArtCode,"",type,CredHistr.Sum,0,acumint,calcbal,"","",CredHistr.SerNr,-1,openamount);
-        if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
-          firstinvf = true;
-          vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
-        end else begin
-          if (CredHistr.RecordType==0 and CredHistr.ArtCode!=CredManSetb.LateRateItem) then begin//invoice
-            calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+        if (CredHistr.RecordType==0) then begin
+          if (IsInitialInvoice(CredManr,CredHistr.TransDate,lastrecnr,vFirstInv[CredHistr.RecordNr])) then begin
+            firstinvf = true;
+            vFirstInv[CredHistr.RecordNr] = true;//we can have multiple records for single invoice. so we need to store that this invoice is the initial invoice
+          end else begin
+            if (CredHistr.RecordType==0 and CredHistr.ArtCode!=CredManSetb.LateRateItem) then begin//invoice
+              calculatedmonths = MonthDiff(CredManr.FirstInvDate,CredHistr.TransDate)+1;
+            end;
           end;
+          lastrecnr = CredHistr.RecordNr;
         end;
  //     end;
-      lastrecnr = CredHistr.RecordNr;
     end;
   end;
 
