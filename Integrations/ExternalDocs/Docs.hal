@@ -1,0 +1,708 @@
+external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var record SMVc);
+external inner function val MulRateToBase2(var string,val,val,val,val,val,val,roundmode);
+external inner function val MulRateToBase1(var string,val,val,val,val,val,val,roundmode);
+external inner procedure GetUserName(string,var string);
+external inner procedure GetFullCurncyRateText(Boolean,var string,val,val,val,val,val);
+external inner procedure ValToText(val,Integer,string,string,var string);
+external inner procedure GetShipModeText(string,string,var string);
+external inner procedure GetShipDealText(string,string,var string);
+external function val GetMonthlyPaymentAmount(record CredManVc,Integer);
+external inner function Boolean FindCustomerRelationCred(string,string,var record CUVc);
+external inner procedure GetPayDealText(string,string,var string);
+external inner function val MulRateToBase2(var string,val,val,val,val,val,val,roundmode);
+external inner function val MulRateToBase1(var string,val,val,val,val,val,val,roundmode);
+external inner procedure M4PadString(string,Integer,string,Boolean,var string);
+external function Boolean GetLoanAppContact(string,string,var record CUVc);
+external inner procedure HT2Per(Date, Date , var string);
+external function Boolean FindCEOContact(string,var record CUVc);
+external inner procedure GetUnitStr(string,string,var string);
+external inner procedure ItemBC39(string,var string);
+external inner procedure GetItemGroup(string,var string);
+external inner procedure ItemBCEAN(string,var string);
+external inner procedure ItemBCEAN13(string,var string);
+external inner procedure GetLangNr(string,var record LangNrVc);
+
+procedure PrintDocumentSigner(var vector string vVals)
+begin
+  record CMApplicationSetBlock ASb;
+  record UserVc Userr;
+  
+  BlockLoad(ASb);
+  Userr.Code = ASb.DocumentSigner;
+  if (ReadFIrstMain(Userr,1,true)) then begin
+    vVals["F_DOCUMENTSIGNERNAME"] = Userr.Name;
+    vVals["F_DOCUMENTSIGNERPOSITION"] = ASb.DocumentSignerPosition;
+    vVals["F_DOCUMENTSIGNERCODE"] = Userr.Code;
+  end;
+
+  return;
+end;
+
+procedure PrintCurrencyCode(var vector string vVals,string formfield,string acurrency)
+begin
+  string 255 currency;
+  
+  currency = acurrency;  
+  if (blank(currency)) then begin
+    record BaseCurBlock BCb;
+    
+    BlockLoad(BCb);
+    currency = BCb.BaseCur1;
+  end;
+  vVals[formfield] = currency;
+  return;
+end;
+
+procedure PrintCountryCode(var vector string vVals,string formfield,string CountryCode)
+begin
+  record CountryVc Countryr;
+  
+  Countryr.Code = CountryCode;
+  ReadFirstMain(Countryr,1,true);
+  if (nonblank(Countryr.ISOCode)) then begin
+    vVals[formfield] = Countryr.ISOCode;
+  end else begin
+    vVals[formfield] = CountryCode;
+  end;
+  return;
+end;
+
+procedure OutAddressField(string field,string data,boolean printblank,string suffixvar,var string saveline)
+begin
+  string 255 line;
+  
+  if (data=="" and printblank==false) then begin
+    goto out;
+  end;
+  
+  saveline = saveline & data & suffixvar;
+  
+out:;
+end;
+
+procedure OutAddress(var vector string vVals,string field,string a0,string a1,string a2,string a3,string a4,string a5)
+begin
+  record FormBlock Formr;
+  string 255 saveline;
+  
+  BlockLoad(Formr);
+  
+  if (Formr.PrintOrgName!=0) then begin
+    OutAddressField(field,a0,Formr.PrintBlankLines,Formr.Addr0TrailingSep,saveline);
+  end;
+  OutAddressField(field,a1,Formr.PrintBlankLines,Formr.Addr1TrailingSep,saveline);
+  OutAddressField(field,a2,Formr.PrintBlankLines,Formr.Addr2TrailingSep,saveline);
+  OutAddressField(field,a3,Formr.PrintBlankLines,Formr.Addr3TrailingSep,saveline);
+  OutAddressField(field,a4,Formr.PrintBlankLines,Formr.Addr4TrailingSep,saveline);
+  OutAddressField(field,a5,Formr.PrintBlankLines,"",saveline);
+  
+  vVals[field] = saveline;
+    
+  return;
+end;
+
+procedure CommonDocumentFields(var vector string vVals)
+begin
+  record CYBlock CompYear;
+  record BankVc Bankr;
+  string 255 tstr,argstr;
+  Boolean testf;
+
+  BlockLoad(CompYear);
+  vVals["F_EGENEMAIL"] = CompYear.emailAddr;
+  vVals["F_EGENWWWADDRESS"] = CompYear.wwwAddr;
+  vVals["F_EGETNAMN"] = CompYear.CompName;
+  vVals["F_BUSINESSNAME"] = CompYear.BusinessName;
+  vVals["F_EGENTEL"] = CompYear.Phone;
+  vVals["F_EGENFAX"] = CompYear.Fax;
+  vVals["F_EGENBG"] = CompYear.Bank1;
+  vVals["F_EGENPG"] = CompYear.Bank2;
+  vVals["F_EGENBANKKOD"] = CompYear.BankCode;
+  vVals["F_EGETORGNR"] = CompYear.OrgNr;
+  vVals["F_EGETMOMSNR"] = CompYear.VATNr;
+  vVals["F_EGENGLN"] = CompYear.GLN;
+  PrintCountryCode(vVals,"F_EGENCOUNTRYCODE",CompYear.CountryCode);
+  OutAddress(vVals,"F_EGENADRESS",CompYear.CompName,CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4);
+  OutAddress(vVals,"F_EGENADRESS2",CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4,"");
+  vVals["F_PRODUCTNAME"] = USetStr(1802);
+  vVals["F_DATUM"] = CurrentDate;
+  vVals["F_TID"] = CurrentTime;
+  vVals["F_HOMECOMMUN"] = CompYear.HomeCommunity;
+  vVals["F_COMMREGNO"] = CompYear.OrgNr2;
+  vVals["F_MANAGER"] = CompYear.Manager;
+  vVals["F_CHIEFACCOUNTAT"] = CompYear.ChiefAccountant;    
+  vVals["F_OWNLINEOFBUSINESS"] = CompYear.LineOfBusiness;    
+  vVals["F_OWNSHARECAPITAL"] = CompYear.ShareCapital;    
+  vVals["F_OWNANACODE"] = CompYear.ANACode; 
+  vVals["F_OWNSORTCODE"] = CompYear.SortCode; 
+  vVals["F_SHORTUNDERLINE"] = "_______________";
+  Bankr.Code = CompYear.BankName;
+  if (ReadFirstMain(Bankr,1,true)) then begin
+    vVals["F_OWNBANKCODE"] = CompYear.BankName;
+    vVals["F_OWNBANKCLEARING"] = Bankr.Nr1;
+    vVals["F_OWNBANKACC"] = Bankr.Nr2;
+    vVals["F_OWNBANKNAME"] = Bankr.Name;
+    vVals["F_OWNBANKSWIFT"] = Bankr.SWIFT;
+    vVals["F_OWNBANKSORTING"] = Bankr.Sorting;
+    vVals["F_OWNBANKCORRPACC"] = Bankr.CorrspAcc;
+    vVals["F_OWNBANKADDRESS0"] = Bankr.Address0;
+    vVals["F_OWNBANKADDRESS1"] = Bankr.Address1;
+    vVals["F_OWNBANKADDRESS2"] = Bankr.Address2;
+    vVals["F_OWNBANKADDRESS3"] = Bankr.Address3;
+    vVals["F_OWNBANKADDRESS4"] = Bankr.Address4;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address0;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address1;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address2;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address3;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address4;
+  end;
+
+  return;
+end;
+
+procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
+begin
+  record CUVc ContactCUr;
+
+  if (nonblank(CredManr.ClientContact)) then begin
+    if (FindCustomerRelationCred(CredManr.CustCode,CredManr.ClientContact,ContactCUr)) then begin
+      contactid = ContactCUr.RegNr1;
+      contactname = ContactCUr.Name;
+    end;
+  end;
+
+  return;
+end;
+
+procedure CredManHeader(var vector string vVals,record CredManVc CredManr)
+begin
+  record CUVc CUr;
+  record IVVc IVr;
+  Integer i,rwcnt;
+  string 255 tstr;
+  string 255 contactname,contactid;
+  record BankVc Bankr;
+  val amt,fees,prolong,tot;
+  row CredManVc CredManrw;
+  record CUVc ContactCUr,CEOCUr;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
+  
+
+  CUr.Code = CredManr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+  end;
+  IVr.SerNr = CredManr.IVNr;
+  if (ReadFirstMain(IVr,1,true)==false) then begin
+    RecordClear(IVr);
+  end;
+
+  vVals["F_KUNDNR"] = CredManr.CustCode;
+  vVals["F_KUNDNAMN"] = CredManr.Addr0;
+  vVals["F_NUMMER"] = CredManr.SerNr;
+  //OutAddress("F_ADRESS",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);//CUST-REMOVED
+  vVals["F_ADDR2"] = IVr.Addr1;
+  vVals["F_ADDR3"] = IVr.Addr2;
+  vVals["F_ADDR4"] = IVr.Addr3;
+  vVals["F_INVADDR3"] = IVr.InvAddr3;
+  vVals["F_INVADDR4"] = IVr.InvAddr4;
+  vVals["F_VARREFERENS"] = CredManr.OurContact;
+  vVals["F_ERREFERENS"] = CredManr.ClientContact;
+  vVals["F_KOMMENTAR"] = IVr.InvComment;
+  GetUserName(CredManr.SalesMan,tstr);
+  vVals["F_SALJARNAMN"] = tstr;
+  vVals["F_LOCATION"] = IVr.Location;
+  vVals["F_INLEVADRESS"] = IVr.ShipAddr0;
+  vVals["F_INLEVADRESS"] = IVr.ShipAddr1;
+  vVals["F_INLEVADRESS"] = IVr.ShipAddr2;
+  vVals["F_INLEVADRESS"] = IVr.ShipAddr3;
+  vVals["F_INLEVADRESS"] = IVr.DelAddr3;
+  vVals["F_INLEVADRESS"] = IVr.DelAddr4;
+  vVals["F_INVLEVSATT"] = IVr.ShipMode;
+
+  GetShipModeText(IVr.ShipMode,IVr.LangCode,tstr);
+  vVals["F_INVLEVSATTTEXT"] = tstr;
+  vVals["F_INVLEVVILLK"] = IVr.ShipDeal;
+  GetShipDealText(IVr.ShipDeal,IVr.LangCode,tstr);
+  vVals["F_INVLEVVILLKTEXT"] = tstr;
+  GetPayDealText(IVr.PayDeal,IVr.LangCode,tstr);
+  vVals["F_VILLKOR"] = tstr;
+  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  vVals["F_KONTRAKTSDATUM"] = CredManr.TransDate;
+  vVals["F_STARTDATUM"] = CredManr.startDate;
+  vVals["F_LASTINVDATE"] = CredManr.InvUntil;
+  vVals["F_ENDDATE"] = CredManr.endDate;
+  vVals["F_SUMMA"] = CredManr.InvSum4;
+  GetFullCurncyRateText(true,tstr,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2);  
+  vVals["F_RATE"] = tstr;
+  GetFullCurncyRateText(false,tstr,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2);  
+  vVals["F_BASERATE"] = tstr;
+  vVals["F_PERIODLENGTH"] = CredManr.InstalmentMonths;
+  vVals["F_RANTASATS"] = CredManr.IntRate;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.Addr0;
+  end else begin
+    tstr = IVr.ShipAddr0;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.Addr1;
+  end else begin
+    tstr = IVr.ShipAddr1;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.Addr2;
+  end else begin
+    tstr = IVr.ShipAddr2;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.Addr3;
+  end else begin
+    tstr = IVr.ShipAddr3;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.InvAddr3;
+  end else begin
+    tstr = IVr.DelAddr3;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  if (blank(IVr.ShipAddr0)) then begin
+    tstr = IVr.InvAddr4;
+  end else begin
+    tstr = IVr.DelAddr4;
+  end;
+  vVals["F_INLEVADRESS2"] = tstr;
+  
+  vVals["F_BASE1SUMMA"] = MulRateToBase1(CredManr.CurncyCode,CredManr.InvSum4,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2,DefaultCurRoundOff);
+  vVals["F_BASE2SUMMA"] = MulRateToBase2(CredManr.CurncyCode,CredManr.InvSum4,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2,DefaultCurRoundOff);
+  vVals["F_ATTBETALA"] = CredManr.TotalSum;
+  ValToText(CredManr.TotalSum,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
+  vVals["F_ATTBETALATEXT"] = tstr;        
+  vVals["F_BASE1BETALA"] = MulRateToBase1(CredManr.CurncyCode,CredManr.TotalSum,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2,DefaultCurRoundOff);
+  vVals["F_BASE2BETALA"] = MulRateToBase2(CredManr.CurncyCode,CredManr.TotalSum,CredManr.FrRate,CredManr.ToRateB1,CredManr.ToRateB2,CredManr.BaseRate1,CredManr.BaseRate2,DefaultCurRoundOff);
+
+  vVals["F_KUNDMOMSNR"] = CUr.VATNr;
+  vVals["F_KUNDFAX"] = CUr.Fax;  
+
+  vVals["F_EMAIL"] = CUr.eMail;//Email
+  vVals["F_REGNUMBER1"] = CUr.RegNr1;//Customer Registration No. 1
+  vVals["F_KUNDTEL"] = CUr.Phone;//Customer Telephone Number
+  vVals["F_MOBILE"] = CUr.Mobile;//Mobile
+  GetCredManCustContact(CredManr,contactid,contactname);
+  vVals["F_KONTAKT"] = contactname;
+  vVals["F_ID"] = contactid;
+  vVals["F_TOTSUM"] = CredManr.InvSum4;
+  vVals["F_DATEDAY"] = CredManr.MonthlyPaymentDay;
+  vVals["F_MONTHLYINST"] = CredManr.MonthlySum;
+  vVals["F_DELAYMONTHS"] = CredManr.PrincipleDelayMonths;
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_TOTSUMINTEXT"] = tstr;
+  
+  vVals["F_BANKACC"] = CUr.BankAccount;
+  Bankr.Code = CUr.AccOperator;
+  ReadFirstMain(Bankr,1,true);
+  vVals["F_ACCOUNTOPERATORNAME"] = Bankr.Name;
+  vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_CREDHALFSUMTEXT"] = tstr;
+
+  tstr = "";
+  amt = GetMonthlyPaymentAmount(CredManr,6);
+  vVals["F_AMOUNT"] = amt;
+  ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_AMOUNTINTEXT"] = tstr;
+
+  amt = GetMonthlyPaymentAmount(CredManr,14);
+  vVals["F_AMOUNT2"] = amt;
+  ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_AMOUNTINTEXT2"] = tstr;
+
+  amt = GetMonthlyPaymentAmount(CredManr,8);
+  vVals["F_PRINCIPLE"] = amt;
+
+  tot = amt * (CredManr.InstalmentMonths);//-1?
+  tot = CredManr.InvSum4-CredManr.DepositSum-tot;
+  if (tot<0) then begin
+    tot = 0;//the same as we do on cred man plan
+  end;
+  vVals["F_LEFTPRINCIPLE"] = tot;
+
+
+  fees = 0;
+  rwcnt = MatRowCnt(CredManr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManr,i,CredManrw);
+    if (CredManrw.ChargeType==0 or CredManrw.ChargeType==2) then begin
+      if (CredManrw.ChargeType==2) then begin
+        fees = fees + ((CredManr.InvSum4-CredManr.DepositSum) * (CredManrw.vRebate/100));
+      end else begin
+        fees = fees + CredManrw.Price;
+      end;
+    end;
+  end;
+  vVals["F_FEES"] = fees;
+  ValToText(fees,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_FEESINTEXT"] = tstr;
+
+  prolong = CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100));
+  vVals["F_PROLONG"] = prolong;
+  ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_PROLONGINTEXT"] = tstr;
+  vVals["F_OVERDUEPRC"] = CredManr.OverduePercentage;
+  vVals["F_OTHERCONDITIONS"] = CredManr.OtherConditions;
+
+  OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+
+  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    CEOCUr.Code = LAr.CEOCustCode;
+    if (ReadFirstMain(CEOCUr,1,true)) then begin
+      vVals["F_CEONAME"] = CEOCUr.Name;
+      vVals["F_CEOID"] = CEOCUr.RegNr1;
+    end;
+  end;  
+
+
+  amt = GetMonthlyPaymentAmount(CredManr,2);
+  vVals["F_INTEREST"] = amt;
+  PrintDocumentSigner(vVals);
+
+
+  return;
+end;
+
+global
+procedure ExternalPrintCredManScheduleForm(record CredManVc CredManr,var vector string vVals)
+begin
+  record CredManPayPlanVc CredManPayPlanr;
+  row CredManPayPlanVc CredManPayPlanrw;
+  LongInt i,rwcnt;
+  record SMVc SMr;
+  row SMVc SMrw;
+  val totpayment,totinterest;
+  record CredManSetBlock CredManSetb;
+  record CUVc CUr;
+  Integer num;
+  string 255 strnum;
+ 
+  CUr.Code = CredManr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+  end;
+  BlockLoad(CredManSetb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
+  ReadFirstMain(CredManr,1,true);
+  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
+
+  
+  CredManHeader(vVals,CredManr);
+
+
+  ReadFirstMain(CredManr,1,true);
+  rwcnt = MatRowCnt(SMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(SMr,i,SMrw);
+    if (i==0 and SMrw.TransDate<CredManr.FirstInvDate) then begin
+      goto LNextRow;
+    end;
+    num = num + 1;
+    M4PadString(i,3,"0",true,strnum);
+    vVals["ROW_" & strnum & "_F_TRANSDATUM"] = SMrw.TransDate;//Transaction Date (transdate
+    vVals["ROW_" & strnum & "_F_CREDINTEREST"] = SMrw.CredVal;//interest
+    vVals["ROW_" & strnum & "_F_CREDFEES"] = SMrw.DebVal2;//fees
+    vVals["ROW_" & strnum & "_F_CREDINTEREST2"] = (SMrw.CredVal+SMrw.DebVal2);//interest+fees   
+    vVals["ROW_" & strnum & "_F_CREDINSTAL"] = SMrw.DebVal;//instalment
+    vVals["ROW_" & strnum & "_F_CREDBAL"] = SMrw.CurCredVal;//Balance
+    vVals["ROW_" & strnum & "_F_CREDINVTOT"] = (SMrw.CredVal+SMrw.DebVal2+SMrw.DebVal);//Balance
+    vVals["ROW_" & strnum & "_F_ROWNR"] = num;
+    totinterest = totinterest + (SMrw.CredVal+SMrw.DebVal2);
+    totpayment = totpayment + (SMrw.CredVal+SMrw.DebVal2) + SMrw.DebVal;
+LNextRow:;
+  end;
+
+  vVals["F_CREDTOTINT"] = totinterest;
+  vVals["F_CREDTOTPAY"] = totpayment;
+
+  return;
+end;
+
+
+procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
+begin
+  record CUVc CUr;
+  
+  name = GetFieldValueByName(CredManr,"Surety" & num & "Name",-1);
+  email = GetFieldValueByName(CredManr,"Surety" & num & "eMail",-1);
+  phone = GetFieldValueByName(CredManr,"Surety" & num & "Phone",-1);
+  mobile = GetFieldValueByName(CredManr,"Surety" & num & "Mobile",-1);
+  id = GetFieldValueByName(CredManr,"Surety" & num & "ID",-1);
+  CUr.Code = GetFieldValueByName(CredManr,"SuretyProvider" & num,-1);
+  if (ReadFirstMain(CUr,1,true)) then begin
+    addr0 = GetFieldValueByName(CredManr,"Surety" & num & "Addr0",-1);
+    addr1 = GetFieldValueByName(CredManr,"Surety" & num & "Addr1",-1);
+    addr2 = GetFieldValueByName(CredManr,"Surety" & num & "Addr2",-1);
+    addr3 = GetFieldValueByName(CredManr,"Surety" & num & "Addr3",-1);
+    addr4 = GetFieldValueByName(CredManr,"Surety" & num & "Addr4",-1);
+  end else begin
+    addr0 = ""; addr1 = ""; addr2 = ""; addr3 = ""; addr4 = ""; 
+  end;
+
+  return;
+end;
+
+global
+procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
+begin
+  string 255 name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4;
+  record CUVc CUr;
+  string 255 tstr;
+
+  GetSuretyValues(CredManr,1,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACTNAME"] = name;
+  vVals["F_CONTACTPHONE"] = phone;
+  vVals["F_CONTACTMOBILE"] = mobile;
+  vVals["F_CONTACTMAIL"] = email;
+  vVals["F_CONTACTID"] = id;
+  OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
+
+  GetSuretyValues(CredManr,2,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACT2NAME"] = name;
+  vVals["F_CONTACT2PHONE"] = phone;
+  vVals["F_CONTACT2MOBILE"] = mobile;
+  vVals["F_CONTACT2MAIL"] = email;
+  vVals["F_CONTACT2ID"] = id;
+  OutAddress(vVals,"F_CONTACT2ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+
+  GetSuretyValues(CredManr,3,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACT3NAME"] = name;
+  vVals["F_CONTACT3PHONE"] = phone;
+  vVals["F_CONTACT3MOBILE"] = mobile;
+  vVals["F_CONTACT3MAIL"] = email;
+  vVals["F_CONTACT3ID"] = id;
+  OutAddress(vVals,"F_CONTACT3ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+
+  CUr.Code = CredManr.CustCode;
+  ReadFirstMain(CUr,1,true);
+  vVals["F_NUMMER"] = CredManr.SerNr;
+  vVals["F_KUNDNAMN"] = CUr.Name;
+  vVals["F_REGNUMBER1"] = CUr.RegNr1;//Customer Registration No. 1
+  OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  vVals["F_TOTSUM"] = CredManr.InvSum4;
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_TOTSUMINTEXT"] = tstr;
+
+  RecordCLear(CUr);
+  if (FindCEOContact(CredManr.CustCode,CUr)) then begin
+    vVals["F_CEONAME"] = CUr.Name;
+    vVals["F_CEOID"] = CUr.RegNr1;
+  end;
+
+  PrintDocumentSigner(vVals);
+  vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  vVals["F_CREDHALFSUMTEXT"] = tstr;
+
+  return;
+end;
+
+procedure GetSuretyValues2(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
+begin
+  
+  name = GetFieldValueByName(CredManr,"Surety" & num & "Name",-1);
+  email = GetFieldValueByName(CredManr,"Surety" & num & "eMail",-1);
+  phone = GetFieldValueByName(CredManr,"Surety" & num & "Phone",-1);
+  mobile = GetFieldValueByName(CredManr,"Surety" & num & "Mobile",-1);
+  id = GetFieldValueByName(CredManr,"Surety" & num & "ID",-1);
+  addr0 = GetFieldValueByName(CredManr,"Surety" & num & "Addr0",-1);
+  addr1 = GetFieldValueByName(CredManr,"Surety" & num & "Addr1",-1);
+  addr2 = GetFieldValueByName(CredManr,"Surety" & num & "Addr2",-1);
+  addr3 = GetFieldValueByName(CredManr,"Surety" & num & "Addr3",-1);
+  addr4 = GetFieldValueByName(CredManr,"Surety" & num & "Addr4",-1);
+
+  return;
+end;
+
+global
+procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
+begin
+  string 255 name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4;
+  record CUVc CUr,tCUr;
+  string 255 tstr;
+  record CYBlock CYb;
+
+  GetSuretyValues2(CredManr,1,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACTNAME"] = name;
+  vVals["F_CONTACTPHONE"] = phone;
+  vVals["F_CONTACTMOBILE"] = mobile;
+  vVals["F_CONTACTMAIL"] = email;
+  vVals["F_CONTACTID"] = id;
+  vVals["F_CONTACTADRESS"] = addr0;
+
+  GetSuretyValues2(CredManr,2,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACT2NAME"] = name;
+  vVals["F_CONTACT2PHONE"] = phone;
+  vVals["F_CONTACT2MOBILE"] = mobile;
+  vVals["F_CONTACT2MAIL"] = email;
+  vVals["F_CONTACT2ID"] = id;
+  vVals["F_CONTACT2ADRESS"] = addr0;
+
+  GetSuretyValues2(CredManr,3,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+  vVals["F_CONTACT3NAME"] = name;
+  vVals["F_CONTACT3PHONE"] = phone;
+  vVals["F_CONTACT3MOBILE"] = mobile;
+  vVals["F_CONTACT3MAIL"] = email;
+  vVals["F_CONTACT3ID"] = id;
+  vVals["F_CONTACT3ADRESS"] = addr0;
+
+  if (FindCustomerRelationCred(CredManr.CustCode,CredManr.ClientContact,CUr)) then begin
+    vVals["F_ATTNAME"] = CUr.Name;
+    vVals["F_ATTID"] = CUr.RegNr1;
+  end;
+  tCUr.Code = CredManr.CustCode;
+  if (ReadFirstMain(tCUr,1,true)) then begin
+    vVals["F_CUSTNAME"] = tCUr.Name;
+    vVals["F_CUSTID"] = tCUr.RegNr1;
+    OutAddress(vVals,"F_ADRESS",tCUr.Name,tCUr.InvAddr0,tCUr.InvAddr1,tCUr.InvAddr2,tCUr.InvAddr3,tCUr.InvAddr4);
+  end;
+
+  BlockLoad(CYb);
+  vVals["F_AGREEMENTDATE"] = CredManr.TransDate;
+  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  vVals["F_ORT"] = CYb.Addr3;
+
+  vVals["F_TOTSUM"] = CredManr.InvSum4;
+  if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
+    ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+    vVals["F_TOTSUMINTEXT"] = tstr;
+  end;
+  vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
+  if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
+    ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+    vVals["F_CREDHALFSUMTEXT"] = tstr;
+  end;
+
+  return;
+end;
+
+global
+procedure ExternalPrintPaymentCertificateForm(record CredManPmtGrntVc PGr,var vector string vVals)
+begin
+  record CredManVc CredManr;
+  LongInt i,rwcnt;
+  val totpayment,totinterest;
+  record CUVc CUr;
+  record CYBlock CYb;
+  row CredManPmtGrntVc PGrw;
+ 
+  CredManr.SerNr = PGr.CredManNr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    CredManHeader(vVals,CredManr);
+    if (nonblank(vVals["SPEC_ROW"])) then begin
+      MatRowGet(PGr,StringToLongInt(vVals["SPEC_ROW"]),PGrw);
+      CUr.Code = PGrw.CustCode;
+      if (ReadFirstMain(CUr,1,true)) then begin
+        vVals["F_SELLERNAME"] = PGrw.CustName;
+        vVals["F_SELLERID"] = CUr.RegNr1;
+        vVals["F_SELLERLIMIT"] = PGrw.MaxLimit;
+        OutAddress(vVals,"F_SELLERADDRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+      end;
+    end;
+
+    return;
+  end;
+
+  return;
+end;
+
+global
+procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
+begin
+  Integer i,rwcnt;
+  row CredManVc CredManrw;
+  string 255 tstr,strnum;
+  record SysFormatBlock SysFormatRec;
+  record LangNrVc LangNrr;
+  
+  GetLangNr(CredManr.LangCode,LangNrr);      
+  
+  BlockLoad(SysFormatRec);
+  rwcnt = MatRowCnt(CredManr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManr,i,CredManrw);
+    M4PadString(i,3,"0",true,strnum);
+    //vVals["ROW_" & strnum & "_
+    GetUnitStr(CredManrw.ArtCode,CredManr.LangCode,tstr);
+    vVals["ROW_" & strnum & "_F_ENHET"] = tstr;
+    vVals["ROW_" & strnum & "_F_ARTNR"] = CredManrw.ArtCode;
+    vVals["ROW_" & strnum & "_F_ARTNR2"] = CredManrw.ArtCode;
+    ItemBC39(CredManrw.ArtCode,tstr);
+    vVals["ROW_" & strnum & "_F_ARTNRBC39"] = tstr;
+    ItemBCEAN(CredManrw.ArtCode,tstr);
+    vVals["ROW_" & strnum & "_F_ARTNRBCEAN"] = tstr;
+    ItemBCEAN13(CredManrw.ArtCode,tstr);    
+    vVals["ROW_" & strnum & "_F_ARTNRBCEAN13"] = tstr;
+    GetItemGroup(CredManrw.ArtCode,tstr);
+    vVals["ROW_" & strnum & "_F_ARTGRUPP"] = tstr;
+    tstr = ValToString(CredManrw.Quant,M4UVal,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);    
+    vVals["ROW_" & strnum & "_F_ANTAL"] = tstr;
+    vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = CredManrw.Comment;
+    tstr = ValToString(CredManrw.Price,M423Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["ROW_" & strnum & "_F_APRIS"] = tstr;
+    vVals["ROW_" & strnum & "_F_BELOPP"] = CredManrw.Sum;
+    tstr = ValToString(CredManrw.vRebate,M41Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["ROW_" & strnum & "_F_RABATT"] = tstr;
+    vVals["ROW_" & strnum & "_F_BASPRIS"] = CredManrw.Sum;
+    vVals["ROW_" & strnum & "_F_PRICEFACTOR"] = CredManrw.PriceFactor;
+    vVals["ROW_" & strnum & "_F_FAKTURANUMMER"] = CredManrw.InvoicedOn;
+  end;
+
+  return;   
+end;
+
+
+global
+procedure ExternalPrintLoanAppForm(record B2BLoanApplicationVc LAr,var vector string vVals)
+begin
+  record CUVc CUr;
+
+  if (GetLoanAppContact(LAr.ContactName,LAr.CustCode,CUr)) then begin
+    vVals["F_CONTACTNAME"] = CUr.Name;
+    vVals["F_CONTACTID"] = CUr.RegNr1;
+    //vVals["F_DATUM"] = CurrentDate;
+  end;
+  CUr.Code = LAr.CEOCustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    vVals["F_CEONAME"] = CUr.Name;
+    vVals["F_CEOID"] = CUr.RegNr1;
+  end;
+  CUr.Code = LAr.SuretyProvider1;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    vVals["F_SURETY1NAME"] = CUr.Name;
+    vVals["F_SURETY1ID"] = CUr.RegNr1;
+  end;
+
+  return;
+end;
+
+global
+procedure ExternalPrintSuretyAppForm(record B2BLoanApplicationVc LAr,var vector string vVals)
+begin
+  record CUVc CUr;
+  string 255 name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4;
+  Integer surety;
+
+  surety = LAr.SuretyCnt;
+  if (surety>0) then begin
+    GetSuretyValues(LAr,surety,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
+    OUTFORMFIELD("F_CONTACTNAME",name)
+    OUTFORMFIELD("F_CONTACTPHONE",phone)
+    OUTFORMFIELD("F_CONTACTMAIL",email)
+    OUTFORMFIELD("F_CONTACTID",id)
+    OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
+  end;
+
+  return;
+end;

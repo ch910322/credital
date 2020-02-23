@@ -513,7 +513,32 @@ begin
   RecordField(PrincipleDelayInterest,M4Qty,0,0);
   RecordField(LangCode,M4Code,5,0);
   RecordField(LangCode2,M4Code,5,0);
-  
+  RecordField(Closed,M4Int,0,0);
+  RecordField(CredManCEO1,M4Int,0,0);
+  RecordField(CredManCEO2,M4Int,0,0);
+  RecordField(CredManSurety,M4Int,0,0);
+  RecordField(CredManUs,M4Int,0,0);
+  RecordField(CredManLangCode,M4Code,10,0);
+  RecordField(SuretyCEO1,M4Int,0,0);
+  RecordField(SuretyCEO2,M4Int,0,0);
+  RecordField(SuretySurety,M4Int,0,0);
+  RecordField(SuretyUs,M4Int,0,0);
+  RecordField(SuretyLangCode,M4Code,10,0);
+  RecordField(ScheduleCEO1,M4Int,0,0);
+  RecordField(ScheduleCEO2,M4Int,0,0);
+  RecordField(ScheduleSurety,M4Int,0,0);
+  RecordField(ScheduleUs,M4Int,0,0);
+  RecordField(ScheduleLangCode,M4Code,10,0);
+  RecordField(VekselisCEO1,M4Int,0,0);
+  RecordField(VekselisCEO2,M4Int,0,0);
+  RecordField(VekselisSurety,M4Int,0,0);
+  RecordField(VekselisUs,M4Int,0,0);
+  RecordField(VekselisLangCode,M4Code,10,0);
+  KeyBegin(ActCode);
+  KeySegment(Code);
+  KeyBegin(ActComment);
+  KeySegment(Comment);
+  KeySegment(Code);
   EndRecordAdd;
 
   BlockBegin(EvalConstBlock,0,"");
@@ -1054,6 +1079,7 @@ begin
   RecordField(LoanType,M4Int,0,0);
   RecordField(LoanTypeStr,M4Str,255,0);
   RecordField(MaxMonthlyPayment,M4Int,0,0);
+  RecordField(LangCode,M4Code,10,0);
   ArrayBegin(Math,-,1);
   ArrayField(FormCode,M4Code,200,0);
   ArrayField(DocNameRow,M4Str,255,0);
@@ -1063,6 +1089,7 @@ begin
   KeySegment(DocName);
   KeySegment(LoanType);
   KeySegment(MaxMonthlyPayment);
+  KeySegment(LangCode);
   EndRecord;
 
   RecordBegin(FontWidthVc,-,"");
@@ -1136,6 +1163,7 @@ begin
   RecordField(PaymentPayDeal,M4Code,5,PDVc);
   RecordField(PaymentAccount,M4Code,10,AccVc);
   RecordField(PaymentVATCode,M4Code,10,0);
+  RecordField(PaymentMode,M4Code,10,0);
   EndBlock;
 
   BlockBegin(CredManAutoTaskBlock,-,"");
@@ -1251,6 +1279,27 @@ begin
   EndArray;
   EndBlock;
 
+  RecordAddBegin(WebTextVc,"WebTextVc_Cred");
+  ChangeMatrixField(Comment,M4Str,255,0);
+  EndRecordAdd;
+
+  BlockBegin(CreditalFormBlock,0,"");
+  RecordField(ExtCredManForm,M4Int,0,0);
+  RecordField(ExtLoanAppForm,M4Int,0,0);
+  RecordField(ExtSuretyAppForm,M4Int,0,0);
+  RecordField(ExtScheduleForm,M4Int,0,0);
+  RecordField(ExtVekselisForm,M4Int,0,0);
+  RecordField(ExtSuretyAgreementForm,M4Int,0,0);
+  EndBlock;
+
+  BlockBegin(WebBankConnBlock,-,"");
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Pattern,M4Str,100,0);
+  ArrayField(BankCode,M4Code,10,BankVc);
+  EndArray;
+  EndBlock;
+  
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Documents", 3);
@@ -1293,6 +1342,10 @@ begin
 /*Landing Pages*/
   Exec_file("halcust\\Integrations\\LandingPages\\datadef.hal");
   SourceFile("halcust\\Integrations\\LandingPages", 3);
+
+/*External docs*/
+  Exec_file("halcust\\Integrations\\ExternalDocs\\datadef.hal");
+  SourceFile("halcust\\Integrations\\ExternalDocs", 3);
 
 /*Bank import*/
   Exec_file("halcust\\BankImport\\datadef.hal");

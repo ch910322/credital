@@ -45,6 +45,7 @@ begin
   return;
 end;
 
+global
 function Boolean FindCEOContact(string custcode,var record CUVc CUr)
 begin
   record CMApplicationSetBlock ASb;
@@ -171,6 +172,11 @@ LBREAK:;
         end;
 
         PrintDocumentSigner;
+        OutFormField("F_CREDHALFSUM",(CredManr.InvSum4/2));
+        if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
+          ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+          OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
+        end;
         
 
         CloseForm;        

@@ -3,6 +3,7 @@ external procedure ReadScanDocFile(area,Integer,string,Longint,string,Date,var v
 external procedure CompanyHasData(string,string,string,Longint,string,Date,var array Date,var array val,var array Integer,var array Longint,var Boolean);
 external procedure CompanyGetData(string,string,Longint,var area,string,Longint,string,Date,var Boolean);
 external procedure CompanyStoreData(string,string,area,Integer,string,Longint,string,Date,var Boolean);
+external procedure DoEBSSendPrintDocument(vector string,area,var area,string,Longint,string,Date,var Boolean);
 
 function string 255 GetServiceIPAddress()
 begin
@@ -85,8 +86,27 @@ begin
   BlockLoad(IEb);
   BlockLoad(Mb);
   ip = GetServiceIPAddress;
-  logtext(0,"sending to " & ip);
   CallService(ip).CompanyStoreData(regnr,country,comparea,source,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,res);
+
+  //we should retry if it fails...
+
+  return;
+end;
+
+
+global
+procedure EBSSendPrintDocument(vector string values,area template,var area pdffile)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  Boolean res;
+  string 255 ip;
+
+
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  CallService(ip).DoEBSSendPrintDocument(values,template,pdffile,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,res);
 
   //we should retry if it fails...
 

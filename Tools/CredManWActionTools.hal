@@ -7,8 +7,8 @@ external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 external inner function Boolean PasteCustInCredMan(var record CredManVc);
 external inner procedure CredManVc_PasteType(var record CredManVc);
 external inner function Integer CreateCreditNoteIV(record IVVc,Integer,var record IVVc,string,Boolean);
-external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
-external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,record RcVc);
+external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean,string);
+external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,string,record RcVc);
 external inner function string 60 AddObjectToObjectList(string,string);
 external inner procedure VIVc_PasteInvDate(var record VIVc);
 external inner procedure VIDDefault(Integer,string,var record VIVc);
@@ -22,6 +22,11 @@ external inner procedure IVVc_PasteInvDate(var record IVVc,record LocalMachineBl
 external updating procedure ReceiptEntryCreateReceipts(record SMVc,Boolean,var val);
 external updating procedure CreateCredHist(Longint,Integer,string,val,Integer,string,Date,Longint,Date,var Longint,Date,Date,Integer,Longint,val,Longint,val);
 external updating procedure UpdateCredHistBalancePartialBuyout(Longint,Longint);
+external procedure PrintEBSDocument(string,string,record RcVc,string,string);
+external inner procedure OPPastePayMode(var record OPVc);
+external inner function Boolean PasteInvIn2OPr(var record OPVc,Integer,Date,Integer,val,var string,Boolean,var Boolean);
+external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var val,Boolean,var Boolean);
+external inner procedure IPPastePayMode(var record IPVc);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -331,6 +336,35 @@ begin
   return;
 end;
 
+procedure AddCustToDocument(var record AgreementDocVc ADr,string code,string name)
+begin
+  row AgreementDocVc ADrw;
+  
+  ClearRow(ADr,ADrw,1);
+  ADrw.CustCode = code;
+  ADrw.CustName = name;
+  MatRowPut(ADr,MatRowCnt(ADr),ADrw);
+
+  return;
+end;
+
+function Boolean CustIsCEO(string custcode,record CredManVc CredManr)
+begin
+  Boolean res;
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
+
+  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    if (LAr.CEOCustCode==custcode) then begin
+      res = true;
+    end;
+  end;  
+
+  CustIsCEO = res;
+  return;
+end;
+
+
 procedure AddSuretyToDocument(var record AgreementDocVc ADr,record CredManVc CredManr)
 begin
   Integer i;
@@ -340,10 +374,97 @@ begin
   for (i=1;i<4;i=i+1) begin
     custcode = GetFieldValueByName(CredManr,"SuretyProvider" & i,-1);
     if (nonblank(custcode)) then begin
-      ClearRow(ADr,ADrw,1);
-      ADrw.CustCode = custcode;
-      ADrw.CustName = GetFieldValueByName(CredManr,"Surety" & i & "Name",-1);
-      MatRowPut(ADr,MatRowCnt(ADr),ADrw);
+      if (CustIsCEO(custcode,CredManr)==false) then begin
+        AddCustToDocument(ADr,custcode,GetFieldValueByName(CredManr,"Surety" & i & "Name",-1))
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+function string 255 GetDocumentLangCode(record CredManVc CredManr,Integer type)
+begin
+  string 255 res;
+  record CredManTypeVc CMTr;
+  
+  CMTr.Code = CredManr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    switch (type) begin
+      case 1: res = CMTr.CredManLangCode;
+      case 2: res = CMTr.ScheduleLangCode;
+      case 3: res = CMTr.SuretyLangCode;
+      case 4: res = CMTr.VekselisLangCode;
+    end;
+  end;
+
+  if (blank(res)) then begin
+    res = CredManr.LangCode;
+  end;
+
+  GetDocumentLangCode = res;
+  return;
+end;
+
+
+procedure GetDocumentSigners(Integer type,record CredManVc CredManr,var Boolean flag1,var Boolean flag2,var Boolean flag3)
+begin
+  record CredManTypeVc CMTr;
+  
+  CMTr.Code = CredManr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    switch (type) begin
+      case 1: 
+        flag1 = CMTr.CredManCEO1==1; flag2 = CMTr.CredManCEO2==1; flag3 = CMTr.CredManSurety==1;
+      case 3: 
+        flag1 = CMTr.SuretyCEO1==1; flag2 = CMTr.SuretyCEO2==1; flag3 = CMTr.SuretySurety==1;
+      case 2: 
+        flag1 = CMTr.ScheduleCEO1==1; flag2 = CMTr.ScheduleCEO2==1; flag3 = CMTr.ScheduleSurety==1;
+      case 6: 
+        flag1 = CMTr.VekselisCEO1==1; flag2 = CMTr.VekselisCEO2==1; flag3 = CMTr.VekselisSurety==1;
+    end;
+  end;
+
+  return;
+end;
+
+function Boolean CustIsSurety(string custcode,record CredManVc CredManr)
+begin
+  Boolean res;
+  
+  if (GetFieldValueByName(CredManr,"SuretyProvider1",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+  if (GetFieldValueByName(CredManr,"SuretyProvider2",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+  if (GetFieldValueByName(CredManr,"SuretyProvider3",-1)==custcode) then begin
+    res = true;
+    goto LCustIsSurety;
+  end;
+
+LCustIsSurety:;
+  CustIsSurety = res;
+  return;
+end;
+
+procedure AddCEOToDocument(record AgreementDocVc ADr,record CredManVc CredManr,Boolean suretyf)
+begin
+  record B2BLoanApplicationVc LAr;
+  record RLinkVc RLr;
+  Boolean testf;
+
+  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    if (nonblank(LAr.CEOCustCode)) then begin
+      testf = CustIsSurety(LAr.CEOCustCode,CredManr);
+      if (suretyf and testf) then begin
+        AddCustToDocument(ADr,LAr.CEOCustCode,LAr.CEOName);
+      end;
+      if (!suretyf and !testf) then begin
+        AddCustToDocument(ADr,LAr.CEOCustCode,LAr.CEOName);
+      end;
     end;
   end;
 
@@ -353,11 +474,13 @@ end;
 global
 updating procedure CreateAgreementDoc(record CredManVc CredManr,Integer type,var record AgreementDocVc ADr)
 begin
-  string 255 fn;
+  string 255 fn,langcode;
   Integer scnt;
   row AgreementDocVc ADrw;
-  record B2BLoanApplicationVc LAr;
-  record RLinkVc RLr;
+  area filearea;
+  record RcVc RepSpec;
+  record CreditalFormBlock CFb;
+  Boolean flags1,flags2,flags3;
   
   RecordNew(ADr);
   ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
@@ -365,43 +488,57 @@ begin
   ADr.TransTime = CurrentTime;
   ADr.RecordNr = CredManr.SerNr;
   ADr.Type = type;
-  switch (ADr.Type) begin
-    case 3:
-      AddSuretyToDocument(ADr,CredManr);
-    case 6:
-      AddSuretyToDocument(ADr,CredManr);
-      goto LAddCEO;
-    otherwise
-LAddCEO:;
-      if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
-        if (nonblank(LAr.CEOCustCode)) then begin
-          ClearRow(ADr,ADrw,1);
-          ADrw.CustCode = LAr.CEOCustCode;
-          ADrw.CustName = LAr.CEOName;
-          MatRowPut(ADr,MatRowCnt(ADr),ADrw);
-        end;
-      end;
+  
+  GetDocumentSigners(ADr.Type,CredManr,flags1,flags2,flags3);
+  if (flags1) then begin
+    AddCEOToDocument(ADr,CredManr,false);    
+  end;
+  if (flags2) then begin
+    AddCEOToDocument(ADr,CredManr,true);
+  end;
+  if (flags3) then begin
+    AddSuretyToDocument(ADr,CredManr);    
   end;
   if (RecordInsert(ADr,true)) then begin
     scnt = GetSuretyCnt(CredManr);
+    BlockLoad(CFb);
     switch (ADr.Type) begin
       case 1://agreement
         fn = "Agreement.pdf";
-        PrintMultiDocDocument("CredManLongForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
+        langcode = GetDocumentLangCode(CredManr,1);
+        if (CFb.ExtCredManForm==1) then begin
+          PrintEBSDocument("CredManForm",fn,RepSpec,CredManr.SerNr,langcode);
+        end else begin
+          PrintMultiDocDocument("CredManLongForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
+        end;
       case 2://schedule
         fn = "Schedule.pdf";
-        PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
+        langcode = GetDocumentLangCode(CredManr,2);
+        if (CFb.ExtScheduleForm==1) then begin
+          PrintEBSDocument("CredManScheduleForm",fn,RepSpec,CredManr.SerNr,langcode);
+        end else begin
+          PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
+        end;
       case 3://surety
         fn = "Surety.pdf";
-        PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
+        langcode = GetDocumentLangCode(CredManr,3);
+        if (CFb.ExtSuretyAgreementForm==1) then begin
+          PrintEBSDocument("SuretyAgreementForm",fn,RepSpec,CredManr.SerNr,langcode);
+        end else begin
+          PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
+        end;
       case 6://vekselis
         fn = "Vekselis.pdf";
-        PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0));
+        langcode = GetDocumentLangCode(CredManr,4);
+        if (CFb.ExtVekselisForm==1) then begin
+          PrintEBSDocument("VekselisForm",fn,RepSpec,CredManr.SerNr,langcode);
+        end else begin
+          PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
+        end;
     end;
     RecordLinkFile(fn,0,ADr,CurrentCompany);
     Delete_File(fn);
   end;
-
 
   return;
 end;
@@ -446,7 +583,7 @@ begin
   if (RecordInsert(ADr,true)) then begin
     fn = "PaymentCertificate.pdf";
     RepSpec.ArtMode = rw;
-    PrintMultiDocDocument2("PaymentCertificateForm",fn,sernr,0,false,RepSpec);
+    PrintMultiDocDocument2("PaymentCertificateForm",fn,sernr,0,false,"",RepSpec);
     RecordLinkFile(fn,0,ADr,CurrentCompany);
     Delete_File(fn);
   end;
@@ -549,7 +686,7 @@ begin
   VIr.PayDeal = CIb.PaymentPayDeal;
   VIVc_PastePayDeal(VIr);
   VIr.Objects =  AddObjectToObjectList(VIr.Objects,CIb.PaymentObject);
-  VIr.PayVal = CredManr.InvSum4-credsum;
+  VIr.PayVal = CredManr.InvSum4;
   ClearRow(VIr,VIrw,1);
   VIrw.AccNumber = CIb.PaymentAccount;
   MatRowPut(VIr,0,VIrw);
@@ -559,7 +696,7 @@ begin
   MatRowPut(VIr,0,VIrw);
   VIDDefault(0,"VATCode",VIr);
   MatRowGet(VIr,0,VIrw);
-  VIrw.Sum = CredManr.InvSum4-credsum;
+  VIrw.Sum = CredManr.InvSum4;
   MatRowPut(VIr,0,VIrw);
   VICalcVals(VIr);
   VISumup(VIr,ct);
@@ -572,6 +709,68 @@ begin
   return;
 end;
 
+updating procedure CreatePaymentFakeReceipt(record CredManVc CredManr,record IVVc IVr)
+begin
+  val chk;
+  Boolean installmentf;
+  record IPVc IPr,oldIPr;
+  row IPVc IPrw;
+  record CreditalInvoiceBlock CIb;
+
+  BlockLoad(CIb);
+  IPr.TransDate = IVr.InvDate;
+  IPr.SerNr = NextSerNr("IPVc",IPr.TransDate,-1,false,"");
+  IPr.RegDate = IVr.InvDate;
+  IPr.OKFlag = 0;
+  IPr.PayMode = CIb.PaymentMode;
+  IPPastePayMode(IPr);
+
+  ClearRow(IPr,IPrw,1);
+  IPrw.InvoiceNr = IVr.SerNr;
+  MatRowPut(IPr,0,IPrw);
+  PasteInvIn2IPr(IPr,0,IPr.TransDate,chk,false,installmentf);
+
+  if (RecordStore(IPr,true)) then begin
+    RecordCopy(oldIPr,IPr);
+    IPr.OKFlag = 1;
+    RecordUpdate(oldIPr,IPr,true);
+  end;
+
+  return;
+end;
+
+updating procedure CreatePaymentOrder(record CredManVc CredManr,record VIVc VIr)
+begin
+  record OPVc OPr,oldOPr;
+  row OPVc OPrw;
+  val chk;
+  Boolean installmentf;
+  string 255 warning;
+  record CreditalInvoiceBlock CIb;
+
+  BlockLoad(CIb);
+  RecordNew(OPr);
+  OPr.TransDate = VIr.InvDate;	 
+  OPr.PayDate = VIr.InvDate;	 
+  OPr.SerNr = NextSerNr("OPVc",OPr.TransDate,-1,false,"");		
+  OPr.PayMode = CIb.PaymentMode;
+  OPPastePayMode(OPr);
+
+  ClearRow(OPr,OPrw,1);
+  OPrw.VISerNr = VIr.SerNr;
+  MatRowPut(OPr,0,OPrw);
+  PasteInvIn2OPr(OPr,0,OPr.TransDate,1,chk,warning,false,installmentf);
+
+  if (RecordStore(OPr,true)) then begin
+    RecordCopy(oldOPr,OPr);
+    OPr.DoneFlag = 1;
+    OPr.OrderedFlag = 1;
+    RecordUpdate(oldOPr,OPr,true);
+  end;
+
+  return;
+end;
+
 global
 updating procedure CredManMakePaymentRemote(var record CredManVc CredManr,var record VIVc VIr)
 begin
@@ -580,8 +779,10 @@ begin
 
   if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=5) then begin
     CreateSingleAgreementInvoice(CredManr,CredManr.startDate,IVr);
-    CredManCreditAllInvoices(CredManr);
+    //CredManCreditAllInvoices(CredManr);
+    CreatePaymentFakeReceipt(CredManr,IVr);
     CreateCredmanPurchaseInvoice(CredManr,IVr.Sum4,VIr);
+    CreatePaymentOrder(CredManr,VIr);
     if (VIr.SerNr>0) then begin
       BlockLoad(OCb);
       CredManr.VINr = VIr.SerNr;

@@ -1,0 +1,49 @@
+event startup
+begin
+  
+  SetLangMode(LangEnglish,"ENG",0);
+
+  Setting("External Form Definitions",ExternalFormDefLClass,modCredMan);
+
+  StrSetBegin(31003);
+  StrSetText(CredManForm,"Credit Agreement");
+  StrSetText(CredManScheduleForm,"Schedule");
+  StrSetText(SuretyAgreementForm,"Surety Agreement");
+  StrSetText(VekselisForm,"Vekselis");
+  StrSetText(LoanAppForm,"Loan Application");
+
+  EndStrSet;
+
+  return;
+end;
+
+
+window ExternalFormDefLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("External Form Definitions",ExternalFormDefLClass,CGmList,-);
+  Sizeable(-1,-1,0,0);
+  SetWRect(64,80,600,298);
+  SpawnClass(ExternalFormDefDClass);
+  UseView(ExternalFormDefVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Document",DocName,false,DocName);
+  EndWindow;
+end;
+
+window ExternalFormDefDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("External Form Definitions",ExternalFormDefDClass,CGview,-);
+  SetWRect(20,80,650,339);
+  UseView(ExternalFormDefVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditFieldTL(h,v=6,150,"Document",M4StrSet,Normal,31003,DocName,false,StrSetSClass);
+  MatrixBegin(10,v+=vs+20,-40,-20,-,99);
+  MatCol(1,24,"Language",0,LangCode,false,LangSClass);
+  MatCol(1,140,"Template",0,TemplateName,false,ExternalFormDefImgSClass);
+  MatCol(1,-200,"Table's First Field",0,FirstField,false,0); 
+  EndMatrix;
+  EndWindow;
+end;

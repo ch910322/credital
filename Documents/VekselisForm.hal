@@ -127,6 +127,11 @@ LBREAK:;
           ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
           OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
         end;
+        OutFormField("F_CREDHALFSUM",(CredManr.InvSum4/2));
+        if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
+          ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+          OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
+        end;
 
         CloseForm;        
       end else begin

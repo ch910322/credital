@@ -1,0 +1,127 @@
+external procedure ExternalPrintLoanAppForm(record B2BLoanApplicationVc,var vector string);
+external procedure ExternalPrintSuretyAppForm(record B2BLoanApplicationVc,var vector string);
+external procedure ExternalPrintPaymentCertificateForm(record CredManPmtGrntVc,var vector string);
+external procedure ExternalPrintCredManForm(record CredManVc,var vector string);
+external procedure ExternalPrintCredManScheduleForm(record CredManVc,var vector string);
+external procedure ExternalPrintVekselisForm(record CredManVc,var vector string);
+external procedure ExternalPrintSuretyAgreementForm(record CredManVc,var vector string);
+external procedure EBSSendPrintDocument(vector string,area,var area);
+
+function Boolean GetTemplateFile(string name,var area template,record ExternalFormDefVc EFDr)
+begin
+  Boolean res;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+  Integer i;
+
+  i = 1;
+  while (ReadRecordLink(EFDr,i,Attachr,RLr)) begin
+    if (Attachr.FileName==name) then begin
+      res = true;
+      AddAttachFileToArea2(Attachr,template,false,false);
+    end;
+    i = i + 1;
+  end;
+
+  GetTemplateFile = res;
+  return;
+end;
+
+global
+procedure PrintEBSDocument(string docname,string fn,record RcVc RepSpec,string id,string langcode)
+begin
+  record ExternalFormDefVc EFDr;
+  row ExternalFormDefVc EFDrw;
+  Integer i,rwcnt;
+  string 255 templatename,firstfield;
+  area template,pdffile;
+  record CredManVc CredManr;
+  record B2BLoanApplicationVc LAr;
+  record CredManPmtGrntVc PGr;
+  Boolean printf;
+  vector string 255 vVals;
+
+  EFDr.DocName = docname;
+  if (ReadFirstMain(EFDr,1,true)) then begin
+    rwcnt = MatRowCnt(EFDr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(EFDr,i,EFDrw);
+      if (EFDrw.LangCode==langcode) then begin
+        templatename = EFDrw.TemplateName;
+        firstfield = EFDrw.FirstField;
+        i = rwcnt;
+      end;
+      if (blank(EFDrw.LangCode)) then begin
+        templatename = EFDrw.TemplateName;
+        firstfield = EFDrw.FirstField;
+      end;
+    end;
+    if (nonblank(templatename)) then begin
+      if (GetTemplateFile(templatename,template,EFDr)) then begin
+        vVals["TABLEFIRSTFIELD"] = firstfield;
+        switch (docname) begin
+          case "LoanAppForm":
+            LAr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(LAr,1,true) or id=="-2");
+            if (printf) then begin
+              vVals["SPEC_CUSTCODE"] = RepSpec.f10;
+              ExternalPrintLoanAppForm(LAr,vVals);
+            end;
+          case "SuretyApplicationForm":
+            LAr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(LAr,1,true) or id=="-2");
+            if (id=="-2") then begin
+              LAr.SuretyCnt = 1;
+            end;
+            if (printf) then begin
+              ExternalPrintSuretyAppForm(LAr,vVals);
+            end;
+          case "CredManForm":
+            CredManr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+            if (printf) then begin
+              ExternalPrintCredManForm(CredManr,vVals);
+            end;
+          case "CredManScheduleForm":
+            CredManr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+            if (printf) then begin
+              ExternalPrintCredManScheduleForm(CredManr,vVals);
+            end;
+          case "SuretyAgreementForm":
+            CredManr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+            if (printf) then begin
+              ExternalPrintSuretyAgreementForm(CredManr,vVals)
+            end;
+          case "VekselisForm":
+            CredManr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(CredManr,1,true) or id=="-2");
+            if (printf) then begin
+              ExternalPrintVekselisForm(CredManr,vVals);
+            end;
+          case "PaymentCertificateForm":
+            PGr.CredManNr = StringToLongint(id);
+            printf = (ReadFirstKey("CredManNr",PGr,1,true) or id=="-2");
+            if (printf) then begin
+              if (RepSpec.ArtMode>-1) then begin
+                vVals["SPEC_ROW"] = RepSpec.ArtMode;
+                ExternalPrintPaymentCertificateForm(PGr,vVals);
+              end else begin
+                printf = false;
+              end;
+            end;
+        end;
+        if (printf) then begin
+          EBSSendPrintDocument(vVals,template,pdffile);
+          //store pdf
+          if (GetAreaLength(pdffile)>0) then begin
+            WriteAreaToFile(pdffile,fn,0);
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;

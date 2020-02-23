@@ -22,7 +22,7 @@ external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 StrReplace(string,string,string);
 external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
-external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,record RcVc);
+external updating procedure PrintMultiDocDocument2(string,string,string,Integer,Boolean,string,record RcVc);
 external function string 255 ShowSuretyApp(record B2BLoanApplicationVc);
 external procedure CredManSetDatesCust(var record CredManVc);
 external updating procedure AddContactToMailingList(record PersColVc,record CUVc);
@@ -32,6 +32,7 @@ external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record
 external function Boolean AllSuretyApplicationsSigned(Longint,record AgreementDocVc);
 remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
 external function string 255 CreditalFixPhone(string,string);
+external procedure PrintEBSDocument(string,string,record RcVc,string,string);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -45,6 +46,18 @@ begin
   end;
 
   GetLinkToLoanApp = res;
+  return;
+end;
+
+function Boolean FastType(Integer type)
+begin
+  Boolean res;
+
+  if (type==0 or type==3 or type==4) then begin
+    res = true;
+  end;
+
+  FastType = res;
   return;
 end;
 
@@ -330,7 +343,7 @@ begin
   return;
 end;
 
-procedure ShowStep(Integer step,Integer activestep)
+procedure ShowStep(Integer step,Integer activestep,string text,Integer maxsteps)
 begin
   string 255 cls;
   
@@ -342,8 +355,8 @@ begin
   end;
   WebOutString("<div class='col" & cls & "'>");
   WebOutString("<div class='step_count'>" & step & "</div>");
-  WebOutString("<div class='step_text'>" & ToolWebNGTranslateText2(70118+step) & "</div>");
-  if (step<3) then begin
+  WebOutString("<div class='step_text'>" & text & "</div>");
+  if (step<maxsteps) then begin
     cls = "";
     if (activestep>=step) then begin
       cls = " activeline";
@@ -355,15 +368,19 @@ begin
   return;
 end;
 
-procedure ShowLoanSteps(Integer activestep)
+procedure ShowLoanSteps(Integer activestep,Integer type)
 begin
   
   WebOutString("<div class='loan_app_steps_wrap'>");
   WebOutString("<div class='loan_app_steps'>");
   WebOutString("<div class='row'>");
-  ShowStep(1,activestep);
-  ShowStep(2,activestep);
-  ShowStep(3,activestep);
+  ShowStep(1,activestep,ToolWebNGTranslateText2(70119),3);
+  if (FastType(type)) then begin
+    ShowStep(2,activestep,ToolWebNGTranslateText2(70421),2);
+  end else begin
+    ShowStep(2,activestep,ToolWebNGTranslateText2(70120),3);
+    ShowStep(3,activestep,ToolWebNGTranslateText2(70121),3);
+  end;
   WebOutString("</div>");
   WebOutString("</div>");
   WebOutString("</div>");
@@ -400,7 +417,7 @@ begin
   GetLoanDefaults(vSess)
   
   WebOutString("<div class='loan_app_wrap'>");
-  ShowLoanSteps(1);
+  ShowLoanSteps(1,-1);
   LAr.Sum = StringToLongint(vSess["LoanAmount"]);
   LAr.Months = StringToLongint(vSess["LoanTerm"]);
   LAr.Surety1Type = StringToLongint(vSess["LoanType"]);//used Surety1Type just a dummy field
@@ -455,26 +472,39 @@ begin
   return;
 end;
 
+procedure ShowVerificatonMethod(string type,string image,string name)
+begin
+  
+  WebOutString("<div class='ver_item ver_item" & type & "' type='" & type & "'>")
+  WebOutString("<div class='ver_item_image'><img src='/files?file=" & image & "' alt='Verification - " & image & "'></div>");
+  WebOutString("<div class='ver_item_text'>" & name & "</div>");
+  WebOutString("</div>");
+
+  return;
+end;
+
 procedure ShowLoanAppStepTwo()
 begin
   vector string 255 vSess;
   record B2BLoanApplicationVc LAr;
   record CUVc CUr,ContactCUr;
   string 255 readonly;
+  Integer loantype;
   
   LoadLoanSession(vSess);
   if (blank(CurrentCust) and vSess["LoanNewCust"]!="true") then begin
     goto LShowLoanAppStepTwo;
   end;
-
-  WebOutString("<div class='loan_app_wrap'>");
-  ShowLoanSteps(2);
-
-  WebOutString("<div class='loan_app_content'>");
-  //WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70123) & "</h2></div>");
-
   LAr.SerNr = vSess["WebLoanNr"];
   if (ReadFirstMain(LAr,1,true)) then begin
+
+    WebOutString("<div class='loan_app_wrap'>");
+    loantype = MapLoanType(LAr.Type);
+    ShowLoanSteps(2,loantype);
+
+    WebOutString("<div class='loan_app_content'>");
+    //WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70123) & "</h2></div>");
+
     CUr.Code = LAr.CustCode;
     ReadFirstMain(CUr,1,true);
     ContactCUr.eMail = LAr.ContacteMail;
@@ -524,10 +554,11 @@ begin
     ShowInputField("bankacc",ToolWebNGTranslateText2(70132),ToolWebNGTranslateText2(70133),CUr.BankAccount,"",8);
     WebOutString("</div>");
 
-    WebOutString("<div class='row input_row block_end ltype" & MapLoanType(LAr.Type) & "'>")
+    WebOutString("<div class='row input_row block_end ltype" & loantype & "'>")
     ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","",4);
     WebOutString("</div>");
 
+    WebOutString("<div class='surety_block_wrap'>")
     WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70124) & "</h2></div>");
   //Surety providers
     WebOutString("<div class='surety_block'>");
@@ -560,15 +591,23 @@ begin
 
     WebOutString("</div>");//single_surety_template
 
+    WebOutString("</div>");//surety_block_wrap
 
   //70142 for adding extra surety providers
-    
+    WebOutString("<div class='step2_nav'>");
     WebOutString("<div class='loan_back'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
-    WebOutString("<div class='loan_submit'><div class='hl_button'>" & ToolWebNGTranslateText2(70118) & "</div></div>");
+    if (FastType(loantype)) then begin
+      //WebOutString("<div class='verification_options'>");
+      ShowVerificatonMethod("other","other.svg",ToolWebNGTranslateText2(70224));
+      //WebOutString("</div>");      
+    end else begin
+      WebOutString("<div class='loan_submit'><div class='hl_button'>" & ToolWebNGTranslateText2(70118) & "</div></div>");
+    end;
+    WebOutString("</div>");
+    WebOutString("</div>");
+    WebOutString("</div>");
   end;
 
-  WebOutString("</div>");
-  WebOutString("</div>");
 
 LShowLoanAppStepTwo:;
   return;
@@ -645,17 +684,6 @@ begin
   return;
 end;
 
-procedure ShowVerificatonMethod(string type,string image,string name)
-begin
-  
-  WebOutString("<div class='ver_item ver_item" & type & "' type='" & type & "'>")
-  WebOutString("<div class='ver_item_image'><img src='/files?file=" & image & "' alt='Verification - " & image & "'></div>");
-  WebOutString("<div class='ver_item_text'>" & name & "</div>");
-  WebOutString("</div>");
-
-  return;
-end;
-
 procedure ShowLoanAppVerification(record B2BLoanApplicationVc LAr)
 begin
   
@@ -683,34 +711,58 @@ begin
   return;
 end;
 
+procedure ShowStepFourElement()
+begin
+  string 255 link;
+  
+  WebOutString("<div class='loan_head loan_step4'><h2>" & ToolWebNGTranslateText2(70201) & "</h2><p>" & ToolWebNGTranslateText2(70202) & "</p></div>");//" & ToolWebNGTranslateText2(70100) & "
+  
+  WebOutString("<div class='loan_app_finish_center'><div class='loan_app_finish_image_wrap'><div class='loan_app_finish_image'></div></div></div>");
+
+  if (nonblank(CurrentCust)) then begin
+    link = GetLinkToMyAccount;
+    WebOutString("<div class='loan_app_finish'><a href='" & link & "' class='hl_button'>" & ToolWebNGTranslateText2(70203) & "</a></div>")
+  end else begin
+    WebOutString("<div class='loan_app_finish'><a href='/' class='hl_button'>" & ToolWebNGTranslateText2(70204) & "</a></div>")    
+  end;
+
+  return;
+end;
+
 procedure ShowLoanAppStepThree()
 begin
   vector string 255 vSess;
   record B2BLoanApplicationVc LAr;
+  Integer type;
   
   LoadLoanSession(vSess);
   if (blank(CurrentCust) and vSess["LoanNewCust"]!="true") then begin
     goto LShowLoanAppStepThree;
   end;
-  
-  WebOutString("<div class='loan_app_wrap'>");
-  ShowLoanSteps(3);
-
-  WebOutString("<div class='loan_app_content'>");
-
   LAr.SerNr = vSess["WebLoanNr"];
   if (ReadFirstMain(LAr,1,true)) then begin
-    ShowLoanAppSummary(LAr);
+    type = MapLoanType(LAr.Type);
+  
+    WebOutString("<div class='loan_app_wrap'>");
 
-    ShowDataProcessing;
+    ShowLoanSteps(3,type);
 
-    ShowLoanAppVerification(LAr);
-    WebOutString("<div class='loan_back'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
+    WebOutString("<div class='loan_app_content'>");
+
+
+    if (FastType(type)) then begin
+      ShowStepFourElement;
+    end else begin
+      ShowLoanAppSummary(LAr);
+      ShowDataProcessing;
+      ShowLoanAppVerification(LAr);
+      WebOutString("<div class='loan_back'><div class='hl_button'>" & ToolWebNGTranslateText2(70143) & "</div></div>");
+    end;
+    WebOutString("</div>");
+    WebOutString("</div>");
   end else begin
     //display error message?
   end;
-  WebOutString("</div>");
-  WebOutString("</div>");
 LShowLoanAppStepThree:;
   return;
 end;
@@ -723,19 +775,11 @@ begin
   ClearSession(vSess);
   
   WebOutString("<div class='loan_app_wrap'>");
-  ShowLoanSteps(4);
+  ShowLoanSteps(4,-1);
 
   WebOutString("<div class='loan_app_content'>");
-  WebOutString("<div class='loan_head loan_step4'><h2>" & ToolWebNGTranslateText2(70201) & "</h2><p>" & ToolWebNGTranslateText2(70202) & "</p></div>");//" & ToolWebNGTranslateText2(70100) & "
-  
-  WebOutString("<div class='loan_app_finish_center'><div class='loan_app_finish_image_wrap'><div class='loan_app_finish_image'></div></div></div>");
+  ShowStepFourElement;
 
-  if (nonblank(CurrentCust)) then begin
-    link = GetLinkToMyAccount;
-    WebOutString("<div class='loan_app_finish'><a href='" & link & "' class='hl_button'>" & ToolWebNGTranslateText2(70203) & "</a></div>")
-  end else begin
-    WebOutString("<div class='loan_app_finish'><a href='/' class='hl_button'>" & ToolWebNGTranslateText2(70204) & "</a></div>")    
-  end;
   WebOutString("</div>");
   WebOutString("</div>");
 
@@ -1546,6 +1590,7 @@ begin
   record RLinkVc RLr;
   record RcVc RepSpec;
   string 255 fn;
+  record CreditalFormBlock CFb;
   
   RecordNew(ADr);
   ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
@@ -1558,8 +1603,13 @@ begin
 
   if (RecordInsert(ADr,true)) then begin
     fn = "Agreement.pdf";
+    BlockLoad(CFb);
     RepSpec.f10 = custcode;
-    PrintMultiDocDocument2("LoanAppForm",fn,LAr.SerNr,0,false,RepSpec);
+    if (CFb.ExtLoanAppForm==1) then begin
+      PrintEBSDocument("LoanAppForm",fn,RepSpec,LAr.SerNr,"");
+    end else begin
+      PrintMultiDocDocument2("LoanAppForm",fn,LAr.SerNr,0,false,"",RepSpec);
+    end;
     RecordLinkFile(fn,0,ADr,CurrentCompany);
     Delete_File(fn);
     CreateRecordLink(ADr,CurrentCompany,LAr,CurrentCompany);
@@ -1612,18 +1662,60 @@ begin
   return;
 end;
 
+function Boolean MaskMatches(string pattern,string tstr)
+begin
+  string 255 c,c2;
+  Integer i;
+  Boolean res;
+  
+  if (len(pattern)==len(tstr)) then begin
+    res = true;
+    for (i=0;i<len(pattern);i=i+1) begin
+      c = mid(pattern,i,1);
+      c2 = mid(tstr,i,1);
+      if (c!="#" and c!=c2) then begin
+        res = false;
+        i = len(pattern);
+      end;
+    end;
+  end;
+
+  MaskMatches = res;
+  return;
+end;
+
+procedure FindBankForBankAccount(string bankacc,var string bankcode)
+begin
+  record WebBankConnBlock BCb;
+  row WebBankConnBlock BCbrw;
+  Integer i,rwcnt;
+
+  BlockLoad(BCb);
+  rwcnt = MatRowCnt(BCb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(BCb,i,BCbrw);
+    if (MaskMatches(BCbrw.Pattern,bankacc)) then begin
+      bankcode = BCbrw.BankCode;
+      i = rwcnt;
+    end;
+  end;
+
+  return;
+end;
+
 global
 updating procedure LoanApplicationStoreStep2()
 begin
   Integer type,err;
-  string 255 bankacc,link,addr2,errstr,managercode,step;  
+  string 255 bankacc,bankcode,link,addr2,errstr,managercode,step;  
   record B2BLoanApplicationVc LAr,oldLAr;
   Integer paymentdate;
-  Boolean mansurf,addrtype,verf;
+  Boolean mansurf,addrtype,verf,ignoref;
   vector string 255 vSess;
   record CUVc CUr,oldCUr;
   record CMOrderClassBlock OCb;
   record AgreementDocVc ADr;
+  record BankVc Bankr;
   
   bankacc = WebGetArg("bankacc");
   paymentdate = StringToInt(WebGetArg("paymentdate"));
@@ -1643,12 +1735,24 @@ begin
       err = err + 8;
     end;
 
+    if (FastType(type)) then begin
+      ignoref = true;
+    end;
+
     if (err==0) then begin
       step = "3";
       BlockLoad(OCb);
       RecordCopy(oldLAr,LAr);
       AddManagerAndSurety(LAr,mansurf,managercode);
+      FindBankForBankAccount(bankacc,bankcode);
       LAr.BankAccount = bankacc;
+      LAr.BankCode = bankcode;
+      if (nonblank(LAr.BankCode)) then begin
+        Bankr.Code = LAr.BankCode;
+        if (ReadFirstMain(Bankr,1,true)) then begin
+          LAr.BankName = Bankr.Name;
+        end;
+      end;
       LAr.MonthlyPaymentDay = paymentdate;
       if (addrtype) then begin
         LAr.Addr0 = addr2;
@@ -1662,23 +1766,25 @@ begin
         end;
         RecordUpdate(oldCUr,CUr,false);//skipping record actions here
       end;
-      if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
+      if (!ignoref and LAr.OrderClass!=OCb.CheckWebAppClass) then begin
         LAr.OrderClass = OCb.OtherWebAppClass;
       end;
       if (RecordUpdate(oldLAr,LAr,true)==0) then begin
         RemoveOldDocuments(LAr);
-        SendEmailsToSurety(LAr);
-        PrepareLoanApplicationVerification(LAr,managercode,verf);
-        if (verf) then begin
-          if (AllSuretyApplicationsSigned(LAr.SerNr,ADr)) then begin
-            BlockLoad(OCb);
-            if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
-              RecordCopy(oldLAr,LAr);
-              LAr.OrderClass = OCb.VerWebAppClass;
-              RecordUpdate(oldLAr,LAr,true);
+        if (!ignoref) then begin
+          SendEmailsToSurety(LAr);
+          PrepareLoanApplicationVerification(LAr,managercode,verf);
+          if (verf) then begin
+            if (AllSuretyApplicationsSigned(LAr.SerNr,ADr)) then begin
+              BlockLoad(OCb);
+              if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
+                RecordCopy(oldLAr,LAr);
+                LAr.OrderClass = OCb.VerWebAppClass;
+                RecordUpdate(oldLAr,LAr,true);
+              end;
             end;
+            step = "4";
           end;
-          step = "4";
         end;
       end;
     end;

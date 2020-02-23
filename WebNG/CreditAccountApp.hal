@@ -702,41 +702,22 @@ begin
   return;
 end;
 
-function Boolean CustIsSurety(string custcode,record CredManVc CredManr)
+function Boolean CustomerInMatrix(record AgreementDocVc ADr,string custcode)
 begin
+  Integer i,rwcnt;
   Boolean res;
+  row AgreementDocVc ADrw;
   
-  if (GetFieldValueByName(CredManr,"SuretyProvider1",-1)==custcode) then begin
-    res = true;
-    goto LCustIsSurety;
-  end;
-  if (GetFieldValueByName(CredManr,"SuretyProvider2",-1)==custcode) then begin
-    res = true;
-    goto LCustIsSurety;
-  end;
-  if (GetFieldValueByName(CredManr,"SuretyProvider3",-1)==custcode) then begin
-    res = true;
-    goto LCustIsSurety;
-  end;
-
-LCustIsSurety:;
-  CustIsSurety = res;
-  return;
-end;
-
-function Boolean CustIsCEO(string custcode,record CredManVc CredManr)
-begin
-  Boolean res;
-  record B2BLoanApplicationVc LAr;
-  record RLinkVc RLr;
-
-  if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
-    if (LAr.CEOCustCode==custcode) then begin
+  rwcnt = MatRowCnt(ADr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ADr,i,ADrw);
+    if (ADrw.CustCode==custcode) then begin
       res = true;
+      i = rwcnt;
     end;
-  end;  
+  end;
 
-  CustIsCEO = res;
+  CustomerInMatrix = res;
   return;
 end;
 
@@ -744,18 +725,9 @@ global
 function Boolean ContactShouldSeeDocument(record CredManVc CredManr,string custcode,record AgreementDocVc ADr)
 begin
   Boolean res;
-  
-  if (ADr.Type==3 or ADr.Type==6) then begin
-    if (CustIsSurety(custcode,CredManr) or (ADr.Type==6 and CustIsCEO(custcode,CredManr))) then begin
-      res = true;
-      goto LContactShouldSeeDocument;
-    end;
-  end;
-  if (ADr.Type==1 or ADr.Type==2) then begin
-    if (CustIsCEO(custcode,CredManr)) then begin
-      res = true;
-      goto LContactShouldSeeDocument;
-    end;
+
+  if (CustomerInMatrix(ADr,custcode)) then begin
+    res = true;
   end;
 
 LContactShouldSeeDocument:;

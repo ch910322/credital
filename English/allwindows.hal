@@ -901,13 +901,19 @@ window CredManTypeDClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
   real h,h2,h3,t,v,vm,vm2,vs;
+//CUST-BEGIN
+  real h4,h5,h6;
+//CUST-END
   WindowBegin("Credit Agreement Type",CredManTypeDClass,CGview,-);
-  SetWRect(20,80,640,380);
+  SetWRect(20,80,750,380);//CUST 640>>750
   h = 150; h2 = 300; h3 = 440; v = 6; vs=20;
+  UseView(CredManTypeVc);
   //CUST-BEGIN
   h2 = 330;
+  TileButton(1,"Main");
+  TileButton(2,"Documents");
+  Tile(1,400,false,1,Code); 
   //CUST-END
-  UseView(CredManTypeVc);
   EditField(h,v,80,"Code",St_i,Code,false,0);
   EditField(h2,v,-40,"Interest",Normal,InstalmentType,false,SetSClass);
   EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
@@ -930,6 +936,7 @@ begin
   EditField(h,vm2=(v+=vs),40,"Language",Normal,LangCode,false,LangSClass);
   EditField(h2,v,40,"First Invoice Language",Normal,LangCode2,false,LangSClass);
   h2 = h2 + 110;
+  CheckBox(h2,v,0,"Closed",Closed);
   //CUST-END
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
   RadioButton(h2,v,0,0,"Due Date",LateRateOption);
@@ -952,6 +959,44 @@ begin
   MatCol(t,-120,"%",0,vRebate,true,0);
   MatCol(t,-90,"Sum",0,Sum,true,0);
   EndMatrix;
+
+//CUST-BEGIN
+  Tile(2,400,false,2,CredManCEO1);
+  v = 6;
+  h = 30;h2 = 150; h3 = 300; h4 = 400; h5 = 500; h6 = 620;
+  StaticText(h,v+13,"Credit Agreement",false);
+  CheckBox(h2,v,0,"CEO not Surety",CredManCEO1);
+  CheckBox(h3,v,0,"CEO Surety",CredManCEO2);
+  CheckBox(h4,v,0,"Surety",CredManSurety);
+  CheckBox(h5,v,0,"Us",CredManUs);
+  EditField(h6,v,40,"Language",Normal,CredManLangCode,false,LangSClass);
+  
+  v = v + vs;
+  StaticText(h,v+13,"Surety Agreement",false);
+  CheckBox(h2,v,0,"CEO not Surety",SuretyCEO1);
+  CheckBox(h3,v,0,"CEO Surety",SuretyCEO2);
+  CheckBox(h4,v,0,"Surety",SuretySurety);
+  CheckBox(h5,v,0,"Us",SuretyUs);
+  EditField(h6,v,40,"Language",Normal,SuretyLangCode,false,LangSClass);
+
+  v = v + vs;
+  StaticText(h,v+13,"Schedule",false);
+  CheckBox(h2,v,0,"CEO not Surety",ScheduleCEO1);
+  CheckBox(h3,v,0,"CEO Surety",ScheduleCEO2);
+  CheckBox(h4,v,0,"Surety",ScheduleSurety);
+  CheckBox(h5,v,0,"Us",ScheduleUs);
+  EditField(h6,v,40,"Language",Normal,ScheduleLangCode,false,LangSClass);
+
+  v = v + vs;
+  StaticText(h,v+13,"Vekselis",false);
+  CheckBox(h2,v,0,"CEO not Surety",VekselisCEO1);
+  CheckBox(h3,v,0,"CEO Surety",VekselisCEO2);
+  CheckBox(h4,v,0,"Surety",VekselisSurety);
+  CheckBox(h5,v,0,"Us",VekselisUs);
+  EditField(h6,v,40,"Language",Normal,VekselisLangCode,false,LangSClass);
+
+
+//CUST-END
   EndWindow;
 end;
 
@@ -1165,5 +1210,20 @@ begin
   RlCol(180,180,"Sorting",Sorting,false);
   RlColKey(270,270,"Comment",Comment,false,ContentComment);
   SpecialMenu("Show content in browser",'w',1,"ShowWebNGContentInBrowserDsm");
+  EndWindow;
+end;
+
+window CredManTypeSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Credit Agreement Types",CredManTypeSClass,CGslist,-);
+  SetWRect(20,80,500,300);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManTypeDClass);
+  UseView(CredManTypeVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,20,"Code",Code,false,ActCode);//CUST Code>>ActCode
+  RlColKey(100,100,"Comment",Comment,false,ActComment);//CUST Comment>>ActComment
+  SearchField("Search");
   EndWindow;
 end;

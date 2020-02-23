@@ -22,7 +22,7 @@ begin
   Setting("Multi Page Documents",MultiDocLClass,modCredMan);
   Setting("Agreement Documents",AgreementDocLClass,modCredMan);
   Setting("Font Widths",FontWidthLClass,modCredMan);
-  Setting("Credital Invoice Settings",CreditalInvoiceTClass,modCredMan);
+  Setting("Invoicing Settings",CreditalInvoiceTClass,modCredMan);
   Setting("Automatic Tasks",CredManAutoTaskTClass,modCredMan);
   Setting("Automatically Closed Tasks",CredManCloseTaskTClass,modCredMan);
   Setting("Invitation Requests",InvitationRequestLClass,modCredMan);
@@ -31,6 +31,7 @@ begin
   Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
   Setting("Telephone Prefixes",PhonePrefixTClass,modCredMan);
   Setting("Receipt Entry",ReceiptEntryWClass,modSL);
+  Setting("Noviti Form Settings",CreditalFormTClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -67,6 +68,7 @@ begin
   Setting("Meta Tags Translations",WebMetaTagTransLClass,modWebShopNG);
   Setting("Exit Popup Links",ExitPopupLinksTClass,modWebShopNG);
   Setting("Contact Page Companies",LangCompanyMapTClass,modWebShopNG);
+  Setting("Bank - Account Connections",WebBankConnTClass,modWebShopNG);
 
 /*Sales ledger*/
 	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);
@@ -200,6 +202,7 @@ begin
   SetText(4,"Factoring");
   SetText(5,"Payment Guarantee");
   SetText(6,"Linear with Delay");
+  SetText(7,"Annuity with Delay");
   EndSet;
 
   SetBegin(2002);

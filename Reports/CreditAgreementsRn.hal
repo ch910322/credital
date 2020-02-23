@@ -32,13 +32,17 @@ begin
 		MatRowGet(CredManPayr,i,CredManPayrw);
     open = open + CredManPayrw.OpenAmount;
 		if (CredManPayrw.TransDate<=baldate) then begin
-			res = CredManPayrw.Bal;
+  		res = CredManPayrw.Bal;
 			i = 0;
 		end;
 	end;
 	if (res==blankval) then begin
-		MatRowGet(CredManPayr,0,CredManPayrw);
-		res = CredManPayrw.Bal;
+    if (rwcnt==1) then begin
+      res = CredManr.InvSum4;
+    end else begin
+      MatRowGet(CredManPayr,0,CredManPayrw);
+      res = CredManPayrw.Bal;      
+    end;
 	end else begin
     res = res + open;
   end;

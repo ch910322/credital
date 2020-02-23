@@ -104,22 +104,54 @@ begin
   return;
 end;
 
-function Boolean AllDocumentsSignedByUsCM(Longint sernr,record AgreementDocVc tADr)
+procedure GetDocumentSignersUs(record CredManVc CredManr,var Boolean credmanf,var Boolean schedulef,var Boolean suretyf,var Boolean vekselisf)
+begin
+  record CredManTypeVc CMTr;
+  
+  CMTr.Code = CredManr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    credmanf = CMTr.CredManUs==1;
+    suretyf = CMTr.SuretyUs==1;
+    schedulef = CMTr.ScheduleUs==1;
+    vekselisf = CMTr.VekselisUs==1;
+  end;  
+
+  return;
+end;
+
+function Boolean RequiredSignature(Boolean credmanf,Boolean schedulef,Boolean suretyf,Boolean vekselisf,Integer type)
+begin
+  Boolean res;  
+
+  switch (type) begin
+    case 1: res = credmanf;
+    case 3: res = suretyf;
+    case 2: res = schedulef;
+    case 6: res = vekselisf;
+  end;
+
+  RequiredSignature = res;
+  return;
+end;
+
+function Boolean AllDocumentsSignedByUsCM(record CredManVc CredManr,Longint sernr,record AgreementDocVc tADr)
 begin
   Boolean res;
   record AgreementDocVc ADr;
   row AgreementDocVc ADrw;
   Boolean TrHs;
+  Boolean credmanf,schedulef,suretyf,vekselisf;
 
   TrHs = true;
   res = true;
   ADr.RecordType = 0;
   ADr.RecordNr = sernr;
+  GetDocumentSignersUs(CredManr,credmanf,schedulef,suretyf,vekselisf);
   while (LoopKey("RecordNr",ADr,2,TrHs)) begin
     if (ADr.RecordNr!=sernr or ADr.RecordType!=0) then begin
       TrHs = false;
     end else begin
-      if (ADr.Type!=6) then begin
+      if (RequiredSignature(credmanf,schedulef,suretyf,vekselisf,ADr.Type)) then begin
         if (tADr.SerNr==ADr.SerNr) then begin//we are in recordupdate raction for this document which is not stored in db yet :)
           if (tADr.SignedByUs!=1) then begin
             res = false;
@@ -150,6 +182,7 @@ begin
   
   record CUVc CUr,oldCUr;
   record CredManVc CMr,oldCMr;
+  Boolean credmanf,schedulef,suretyf,vekselisf,signf;
 
   res = 0;
   
@@ -184,10 +217,12 @@ logtext(0,"AgreementDocVcRecordUpdate6");
       end;
     end;
   end;  
-  if (ADr.Type==1 or ADr.Type==2 or ADr.Type==3) then begin
-    if ((ADr.Type==6 or ADr.SignedByUs==1) and MatrixIsSigned(ADr)) then begin
-      CMr.SerNr = ADr.RecordNr;
-      if (ReadFirstMain(CMr,1,true)) then begin
+  if (ADr.RecordType==0) then begin
+    CMr.SerNr = ADr.RecordNr;
+    if (ReadFirstMain(CMr,1,true)) then begin
+      GetDocumentSignersUs(CMr,credmanf,schedulef,suretyf,vekselisf);
+      signf = RequiredSignature(credmanf,schedulef,suretyf,vekselisf,ADr.Type);
+      if (MatrixIsSigned(ADr) and (signf==false or ADr.SignedByUs==1)) then begin
         RecordCopy(oldCMr,CMr);
         switch (ADr.Type) begin
           case 1: CMr.SignAgreement = 1;
@@ -197,31 +232,22 @@ logtext(0,"AgreementDocVcRecordUpdate6");
         end;
         RecordUpdate(oldCMr,CMr,true);
       end;
-    end;
-  end;
-  if (ADr.RecordType==0) then begin
-logtext(0,"AgreementDocVcRecordUpdate7");
-    BlockLoad(OCb);
-    if (AllDocumentsSignedByCustomerCM(ADr.RecordNr,ADr)) then begin
-logtext(0,"AgreementDocVcRecordUpdate8");
-      CMr.SerNr = ADr.RecordNr;
-      if (ReadFirstMain(CMr,1,true)) then begin
+  logtext(0,"AgreementDocVcRecordUpdate7");
+      BlockLoad(OCb);
+      if (AllDocumentsSignedByCustomerCM(ADr.RecordNr,ADr)) then begin
+  logtext(0,"AgreementDocVcRecordUpdate8.1 " & CMr.SignVekselis);
         RecordCopy(oldCMr,CMr);
         CMr.OrderClass = OCb.CMCustSignedOrderClass;
         RecordUpdate(oldCMr,CMr,true);
-      end;    
-    end;
-    if (AllDocumentsSignedByUsCM(ADr.RecordNr,ADr)) then begin
-logtext(0,"AgreementDocVcRecordUpdate8");
-      CMr.SerNr = ADr.RecordNr;
-      if (ReadFirstMain(CMr,1,true)) then begin
+      end;
+      if (AllDocumentsSignedByUsCM(CMr,ADr.RecordNr,ADr)) then begin
+  logtext(0,"AgreementDocVcRecordUpdate8.2");
         RecordCopy(oldCMr,CMr);
         CMr.OrderClass = OCb.CMUsSignedOrderClass;
         RecordUpdate(oldCMr,CMr,true);
-      end;    
+      end;
     end;
   end;
-
   AgreementDocVcRecordUpdate = res;
   return;
 end;

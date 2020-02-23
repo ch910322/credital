@@ -39,7 +39,7 @@ external procedure CreditAccountActions(string);
 external inner function Boolean PasteCuInAct(var record ActVc,var string);
 external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
 external inner procedure ShowWebElement(string);
-external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean);
+external updating procedure PrintMultiDocDocument(string,string,string,Integer,Boolean,string);
 external inner procedure SetContentTypeForExtension(string);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function string 255 GetMainCustomerCodeFromContact(string);
@@ -465,6 +465,7 @@ begin
     case 70414: res = "¯veskite komentarˆ";
 
     case 70420: res = "Pateikti";
+    case 70421: res = "¯mon˜s duomenys";
   end;
 
   CheckInternalStrings = res;
@@ -500,7 +501,7 @@ begin
         res = true;
       case "textprint":
         fn = "doc.pdf";
-        PrintMultiDocDocument(WebGetArg("DocName"),fn,-2,0,false);
+        PrintMultiDocDocument(WebGetArg("DocName"),fn,-2,0,false,"");
         SetContentTypeForExtension("pdf");
         WebSetContentDisposition("inline; filename=" & fn);
         WebOutFile(fn);

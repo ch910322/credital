@@ -97,6 +97,11 @@ begin
   Bankr.Code = CUr.AccOperator;
   ReadFirstMain(Bankr,1,true);
   OUTFORMFIELD("F_ACCOUNTOPERATORNAME",Bankr.Name);
+  OutFormField("F_CREDHALFSUM",(CredManr.InvSum4/2));
+  if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
+    ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
+  end;
 
   tstr = "";
   amt = GetMonthlyPaymentAmount(CredManr,6);

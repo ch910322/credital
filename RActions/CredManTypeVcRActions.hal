@@ -1,0 +1,15 @@
+//<halrule>server-only</halrule>
+
+global
+function LongInt CredManTypeVcRecordInIndex(record CredManTypeVc CMTr,string indexname)
+begin
+  LongInt res;
+  res = 1;
+  if (CMTr.Closed!=0) then begin 
+    if (indexname=="ActCode")  then begin res = 0; end;
+    if (indexname=="ActComment")  then begin res = 0; end;
+  end;
+
+  CredManTypeVcRecordInIndex = res;
+  return;
+end;

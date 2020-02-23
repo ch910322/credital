@@ -1,6 +1,6 @@
 //<halrule>server-only</halrule>
 
-function Boolean FindDocument(var record MultiDocVc MDr,string docname,Integer loantype,Boolean maxf)
+function Boolean FindDocument(var record MultiDocVc MDr,string docname,Integer loantype,Boolean maxf,string langcode)
 begin
   Boolean res;
 
@@ -9,15 +9,28 @@ begin
   if (maxf) then begin
     MDr.MaxMonthlyPayment = 1;
   end;
-  if (ReadFirstMain(MDr,3,true)) then begin
+  MDr.LangCode = langcode;
+  if (ReadFirstMain(MDr,4,true)) then begin
     res = true;
   end;
   if (!res) then begin
     ResetLoop(MDr);
     MDr.DocName = docname;
     MDr.LoanType = loantype;
+    if (maxf) then begin
+      MDr.MaxMonthlyPayment = 1;
+    end;
+    MDr.LangCode = "";
+    if (ReadFirstMain(MDr,4,true)) then begin
+      res = true;
+    end;
+  end;
+  if (!res) then begin
+    ResetLoop(MDr);
+    MDr.DocName = docname;
+    MDr.LoanType = loantype;
     MDr.MaxMonthlyPayment = 0;
-    if (ReadFirstMain(MDr,3,true)) then begin
+    if (ReadFirstMain(MDr,4,true)) then begin
       res = true;
     end;
   end;
@@ -26,7 +39,7 @@ begin
     MDr.DocName = docname;
     MDr.LoanType = 0;
     MDr.MaxMonthlyPayment = 0;
-    if (ReadFirstMain(MDr,3,true)) then begin
+    if (ReadFirstMain(MDr,4,true)) then begin
       res = true;
     end;
   end;
@@ -83,7 +96,7 @@ begin
 end;
 
 global
-updating procedure PrintMultiDocDocument2(string docname,string fn,string id,Integer loantype,Boolean maxf,record RcVc RepSpec)
+updating procedure PrintMultiDocDocument2(string docname,string fn,string id,Integer loantype,Boolean maxf,string langcode,record RcVc RepSpec)
 begin
   record MultiDocVc MDr;
   row MultiDocVc MDrw,MD2rw;
@@ -95,7 +108,7 @@ begin
   record SysLevelBlock SysLevelb;
   record CredManPmtGrntVc PGr;
 
-  if (FindDocument(MDr,docname,loantype,maxf)) then begin
+  if (FindDocument(MDr,docname,loantype,maxf,langcode)) then begin
     rwcnt = MatRowCnt(MDr);
     switch (MDr.DocName2) begin
       case "LoanAppLongForm":
@@ -185,11 +198,12 @@ begin
 end;
 
 global
-updating procedure PrintMultiDocDocument(string docname,string fn,string id,Integer loantype,Boolean maxf)
+updating procedure PrintMultiDocDocument(string docname,string fn,string id,Integer loantype,Boolean maxf,string langcode)
 begin
   record RcVc RepSpec;
 
-  PrintMultiDocDocument2(docname,fn,id,loantype,maxf,RepSpec);
+  PrintMultiDocDocument2(docname,fn,id,loantype,maxf,langcode,RepSpec);
 
   return;
 end;
+
