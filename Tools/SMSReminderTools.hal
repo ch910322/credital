@@ -10,6 +10,8 @@ function string 255 SMSReminderVcReplaceToken(record SMSReminderVc SMSReminder,r
 begin
   string 255 res;
   record CYBlock CYb;
+  record IVVc IVr;
+  record CredManVc CMr;
   Longint pos;
   string 255 recname,field;
 
@@ -27,6 +29,24 @@ begin
           case "Phone":      res = CYb.Phone;
           case "emailAddr":  res = CYb.emailAddr;
         end;
+      case "IVr":
+        IVr.SerNr = RepSpec.long1;
+        if (ReadFirstMain(IVr,1,true)) then begin
+          switch (field) begin
+            case "SerNr":         res = IVr.SerNr;
+            case "OfficialSerNr": res = IVr.OfficialSerNr;
+            case "PayDate":       res = IVr.PayDate;
+          end;
+        end;
+      case "CMr":
+        CMr.SerNr = RepSpec.long2;
+        if (ReadFirstMain(CMr,1,true)) then begin
+          switch (field) begin
+            case "SerNr":          res = CMr.SerNr;
+//            case "OfficialSerNr":  res = CMr.OfficialSerNr;
+//            case "MonthlyInterest":res = CMr.PayDate;
+          end;
+        end;
     end;    
   end else begin
     switch (token) begin
@@ -36,6 +56,8 @@ begin
         res = RepSpec.vals0;
       case "InvDate":
         res = DateToString(RepSpec.d1,"YYYY/MM/DD");;
+      case "OverDueAmount":
+        res = RepSpec.vals1;
     end;
   end;
 
@@ -51,6 +73,7 @@ begin
   string 255 text,tstr;
   Integer i,lcnt;
   record CUVc CUr;
+  record ARVc ARr;
   
   CUr.Code = IVr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
@@ -62,8 +85,13 @@ begin
       goto LSendSMSReminder;
     end;
     
+    ARr.InvoiceNr = IVr.SerNr;
+    ReadFirstMain(ARr,1,true);
     RepSpec.searchstr = CUr.Name;
     RepSpec.vals0 = IVr.Sum4;
+    RepSpec.vals1 = ARr.RVal;
+    RepSpec.long1 = IVr.SerNr;
+    RepSpec.long2 = IVr.CustCredManNr;
     RepSpec.d1 = IVr.InvDate;
     ParseTextField(a,SMSReminder,RepSpec,"SMSReminderVcReplaceToken");
 

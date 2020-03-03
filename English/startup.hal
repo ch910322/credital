@@ -32,6 +32,7 @@ begin
   Setting("Telephone Prefixes",PhonePrefixTClass,modCredMan);
   Setting("Receipt Entry",ReceiptEntryWClass,modSL);
   Setting("Noviti Form Settings",CreditalFormTClass,modCredMan);
+  Setting("Agreement Classifications",CredManClassLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
@@ -41,6 +42,7 @@ begin
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
   Maintenance("Create Payment Guarantee Invoices",PmtGrntInvoiceVClass,PmtGrntInvoiceMn,modCredMan);
   Maintenance("Create Overdue Invoices",GenOverdueInvVClass,GenOverdueInvMn,modCredMan);
+  Maintenance("Fix Credit History",CredManRedoCredHistVClass,CredManRedoCredHistMn,modCredMan);
 
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
@@ -69,6 +71,7 @@ begin
   Setting("Exit Popup Links",ExitPopupLinksTClass,modWebShopNG);
   Setting("Contact Page Companies",LangCompanyMapTClass,modWebShopNG);
   Setting("Bank - Account Connections",WebBankConnTClass,modWebShopNG);
+  Setting("Mobile Surveys",NovWebFormLClass,modWebShopNG);
 
 /*Sales ledger*/
 	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);
@@ -349,6 +352,13 @@ begin
   SetText(0,"SMS");
   SetText(1,"Email");
   EndSet;
+
+  StrSetBegin(2025);
+  StrSetText("","-");
+  StrSetText(green,"Green");
+  StrSetText(orange,"Orange");
+  StrSetText(blue,"Blue");
+  EndStrSet;
 
   return;
 end;

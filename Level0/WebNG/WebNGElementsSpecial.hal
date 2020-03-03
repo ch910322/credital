@@ -678,7 +678,7 @@ begin
           end;
           testf = foundf;
           if (countries[0]!="0") then begin
-            if (CountryInArray(WCr.Country,countries)==false) then begin
+            if (nonblank(WCr.Country) and CountryInArray(WCr.Country,countries)==false) then begin//CUST
               testf = false;
             end;
           end;

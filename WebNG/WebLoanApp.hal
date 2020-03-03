@@ -33,6 +33,8 @@ external function Boolean AllSuretyApplicationsSigned(Longint,record AgreementDo
 remote procedure DocumentSigningClientDone(string,record AgreementDocVc);
 external function string 255 CreditalFixPhone(string,string);
 external procedure PrintEBSDocument(string,string,record RcVc,string,string);
+external function Integer SetCompanyBasedOnCountry();
+external procedure ResetCompanyBasedOnCountry(Integer);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -132,16 +134,53 @@ begin
   return;
 end;
 
+procedure ShowLoanType2(string num,string cls,Integer type,Integer seltype,Integer showf)
+begin
+  string 255 addcls,text;
+ 
+  if (showf==0) then begin
+    goto LShowLoanType2;
+  end;
+
+  switch (type) begin
+    case 0: text = ToolWebNGTranslateText2(70101);
+    case 3: text = ToolWebNGTranslateText2(70102);
+    case 4: text = ToolWebNGTranslateText2(70103);
+    case 1: text = ToolWebNGTranslateText2(70104);
+    case 2: text = ToolWebNGTranslateText2(70105);
+  end;
+
+  addcls = cls;
+  if (type==seltype) then begin
+    addcls = addcls & " selected";
+  end;
+  WebOutString("<div class='col-md-4 " & addcls & "' type='" & type & "'><div class='loan_num'><div class='loan_num_inner'>" & num & "</div></div><div class='loan_text'>" & text & "</div></div>");
+
+LShowLoanType2:;
+  return;
+end;
+
+
 procedure DisplayLoanTypes(Integer selectedtype)
 begin
   Integer st;
+  record CreditalWebSetBlock WSb;
 
-  WebOutString("<div class='row loan-types'>")
+  BlockLoad(WSb);
+  WebOutString("<div class='row loan-types'>");
+  ShowLoanType2("A",WSb.LoanType1Color,WSb.LoanType1,selectedtype,WSb.LoanType1Show);
+  ShowLoanType2("B",WSb.LoanType2Color,WSb.LoanType2,selectedtype,WSb.LoanType2Show);
+  ShowLoanType2("C",WSb.LoanType3Color,WSb.LoanType3,selectedtype,WSb.LoanType3Show);
+  ShowLoanType2("D",WSb.LoanType4Color,WSb.LoanType4,selectedtype,WSb.LoanType4Show);
+  ShowLoanType2("E",WSb.LoanType5Color,WSb.LoanType5,selectedtype,WSb.LoanType5Show);
+
+/*
   ShowLoanType("A","green",ToolWebNGTranslateText2(70101),0,selectedtype);
   ShowLoanType("B","green",ToolWebNGTranslateText2(70102),3,selectedtype);
   ShowLoanType("C","green",ToolWebNGTranslateText2(70103),4,selectedtype);
   ShowLoanType("D","orange",ToolWebNGTranslateText2(70104),1,selectedtype);
   ShowLoanType("E","blue",ToolWebNGTranslateText2(70105),2,selectedtype);
+*/
   WebOutString("</div>")
 
   return;
@@ -850,6 +889,7 @@ begin
   record WebNGPageVc WPr;
   string 255 path,node;
   vector string 255 vSess;
+  Integer oldcomp;
 
   path = mpath;
   node = removenextnode(path);
@@ -861,6 +901,8 @@ begin
       goto LShowLoanApp;
     end;
   end;
+
+  oldcomp = SetCompanyBasedOnCountry;
 
   LoadWebPage(WSr.WebPage,WPr);
   ShowWebAppPageStart(WPr,"");
@@ -879,6 +921,7 @@ begin
 
   ShowWebAppPageEnd(WPr);
 
+  ResetCompanyBasedOnCountry(oldcomp);
 LShowLoanApp:;
   return;
 end;
@@ -922,17 +965,19 @@ begin
   record RcVc RepSpec;
   record PassSessVc PSr;
   record CMApplicationSetBlock CMb;
+  record CYBlock CYb;
   
   RecordNew(CUr);
+  BlockLoad(CYb);
   if (GetNextCustNr(tstr)) then begin end;
   CUr.Code = tstr;
   CUr.eMail = email;
-  CUr.Mobile = CreditalFixPhone(phone,CUr.CountryCode);;
+  CUr.Mobile = CreditalFixPhone(phone,CUr.CountryCode);
   CUr.CUType = 0;
   CUr.CustCat = "";
   CUr.CustType = 1;
   CUr.AllowLogin = 0;
-  CUr.CountryCode = "LT";//hardcoded for now   
+  CUr.CountryCode = CYb.CountryCode;//"LT";//hardcoded for now   
   if (RecordInsert(CUr,true)) then begin
     res = true;
 /*
@@ -976,6 +1021,7 @@ begin
   string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail;
   Boolean res;
   Boolean compf,contactf,loginf,res2;
+  record CYBlock CYb;
 
   ContactCUr.eMail = email;
   if (ReadFirstKey("eMail",ContactCUr,1,true)) then begin
@@ -1013,11 +1059,12 @@ begin
     compf = true;
     res = true;
   end else begin
-    if (len(regnr)==11) then begin
-      name = regnr;
-    end else begin
-      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,"");
-    end;
+    //if (len(regnr)==11) then begin
+    //  name = regnr;
+    //end else begin
+      BlockLoad(CYb);
+      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CYb.CountryCode);
+    //end;
     if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
       res = true;
    end;
@@ -1184,7 +1231,7 @@ logtext(0,"status " & status);
   end;
 
   LAr.ContacteMail = ContactCUr.eMail;
-  LAr.ContactMobile = ContactCUr.Mobile;
+  LAr.ContactMobile = CreditalFixPhone(phone,CUr.CountryCode);//ContactCUr.Mobile;
   LAr.Manager = WLCr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
@@ -1262,6 +1309,7 @@ begin
   record CUVc CUr,ContactCUr;
   vector string 255 vSess;
   Integer status;
+  Integer oldcomp;
 
   type = StringToLongInt(WebGetArg("type"));
   amount = StringToLongInt(WebGetArg("amount"));
@@ -1295,6 +1343,7 @@ begin
   if (datasec!="1") then begin
     err = err + 64;
   end;
+  oldcomp = SetCompanyBasedOnCountry;
 
   WLCr.Type = type;
   if (ReadFirstMain(WLCr,1,true)==false) then begin
@@ -1350,6 +1399,7 @@ begin
     WebOutString("<err id='internal_error'></err>");
   end;
   WebOutString("</res>");
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;
@@ -1367,8 +1417,10 @@ begin
   string 255 tstr;
   record CUVc CUr,oldCUr;
   Boolean updatef;
+  record CYBlock CYb;
   
   RecordClear(CUr);
+  BlockLoad(CYb);
   CUr.eMail = WebGetArg(ind & "email");
   if (ReadFirstKey("eMail",CUr,1,true)) then begin
     RecordCopy(oldCUr,CUr);
@@ -1381,7 +1433,7 @@ begin
     CUr.CustCat = "";
     CUr.CustType = 1;
     CUr.AllowLogin = 0;
-    CUr.CountryCode = "LT";//hardcoded?    
+    CUr.CountryCode = CYb.CountryCode;//"LT";//hardcoded?    
   end;
   if (updatef==false or manf) then begin
     CUr.eMail = WebGetArg(ind & "email");
@@ -1716,12 +1768,15 @@ begin
   record CMOrderClassBlock OCb;
   record AgreementDocVc ADr;
   record BankVc Bankr;
-  
+  Integer oldcomp;
+
   bankacc = WebGetArg("bankacc");
   paymentdate = StringToInt(WebGetArg("paymentdate"));
   mansurf = (WebGetArg("mainsurety")=="1");
   addrtype = (WebGetArg("addrtype")=="1");
   addr2 = WebGetArg("address2");
+
+  oldcomp = SetCompanyBasedOnCountry;
 
   LoadLoanSession(vSess);
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
@@ -1794,6 +1849,8 @@ begin
     errstr = ToolWebNGTranslateText2(70122);
   end;
   WebOutString("<res err='" & errstr & "' redir='" & link & "'></res>");
+
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;
@@ -1877,7 +1934,10 @@ begin
   record RLinkVc RLr;
   record CUVc CUr;
   record AgreementDocVc ADr;
+  Integer oldcomp;
   
+  oldcomp = SetCompanyBasedOnCountry;
+
   LoadLoanSession(vSess);
   LAr.SerNr = StringToLongint(vSess["WebLoanNr"]);
   if (ReadFirstMain(LAr,1,true)) then begin
@@ -1891,6 +1951,8 @@ begin
       end;
     end;
   end;
+
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;
@@ -1993,6 +2055,7 @@ begin
   record AgreementDocVc ADr,oldADr;
   record B2BLoanApplicationVc LAr;
   string 255 fn;
+  Integer oldcomp;
 
   switch (vcname) begin
     case "B2BLoanApplicationVc":

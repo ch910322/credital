@@ -1,5 +1,6 @@
 //<halrule>server-only</halrule>
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
+external inner function Boolean SetInSet2(string,string);
 
 
 SetLangMode(LangLithuanian,"LIT",2);
@@ -59,6 +60,7 @@ begin
 	string 200 thekey;
 	val curbal,totamount,totdep,totmonth,totbal;
 	record CredManSetBlock CredManSetb;
+	record CUVc CUr;
 
 
 	BlockLoad(CredManSetb);
@@ -71,7 +73,8 @@ begin
   end;
 	
 	StartFormat(15);
-		OutString(0,0,"Nr",false);
+		OutString(0,0,"Įmonės kd.",false);
+//		OutString(0,0,"Nr",false);
 		if(RepSpec.Media==mtExcel)then begin
 			OutString(35,0,"Sustabdytos",false);
 			OutString(70,0,"Nutrauktos",false);
@@ -102,6 +105,9 @@ begin
 		if(RepSpec.flags[3]==0 and CredManr.Approved==0)then begin testf = false; end;
 		if(RepSpec.flags[4]==0 and CredManr.OKFlag==0)then begin testf = false; end;
 		if(CredManr.startDate<RepSpec.sStartDate)then begin testf = false; end;
+    if (nonblank(RepSpec.f4) and SetInSet2(RepSpec.f4,CredManr.Classifications)==false) then begin 
+      testf = false; 
+    end;
 		if(CredManr.startDate>RepSpec.sEndDate)then begin testf = false; TrHs = false; end;
 		
 		if (testf) then begin
@@ -110,8 +116,11 @@ begin
 		end;
 		
 		if(testf)then begin
+		  CUr.Code = CredManr.CustCode;
+		  ReadFirstMain(CUr,1,true);
 			StartFormat(15);
-      OutString(0,"DblCredManVc",CredManr.SerNr,false);
+      OutStringID(0,"DblCredManVc",CUr.RegNr1,false,CredManr.SerNr);
+//      OutString(0,"DblCredManVc",CredManr.SerNr,false);
       if(RepSpec.Media==mtExcel)then begin
         OutString(70,0,Checkbocout(CredManr.Approved==0),false);
         OutString(70,0,Checkbocout(CredManr.OKFlag==0),false);

@@ -266,7 +266,7 @@ begin
 			if(ARr.CustCode!=cucode)then begin TrHs = false; end;
 									
 			if(TrHs)then begin
-				if(remsum>0)then begin
+				if(remsum>0 and ARr.RVal>0)then begin
 					
 					primsearch = false;
 					if(BISb.DefSearchInv==0)then begin
@@ -339,7 +339,7 @@ begin
 		while(loopkey("CustCode",ARr,1,TrHs))begin
 			if(ARr.CustCode!=cucode)then begin TrHs = false; end;
 			if(TrHs)then begin
-				if(remsum>0)then begin
+				if(remsum>0 and ARr.RVal>0)then begin
 					primsearch = false;
 					if(BISb.DefSearchInv==1)then begin
 						primsearch = setinset(ARr.InvoiceNr,instr);
@@ -424,7 +424,7 @@ begin
 				if(invused[ARr.InvoiceNr]==true)then begin testf = false; end;
 							
 				if(testf)then begin
-					if(remsum>0)then begin
+					if(remsum>0 and ARr.RVal>0)then begin
 						clearrow(IPr,IPrw,1);
 						IPrw.InvoiceNr = ARr.InvoiceNr;
 						matrowput(IPr,k,IPrw);
@@ -472,7 +472,7 @@ begin
 		ARr.CustCode = "";
 		while(loopkey("CustCode",ARr,1,TrHs))begin												
 			if(TrHs)then begin
-				if(remsum>0)then begin
+				if(remsum>0 and ARr.RVal>0)then begin
 					primsearch = false;
 					if(BISb.DefSearchInv==0)then begin
 						primsearch = setinset(ARr.InvoiceNr,instr);
@@ -543,7 +543,7 @@ begin
 		ARr.CustCode = "";
 		while(loopkey("CustCode",ARr,1,TrHs))begin												
 			if(TrHs)then begin
-				if(remsum>0)then begin
+				if(remsum>0 and ARr.RVal>0)then begin
 					primsearch = false;
 					if(BISb.DefSearchInv==1)then begin
 						primsearch = setinset(ARr.InvoiceNr,instr);

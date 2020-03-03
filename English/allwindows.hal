@@ -784,6 +784,8 @@ begin
   EditField(h,v+=vs,40,"Max Late Days",Normal,LateFeeDays,false,0);
 //  EditField(h,v+=vs,40,"Interest Free Days",Normal,FreeDays,false,0);
   EditField(h,v+=vs,40,"Settlement Months",Normal,SettleLimit,false,0);
+  EditField(h,v+=vs,100,"Classifications",Normal,Classifications,false,CredManClassSClass);
+
 //CUST-BEGIN
   EditField(h2,v=vm-20,-40,"Bank Code",Normal,BankCode,false,BankSClass);
   EditField(h2,v+=vs,-40,"Bank Name",Normal,BankName,false,0);
@@ -910,9 +912,10 @@ begin
   UseView(CredManTypeVc);
   //CUST-BEGIN
   h2 = 330;
+  Tile(0,0,false,"",Code); 
   TileButton(1,"Main");
   TileButton(2,"Documents");
-  Tile(1,400,false,1,Code); 
+  Tile(1,400,false,"1",Code); 
   //CUST-END
   EditField(h,v,80,"Code",St_i,Code,false,0);
   EditField(h2,v,-40,"Interest",Normal,InstalmentType,false,SetSClass);
@@ -933,10 +936,12 @@ begin
   EditField(h,vm2=(v+=vs),40,"Fixed Deposit",Normal,DepositSum,true,0);//CUST 82>>40
   EditField(h2,v,82,"Princ. Delay Interest %",Normal,PrincipleDelayInterest,false,0);//CUST added
   //CUST-BEGIN
-  EditField(h,vm2=(v+=vs),40,"Language",Normal,LangCode,false,LangSClass);
+  EditField(h,v+=vs,40,"Language",Normal,LangCode,false,LangSClass);
   EditField(h2,v,40,"First Invoice Language",Normal,LangCode2,false,LangSClass);
   h2 = h2 + 110;
   CheckBox(h2,v,0,"Closed",Closed);
+  EditField(h,vm2=(v+=vs),262,"Classifications",Normal,Classifications,false,CredManClassSClass);
+  
   //CUST-END
   ButtonFrame(h2,v=vm,150,2,"Late Interest Based On");
   RadioButton(h2,v,0,0,"Due Date",LateRateOption);
@@ -961,7 +966,7 @@ begin
   EndMatrix;
 
 //CUST-BEGIN
-  Tile(2,400,false,2,CredManCEO1);
+  Tile(2,400,false,"2",CredManCEO1);
   v = 6;
   h = 30;h2 = 150; h3 = 300; h4 = 400; h5 = 500; h6 = 620;
   StaticText(h,v+13,"Credit Agreement",false);

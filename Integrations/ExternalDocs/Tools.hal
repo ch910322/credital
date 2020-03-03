@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure ExternalPrintLoanAppForm(record B2BLoanApplicationVc,var vector string);
 external procedure ExternalPrintSuretyAppForm(record B2BLoanApplicationVc,var vector string);
 external procedure ExternalPrintPaymentCertificateForm(record CredManPmtGrntVc,var vector string);
@@ -121,6 +122,22 @@ begin
         end;
       end;
     end;
+  end;
+
+  return;
+end;
+
+global
+procedure GetExternalFormDefAttachedImages(record ExternalFormDefVc EFr,var array string aName)
+begin
+  Integer i;
+  record Attach2Vc Attachr;
+  record RLinkVc RLr;
+
+  i = 1;
+  while (ReadRecordLink(EFr,i,Attachr,RLr)) begin
+    aName[aName.length] = Attachr.FileName;
+    i = i + 1;
   end;
 
   return;

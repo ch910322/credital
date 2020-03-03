@@ -170,6 +170,11 @@ begin
   if (blank(country)) then begin
     country = GetCookie("country");
   end;
+//CUST-BEGIN
+  if (country=="global") then begin
+    country = "";
+  end;
+//CUST-END
   if (blank(country)) then begin
     country = WebGetArg("cc");
     //figure out from logged in customer's enabler country

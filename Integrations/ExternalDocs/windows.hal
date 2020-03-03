@@ -47,3 +47,12 @@ begin
   EndMatrix;
   EndWindow;
 end;
+
+window ExternalFormDefImgSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Paste Image",ExternalFormDefImgSClass,CGother,HBlRecType);
+  SetWRect(240,80,600,348);
+  StringList(9,9,-19,-19);
+  EndWindow;
+end;

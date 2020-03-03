@@ -394,6 +394,12 @@ begin
   EditFieldTL(h,v,120,"Until Date",M4Date,Normal,0,d1,false,PasteCurDate);
   EndWindow;
 
+  WindowBegin("Specify Fix Credit History",CredManRedoCredHistVClass,CGMnt,RcType);
+  SetWRect(64,80,445,95);
+  h = 150; v = 6; vs = 20;
+  EditFieldTL(h,v,120,"Agreement",M4Long,Normal,0,long1,false,CredManSClass);
+  EndWindow;
+
 
 
   WindowBegin("Additional Bank Accounts",CUBankAccDClass,CGView,-);
@@ -1004,6 +1010,7 @@ begin
   EditFieldTL(h,v+=20,150,"Type",M4UStr,Normal,40,f2,false,CredManTypeSClass);
   EditFieldTL(h,v+=20,150,"Class",M4Code,Normal,40,f3,false,OrderClassSClass);
   EditFieldTL(h,v+=20,150,"Balance Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EditFieldTL(h,v+=20,150,"Classifications",M4UStr,Normal,255,f4,false,CredManClassSClass);
   CheckBox(h,v+=30,0,"Include unapproved",flags[3]);
   CheckBox(h,v+=30,0,"Not OK'ed",flags[4]);
   CheckBox(h,v+=30,0,"Include Completed",flags[5]);
@@ -1533,10 +1540,6 @@ begin
   EndWindow;
 end;
 
-  
-
-
-
 window PassSessLClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
@@ -1594,12 +1597,18 @@ end;
 window CreditalWebSetTClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
-  real h,v,vs,v2,vs2,hm;
-  vs = 20;
+  real h,v,vs,v2,vs2,hm,tilenr,h2,h3;
+  vs = 20; h2 = 350; h3 = 500;
   WindowBegin("Credital Web Settings",CreditalWebSetTClass,CGSbl,SRType);
   SetBlid(CreditalWebSetBlock);
-  SetWRect(20,80,570,298);
+  SetWRect(20,80,600,298);
   Sizeable(-1,-1,0,0);
+  Tile(0,20,false,"",ContactActComment);
+  tilenr = 1;
+  TileButton(tilenr,"General"); tilenr = tilenr + 1;  
+  TileButton(tilenr,"Loans"); tilenr = tilenr + 1;  
+
+  Tile(1,95,false,"1",ContactActComment);
   ButtonFrame(h=180,v=40,300,4,"Invoice Guarantee Form");
   EditField(h+100,v+=5,150,"Activity Comment",Normal,ContactActComment,false,0);
   EditField(h+100,v+=vs,100,"Activity Type",Normal,ContactActType,false,ActTypeSClass);
@@ -1621,7 +1630,31 @@ begin
 
   EditField(h,v+=40,100,"Canonical Base Link",Normal,CanonicalBase,false,0)
   EditField(h,v+=40,100,"Payment Days",Normal,WebPaymentDays,false,0)
+  Tile(2,95,false,"2",LoanType1);
+  v = 6;
+  h = 50;
+  ButtonFrame(h,v+=60,540,6,"Loan Application Types");
+  EditField(h+50,v+=5,180,"Type A",Normal,LoanType1,false,SetSClass);
+  EditField(h2,v,90,"Color",Normal,LoanType1Color,false,StrSetSClass);
+  CheckBox(h3,v,0,"Enable",LoanType1Show);
+  EditField(h+50,v+=vs,180,"Type B",Normal,LoanType2,false,SetSClass);
+  EditField(h2,v,90,"Color",Normal,LoanType2Color,false,StrSetSClass);
+  CheckBox(h3,v,0,"Enable",LoanType2Show);
+  EditField(h+50,v+=vs,180,"Type C",Normal,LoanType3,false,SetSClass);
+  EditField(h2,v,90,"Color",Normal,LoanType3Color,false,StrSetSClass);
+  CheckBox(h3,v,0,"Enable",LoanType3Show);
+  EditField(h+50,v+=vs,180,"Type D",Normal,LoanType4,false,SetSClass);
+  EditField(h2,v,90,"Color",Normal,LoanType4Color,false,StrSetSClass);
+  CheckBox(h3,v,0,"Enable",LoanType4Show);
+  EditField(h+50,v+=vs,180,"Type E",Normal,LoanType5,false,SetSClass);
+  EditField(h2,v,90,"Color",Normal,LoanType5Color,false,StrSetSClass);
+  CheckBox(h3,v,0,"Enable",LoanType5Show);
 
+  ButtonFrame(h,v+=60,200,5,"Hide Menu Item");
+  EditField(h+50,v+=5,100,"Menu 1",Normal,HideMenu1,false,WebNGMenuSClass);
+  EditField(h+50,v+=vs,100,"Menu 2",Normal,HideMenu2,false,WebNGMenuSClass);
+  EditField(h+50,v+=vs,100,"Menu 3",Normal,HideMenu3,false,WebNGMenuSClass);
+  EditField(h+50,v+=vs,100,"Menu 4",Normal,HideMenu4,false,WebNGMenuSClass);
 
   EndWindow;
 end;
@@ -2196,3 +2229,173 @@ begin
   EndWindow;
 end;
 
+window NovWebFormLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Mobile Survey",NovWebFormLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  //Sizeable(-1,-1,0,0);
+  SpawnClass(NovWebFormDClass);
+  UseView(NovWebFormVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Code",Code,false,Code);
+  RlCol   (120,4,"Email Receiver",MailReceiver,false);
+  SearchField("Search");
+  EndWindow;
+ 
+  return;
+end;
+
+
+window NovWebFormDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,h2,h3,h4,t,v,vm,vs,ord,label;
+
+  WindowBegin("Mobile Survey",NovWebFormDClass,CGview,-);
+  SetWRect(20,80,750,500);
+  UseView(NovWebFormVc);
+
+  h = 120; h2 = 360; h4 = 600; vs = 20; ord = 50;
+  h3 = 480;
+  Tile(0,230,false,"",Code);
+  EditField(h,v=6,150,"Code",Normal,Code,false,0);
+  EditField(h,v+=vs,150,"Intro Text",Normal,IntroText,false,0);
+  EditField(h,v+=vs,150,"Email Receiver",Normal,MailReceiver,false,0);
+
+  CheckBox(h3,v=6,0,"Create Application",CreateApplication);
+  EditField(h3,v+=vs,150,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+  EditField(h3,v+=vs,150,"Manager",Normal,Manager,false,UserSClass);
+  EditField(h3,v+=vs,150,"Type",Normal,CalcType,false,SetSClass);
+  
+//  EditField(h,v+=vs,82,"Credit Agr. Type",Normal,CredManType,false,CredManTypeSClass);//??
+
+  v = v + 40;
+  CheckBox(h,v,0,"Request Reg. No.",RegFlag);
+  EditField(h2,v,ord,"Order",Normal,RegOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,RegLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",RegMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Name",NameFlag);
+  EditField(h2,v,ord,"Order",Normal,NameOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,NameLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",NameMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Telephone",PhoneFlag);
+  EditField(h2,v,ord,"Order",Normal,PhoneOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,PhoneLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",PhoneMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Email",EmailFlag);
+  EditField(h2,v,ord,"Order",Normal,EmailOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,EmailLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",EmailMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person",ContactNameFlag);
+  EditField(h2,v,ord,"Order",Normal,ContactNameOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,ContactNameLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",ContactNameMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Email",ContactEmailFlag);
+  EditField(h2,v,ord,"Order",Normal,ContactEmailOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,ContactEmailLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",ContactEmailMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Mobile",ContactMobileFlag);
+  EditField(h2,v,ord,"Order",Normal,ContactMobileOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,ContactMobileLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",ContactMobileMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Contact Person's Job Title",ContactJobFlag);
+  EditField(h2,v,ord,"Order",Normal,ContactJobOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,ContactJobLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",ContactJobMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request VAT Nr.",VATNrFlag);
+  EditField(h2,v,ord,"Order",Normal,VATNrOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,VATNrLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",VATNrMand);
+
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Address",AddressFlag);
+  EditField(h2,v,ord,"Order",Normal,AddressOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,AddressLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",AddressMand);
+
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Amount",AmountFlag);
+  EditField(h2,v,ord,"Order",Normal,AmountOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,AmountLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",AmountMand);
+
+  v = v + vs;
+  CheckBox(h,v,0,"Request Term",TermFlag);
+  EditField(h2,v,ord,"Order",Normal,TermOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,TermLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",TermMand);
+ 
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Payment Day",PaymentDayFlag);
+  EditField(h2,v,ord,"Order",Normal,PaymentDayOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,PaymentDayLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",PaymentDayMand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Add to Mailing List",MailListFlag);
+  EditField(h2,v,ord,"Order",Normal,MailListOrder,false,0);
+  EditField(h3,v,100,"Label",Normal,MailListLabel,false,0);
+  
+  EndWindow;
+  return;
+end;
+
+window CredManClassLClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Agreement Classifications",CredManClassLClass,CGmlist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManClassDClass);
+  UseView(CredManClassVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Code",Code,false,Code);
+  RlCol(134,134,"Comment",Comment,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CredManClassSClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  WindowBegin("Paste Agreement Classification",CredManClassSClass,CGslist,-);
+  SetWRect(20,80,660,298);
+  Sizeable(-1,-1,0,0);
+  SpawnClass(CredManClassDClass);
+  UseView(CredManClassVc);
+  RecordList(4,17,-21,-39);
+  RlColKey(4,4,"Code",Code,false,Code);
+  RlCol(134,134,"Comment",Comment,false);
+  SearchField("Search");
+  EndWindow;
+end;
+
+window CredManClassDClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vs,v2,vs2,hm;
+  WindowBegin("Agreement Classification",CredManClassDClass,CGview,-);
+  SetWRect(20,80,400,239);
+  UseView(CredManClassVc);
+  vs=20; h=120; vs2=16; hm=-100;
+  EditField(h,v=6,100,"Code",Normal,Code,false,);
+  EditField(h,v+=vs,-40,"Comment",Normal,Comment,false,0);
+  EndWindow;
+end;

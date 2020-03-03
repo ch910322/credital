@@ -1,11 +1,4 @@
 //<halrule>server-only</halrule>
-/*
-TODO
-- store survey
-- what to do with calculator
-- styling on website
-
-*/
 external procedure DisplayLoanSlideBars();
 external procedure DisplayLoanPayments();
 external procedure ShowPaymentDateField(string,string,string,string,string,Integer);
@@ -27,44 +20,10 @@ external inner procedure ShowWebElement(string);
 external function string 255 CreditalFixPhone(string,string);
 external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,string);
 external updating function Boolean StoreLoanCustomer(string,string,string,string,string,string,string,string,string,string,string,string,string,var record CUVc);
+external updating procedure AddToMailingList(record CMApplicationSetBlock,record CUVc);
+external inner procedure ResolveMailboxNumber(var row MailVc);
 external function Integer SetCompanyBasedOnCountry();
 external procedure ResetCompanyBasedOnCountry(Integer);
-
-global
-function Boolean CheckIfLandingPage(string node)
-begin
-  Boolean res;
-  record WebLandingPageVc LPr;
-  Integer oldcomp;
-
-  oldcomp = SetCompanyBasedOnCountry;
-
-  LPr.Link = node;
-  if (ReadFirstMain(LPr,1,true)) then begin
-    res = true;
-  end;
-
-   ResetCompanyBasedOnCountry(oldcomp);
-
-
-  CheckIfLandingPage = res;
-  return;
-end;
-
-procedure AddToArray(Integer flag,Longint order,string label,string flname,var record SMVc SMr)
-begin
-  row SMVc SMrw;
-  
-  if (flag==1) then begin
-    ClearRow(SMr,SMrw,1);
-    SMrw.Comment = flname;
-    SMrw.DebVal = order;
-    SMrw.ExtraComment = label;
-    MatRowPut(SMr,MatRowCnt(SMr),SMrw);
-  end;
-
-  return;
-end;
 
 procedure AddToArray2(Integer flag,Longint order,string label,Integer mandatory,string flname,var record SMVc SMr)
 begin
@@ -82,107 +41,23 @@ begin
   return;
 end;
 
-procedure SetLandingPageDetails(record WebLandingPageVc LPr,var record SMVc SMr)
+procedure SetSurveyDetails(record NovWebFormVc WFr,var record SMVc SMr)
 begin
   
-  AddToArray(LPr.ContCalcFlag,LPr.ContCalcOrder,"","Calc",SMr);
-  AddToArray(LPr.ContCalcResultFlag,LPr.ContCalcResultOrder,"","CalcResult",SMr);
-  AddToArray(LPr.ContSurveyFlag,LPr.ContSurveyOrder,"","Survey",SMr);
-  AddToArray(LPr.ContPicture1Flag,LPr.ContPicture1Order,"","Picture1",SMr);
-  AddToArray(LPr.ContPicture2Flag,LPr.ContPicture2Order,"","Picture2",SMr);
-  AddToArray(LPr.ContPicture3Flag,LPr.ContPicture3Order,"","Picture3",SMr);
-  AddToArray(LPr.ContHtml1Flag,LPr.ContHtml1Order,"","Html1",SMr);
-  AddToArray(LPr.ContHtml2Flag,LPr.ContHtml2Order,"","Html2",SMr);
-  AddToArray(LPr.ContSubmitFlag,LPr.ContSubmitOrder,"","Submit",SMr);
-
-  return;
-end;
-
-procedure GetLandingPageDetails(record SMVc SMr,var array string aDet)
-begin
-  Integer i,rwcnt;
-  row SMVc SMrw;
-  
-  SortRows(SMr,"DebVal",true);
-  rwcnt = MatRowCnt(SMr);
-  for (i=0;i<rwcnt;i=i+1) begin
-    MatRowGet(SMr,i,SMrw);
-    aDet[aDet.length] = SMrw.Comment;
-  end;
-
-  return;
-end;
-
-procedure ShowCalculatorScript(record WebLandingPageVc LPr)
-begin
-  string 255 add;
-  row WebLandingPageVc LPrw;
-  Integer i,rwcnt;
-
-  WebOutString("<script>");
-  add = ToolWebNGTranslateText2(70014);
-  if (LPr.CalcTermType==1) then begin
-    add = ToolWebNGTranslateText2(70073);
-  end;
-  if (LPr.CalcType==4) then begin
-    add = ToolWebNGTranslateText2(70013);
-  end;
-  WebOutString("calcamountmin = " & LPr.CalcAmountMin & ";");
-  WebOutString("calcamountmax = " & LPr.CalcAmountMax & ";");
-  WebOutString("calcamountstep = " & LPr.CalcAmountStep & ";");
-  WebOutString("calctermmin = " & LPr.CalcTermMin & ";");
-  WebOutString("calctermmax = " & LPr.CalcTermMax & ";");
-  WebOutString("calctermstep = " & LPr.CalcTermStep & ";");
-  WebOutString("calctermadd = '" & add & "';");
-  WebOutString("calcrates = [];");
-  WebOutString("calctype = " & LPr.CalcType & ";");
-
-  
-  rwcnt = MatRowCnt(LPr);
-  for (i=0;i<rwcnt;i=i+1) begin
-    MatRowGet(LPr,i,LPrw);
-    WebOutString("calcrates.push({months:" & ValToString(LPrw.Months,M4Val,"",".",0) & ",rate:" & ValToString(LPrw.Rate,M4Val,"",".",0) & "});");
-  end;
-
-  WebOutString("</script>");
-
-  ShowWebLoanStrings;
-
-  return;
-end;
-
-procedure ShowLandingCalculator(record WebLandingPageVc LPr)
-begin
-  
-  DisplayLoanSlideBars;
-  ShowCalculatorScript(LPr);
-
-  return;
-end;
-
-procedure ShowLandingCalculatorResult()
-begin
-  DisplayLoanPayments;
-  return;
-end;
-
-procedure SetSurveyDetails(record WebLandingPageVc LPr,var record SMVc SMr)
-begin
-  
-  AddToArray2(LPr.SurveyRegFlag,LPr.SurveyRegOrder,LPr.SurveyRegLabel,LPr.SurveyRegMand,"RegNr",SMr);
-  AddToArray2(LPr.SurveyNameFlag,LPr.SurveyNameOrder,LPr.SurveyNameLabel,LPr.SurveyNameMand,"Name",SMr);
-  AddToArray2(LPr.SurveyPhoneFlag,LPr.SurveyPhoneOrder,LPr.SurveyPhoneLabel,LPr.SurveyPhoneMand,"Phone",SMr);
-  AddToArray2(LPr.SurveyEmailFlag,LPr.SurveyEmailOrder,LPr.SurveyEmailLabel,LPr.SurveyEmailMand,"Email",SMr);
-  AddToArray2(LPr.SurveyContactNameFlag,LPr.SurveyContactNameOrder,LPr.SurveyContactNameLabel,LPr.SurveyContactNameMand,"ContactName",SMr);
-  AddToArray2(LPr.SurveyContactEmailFlag,LPr.SurveyContactEmailOrder,LPr.SurveyContactEmailLabel,LPr.SurveyContactEmailMand,"ContactEmail",SMr);
-  AddToArray2(LPr.SurveyContactMobileFlag,LPr.SurveyContactMobileOrder,LPr.SurveyContactMobileLabel,LPr.SurveyContactMobileMand,"ContactMobile",SMr);
-  AddToArray2(LPr.SurveyContactJobFlag,LPr.SurveyContactJobOrder,LPr.SurveyContactJobLabel,LPr.SurveyContactJobMand,"ContactJob",SMr);
-  AddToArray2(LPr.SurveyVATNrFlag,LPr.SurveyVATNrOrder,LPr.SurveyVATNrLabel,LPr.SurveyVATNrMand,"VATNr",SMr);
-  AddToArray2(LPr.SurveyAddressFlag,LPr.SurveyAddressOrder,LPr.SurveyAddressLabel,LPr.SurveyAddressMand,"Address",SMr);
-  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
-  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
-  AddToArray2(LPr.SurveyAmountFlag,LPr.SurveyAmountOrder,LPr.SurveyAmountLabel,LPr.SurveyAmountMand,"Amount",SMr);
-  AddToArray2(LPr.SurveyTermFlag,LPr.SurveyTermOrder,LPr.SurveyTermLabel,LPr.SurveyTermMand,"Term",SMr);
+  AddToArray2(WFr.RegFlag,WFr.RegOrder,WFr.RegLabel,WFr.RegMand,"RegNr",SMr);
+  AddToArray2(WFr.NameFlag,WFr.NameOrder,WFr.NameLabel,WFr.NameMand,"Name",SMr);
+  AddToArray2(WFr.PhoneFlag,WFr.PhoneOrder,WFr.PhoneLabel,WFr.PhoneMand,"Phone",SMr);
+  AddToArray2(WFr.EmailFlag,WFr.EmailOrder,WFr.EmailLabel,WFr.EmailMand,"Email",SMr);
+  AddToArray2(WFr.ContactNameFlag,WFr.ContactNameOrder,WFr.ContactNameLabel,WFr.ContactNameMand,"ContactName",SMr);
+  AddToArray2(WFr.ContactEmailFlag,WFr.ContactEmailOrder,WFr.ContactEmailLabel,WFr.ContactEmailMand,"ContactEmail",SMr);
+  AddToArray2(WFr.ContactMobileFlag,WFr.ContactMobileOrder,WFr.ContactMobileLabel,WFr.ContactMobileMand,"ContactMobile",SMr);
+  AddToArray2(WFr.ContactJobFlag,WFr.ContactJobOrder,WFr.ContactJobLabel,WFr.ContactJobMand,"ContactJob",SMr);
+  AddToArray2(WFr.VATNrFlag,WFr.VATNrOrder,WFr.VATNrLabel,WFr.VATNrMand,"VATNr",SMr);
+  AddToArray2(WFr.AddressFlag,WFr.AddressOrder,WFr.AddressLabel,WFr.AddressMand,"Address",SMr);
+  AddToArray2(WFr.PaymentDayFlag,WFr.PaymentDayOrder,WFr.PaymentDayLabel,WFr.PaymentDayMand,"PaymentDay",SMr);
+  AddToArray2(WFr.AmountFlag,WFr.AmountOrder,WFr.AmountLabel,WFr.AmountMand,"Amount",SMr);
+  AddToArray2(WFr.TermFlag,WFr.TermOrder,WFr.TermLabel,WFr.TermMand,"Term",SMr);
+  AddToArray2(WFr.MailListFlag,WFr.MailListOrder,WFr.MailListLabel,0,"MailList",SMr);
 
   return;
 end;
@@ -215,7 +90,15 @@ begin
   if (mandf==1) then begin
     WebOutString("*");
   end;
-  WebOutString("</div><div class='input'><input type='" & type & "' placeholder='" & label & "' " & mand & "></div></div>");
+  WebOutString("</div><div class='input'><input type='" & type & "' placeholder='" & label & "' " & mand & "  name='" & name & "'></div></div>");
+
+  return;
+end;
+
+procedure ShowSimpleCheckbox(string name,string label)
+begin
+  
+  WebOutString("<div class='loan_checkbox " & name & "'><div class='input_checkbox'><input type='checkbox' name='" & name & "'><span class='checkmark'></span></div><div class='loan_label'>" & label & "</div></div>");
 
   return;
 end;
@@ -231,18 +114,22 @@ begin
   return;
 end;  
 
-procedure ShowLandingSurvey(record WebLandingPageVc LPr)
+procedure ShowWebSurvey(record NovWebFormVc WFr)
 begin
   record SMVc SMr;
   row SMVc SMrw;
   array string 255 aDet,aDetLabel;
   Integer i,rwcnt;
   
-  WebOutString("<div class='landing_survey'>");
-
-  SetSurveyDetails(LPr,SMr);
+  WebOutString("<script src='/scripts/websurvey.js'></script>");
+  WebOutString("<link rel='stylesheet' type='text/css' href='/websurvey.css'>");
+  WebOutString("<div class='websurvey_wrap'><form name='websurvey'>");
+  WebOutString("<div class='websurvey_title'>" & WFr.IntroText & "</div>");
+  SetSurveyDetails(WFr,SMr);
   SortRows(SMr,"DebVal",true);
   rwcnt = MatRowCnt(SMr);
+  WebOutString("<div class='websurvey_fields'>");
+  WebOutString("<input type='hidden' name='code' value='" & WFr.Code & "'>")
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(SMr,i,SMrw);
     switch (SMrw.Comment) begin
@@ -259,160 +146,28 @@ begin
       case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,"","",0);
       case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat);
       case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "MailList":      ShowSimpleCheckbox("maillist",SMrw.ExtraComment);
     end;
   end;
+  WebOutString("</div>");
+  WebOutString("<div class='websurvey_submit_line'><div class='websurvey hl_button'>" & ToolWebNGTranslateText2(70420) & "</div></div>");
 
-  WebOutString("</div>");//landing_survey;
+  WebOutString("</form></div>");//landing_survey;
   ShowScall;
   return;
 end;
 
-function string 255 RemoveExtension(string tstr)
-begin
-  string 255 res;
-  Integer i;
-  
-  for (i=len(tstr)-1;i>=0;i=i-1) begin
-    if (mid(tstr,i,1)==".") then begin
-      res = left(tstr,i);
-      i = -1;
-    end;
-  end;
-
-  RemoveExtension = res;
-  return;
-end;
-
-procedure ShowLandingPicture(record WebLandingPageVc LPr,Integer num)
-begin
-  string 255 name,name2;
-  Integer i;
-  record RLinkVc RLr;
-  record Attach2Vc Attachr;
-
-  name = GetFieldValueByName(LPr,"ContPicture" & num & "Name",-1);
-  name2 = RemoveExtension(name);
-  i = 1;
-  while (ReadRecordLink(LPr,i,Attachr,RLr)) begin
-    if (Attachr.FileName==name) then begin
-      WebOutString("<img src='" & WebGetArg("path") & "/image/" & name2 & "/" & num & "' alt='" & LPr.Name & " - " & num & "'>");
-      goto LShowLandingPicture;
-    end;
-    i = i + 1;
-  end;
-
-LShowLandingPicture:;
-  return;
-end;
-
-procedure DoShowLandingPageImage(record WebLandingPageVc LPr,string node)
-begin
-  record Attach2Vc Attachr;
-  record RLinkVc RLr;
-  string 255 ext,name;
-  Integer i,n;
-
-  n = StringToInt(node);
-  if (n>0 and n<4) then begin
-    name = GetFieldValueByName(LPr,"ContPicture" & node & "Name",-1);
-    i = 1;
-    while (ReadRecordLink(LPr,i,Attachr,RLr)) begin
-      if (name==Attachr.FileName) then begin
-        ext = right(Attachr.FileName,4);
-        SetContentTypeForExtension(ext);
-        WebSetContentDisposition("inline; filename=" & Attachr.FileName);
-        WebOutAttachment(Attachr.SerNr);
-        goto LDoShowLandingPageImage;
-      end;
-      i = i + 1;
-    end;
-  end;
-LDoShowLandingPageImage:;
-  return;
-end;
-
-procedure ShowLandingHtml(record WebLandingPageVc LPr,Integer num)
-begin
-  string 255 name;
-  Integer i;
-  record RLinkVc RLr;
-  record NotePadVc Noter;
-
-  name = GetFieldValueByName(LPr,"ContHtml" & num & "Name",-1);
-  i = 1;
-  while (ReadRecordLink(LPr,i,Noter,RLr)) begin
-    if (RLr.Comment==name) then begin
-      WebOutText(Noter,false,"");
-      goto LShowLandingHtml;
-    end;
-    i = i + 1;
-  end;
-
-LShowLandingHtml:;
-  return;
-end;
-
-procedure ShowLandingSubmit(record WebLandingPageVc LPr)
-begin
-  //what to show here??
-
-  WebOutString("<div class='landing_submit_line'><div class='landing_submit hl_button'>" & ToolWebNGTranslateText2(70420) & "</div></div>");
-  
-  return;
-end;
-
 global
-procedure ShowLandingPage(string link,string path)
+procedure ShowWebSurveyElement(record WebNGElementVc WEr)
 begin
-  record WebLandingPageVc LPr;
-  record SMVc SMr;
-  array string 255 aDet;
-  Integer i;
-  string 255 mpath,node;
-  record WebNGPageVc WPr;
-  record WebLandingPageBlock LPb;
+  record NovWebFormVc WFr;
   Integer oldcomp;
   
   oldcomp = SetCompanyBasedOnCountry;
 
-  LPr.Link = link;
-  if (ReadFirstMain(LPr,1,true)) then begin
-    mpath = path;
-    node = removenextnode(mpath);
-    switch (node) begin
-      case "image":
-        node = removenextnode(mpath);
-        node = removenextnode(mpath);
-        DoShowLandingPageImage(LPr,node);
-      otherwise
-        BlockLoad(LPb);
-        if (nonblank(LPb.TemplatePage)) then begin
-          LoadWebPage(LPb.TemplatePage,WPr);
-        end;
-        ShowWebAppPageStart(WPr,"landing");
-        if (LPr.ContHeaderFlag==1) then begin
-          ShowWebElement(LPb.PageHeader);
-        end;
-        SetLandingPageDetails(LPr,SMr);
-        GetLandingPageDetails(SMr,aDet);
-        for (i=0;i<aDet.length;i=i+1) begin
-          switch (aDet[i]) begin
-            case "Calc":       ShowLandingCalculator(LPr);
-            case "CalcResult": ShowLandingCalculatorResult;
-            case "Survey":     ShowLandingSurvey(LPr);
-            case "Picture1":   ShowLandingPicture(LPr,1);
-            case "Picture2":   ShowLandingPicture(LPr,2);
-            case "Picture3":   ShowLandingPicture(LPr,3);
-            case "Html1":      ShowLandingHtml(LPr,1);
-            case "Html1":      ShowLandingHtml(LPr,2);
-            case "Submit":     ShowLandingSubmit(LPr);
-          end;
-        end;
-        ShowWebAppPageEnd(WPr);
-        if (LPr.ContFooterFlag==1) then begin
-          ShowWebElement(LPb.PageFooter);
-        end;
-    end;
+  WFr.Code = WEr.HALFunc;
+  if (ReadFirstMain(WFr,1,true)) then begin
+    ShowWebSurvey(WFr);
   end;
 
   ResetCompanyBasedOnCountry(oldcomp);
@@ -443,16 +198,14 @@ begin
 end;
 
 global
-updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday)
+updating function Boolean StoreWebSurveyLoanApp(record CUVc CUr,record CUVc ContactCUr,record NovWebFormVc WFr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string maillist)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
   record CMApplicationSetBlock CMb;
-  record CMOrderClassBlock OCb;
   Integer type;
   
   BlockLoad(CMb);
-  BlockLoad(OCb);
   RecordNew(LAr);
 
   UpdateContactRecordsWithExtraData(CUr,ContactCUr,email,phone,contactname,contactjob,vatnr,address);
@@ -462,20 +215,20 @@ begin
   LAr.CustCode = CUr.Code;
   InsertCustomerInB2BApplication(LAr);
   LAr.eMail = CUr.eMail;
-  LAr.OrderClass = LPr.OrderClass;
+  LAr.OrderClass = WFr.OrderClass;
 
 
   LAr.PhoneNo = phone;
   LAr.ContactName = ContactCUr.Name;
   LAr.ContacteMail = ContactCUr.eMail;
   LAr.ContactMobile = contactmobile;
-  LAr.Manager = LPr.Manager;
+  LAr.Manager = WFr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
   LAr.Months = term;
   LAr.MonthlyPaymentDay = paymentday;
 
-  LAr.Type = GetAgreementType(LAr,LPr.CalcType,"");
+  LAr.Type = GetAgreementType(LAr,WFr.CalcType,"");
   CMTr.Code = LAr.Type;
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
@@ -494,20 +247,105 @@ begin
   end;
   if (RecordInsert(LAr,true)) then begin
     res = true;
+    if (maillist=="on") then begin
+      AddToMailingList(CMb,ContactCUr);
+    end;
     if (status==2) then begin
       //Create activity for linking contact with contactperson
       CreateActivityForContactLinks(CUr,ContactCUr);
     end;
   end;
 
-  StoreLandingLoanApp = res;
+  StoreWebSurveyLoanApp = res;
+  return;
+end;
+
+procedure AddMailRow(var record MailVc Mailr,Integer type,string addr)
+begin
+  row MailVc Mailrw;
+
+  ClearRow(Mailr,Mailrw,1);
+  Mailrw.RowTyp = type;
+  Mailrw.AddrCode = addr;
+  if (type==1) then begin//CUST
+    ResolveMailboxNumber(Mailrw);
+  end;
+  MatRowPut(Mailr,MatRowCnt(Mailr),Mailrw);
+
+  return;
+end;
+
+global
+updating procedure SendWebSurveyEmail(record SMVc SMr,record NovWebFormVc WFr,string regnr,string name,string phone,string email,string contactname,string contactemail,string contactmobile,string contactjob,string vatnr,string address,string maillist,Integer paymentday)
+begin
+  Integer i,rwcnt,lcnt;
+  row SMVc SMrw;
+  string 255 value,tstr;
+  record MailSettingsBlock MSb;
+  record EMailQueVc emqrp;
+  row EMailQueVc emarw;
+
+  BlockLoad(MSb);
+  emarw.RowTyp = 1;
+  emarw.AddrCode = MSb.Postmaster;
+  MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+
+  emarw.RowTyp = 0;
+  emarw.AddrCode = WFr.MailReceiver;
+  MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
+  emqrp.Header = WFr.IntroText;
+  
+  emqrp.SerNr = NextSerNr("EMailQueVc",CurrentDate,-1,false,"");
+  emqrp.OrgSerNr = -1;
+  emqrp.FileName = "";
+  emqrp.TransDate = CurrentDate;
+  emqrp.TransTime = CurrentTime;
+  emqrp.HasFileAtt = 0;
+  emqrp.HasRecAtt = 0;
+  emqrp.Priority = 1;
+  emqrp.EMailSent = 0;
+  emqrp.Lifespan = 0;
+  emqrp.QueDate = CurrentDate;
+  emqrp.QueTime = CurrentTime;
+
+  rwcnt = MatRowCnt(SMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(SMr,i,SMrw);
+    value = "";
+    switch (SMrw.Comment) begin
+      case "RegNr":         value = regnr;
+      case "Name":          value = name;
+      case "Phone":         value = phone;
+      case "Email":         value = email;
+      case "ContactName":   value = contactname;
+      case "ContactEmail":  value = contactemail;
+      case "ContactMobile": value = contactmobile;
+      case "ContactJob":    value = contactjob;
+      case "VATNr":         value = vatnr;
+      case "Address":       value = address;
+      case "PaymentDay":    value = paymentday;
+      case "Amount":        value = address;
+      case "Term":          value = address;
+      case "MailList":      
+        if (maillist=="on") then begin
+          value = "ok";
+        end;
+    end;
+    lcnt = LineTextCnt(emqrp);
+    tstr = SMrw.ExtraComment & ": " & value;
+    LineTextPut(emqrp,lcnt,tstr);
+  end;
+
+  if (RecordInsert(emqrp,true)) then begin
+  end;
+
   return;
 end;
 
 global webpublic
-procedure WebLandingPage()
+procedure WebSurvey()
 begin
-  record WebLandingPageVc LPr;
+  record NovWebFormVc WFr;
   record SMVc SMr;
   row SMVc SMrw;
   array string 255 aDet,aDetLabel;
@@ -516,7 +354,7 @@ begin
   record CUVc CUr,ContactCUr;
   string 255 errstr;
   record B2BLoanApplicationVc LAr;
-  string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address;
+  string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address,maillist;
   Integer paymentday;
   string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail;
   Integer oldcomp;
@@ -525,9 +363,9 @@ begin
   if (WebGetArg("action")=="store") then begin
     oldcomp = SetCompanyBasedOnCountry;
     //get values and only then store if all the values are filled in
-    LPr.Link = WebGetArg("link");
-    if (ReadFirstMain(LPr,1,true)) then begin
-      SetSurveyDetails(LPr,SMr);
+    WFr.Code = WebGetArg("code");
+    if (ReadFirstMain(WFr,1,true)) then begin
+      SetSurveyDetails(WFr,SMr);
       SortRows(SMr,"DebVal",true);
       rwcnt = MatRowCnt(SMr);
       for (i=0;i<rwcnt;i=i+1) begin
@@ -552,6 +390,7 @@ begin
           case "PaymentDay":    paymentday = StringToInt(WebGetArg("paymentday"));
           case "Amount":        address = WebGetArg("amount");
           case "Term":          address = WebGetArg("term");
+          case "MailList":       maillist = WebGetArg("maillist");
         end;
       end;
       amount = StringToLongint(WebGetArg("amount"));
@@ -581,15 +420,19 @@ begin
               if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
               end;
             end;
-          end else begin            
+          end else begin  
             if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
             end;
           end;
         end;
       end;
       if (err==0) then begin
-        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday)==false) then begin
+        if (WFr.CreateApplication==1) then begin         
+          if (qupdating.StoreWebSurveyLoanApp(CUr,ContactCUr,WFr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,maillist)==false) then begin end;
           //err?
+        end;
+        if (nonblank(WFr.MailReceiver)) then begin
+          qupdating.SendWebSurveyEmail(SMr,WFr,regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address,maillist,paymentday)
         end;
       end else begin
         errstr = ToolWebNGTranslateText2(70122);

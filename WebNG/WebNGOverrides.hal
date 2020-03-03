@@ -46,9 +46,14 @@ external inner function string 255 GetMainCustomerCodeFromContact(string);
 external procedure ShowRegisterSuretyElement(record WebNGELementVc);
 external procedure CheckLoanCustomer(string,string,string,Boolean,var record CUVc,var record CUVc,var Integer);
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
+external procedure ShowWebSurveyElement(record WebNGElementVc);
 external updating procedure CreateActivityForContactLinks(record CUVc,record CUVc);
 external updating procedure AddToMailingList(record CMApplicationSetBlock,record CUVc);
 external function string 255 CreditalFixPhone(string,string);
+external procedure ShowNovitiCountrySelect;
+external procedure ShowNovitiCountrySelect2;
+external procedure ShowNovitiLanguageSelect;
+external procedure NovitiChangeCountry();
 
 global
 function boolean ShowSpecialWebElementInternal(record WebNGElementVc WEr)
@@ -91,6 +96,14 @@ begin
       ShowRegisterSuretyElement(WEr);
     case 136:
       ShowPopupWebStrings;
+    case 137:
+      ShowWebSurveyElement(WEr);
+    case 138:
+      ShowNovitiLanguageSelect;
+    case 139:
+      ShowNovitiCountrySelect;
+    case 140:
+      ShowNovitiCountrySelect2;
     otherwise
       res = false;
   end;
@@ -466,6 +479,8 @@ begin
 
     case 70420: res = "Pateikti";
     case 70421: res = "¯mon˜s duomenys";
+    case 70422: res = "Jðs÷ uìklausa gauta";
+    
   end;
 
   CheckInternalStrings = res;
@@ -583,6 +598,9 @@ begin
       res = true;
     case "setexitpopup":
       SetDetailedCookie("exitpopup","true","Exit popup","","/",15552000); //180days
+      res = true;
+    case "novchangecountry":
+      NovitiChangeCountry;
       res = true;
   end;
 

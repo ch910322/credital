@@ -458,8 +458,8 @@ begin
   RecordField(VINr,M4Long,0,0);
  // RecordField(Classification,M4Code,5,OrderClassVc);
   RecordField(LangCode2,M4Code,5,0);
-
   RecordField(VersionNo,M4Long,0,0);
+  RecordField(Classifications,M4UStr,255,0);
 
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
@@ -534,6 +534,7 @@ begin
   RecordField(VekselisSurety,M4Int,0,0);
   RecordField(VekselisUs,M4Int,0,0);
   RecordField(VekselisLangCode,M4Code,10,0);
+  RecordField(Classifications,M4UStr,255,0);
   KeyBegin(ActCode);
   KeySegment(Code);
   KeyBegin(ActComment);
@@ -1040,6 +1041,26 @@ begin
   RecordField(PopupActComment,M4Str,200,0);
   RecordField(CanonicalBase,M4Str,255,0);
   RecordField(WebPaymentDays,M4Str,255,0);
+  RecordField(LoanType1,M4Set,2013,0);
+  RecordField(LoanType2,M4Set,2013,0);
+  RecordField(LoanType3,M4Set,2013,0);
+  RecordField(LoanType4,M4Set,2013,0);
+  RecordField(LoanType5,M4Set,2013,0);
+  RecordField(LoanType1Color,M4StrSet,2025,0);
+  RecordField(LoanType2Color,M4StrSet,2025,0);
+  RecordField(LoanType3Color,M4StrSet,2025,0);
+  RecordField(LoanType4Color,M4StrSet,2025,0);
+  RecordField(LoanType5Color,M4StrSet,2025,0);
+  RecordField(LoanType1Show,M4Int,0,0);
+  RecordField(LoanType2Show,M4Int,0,0);
+  RecordField(LoanType3Show,M4Int,0,0);
+  RecordField(LoanType4Show,M4Int,0,0);
+  RecordField(LoanType5Show,M4Int,0,0);
+  RecordField(HideMenu1,M4Code,20,WebNGMenuVc);
+  RecordField(HideMenu2,M4Code,20,WebNGMenuVc);
+  RecordField(HideMenu3,M4Code,20,WebNGMenuVc);
+  RecordField(HideMenu4,M4Code,20,WebNGMenuVc);
+  
   EndBlock;
 
   RecordBegin(WebMetaTagVc,-,"");
@@ -1299,6 +1320,87 @@ begin
   ArrayField(BankCode,M4Code,10,BankVc);
   EndArray;
   EndBlock;
+
+  RecordBegin(NovWebFormVc,-,"");
+  RecordField(Code,M4Code,30,0);
+
+  RecordField(RegFlag,M4Int,0,0);
+  RecordField(NameFlag,M4Int,0,0);
+  RecordField(PhoneFlag,M4Int,0,0);
+  RecordField(EmailFlag,M4Int,0,0);
+  RecordField(ContactNameFlag,M4Int,0,0);
+  RecordField(ContactEmailFlag,M4Int,0,0);
+  RecordField(ContactMobileFlag,M4Int,0,0);
+  RecordField(ContactJobFlag,M4Int,0,0);
+  RecordField(VATNrFlag,M4Int,0,0);
+  RecordField(AddressFlag,M4Int,0,0);
+  RecordField(PaymentDayFlag,M4Int,0,0);
+  RecordField(AmountFlag,M4Int,0,0);
+  RecordField(TermFlag,M4Int,0,0);
+  RecordField(MailListFlag,M4Int,0,0);
+
+  RecordField(RegOrder,M4Long,0,0);
+  RecordField(NameOrder,M4Long,0,0);
+  RecordField(PhoneOrder,M4Long,0,0);
+  RecordField(EmailOrder,M4Long,0,0);
+  RecordField(ContactNameOrder,M4Long,0,0);
+  RecordField(ContactEmailOrder,M4Long,0,0);
+  RecordField(ContactMobileOrder,M4Long,0,0);
+  RecordField(ContactJobOrder,M4Long,0,0);
+  RecordField(VATNrOrder,M4Long,0,0);
+  RecordField(AddressOrder,M4Long,0,0);
+  RecordField(PaymentDayOrder,M4Long,0,0);
+  RecordField(AmountOrder,M4Long,0,0);
+  RecordField(TermOrder,M4Long,0,0);
+  RecordField(MailListOrder,M4Long,0,0);
+
+  RecordField(RegLabel,M4Str,255,0);
+  RecordField(NameLabel,M4Str,255,0);
+  RecordField(PhoneLabel,M4Str,255,0);
+  RecordField(EmailLabel,M4Str,255,0);
+  RecordField(ContactNameLabel,M4Str,255,0);
+  RecordField(ContactEmailLabel,M4Str,255,0);
+  RecordField(ContactMobileLabel,M4Str,255,0);
+  RecordField(ContactJobLabel,M4Str,255,0);
+  RecordField(VATNrLabel,M4Str,255,0);
+  RecordField(AddressLabel,M4Str,255,0);
+  RecordField(PaymentDayLabel,M4Str,255,0);
+  RecordField(AmountLabel,M4Str,255,0);
+  RecordField(TermLabel,M4Str,255,0);
+  RecordField(MailListLabel,M4Str,255,0);
+
+  RecordField(RegMand,M4Int,0,0);
+  RecordField(NameMand,M4Int,0,0);
+  RecordField(PhoneMand,M4Int,0,0);
+  RecordField(EmailMand,M4Int,0,0);
+  RecordField(ContactNameMand,M4Int,0,0);
+  RecordField(ContactEmailMand,M4Int,0,0);
+  RecordField(ContactMobileMand,M4Int,0,0);
+  RecordField(ContactJobMand,M4Int,0,0);
+  RecordField(VATNrMand,M4Int,0,0);
+  RecordField(AddressMand,M4Int,0,0);
+  RecordField(PaymentDayMand,M4Int,0,0);
+  RecordField(AmountMand,M4Int,0,0);
+  RecordField(TermMand,M4Int,0,0);
+
+  RecordField(CreateApplication,M4Int,0,0);
+  RecordField(OrderClass,M4Code,10,OrderClassVc);
+  RecordField(MailReceiver,M4Str,200,0);
+  RecordField(Manager,M4Code,20,0);
+  RecordField(CalcType,M4Set,2013,0);
+  RecordField(IntroText,M4Str,255,0);
+
+  MainKeyBegin(Code,0);
+  KeySegment(Code);
+
+  EndRecord;
+
+  RecordBegin(CredManClassVc,-,"");
+  RecordField(Code,M4Code,20,0);
+  RecordField(Comment,M4Str,250,0);
+  MainKeyBegin(Code,0);
+  KeySegment(Code);
+  EndRecord;
   
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
@@ -1346,6 +1448,9 @@ begin
 /*External docs*/
   Exec_file("halcust\\Integrations\\ExternalDocs\\datadef.hal");
   SourceFile("halcust\\Integrations\\ExternalDocs", 3);
+
+/*External docs*/
+  SourceFile("halcust\\Integrations\\BankStatement", 3);
 
 /*Bank import*/
   Exec_file("halcust\\BankImport\\datadef.hal");

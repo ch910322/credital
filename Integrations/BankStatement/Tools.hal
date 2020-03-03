@@ -1,0 +1,27 @@
+/*
+remote procedure EBSSendPrintDocument(area filearea,var vector string vCat,var array Date arrDate,var array string arrText,var array val arrVal,var array string arrCat,var Longint statement)
+
+
+global
+procedure UploadAndSendBankStatement()
+begin
+  Boolean 
+
+  res = OpenFileDialog("dir",fpath);
+  if (blank(fpath) or (res==false)) then begin goto LUploadAndSendBankStatement; end;
+
+  AddFileToArea(fpath,farea,false);
+
+  EBSSendPrintDocument(farea,vCat,arrDate,arrText,arrVal,arrCat,statement);
+
+
+
+  //put values in ORVc 
+
+
+
+LUploadAndSendBankStatement:;
+  return;
+end;
+
+*/

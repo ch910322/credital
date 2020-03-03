@@ -1,10 +1,11 @@
+//<halrule>server-only</halrule>
 //Using hardcoded ip address in the beginning
 external procedure ReadScanDocFile(area,Integer,string,Longint,string,Date,var vector string,var Boolean);
 external procedure CompanyHasData(string,string,string,Longint,string,Date,var array Date,var array val,var array Integer,var array Longint,var Boolean);
 external procedure CompanyGetData(string,string,Longint,var area,string,Longint,string,Date,var Boolean);
 external procedure CompanyStoreData(string,string,area,Integer,string,Longint,string,Date,var Boolean);
 external procedure DoEBSSendPrintDocument(vector string,area,var area,string,Longint,string,Date,var Boolean);
-
+external procedure ReadScanDocFileBankStatement(area,Integer,string,Longint,string,Date,var vector string,var array Date,var array string,var array val,var array string,var Longint,var Boolean);
 function string 255 GetServiceIPAddress()
 begin
   string 255 ip;
@@ -112,5 +113,21 @@ begin
 
   return;
 end;
+/*
+global
+procedure EBSSendPrintDocument(area filearea,var vector string vCat,var array Date arrDate,var array string arrText,var array val arrVal,var array string arrCat,var Longint statement)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  Boolean res;
+  string 255 ip;
 
 
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  CallService(ip).ReadScanDocFileBankStatement(filearea,2,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vCat,arrDate,arrText,arrVal,arrCat,statement,res);
+
+  return;
+end;
+*/

@@ -129,6 +129,9 @@ begin
   if (credsum>remsum) then begin
     credsum = remsum;
   end;
+  if (credsum<=0) then begin
+    goto LAddCredHistToIP;
+  end;
 
   if (FindExistingRow(IPr,ORrw.GroupOrdRow,num)) then begin
     MatRowGet(IPr,num,IPrw);
@@ -163,6 +166,7 @@ begin
   end;
   remsum = remsum - credsum;
 
+LAddCredHistToIP:;
   return;
 end;
 

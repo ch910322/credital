@@ -452,6 +452,7 @@ begin
   return;
 end;
 
+/*real surety agreement*/
 global
 procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
 begin
@@ -526,7 +527,7 @@ begin
 end;
 
 global
-procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
+procedure ExternalPrintVekselisForm(record CredManVc CredManr,var vector string vVals)
 begin
   string 255 name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4;
   record CUVc CUr,tCUr;
@@ -618,7 +619,7 @@ begin
 end;
 
 global
-procedure ExternalPrintSuretyAgreementForm(record CredManVc CredManr,var vector string vVals)
+procedure ExternalPrintCredManForm(record CredManVc CredManr,var vector string vVals)
 begin
   Integer i,rwcnt;
   row CredManVc CredManrw;

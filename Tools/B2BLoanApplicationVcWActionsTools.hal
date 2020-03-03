@@ -244,6 +244,7 @@ begin
     CMTr.Code = LAr.Type;
     if (ReadFirstMain(CMTr,1,true)) then begin
       CredManr.PayDeal = CMTr.PayDeal;
+      CredManr.Classifications = CMTr.Classifications;
     end else begin  
       CredManr.PayDeal = CUr.PayDeal;
     end;

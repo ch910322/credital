@@ -10,6 +10,8 @@ external inner function Boolean FindTheUser(var record UserVc);
 external function Boolean ContactShouldSeeDocument(record CredManVc,string,record AgreementDocVc);
 external function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc,string,record AgreementDocVc);
 external updating procedure FinishDocumentSigning(string,Longint,string,area);
+external function Integer SetCompanyBasedOnCountry();
+external procedure ResetCompanyBasedOnCountry(Integer);
 
 procedure LogDokobit(area a,string fn)
 begin
@@ -291,7 +293,9 @@ begin
   record WebNGPaySessionVc WPSr;
   Boolean res,cufoundf,showf;
   area post;
+  Integer oldcomp;
 
+  oldcomp = SetCompanyBasedOnCountry;
   switch (action) begin
     case "getinfo":
       //get all info, show file // file will come from a link
@@ -408,6 +412,7 @@ begin
         end;
       end;
   end;
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;

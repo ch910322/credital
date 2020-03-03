@@ -27,6 +27,9 @@ external procedure DisplaySideNav();
 external procedure ArabMarketplaceMirroring();
 external procedure AddStdAccRecordsFromIBM();
 external procedure AddStdCRMRecordsFromIBM();
+//CUST-BEGIN
+external outer function string 255 GetHiddenMenus();
+//CUST-END
 
 procedure GetMenuActiveClass(record WebNGMenuVc WMr,var string actclass,var string class)
 begin
@@ -75,7 +78,8 @@ begin
   string 255 country;
   record CUVc CUr;
 //CUST-BEGIN
-  string 255 class2;
+  string 255 class2,hiddenmenus;
+  hiddenmenus = GetHiddenMenus;
 //CUST-END
   
   found = true;
@@ -92,6 +96,11 @@ begin
   while (LoopKey(ckey,WMr,1,found)) begin
     if ((LoginState and WMr.ShowWhenLoggedIn==1) or (LoginState==false and WMr.ShowWhenLoggedOut==1)) then begin
       testf = true;
+//CUST-BEGIN
+      if (nonblank(hiddenmenus) and SetInSet(WMr.Code,hiddenmenus)) then begin
+        testf = false;
+      end;
+//CUST-END
       if (IsMarketplaceServer) then begin
         if (right(WMr.GoToURL,20)=="redeemactivationcode" and CUr.CountryCode!="FIN") then begin
           testf = false;

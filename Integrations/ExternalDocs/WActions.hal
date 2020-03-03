@@ -1,0 +1,27 @@
+external inner procedure PasteFromSysList(Integer ,Integer);
+remote procedure GetExternalFormDefAttachedImages(record ExternalFormDefVc,var array string);
+
+global
+function Boolean ExternalFormDefImgSClassOnOpenWindow(Integer wn)
+begin
+  Integer i;
+  record ExternalFormDefVc EFr;
+  array string 255 aName;
+
+  GetWindowRecord(MotherWindow(wn),EFr);
+  threadremote.GetExternalFormDefAttachedImages(EFr,aName);
+  for (i=0;i<aName.length;i=i+1) begin
+    SetListString(wn,i,aName[i],false);
+  end;
+
+  ExternalFormDefImgSClassOnOpenWindow = false;
+  return;
+end;
+
+global
+function Boolean ExternalFormDefImgSClassOnOKWindow(Integer wn)
+begin
+  PasteFromSysList(wn,0);
+  ExternalFormDefImgSClassOnOKWindow = false;
+  return;
+end;

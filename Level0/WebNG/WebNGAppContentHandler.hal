@@ -71,7 +71,9 @@ begin
         end;
       end;
     end;
-    
+//CUST-BEGIN
+    country = ToolWebNGGetCountry;
+//CUST-END
     if (country=="_all") then begin
       country = "";
     end;

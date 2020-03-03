@@ -14,6 +14,8 @@ external updating procedure FinishDocumentSigning(string,Longint,string,area);
 external function Boolean GetLoanAppContact(string,string,var record CUVc);
 external function Boolean ContactShouldSeeDocument2(record B2BLoanApplicationVc,string,record AgreementDocVc);
 external function Boolean ContactShouldSeeDocument(record CredManVc,string,record AgreementDocVc);
+external function Integer SetCompanyBasedOnCountry();
+external procedure ResetCompanyBasedOnCountry(Integer);
 
 updating function string 255 StartPaymentSession(string custcode,string currency,val amount,Longint recid,string rectype)
 begin
@@ -143,6 +145,10 @@ begin
 
     GetCustomerPaymentDetails(LAr,custcode,firstname,lastname,email,addr1,addr2,addr3,postcode,country,amount);
     email = CUr.eMail;
+    country = CUr.CountryCode;
+    if (blank(country)) then begin
+      country = CYb.CountryCode;
+    end;
     paysessionid = StartPaymentSession(CUr.Code,crncy,amount,recid,rectype);
 
     accesscode = Pb.SignPassword;
@@ -285,6 +291,7 @@ begin
   record AgreementDocVc ADr,oldADr;
   Boolean foundf;
   area a;
+  Integer oldcomp;
   
   WPSr.UUID = WebGetArg("session");
 
@@ -343,7 +350,10 @@ begin
   record B2BLoanApplicationVc LAr;
   area tmp;
   record NotePadVc Note2r;
+  Integer oldcomp;
   
+  oldcomp = SetCompanyBasedOnCountry;
+
   switch (action) begin
     case "getinfo":
       //get the document (allow to download) and show details
@@ -364,6 +374,8 @@ begin
     case "startpayment":
       RedirectPayseraPayment;
   end;
+  ResetCompanyBasedOnCountry(oldcomp);
+  return;
 end;
 
 
