@@ -7,6 +7,7 @@ external procedure ExternalPrintCredManScheduleForm(record CredManVc,var vector 
 external procedure ExternalPrintVekselisForm(record CredManVc,var vector string);
 external procedure ExternalPrintSuretyAgreementForm(record CredManVc,var vector string);
 external procedure EBSSendPrintDocument(vector string,area,var area);
+external procedure ExternalPrintInvoiceForm(record IVVc,var vector string);
 
 function Boolean GetTemplateFile(string name,var area template,record ExternalFormDefVc EFDr)
 begin
@@ -28,6 +29,53 @@ begin
   return;
 end;
 
+function Boolean FindExternalDocument(string docname,record RcVc RepSpec,var record ExternalFormDefVc tEFDr)
+begin
+  Boolean res,TrHs;
+  record ExternalFormDefVc EFDr;
+  vector Integer vForm;
+  array string 255 aForm;
+  string 255 formcode;
+  Integer max,i;
+
+  TrHs = true;
+  EFDr.DocName = docname;
+  while (LoopKey("DocName",EFDr,1,TrHs)) begin
+    if (EFDr.DocName!=docname) then begin
+      TrHs = false;
+    end else begin
+      if ((RepSpec.long1==-1 and EFDr.IntVal1==-1) or RepSpec.long1==EFDr.IntVal1) then begin
+        vForm[EFDr.UUID] = vForm[EFDr.UUID] + 1;
+      end;
+      if ((RepSpec.flags[10]==0 and EFDr.IntVal2==0) or RepSpec.flags[10]==EFDr.IntVal2) then begin
+        vForm[EFDr.UUID] = vForm[EFDr.UUID] + 1;
+      end;
+      if ((RepSpec.flags[11]==0 and EFDr.IntVal3==0) or RepSpec.flags[11]==EFDr.IntVal3) then begin
+        vForm[EFDr.UUID] = vForm[EFDr.UUID] + 1;
+      end;
+      
+    end;
+  end;
+
+  GetVectorTags(vForm,aForm);
+  for (i=0;i<aForm.length;i=i+1) begin
+    if (vForm[aForm[i]]>max) then begin
+      max = vForm[aForm[i]];
+      formcode = aForm[i];
+    end;
+  end;
+  if (nonblank(formcode)) then begin
+    EFDr.UUID = StringToUUID(formcode);
+    if (ReadFirstMain(EFDr,1,true)) then begin
+      RecordCopy(tEFDr,EFDr);
+      res = true;
+    end;
+  end;
+
+  FindExternalDocument = res;
+  return;
+end;
+
 global
 procedure PrintEBSDocument(string docname,string fn,record RcVc RepSpec,string id,string langcode)
 begin
@@ -39,11 +87,12 @@ begin
   record CredManVc CredManr;
   record B2BLoanApplicationVc LAr;
   record CredManPmtGrntVc PGr;
+  record IVVc IVr;
   Boolean printf;
   vector string 255 vVals;
 
-  EFDr.DocName = docname;
-  if (ReadFirstMain(EFDr,1,true)) then begin
+  //RepSpec.long1,flags[10],flags[11] are reserved by FindExternalDocument to find loan agreement forms
+  if (FindExternalDocument(docname,RepSpec,EFDr)) then begin
     rwcnt = MatRowCnt(EFDr);
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(EFDr,i,EFDrw);
@@ -111,6 +160,12 @@ begin
               end else begin
                 printf = false;
               end;
+            end;
+          case "InvForm":
+            IVr.SerNr = StringToLongint(id);
+            printf = (ReadFirstMain(IVr,1,true) or id=="-2");
+            if (printf) then begin
+              ExternalPrintInvoiceForm(IVr,vVals);
             end;
         end;
         if (printf) then begin

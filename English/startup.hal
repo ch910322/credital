@@ -31,7 +31,6 @@ begin
   Setting("Automatic Order Classes",CMOrderClassTClass,modCredMan);
   Setting("Telephone Prefixes",PhonePrefixTClass,modCredMan);
   Setting("Receipt Entry",ReceiptEntryWClass,modSL);
-  Setting("Noviti Form Settings",CreditalFormTClass,modCredMan);
   Setting("Agreement Classifications",CredManClassLClass,modCredMan);
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
@@ -72,10 +71,15 @@ begin
   Setting("Contact Page Companies",LangCompanyMapTClass,modWebShopNG);
   Setting("Bank - Account Connections",WebBankConnTClass,modWebShopNG);
   Setting("Mobile Surveys",NovWebFormLClass,modWebShopNG);
+  Setting("URL Translations",WebNodeTransLClass,modWebShopNG);
+  Setting("Registration Number Patterns",RegNrPatternTClass,modWebShopNG);
+  Setting("Order Classes on Web",OrderClassTransLClass,modWebShopNG);
 
-/*Sales ledger*/
+/* Sales ledger */
 	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modSL);
 
+/* System */
+	Setting("Rekvizitai.lt Classifications",RekvizitaiClassTClass,modSY);
 
   SString(200000,"Evaluation report");
   SString(200001,"Company");
@@ -198,6 +202,7 @@ begin
   EndSet;
 
   SetBegin(2001);
+  SetText(-1,"-");
   SetText(0,"Annuity");
   SetText(1,"Linear");
   SetText(2,"Linear with Service Fee");
@@ -288,6 +293,7 @@ begin
   EndSet;
 
   SetBegin(2013);
+  SetText(-1,"-");
   SetText(0,"Business Loan with Schedule");
   SetText(3,"Loan with Late Payment");
   SetText(4,"Loan with Residual Value");
@@ -359,6 +365,11 @@ begin
   StrSetText(orange,"Orange");
   StrSetText(blue,"Blue");
   EndStrSet;
+
+  SetBegin(2026);
+  SetText(0,"Check");
+  SetText(1,"Don't check");
+  EndSet;
 
   return;
 end;

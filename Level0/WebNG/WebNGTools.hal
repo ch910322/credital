@@ -20,6 +20,7 @@ external function string 255 AddStr(string,string,string);
 external outer function Boolean InternalNodeIsApplication(Integer);
 //CUST-BEGIN
 external outer procedure DisplayContentGallery(string,Integer);
+external outer function string 255 GetTranslatedNodeName(record WebNGStructVc);
 //CUST-END
 
 global
@@ -675,6 +676,9 @@ begin
         goto LGetLinkToStruct;
       end;
       tstr = WSr.Name;
+//CUST-BEGIN
+      tstr = GetTranslatedNodeName(WSr);
+//CUST-END
       if (right(tstr,1)!="/") then begin
         tstr = tstr & "/";
       end;

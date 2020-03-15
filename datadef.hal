@@ -161,6 +161,8 @@ begin
   RecordField(PrincipleDelayInterest,M4Qty,0,0);
   RecordField(MaxMonthlyPayment,M4Val,0,0);
   RecordField(Comment,M4Str,255,0);
+  RecordField(InterfaceLanguage,M4Code,10,0);
+  RecordField(BrowserOS,M4Str,30,0);
 
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
@@ -869,6 +871,8 @@ begin
   RecordField(CredManType,M4Code,20,CredManTypeVc);
   RecordField(WebText,M4Str,255,0);
   RecordField(TermType,M4Int,0,0);
+  RecordField(PrcFrom,M4Val,0,0);
+  RecordField(PrcTo,M4Val,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(Months,M4Val,0,0);
   ArrayField(Rate,M4Val,0,0);
@@ -1060,7 +1064,8 @@ begin
   RecordField(HideMenu2,M4Code,20,WebNGMenuVc);
   RecordField(HideMenu3,M4Code,20,WebNGMenuVc);
   RecordField(HideMenu4,M4Code,20,WebNGMenuVc);
-  
+  RecordField(DefaultType,M4Set,2013,0);
+  RecordField(HideElements,M4UStr,255,0);
   EndBlock;
 
   RecordBegin(WebMetaTagVc,-,"");
@@ -1246,6 +1251,7 @@ begin
   RecordAddBegin(WebNGContentVc,"WebNGContentVc_Cust");
   RecordField(NodeName,M4Str,255,0);
   RecordField(ImgAlt,M4Str,255,0);
+  ChangeField(Comment,M4Str,100,0);
   KeyBegin(NodeName);
   KeySegment(NodeName);
   KeySegment(SerNr);
@@ -1284,6 +1290,7 @@ begin
   EndBlock;
 
   BlockBegin(PhonePrefixBlock,-,"");
+  BlockForAllCompanies;
   RecordField(Math,M4Matrix,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(CountryCode,M4Code,20,CountryVc);
@@ -1303,15 +1310,6 @@ begin
   RecordAddBegin(WebTextVc,"WebTextVc_Cred");
   ChangeMatrixField(Comment,M4Str,255,0);
   EndRecordAdd;
-
-  BlockBegin(CreditalFormBlock,0,"");
-  RecordField(ExtCredManForm,M4Int,0,0);
-  RecordField(ExtLoanAppForm,M4Int,0,0);
-  RecordField(ExtSuretyAppForm,M4Int,0,0);
-  RecordField(ExtScheduleForm,M4Int,0,0);
-  RecordField(ExtVekselisForm,M4Int,0,0);
-  RecordField(ExtSuretyAgreementForm,M4Int,0,0);
-  EndBlock;
 
   BlockBegin(WebBankConnBlock,-,"");
   RecordField(Math,M4Matrix,0,0);
@@ -1389,6 +1387,8 @@ begin
   RecordField(Manager,M4Code,20,0);
   RecordField(CalcType,M4Set,2013,0);
   RecordField(IntroText,M4Str,255,0);
+  RecordField(CheckRegNr,M4Int,0,0);
+  
 
   MainKeyBegin(Code,0);
   KeySegment(Code);
@@ -1401,7 +1401,59 @@ begin
   MainKeyBegin(Code,0);
   KeySegment(Code);
   EndRecord;
-  
+
+  RecordBegin(WebNodeTransVc,-,"");
+  RegisterForAllCompanies(false);
+  RecordField(SerNr,M4Long,0,0);
+  RecordField(Name,M4Str,60,0);
+  RecordField(Mother,M4Long,0,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(LangCode,M4Code,10,WebNGLanguageVc);
+  ArrayField(NodeName,M4Str,60,0);
+  EndArray;
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  SubsetKeyBegin2(NodeName);
+  StoreInBaseKey;
+  AppendMatrixFieldToKeyName(NodeName,0);
+  KeySegment(Mother);
+  KeySegment(SerNr);
+  EndRecord;
+
+  BlockBegin(RegNrPatternBlock,-,"");
+  BlockInServer;
+  BlockForAllCompanies;
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(CountryCode,M4Code,5,WebNGCountryVc);
+  ArrayField(Pattern,M4Str,255,0);
+  ArrayField(Action,M4Set,2026,0);
+  EndArray;
+  EndBlock;
+
+  RecordBegin(OrderClassTransVc,-,"");
+  RecordField(OrderClass,M4Code,20,OrderClassVc);
+  RecordField(Name,M4Str,250,0);
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(LangCode,M4Code,10,WebNGLanguageVc);
+  ArrayField(Comment,M4Str,250,0);
+  EndArray;
+  MainKeyBegin(OrderClass,0);
+  KeySegment(OrderClass);
+  EndRecord;
+
+  BlockBegin(RekvizitaiClassBlock,-,"");
+  BlockInServer;
+  BlockForAllCompanies;
+  RecordField(Math,M4Matrix,0,0);
+  ArrayBegin(Math,-,1);
+  ArrayField(Category,M4Str,255,0);
+  ArrayField(Class,M4Code,20,0);
+  EndArray;
+  EndBlock;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Documents", 3);
@@ -1417,6 +1469,7 @@ begin
   SourceFile("halcust\\Level0\\Tools", 0);
   SourceFile("halcust\\Level0\\WActions", 0);
   SourceFile("halcust\\Level0\\WebNG", 0);
+  SourceFile("halcust\\Level0\\amainhal\\Tools", 0);
 
 /*Mesente SMS*/
   Exec_file("halcust\\Integrations\\Mesente\\datadef.hal");

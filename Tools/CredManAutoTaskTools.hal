@@ -91,7 +91,7 @@ begin
         td = AddDay(td,-1);
       end;
     end;
-LogText(0,"Checking agreements older than " & td & ":" & tt);
+//LogText(0,"Checking agreements older than " & td & ":" & tt);
     switch (ATbrw.Type) begin
       case 0://agreements
         RecordClear(CredManr);

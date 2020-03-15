@@ -27,9 +27,6 @@ external procedure DisplaySideNav();
 external procedure ArabMarketplaceMirroring();
 external procedure AddStdAccRecordsFromIBM();
 external procedure AddStdCRMRecordsFromIBM();
-//CUST-BEGIN
-external outer function string 255 GetHiddenMenus();
-//CUST-END
 
 procedure GetMenuActiveClass(record WebNGMenuVc WMr,var string actclass,var string class)
 begin
@@ -78,8 +75,9 @@ begin
   string 255 country;
   record CUVc CUr;
 //CUST-BEGIN
-  string 255 class2,hiddenmenus;
-  hiddenmenus = GetHiddenMenus;
+  string 255 class2;
+  transaction string 255 gHiddenMenus;
+  
 //CUST-END
   
   found = true;
@@ -97,7 +95,7 @@ begin
     if ((LoginState and WMr.ShowWhenLoggedIn==1) or (LoginState==false and WMr.ShowWhenLoggedOut==1)) then begin
       testf = true;
 //CUST-BEGIN
-      if (nonblank(hiddenmenus) and SetInSet(WMr.Code,hiddenmenus)) then begin
+      if (nonblank(gHiddenMenus) and SetInSet(WMr.Code,gHiddenMenus)) then begin
         testf = false;
       end;
 //CUST-END
@@ -468,6 +466,13 @@ begin
   record WebNGElementVc dummy;
   transaction integer gSubElementDepthCount;
   transaction boolean gOutputTagComments;
+//CUST-BEGIN
+  transaction string 255 gHiddenElements;
+
+  if (nonblank(gHiddenElements) and SetInSet(element,gHiddenElements)) then begin
+    goto LShowWebElement;
+  end;
+//CUST-END
 
   if (gSubElementDepthCount<10) then begin
     if (gOutputTagComments) then begin
@@ -482,6 +487,10 @@ begin
       WebOutTagClose("<!--[if !IE]> ELEMENT-END: " & element & " <![endif]-->");
     end;
   end;
+
+//CUST-BEGIN
+LShowWebElement:;
+//CUST-END
   return;
 end;
 

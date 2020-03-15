@@ -131,3 +131,48 @@ begin
   saveOK = true;
   return;
 end;
+
+global
+function Boolean WebNodeTransDClassAfterEditField(Integer wn,string fieldname,Integer fn,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record WebNGStructVc WSr;
+  record WebNodeTransVc NTr;
+
+  switch (fieldname) begin
+    case "SerNr":
+      DeselectWindow(wn,true);
+      GetWindowRecord(wn,NTr);
+      WSr.SerNr = NTr.SerNr;
+      if (ReadFirstMain(WSr,1,true)) then begin
+        NTr.Name = WSr.Name;
+        NTr.Mother = WSr.Mother;
+        PutWindowRecord(wn,NTr);
+        SelectWindow(wn);
+      end;
+  end;
+  WebNodeTransDClassAfterEditField = res;
+  return;
+end;
+
+global
+function Boolean OrderClassTransDClassAfterEditField(Integer wn,string fieldname,Integer fn,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record OrderClassVc OCr;
+  record OrderClassTransVc OCT;
+
+  switch (fieldname) begin
+    case "OrderClass":
+      DeselectWindow(wn,true);
+      GetWindowRecord(wn,OCT);
+      OCr.Code = OCT.OrderClass;
+      if (ReadFirstMain(OCr,1,true)) then begin
+        OCT.Name = OCr.Comment;
+        PutWindowRecord(wn,OCT);
+        SelectWindow(wn);
+      end;
+  end;
+  OrderClassTransDClassAfterEditField = res;
+  return;
+end;

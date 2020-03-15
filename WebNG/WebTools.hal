@@ -28,6 +28,8 @@ external inner function string 10 ToolWebNGGetCountry();
 external inner function string 60 AddObjectToObjectList(string,string);
 external inner procedure UpdateWebCountry(string);
 external inner function string 255 FormatSimpleLink(string,boolean);
+external function Boolean NovitiMaskMatches(string,string);
+external inner procedure StripSpace(var string,string);
 
 global
 function Integer SetCompanyBasedOnCountry()
@@ -57,6 +59,19 @@ begin
     ResetCompany(oldcomp)
   end;
 
+  return;
+end;
+
+global
+function string 255 NovitiGetEmailSender()
+begin
+  string 255 res;
+  record MailSettingsBlock MSb;
+
+  BlockLoad(MSb);
+  res = MSb.FromSystem;
+
+  NovitiGetEmailSender = res;
   return;
 end;
 
@@ -356,7 +371,7 @@ begin
   return;
 end;
 
-procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add,Boolean inputf)
+procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add,Boolean inputf,val prcfrom,val prcto)
 begin
   
 //70007,70008
@@ -364,7 +379,7 @@ begin
   WebOutString("<div class='slider_label'>" & label & "</div>");
   if (inputf) then begin
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
-    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & ((max-min)/2+min) & "' step='" & step & "'></div>");
+    WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & ((max-min)/2+min) & "' step='" & step & "' prcfrom='" & prcfrom & "' prcto='" & prcto & "'></div>");
   end else begin
     WebOutString("<div class='slider-input'><input type='range' name='" & name & "' id='cowbell' name='cowbell' min='" & min & "' max='" & max & "' value='" & ((max-min)/2+min) & "' step='" & step & "'></div>");
     WebOutString("<div class='slider-update'><input type='text' name='" & name & "_inp' add='" & add & "'></div>");
@@ -439,7 +454,7 @@ begin
     ShowSimpleField("text","phone",ToolWebNGTranslateText2(70005),ToolWebNGTranslateText2(70006));
 */
     if (amount_min>0) then begin
-      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true);
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70007),ToolWebNGTranslateText2(70013),true,WLCr.PrcFrom,WLCr.PrcTo);
 
     end;
     if (term_min>0) then begin
@@ -450,7 +465,7 @@ begin
       if (type==0) then begin
         termtext = ToolWebNGTranslateText2(70375);
       end;
-      ShowSlideBar(term_min,term_max,term_step,"term",termtext,add,true);
+      ShowSlideBar(term_min,term_max,term_step,"term",termtext,add,true,WLCr.PrcFrom,WLCr.PrcTo);
     end;
 /*
     ShowCheckBox("accept",ToolWebNGTranslateText2(70009));
@@ -517,10 +532,10 @@ begin
     WebOutString("<div class='loan_app'><form method='POST'>");
     WebOutString("<div class='row'><div class='col-sm'>")
     if (amount_min>0) then begin
-      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70368),ToolWebNGTranslateText2(70013),true);
+      ShowSlideBar(amount_min,amount_max,amount_step,"amount",ToolWebNGTranslateText2(70368),ToolWebNGTranslateText2(70013),true,WLCr.PrcFrom,WLCr.PrcTo);
     end;
     if (term_min>0) then begin
-      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70107),add,true);
+      ShowSlideBar(term_min,term_max,term_step,"term",ToolWebNGTranslateText2(70107),add,true,WLCr.PrcFrom,WLCr.PrcTo);
     end;
     WebOutString("</div><div class='col-sm'>")
     //show selection box
@@ -601,6 +616,9 @@ begin
   string 255 tstr,email,res,el,id;
   Longint pos;
   record WebNGElementVc WEr;
+  Integer oldcomp;
+
+  oldcomp = SetCompanyBasedOnCountry;
 
   tstr = WebGetArg("id");
   GetNextSubString(tstr,pos,":",el);
@@ -631,10 +649,13 @@ begin
   end;
 
   WebOutString("<res msg='" & res & "'></res>");
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;
 
+/*not used anymore*/
+/*
 procedure SetLanguageCompany(var Integer oldcomp)
 begin
   record LangCompanyMapBlock LCb;
@@ -666,7 +687,7 @@ begin
 
   return;
 end;
-
+*/
 global webpublic
 procedure WebShowEmpPic()
 begin 
@@ -720,7 +741,7 @@ begin
   Integer i;
   Integer oldcomp;
 
-  SetLanguageCompany(oldcomp);
+  oldcomp = SetCompanyBasedOnCountry;
 
   EGr.Code = WEr.HALFunc;
   if (ReadFirstMain(EGr,1,true)) then begin
@@ -741,7 +762,7 @@ begin
     WebOutString("</div>");
   end;
 
-  ResetLanguageCompany(oldcomp);
+  ResetCompanyBasedOnCountry(oldcomp);
 
 
   return;
@@ -770,7 +791,7 @@ begin
   record CYBlock CYb;
   Integer oldcomp;
 
-  SetLanguageCompany(oldcomp);
+  oldcomp = SetCompanyBasedOnCountry;
 
   BlockLoad(CYb);
 
@@ -795,7 +816,7 @@ begin
       ShowContactLine("email","<span class='use_mail'>" & CYb.emailAddr & "</span>");
   end;
 
-  ResetLanguageCompany(oldcomp);
+  ResetCompanyBasedOnCountry(oldcomp);
 
   return;
 end;
@@ -1011,14 +1032,40 @@ begin
   integer pos;
   
   pos = InString(fulladdr,",");
-  addr1 = Right(fulladdr,len(fulladdr)-pos-2);
+  addr1 = Right(fulladdr,len(fulladdr)-pos-1);
   addr2 = Left(fulladdr,pos);
 
   return;
 end;
 
 global
-procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,string countrycode)
+updating procedure AddNewCategoriesToRekvizitaiSetting(string list,string nlist)
+begin
+  Longint pos;
+  record RekvizitaiClassBlock RCb;
+  row RekvizitaiClassBlock RCbrw;
+  string 255 tmp;
+  Boolean updf;
+  
+  BlockLoad(RCb);
+  while (GetNextSubstring(list,pos,";",tmp)) begin
+    StripSpace(tmp,tmp);
+    if (SetInSet(tmp,nlist)==false) then begin
+      ClearRow(RCb,RCbrw,1);
+      RCbrw.Category = tmp;
+      MatRowPut(RCb,MatRowCnt(RCb),RCbrw);
+      updf = true;
+    end;
+  end;
+  if (updf) then begin
+    BlockStore(RCb);
+  end;
+  
+  return;
+end;
+
+global
+procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,var string custclass,Boolean checkclassf,string countrycode)
 begin
   area a_req,a_reply;
   string 255 fres,err,tstr,fulladdr,root,post,city;
@@ -1026,6 +1073,12 @@ begin
   Boolean res;
   string 255 gEBSAddrLookupCountry;
   xml axml;
+  Integer i,rwcnt,cnt,listcnt;
+  string 255 list,nlist;
+  Longint pos;
+  record RekvizitaiClassBlock RCb;
+  row RekvizitaiClassBlock RCbrw;
+  
   
   name = "";
   SendFunctionVersion("54.0","",a_req);
@@ -1089,40 +1142,85 @@ begin
         homepage  = GetTabTextFromArea(0,12,a_reply);
         email  = GetTabTextFromArea(0,13,a_reply);
         vatnr  = GetTabTextFromArea(0,14,a_reply);
+
+        if (checkclassf) then begin
+          list  = GetTabTextFromArea(0,8,a_reply);
+          while (GetNextSubstring(list,pos,";",tstr)) begin
+            listcnt = listcnt + 1;
+          end;
+          BlockLoad(RCb);
+          rwcnt = MatRowCnt(RCb);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(RCb,i,RCbrw);
+            if (SetInSet(RCbrw.Category,list)) then begin
+              custclass = AddObjectToObjectList(custclass,RCbrw.Class);
+              nlist = AddObjectToObjectList(nlist,RCbrw.Class);
+              cnt = cnt + 1;
+            end;
+            if (listcnt==cnt) then begin
+              i = rwcnt;
+            end;
+          end;
+          if (cnt!=listcnt) then begin
+            queued.AddNewCategoriesToRekvizitaiSetting(list,nlist);
+          end;
+        end;
     end;
   end;
 
   return;
 end;
 
+function Boolean RegistrationNumberMatchesCountry(record CYBlock CYb,string compid,var Boolean checkf)
+begin
+  Boolean res;
+  record RegNrPatternBlock RPb;
+  row RegNrPatternBlock RPbrw;
+  Integer i,rwcnt;
+
+  BlockLoad(RPb);
+  rwcnt = MatRowCnt(RPb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(RPb,i,RPbrw);
+    if (CYb.CountryCode==RPbrw.CountryCode and NovitiMaskMatches(RPbrw.Pattern,compid)) then begin
+      res = true;
+      checkf = (RPbrw.Action==0);
+      i = rwcnt;
+    end;
+  end;
+
+  RegistrationNumberMatchesCountry = res;
+  return;
+end;
+
 global webpublic
 procedure WebCheckCompanyName()
 begin
-  string 255 fres,compid,err,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,addrstr;
+  string 255 fres,compid,err,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,addrstr,custclass;
   record CUVc CUr;
   Integer oldcomp;
   record CYBlock CYb;
+  Boolean checkf;
 
   oldcomp = SetCompanyBasedOnCountry;
 
   if (GetSessionString("LoanAppVer")==WebGetArg("scall")) then begin
     compid = WebGetArg("regnr");
-
-    if (nonblank(compid) and (len(compid)==9 or (len(compid)==11 and IsNumeric(compid)))) then begin
+    BlockLoad(CYb);
+    if (nonblank(compid) and RegistrationNumberMatchesCountry(CYb,compid,checkf)) then begin
       CUr.RegNr1 = compid;
       if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
         fres = CUr.Name;
         vatnr = CUr.VATNr;
         addrstr = CUr.InvAddr0;
       end else begin
-        BlockLoad(CYb);
-        //if (len(compid)==9) then begin//only for companies (9 chars) not persons (12 chars)
-          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,CYb.CountryCode);
+        
+        if (checkf) then begin//only for companies (9 chars) not persons (12 chars)
+          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,custclass,false,CYb.CountryCode);
           addrstr = addr0 & "," & addr1 & "," & addr2 & "," & addr3;
-        //end;
-        //if (len(compid)==11) then begin
-        //  fres = " ";
-        //end;
+        end else begin
+          fres = " ";
+        end;
       end;
     end;
   end;
@@ -1426,7 +1524,7 @@ begin
 
   ShowRedirectHTML(link,WebSecureMode);
 */
-  WebOutString("<html><head></head><body><form  method='POST' action='/dologin' name='loginform' style='display:none'><input type='text' name='login' value='" & WebGetArg("custcode") & "'><input type='text' name='passwd' value='123123123'><input type='text' name='failed' value='/WebUpdatingAction.hal?action=afterlogin&failed=1'><input type='text' name='custpage' value='/WebUpdatingAction.hal?action=afterlogin&cust=1'><input type='submit' value='ddd'></form><script>document.loginform.submit();</script></body></html>")
+  WebOutString("<html><head></head><body><form  method='POST' action='/dologin' name='loginform' style='display:none'><input type='text' name='login' value='" & WebGetArg("custcode") & "'><input type='text' name='passwd' value='123123123'><input type=\"hidden\" name=\"company\" value=\"" & WebGetArg("compno") & "\"><input type='text' name='failed' value='/WebUpdatingAction.hal?action=afterlogin&failed=1'><input type='text' name='custpage' value='/WebUpdatingAction.hal?action=afterlogin&cust=1'><input type='submit' value='ddd'></form><script>document.loginform.submit();</script></body></html>")
 
   return;
 end;
@@ -1886,11 +1984,14 @@ begin
 end;
  
 global
-function string 255 GetHiddenMenus()
+procedure SetHiddenElements()
 begin
   record CreditalWebSetBlock WSb;
   Integer oldcomp;
   string 255 res;
+  transaction string 255 gHiddenElements;
+  transaction string 255 gHiddenMenus;
+
 
   oldcomp = SetCompanyBasedOnCountry;
 
@@ -1899,9 +2000,54 @@ begin
   res = AddObjectToObjectList(res,WSb.HideMenu2);
   res = AddObjectToObjectList(res,WSb.HideMenu3);
   res = AddObjectToObjectList(res,WSb.HideMenu4);
+  gHiddenElements = WSb.HideElements;
+  gHiddenMenus = res;
 
   ResetCompanyBasedOnCountry(oldcomp);
 
-  GetHiddenMenus = res;
+  return;
+end;
+
+global
+function Boolean FindNodeTranslation(string node,Longint mother,var record WebNGStructVc WSr)
+begin
+  record WebNodeTransVc NTr;
+  Boolean res;
+
+  NTr.Mother = mother;
+  if (ReadFirstKey("NodeName:" & node,NTr,1,true)) then begin
+    WSr.SerNr = NTr.SerNr;
+    if (ReadFirstMain(WSr,1,true)) then begin
+      res = true;
+    end;
+  end;
+  
+  FindNodeTranslation = res;
+  return;
+end;
+
+global
+function string 255 GetTranslatedNodeName(record WebNGStructVc WSr)
+begin
+  record WebNodeTransVc NTr;
+  row WebNodeTransVc NTrw;
+  string 255 res,lang;
+  Integer i,rwcnt;
+  
+  lang = CurrentWebLang;
+  res = WSr.Name;
+  NTr.SerNr = WSr.SerNr;
+  if (ReadFirstMain(NTr,1,true)) then begin
+    rwcnt = MatRowCnt(NTr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(NTr,i,NTrw);
+      if (NTrw.LangCode==lang) then begin
+        res = NTrw.NodeName;
+        i = rwcnt;
+      end;
+    end;
+  end;
+
+  GetTranslatedNodeName = res;
   return;
 end;

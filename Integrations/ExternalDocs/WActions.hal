@@ -25,3 +25,16 @@ begin
   ExternalFormDefImgSClassOnOKWindow = false;
   return;
 end;
+
+global
+function Boolean ExternalFormDefDClassAfterEditField(Integer wn,string fieldname,Integer fn,Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  switch (fieldname) begin
+    case "DocName":
+      RerunWindowDef(wn);
+  end;
+  ExternalFormDefDClassAfterEditField = res;
+  return;
+end;

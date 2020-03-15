@@ -1,3 +1,4 @@
+//<halrule>server-only</halrule>
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
 external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var record SMVc);
 external inner function val MulRateToBase2(var string,val,val,val,val,val,val,roundmode);
@@ -22,144 +23,24 @@ external inner procedure GetItemGroup(string,var string);
 external inner procedure ItemBCEAN(string,var string);
 external inner procedure ItemBCEAN13(string,var string);
 external inner procedure GetLangNr(string,var record LangNrVc);
-
-procedure PrintDocumentSigner(var vector string vVals)
-begin
-  record CMApplicationSetBlock ASb;
-  record UserVc Userr;
-  
-  BlockLoad(ASb);
-  Userr.Code = ASb.DocumentSigner;
-  if (ReadFIrstMain(Userr,1,true)) then begin
-    vVals["F_DOCUMENTSIGNERNAME"] = Userr.Name;
-    vVals["F_DOCUMENTSIGNERPOSITION"] = ASb.DocumentSignerPosition;
-    vVals["F_DOCUMENTSIGNERCODE"] = Userr.Code;
-  end;
-
-  return;
-end;
-
-procedure PrintCurrencyCode(var vector string vVals,string formfield,string acurrency)
-begin
-  string 255 currency;
-  
-  currency = acurrency;  
-  if (blank(currency)) then begin
-    record BaseCurBlock BCb;
-    
-    BlockLoad(BCb);
-    currency = BCb.BaseCur1;
-  end;
-  vVals[formfield] = currency;
-  return;
-end;
-
-procedure PrintCountryCode(var vector string vVals,string formfield,string CountryCode)
-begin
-  record CountryVc Countryr;
-  
-  Countryr.Code = CountryCode;
-  ReadFirstMain(Countryr,1,true);
-  if (nonblank(Countryr.ISOCode)) then begin
-    vVals[formfield] = Countryr.ISOCode;
-  end else begin
-    vVals[formfield] = CountryCode;
-  end;
-  return;
-end;
-
-procedure OutAddressField(string field,string data,boolean printblank,string suffixvar,var string saveline)
-begin
-  string 255 line;
-  
-  if (data=="" and printblank==false) then begin
-    goto out;
-  end;
-  
-  saveline = saveline & data & suffixvar;
-  
-out:;
-end;
-
-procedure OutAddress(var vector string vVals,string field,string a0,string a1,string a2,string a3,string a4,string a5)
-begin
-  record FormBlock Formr;
-  string 255 saveline;
-  
-  BlockLoad(Formr);
-  
-  if (Formr.PrintOrgName!=0) then begin
-    OutAddressField(field,a0,Formr.PrintBlankLines,Formr.Addr0TrailingSep,saveline);
-  end;
-  OutAddressField(field,a1,Formr.PrintBlankLines,Formr.Addr1TrailingSep,saveline);
-  OutAddressField(field,a2,Formr.PrintBlankLines,Formr.Addr2TrailingSep,saveline);
-  OutAddressField(field,a3,Formr.PrintBlankLines,Formr.Addr3TrailingSep,saveline);
-  OutAddressField(field,a4,Formr.PrintBlankLines,Formr.Addr4TrailingSep,saveline);
-  OutAddressField(field,a5,Formr.PrintBlankLines,"",saveline);
-  
-  vVals[field] = saveline;
-    
-  return;
-end;
-
-procedure CommonDocumentFields(var vector string vVals)
-begin
-  record CYBlock CompYear;
-  record BankVc Bankr;
-  string 255 tstr,argstr;
-  Boolean testf;
-
-  BlockLoad(CompYear);
-  vVals["F_EGENEMAIL"] = CompYear.emailAddr;
-  vVals["F_EGENWWWADDRESS"] = CompYear.wwwAddr;
-  vVals["F_EGETNAMN"] = CompYear.CompName;
-  vVals["F_BUSINESSNAME"] = CompYear.BusinessName;
-  vVals["F_EGENTEL"] = CompYear.Phone;
-  vVals["F_EGENFAX"] = CompYear.Fax;
-  vVals["F_EGENBG"] = CompYear.Bank1;
-  vVals["F_EGENPG"] = CompYear.Bank2;
-  vVals["F_EGENBANKKOD"] = CompYear.BankCode;
-  vVals["F_EGETORGNR"] = CompYear.OrgNr;
-  vVals["F_EGETMOMSNR"] = CompYear.VATNr;
-  vVals["F_EGENGLN"] = CompYear.GLN;
-  PrintCountryCode(vVals,"F_EGENCOUNTRYCODE",CompYear.CountryCode);
-  OutAddress(vVals,"F_EGENADRESS",CompYear.CompName,CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4);
-  OutAddress(vVals,"F_EGENADRESS2",CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4,"");
-  vVals["F_PRODUCTNAME"] = USetStr(1802);
-  vVals["F_DATUM"] = CurrentDate;
-  vVals["F_TID"] = CurrentTime;
-  vVals["F_HOMECOMMUN"] = CompYear.HomeCommunity;
-  vVals["F_COMMREGNO"] = CompYear.OrgNr2;
-  vVals["F_MANAGER"] = CompYear.Manager;
-  vVals["F_CHIEFACCOUNTAT"] = CompYear.ChiefAccountant;    
-  vVals["F_OWNLINEOFBUSINESS"] = CompYear.LineOfBusiness;    
-  vVals["F_OWNSHARECAPITAL"] = CompYear.ShareCapital;    
-  vVals["F_OWNANACODE"] = CompYear.ANACode; 
-  vVals["F_OWNSORTCODE"] = CompYear.SortCode; 
-  vVals["F_SHORTUNDERLINE"] = "_______________";
-  Bankr.Code = CompYear.BankName;
-  if (ReadFirstMain(Bankr,1,true)) then begin
-    vVals["F_OWNBANKCODE"] = CompYear.BankName;
-    vVals["F_OWNBANKCLEARING"] = Bankr.Nr1;
-    vVals["F_OWNBANKACC"] = Bankr.Nr2;
-    vVals["F_OWNBANKNAME"] = Bankr.Name;
-    vVals["F_OWNBANKSWIFT"] = Bankr.SWIFT;
-    vVals["F_OWNBANKSORTING"] = Bankr.Sorting;
-    vVals["F_OWNBANKCORRPACC"] = Bankr.CorrspAcc;
-    vVals["F_OWNBANKADDRESS0"] = Bankr.Address0;
-    vVals["F_OWNBANKADDRESS1"] = Bankr.Address1;
-    vVals["F_OWNBANKADDRESS2"] = Bankr.Address2;
-    vVals["F_OWNBANKADDRESS3"] = Bankr.Address3;
-    vVals["F_OWNBANKADDRESS4"] = Bankr.Address4;
-    vVals["F_OWNBANKADDRESS"] = Bankr.Address0;
-    vVals["F_OWNBANKADDRESS"] = Bankr.Address1;
-    vVals["F_OWNBANKADDRESS"] = Bankr.Address2;
-    vVals["F_OWNBANKADDRESS"] = Bankr.Address3;
-    vVals["F_OWNBANKADDRESS"] = Bankr.Address4;
-  end;
-
-  return;
-end;
+/* Tools*/
+external procedure Ext_PrintValue(var vector string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_PrintDocumentSigner(var vector string);
+external procedure Ext_PrintCurrencyCode(var vector string,string,string);
+external procedure Ext_PrintCountryCode(var vector string,string,string);
+external procedure Ext_OutAddress(var vector string,string,string,string,string,string,string,string);
+external procedure Ext_CommonDocumentFields(var vector string);
+external procedure Ext_PrintSignature(var vector string,string);
+external procedure Ext_PrintPremiseData(var vector string);
+external procedure Ext_PrintValueInclZeroWithSign(var vector string,string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_PrintLoyaltyCard(var vector string,record LangNrVc,string,string,val,val,LongInt,string);
+external procedure Ext_PrintValueInclZero(var vector string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_CommonDocumentFields2(var vector string,record RcVc,string);
+external procedure Ext_PrintUserDefinedCustomerFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
+external procedure Ext_PrintSiteInformation(var vector string,string,string);
+external procedure Ext_PrintNote(var vector string,record NotepadVc);
+external procedure Ext_PrintBranchData(var vector string,string);
+external procedure Ext_PrintUserDefinedItemFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
 
 procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
@@ -201,7 +82,7 @@ begin
   vVals["F_KUNDNR"] = CredManr.CustCode;
   vVals["F_KUNDNAMN"] = CredManr.Addr0;
   vVals["F_NUMMER"] = CredManr.SerNr;
-  //OutAddress("F_ADRESS",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);//CUST-REMOVED
+  //Ext_OutAddress("F_ADRESS",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);//CUST-REMOVED
   vVals["F_ADDR2"] = IVr.Addr1;
   vVals["F_ADDR3"] = IVr.Addr2;
   vVals["F_ADDR4"] = IVr.Addr3;
@@ -228,7 +109,7 @@ begin
   vVals["F_INVLEVVILLKTEXT"] = tstr;
   GetPayDealText(IVr.PayDeal,IVr.LangCode,tstr);
   vVals["F_VILLKOR"] = tstr;
-  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  Ext_PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
   vVals["F_KONTRAKTSDATUM"] = CredManr.TransDate;
   vVals["F_STARTDATUM"] = CredManr.startDate;
   vVals["F_LASTINVDATE"] = CredManr.InvUntil;
@@ -355,7 +236,7 @@ begin
   vVals["F_OVERDUEPRC"] = CredManr.OverduePercentage;
   vVals["F_OTHERCONDITIONS"] = CredManr.OtherConditions;
 
-  OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+  Ext_OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
 
   if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
     CEOCUr.Code = LAr.CEOCustCode;
@@ -368,7 +249,7 @@ begin
 
   amt = GetMonthlyPaymentAmount(CredManr,2);
   vVals["F_INTEREST"] = amt;
-  PrintDocumentSigner(vVals);
+  Ext_PrintDocumentSigner(vVals);
 
 
   return;
@@ -396,9 +277,8 @@ begin
   ReadFirstMain(CredManr,1,true);
   BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
 
-  
   CredManHeader(vVals,CredManr);
-
+  Ext_CommonDocumentFields(vVals);
 
   ReadFirstMain(CredManr,1,true);
   rwcnt = MatRowCnt(SMr);
@@ -460,13 +340,15 @@ begin
   record CUVc CUr;
   string 255 tstr;
 
+  Ext_CommonDocumentFields(vVals);
+
   GetSuretyValues(CredManr,1,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
   vVals["F_CONTACTNAME"] = name;
   vVals["F_CONTACTPHONE"] = phone;
   vVals["F_CONTACTMOBILE"] = mobile;
   vVals["F_CONTACTMAIL"] = email;
   vVals["F_CONTACTID"] = id;
-  OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
+  Ext_OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
 
   GetSuretyValues(CredManr,2,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
   vVals["F_CONTACT2NAME"] = name;
@@ -474,7 +356,7 @@ begin
   vVals["F_CONTACT2MOBILE"] = mobile;
   vVals["F_CONTACT2MAIL"] = email;
   vVals["F_CONTACT2ID"] = id;
-  OutAddress(vVals,"F_CONTACT2ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+  Ext_OutAddress(vVals,"F_CONTACT2ADRESS",name,addr0,addr1,addr2,addr3,addr4);
 
   GetSuretyValues(CredManr,3,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
   vVals["F_CONTACT3NAME"] = name;
@@ -482,15 +364,15 @@ begin
   vVals["F_CONTACT3MOBILE"] = mobile;
   vVals["F_CONTACT3MAIL"] = email;
   vVals["F_CONTACT3ID"] = id;
-  OutAddress(vVals,"F_CONTACT3ADRESS",name,addr0,addr1,addr2,addr3,addr4);
+  Ext_OutAddress(vVals,"F_CONTACT3ADRESS",name,addr0,addr1,addr2,addr3,addr4);
 
   CUr.Code = CredManr.CustCode;
   ReadFirstMain(CUr,1,true);
   vVals["F_NUMMER"] = CredManr.SerNr;
   vVals["F_KUNDNAMN"] = CUr.Name;
   vVals["F_REGNUMBER1"] = CUr.RegNr1;//Customer Registration No. 1
-  OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
-  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  Ext_OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+  Ext_PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
   vVals["F_TOTSUM"] = CredManr.InvSum4;
   ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
   vVals["F_TOTSUMINTEXT"] = tstr;
@@ -501,7 +383,7 @@ begin
     vVals["F_CEOID"] = CUr.RegNr1;
   end;
 
-  PrintDocumentSigner(vVals);
+  Ext_PrintDocumentSigner(vVals);
   vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
   ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
   vVals["F_CREDHALFSUMTEXT"] = tstr;
@@ -533,6 +415,8 @@ begin
   record CUVc CUr,tCUr;
   string 255 tstr;
   record CYBlock CYb;
+
+  Ext_CommonDocumentFields(vVals);
 
   GetSuretyValues2(CredManr,1,name,phone,mobile,email,id,addr0,addr1,addr2,addr3,addr4);
   vVals["F_CONTACTNAME"] = name;
@@ -566,24 +450,20 @@ begin
   if (ReadFirstMain(tCUr,1,true)) then begin
     vVals["F_CUSTNAME"] = tCUr.Name;
     vVals["F_CUSTID"] = tCUr.RegNr1;
-    OutAddress(vVals,"F_ADRESS",tCUr.Name,tCUr.InvAddr0,tCUr.InvAddr1,tCUr.InvAddr2,tCUr.InvAddr3,tCUr.InvAddr4);
+    Ext_OutAddress(vVals,"F_ADRESS",tCUr.Name,tCUr.InvAddr0,tCUr.InvAddr1,tCUr.InvAddr2,tCUr.InvAddr3,tCUr.InvAddr4);
   end;
 
   BlockLoad(CYb);
   vVals["F_AGREEMENTDATE"] = CredManr.TransDate;
-  PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
+  Ext_PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
   vVals["F_ORT"] = CYb.Addr3;
 
   vVals["F_TOTSUM"] = CredManr.InvSum4;
-  if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
-    ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
-    vVals["F_TOTSUMINTEXT"] = tstr;
-  end;
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  vVals["F_TOTSUMINTEXT"] = tstr;
   vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
-  if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
-    ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
-    vVals["F_CREDHALFSUMTEXT"] = tstr;
-  end;
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  vVals["F_CREDHALFSUMTEXT"] = tstr;
 
   return;
 end;
@@ -598,6 +478,8 @@ begin
   record CYBlock CYb;
   row CredManPmtGrntVc PGrw;
  
+  Ext_CommonDocumentFields(vVals);
+
   CredManr.SerNr = PGr.CredManNr;
   if (ReadFirstMain(CredManr,1,true)) then begin
     CredManHeader(vVals,CredManr);
@@ -608,7 +490,7 @@ begin
         vVals["F_SELLERNAME"] = PGrw.CustName;
         vVals["F_SELLERID"] = CUr.RegNr1;
         vVals["F_SELLERLIMIT"] = PGrw.MaxLimit;
-        OutAddress(vVals,"F_SELLERADDRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
+        Ext_OutAddress(vVals,"F_SELLERADDRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
       end;
     end;
 
@@ -628,6 +510,8 @@ begin
   record LangNrVc LangNrr;
   
   GetLangNr(CredManr.LangCode,LangNrr);      
+  Ext_CommonDocumentFields(vVals);
+  CredManHeader(vVals,CredManr);
   
   BlockLoad(SysFormatRec);
   rwcnt = MatRowCnt(CredManr);
@@ -702,7 +586,7 @@ begin
     OUTFORMFIELD("F_CONTACTPHONE",phone)
     OUTFORMFIELD("F_CONTACTMAIL",email)
     OUTFORMFIELD("F_CONTACTID",id)
-    OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
+    Ext_OutAddress(vVals,"F_CONTACTADRESS",name,addr0,addr1,addr2,addr3,addr4);
   end;
 
   return;

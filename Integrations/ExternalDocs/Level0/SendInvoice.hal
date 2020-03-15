@@ -1,0 +1,281 @@
+//<halrule>server-only</halrule>
+external function boolean AddEMailRecipients(var record MailVc,string,string,integer);
+external procedure FindUserMailboxName(string,var string,var string);
+external function Boolean FindCustomerRelation(string,string,var record CUVc);
+external procedure MailTextRow(string,string,string,var row MailTextVc,var Integer);
+external updating function LongInt MailVcRecordCheck(var record MailVc,record MailVc,LongInt,LongInt);
+//external inner updating function Integer CreateMailFromIVD(record IVVc,var record MailVc,var string,Boolean,string);
+external procedure GetPayDealText(string,string,var string);
+external outer procedure PrintEBSDocument(string,string,record RcVc,string,string);
+external updating function Boolean FormLinkDocumentFilenames(record MailVc,string);
+
+
+function string 255 PlainTextInvoice(record IVVc IVr)
+begin
+  string 255 res,tstr;
+  LongInt rwcnt,i;
+  row IVVc IVrw;
+  string 1 CR,TAB;
+
+  CR = chr(13);
+  TAB = chr(9);
+
+  rwcnt = MatRowCnt(IVr);
+  for (i = 0; i<rwcnt; i = i + 1) begin
+    MatRowGet(IVr,i,IVrw);
+    if (IVrw.stp==10) then begin
+      goto LIVHIDDENLine;
+    end;
+    res = res & IVrw.ArtCode & TAB;
+    res = res & ValToString(IVrw.Quant,M4UVal,"",".",0) & TAB;
+    res = res & Left(IVrw.Spec,60) & TAB;
+    res = res & IVrw.Price & TAB;
+    if (IVrw.vRebate!=0) then begin
+      res = res & "-" & ValToString(IVrw.vRebate,M4UVal,"",".",0) & "%" &  TAB;
+    end;
+    res = res & IVrw.Sum & TAB;
+    res = res & CR;
+  end;
+LIVHIDDENLine:;
+  res = res & TAB & TAB & TAB & "=====" & CR;
+  res = res & TAB & TAB & TAB & USetStr(2685) & TAB & IVr.Sum1 & CR;
+  res = res & TAB & TAB & TAB & USetStr(2686) & TAB & IVr.Sum3 & CR;
+  res = res & TAB & TAB & TAB & USetStr(2687) & TAB & IVr.Sum4 & CR;
+  GetPayDealText(IVr.PayDeal,IVr.LangCode,tstr);
+  res = res & USetStr(3060) & " " & tstr;
+
+  PlainTextInvoice = res;
+  return;
+end;
+global
+updating function Integer CreateMailFromIVD(record IVVc IVr,var record MailVc Mailr,var string warning,Boolean additemstobodyf,string pdfform)
+begin
+  Integer res;
+  record MailVc dummyMailr;
+  record MailVc Mail2r;
+  record LTxtVc LTxtr;
+  record CUVc CUr;
+  record CUVc ContactCUr;
+  row IVVc IVrw;
+  row MailVc MArw;
+  Integer i,rwcnt;
+  string 255 mailboxnr,tstr;
+  string 1 TAB;
+  record IVMailBlock IVMailr;
+  record MailSettingsBlock MSb;
+  string 255 docname,fname;
+  string 20 custemail;
+  record IVVc oldIVr;
+  row MailTextVc MTrw;
+  Integer IgnoreRecordDetails;
+  LongInt err;
+  record COCUServiceBlock CSb;
+  transaction Boolean gPDFEmailf;
+  transaction string 255 gaPDFEmailFiles;
+  record RcVc RepSpec,fRepSpec;
+  area a;
+  record ExternalFormBlock EFb;
+
+  res = 0;
+  if (ReadFirstMain(IVr,0,true)) then begin end;  
+  TAB = chr(9);
+
+  BlockLoad(IVMailr);
+  tstr = IVMailr.EmailSender;
+  if (blank(tstr)) then begin
+    FindUserMailboxName(CurrentUser,mailboxnr,tstr);
+  end;
+  if (blank(tstr)) then begin
+    BlockLoad(MSb);
+    tstr = MSb.FromSystem;
+  end;
+  if (blank(tstr)) then begin
+    res = 2289;
+    warning = CurrentUser;
+    goto LCreateMailFromIVD;
+  end;  
+  MArw.RowTyp = 1;
+  MArw.AddrCode = tstr;
+  MatRowPut(Mailr,0,MArw);
+  CUr.Code = IVr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin end;
+  custemail = CUr.eMail;
+  if (nonblank(IVr.ClientContact)) then begin
+    if (FindCustomerRelation(CUr.Code,IVr.ClientContact,ContactCUr)) then begin
+      if (nonblank(ContactCUr.eMail)) then begin
+        MArw.AddrCode = ContactCUr.eMail;
+        custemail = ContactCUr.eMail;
+      end;
+    end;
+  end;
+  if (nonblank(IVr.eMail)) then begin
+    custemail = IVr.eMail;
+  end;
+  if (AddEMailRecipients(Mailr,CUr.Code,custemail,kMailInvoice)==false) then begin
+    res = 2289;
+    warning = CUr.Code;
+    goto LCreateMailFromIVD;
+  end;
+  MailTextRow("IVVc","",IVr.LangCode,MTrw,IgnoreRecordDetails);
+  if (nonblank(MTrw.Header)) then begin  
+    Mailr.Header = MTrw.Header;
+  end else begin
+    if (nonblank(IVMailr.Header)) then begin
+      Mailr.Header = IVMailr.Header & " ";
+    end;
+    Mailr.Header = Mailr.Header;
+  end;
+  switch (IVr.InvType) begin
+    case kInvoiceTypeCredit:
+      Mailr.Header = Mailr.Header & USetStr(1805) & " ";
+    case kInvoiceTypeCreditSpecialSales:
+      Mailr.Header = Mailr.Header & USetStr(1805) & " ";
+    otherwise
+      Mailr.Header = Mailr.Header & USetStr(1803) & " ";
+  end;
+  Mailr.Header = Mailr.Header & IVr.SerNr;
+
+  if (nonblank(MTrw.FirstTxt)) then begin
+    LTxtr.Code = MTrw.FirstTxt;
+  end else begin
+    LTxtr.Code = IVMailr.FirstTxt;
+  end;
+  if (ReadFirstMain(LTxtr,1,true)) then begin
+    Mailr.HtmlFlag = LTxtr.HtmlFlag;
+  end;
+  if (Mailr.HtmlFlag==0) then begin
+    if (nonblank(MTrw.LastTxt)) then begin
+      LTxtr.Code = MTrw.LastTxt;
+    end else begin
+      LTxtr.Code = IVMailr.LastTxt;
+    end;
+    if (ReadFirstMain(LTxtr,1,true)) then begin
+      Mailr.HtmlFlag = LTxtr.HtmlFlag;
+    end;
+  end;
+
+  Mailr.TransDate = CurrentDate;
+  Mailr.SerNr = NextSerNr("MailVc",Mailr.TransDate,-1,false,"");
+  RecordCopy(Mail2r,Mailr);
+  SetRecordCheckVc("MailVc");
+  err = MailVcRecordCheck(Mail2r,dummyMailr,Rs_insert,0);
+  if (err!=0) then begin
+    res = -1;
+    goto LCreateMailFromIVD;
+  end;
+  
+  if (RecordStore(Mailr,false)) then begin 
+    CreateRecordLink(Mailr,CurrentCompany,IVr,CurrentCompany);  
+    CreateRecordLink(IVr,CurrentCompany,Mailr,CurrentCompany);  
+  end;
+  
+  RecordCopy(Mail2r,Mailr);  
+  if (nonblank(MTrw.FirstTxt)) then begin
+    LTxtr.Code = MTrw.FirstTxt;
+  end else begin
+    LTxtr.Code = IVMailr.FirstTxt;
+  end;
+  if (ReadFirstMain(LTxtr,1,true)) then begin
+    if (Mailr.HtmlFlag==0) then begin
+      rwcnt = LineTextCnt(LTxtr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        tstr = LineTextGet(LTxtr,i);
+        LineTextPut(Mailr,LineTextCnt(Mailr),tstr);
+      end;    
+      AddCRToText(Mailr);
+    end else begin
+      if (LTxtr.HtmlFlag==0) then begin
+        AddToHtmlRecord(Ltxtr,false,Mailr,true,true);
+      end else begin
+        AddHtmlRecordToHtmlRecord(Ltxtr,Mailr,true);
+      end;
+      LineTextPutToHtmlRecord(Mailr,chr(13),false,true);
+    end;
+  end;
+  if (additemstobodyf or IgnoreRecordDetails==0) then begin
+    tstr = PlainTextInvoice(IVr);
+    if (Mailr.HtmlFlag==0) then begin
+      LineTextPut(Mailr,LineTextCnt(Mailr),tstr);
+    end else begin
+      LineTextPutToHtmlRecord(Mailr,tstr,false,true);
+    end;
+  end;
+  if (nonblank(MTrw.LastTxt)) then begin
+    LTxtr.Code = MTrw.LastTxt;
+  end else begin
+    LTxtr.Code = IVMailr.LastTxt;
+  end;
+  if (ReadFirstMain(LTxtr,1,true)) then begin
+    if (Mailr.HtmlFlag==0) then begin
+      rwcnt = LineTextCnt(LTxtr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        tstr = LineTextGet(LTxtr,i);
+        LineTextPut(Mailr,LineTextCnt(Mailr),tstr);
+      end;
+      AddCRToText(Mailr);
+    end else begin
+      if (LTxtr.HtmlFlag==0) then begin
+        AddToHtmlRecord(Ltxtr,false,Mailr,true,true);
+      end else begin
+        AddHtmlRecordToHtmlRecord(Ltxtr,Mailr,true);
+      end;
+    end;
+  end;
+
+  RecordUpdate(Mail2r,Mailr,false);
+
+  Mail2r = Mailr;
+
+  RepSpec.long1 = IVr.SerNr;
+  if (Mailr.HtmlFlag==0) then begin
+    ParseTextField(a,Mailr,RepSpec,"MailFromIVReplaceToken");
+    SetTextField(Mailr,"");
+    AddAreaToTextField(a,Mailr);
+  end else begin
+    ParseHtmlField(Mailr,RepSpec,"MailFromIVReplaceToken");
+  end;
+
+  RecordUpdate(Mail2r,Mailr,false);
+
+  BlockLoad(EFb);
+  if (EFb.ExtInvoiceForm==0) then begin
+    docname = pdfform;
+    if (blank(docname)) then begin
+      docname = "InvForm";
+      switch (IVr.InvType) begin
+        case kInvoiceTypeCash: docname = "CashInvForm";
+        case kInvoiceTypeCashInvoiceReceiptPRT: docname = "CashInvRecPRTForm";
+        case kInvoiceTypeCredit: docname = "CredInvForm";
+        case kInvoiceTypeInterest: docname = "IIInvForm";
+        case kInvoiceTypeCreditSpecialSales: docname = "CredInvForm";
+      end;
+      if ((IVr.InvType==kInvoiceTypeNormal or IVr.InvType==kInvoiceTypeNormalSpecialSales) or (IVr.InvType==kInvoiceTypeDownpayment)) then begin
+        if (nonblank(IVr.PRCode)) then begin    
+          docname = "ProjInvForm";
+        end;
+      end;
+    end;
+    gPDFEmailf = true;
+    SetMedia(mtPdf);
+    PrintDocument(IVr,docname,false);
+    if (FormLinkDocumentFilenames(Mailr,gaPDFEmailFiles)) then begin
+      RecordCopy(oldIVr,IVr);
+      IVr.Prntdf = 1;
+      RecordUpdate(oldIVr,IVr,false);
+    end;
+    SetDocumentFilename("");  
+    gPDFEmailf = false;
+  end else begin
+    fname = USetStr(1808) & IVr.SerNr & ".pdf";
+    fRepSpec.flags[10] = IVr.InvType;
+    PrintEBSDocument("InvForm",fname,fRepSpec,IVr.SerNr,IVr.LangCode);
+    RecordLinkFile(fname,0,Mailr,CurrentCompany);
+    RecordCopy(oldIVr,IVr);
+    IVr.Prntdf = 1;
+    RecordUpdate(oldIVr,IVr,false);
+  end;
+
+LCreateMailFromIVD:;
+  CreateMailFromIVD = res;
+  return;
+end;

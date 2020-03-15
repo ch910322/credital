@@ -3,16 +3,39 @@ begin
   
   
   RecordBegin(ExternalFormDefVc,-,"");
+  NewAutosyncRegister(kSyncDirectionToClient,true);
   RecordField(DocName,M4Str,40,0);
+  RecordField(Comment,M4Str,40,0);
   RecordField(Math,M4Matrix,0,0);
+  RecordField(IntVal1,M4Int,0,0);
+  RecordField(IntVal2,M4Int,0,0);
+  RecordField(IntVal3,M4Int,0,0);
   ArrayBegin(Math,-,1);
   ArrayField(LangCode,M4Code,200,0);
   ArrayField(TemplateName,M4Str,255,0);
   ArrayField(FirstField,M4Str,255,0);
   EndArray;
-  MainKeyBegin(DocName,0);
+  MainKeyBegin(MainKey,0);
+  KeySegment(UUID);
+  KeyBegin(DocName);
   KeySegment(DocName);
+  KeySegment(UUID);
   EndRecord;
+
+  BlockBegin(ExternalFormBlock,0,"");
+  RecordField(ExtCredManForm,M4Int,0,0);
+  RecordField(ExtLoanAppForm,M4Int,0,0);
+  RecordField(ExtSuretyAppForm,M4Int,0,0);
+  RecordField(ExtScheduleForm,M4Int,0,0);
+  RecordField(ExtVekselisForm,M4Int,0,0);
+  RecordField(ExtSuretyAgreementForm,M4Int,0,0);
+  RecordField(ExtInvoiceForm,M4Int,0,0);
+  EndBlock;
+
+  SourceFile("halcust\\Integrations\\ExternalDocs\\Documents", 3);
+  SourceFile("halcust\\Integrations\\ExternalDocs\\Tools", 3);
+  SourceFile("halcust\\Integrations\\ExternalDocs\\Level0", 0);
+
 
   return;
 end;

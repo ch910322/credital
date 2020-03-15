@@ -13,6 +13,7 @@ external inner procedure SetContentTypeForExtension(string);
 external procedure ShowWebLoanStrings();
 external function Integer MapLoanType(string);
 external function string 255 CreditalFixPhone(string,string);
+external inner function string 10 CurrentWebLang();
 
 procedure DisplayAccDataField(string cls,string label,string value) 
 begin
@@ -287,6 +288,30 @@ begin
   return;
 end;
 
+function string 255 GetOrderClassText(record OrderClassVc OCr,string lang)
+begin
+  Integer i,rwcnt;
+  record OrderClassTransVc OCTr;
+  row OrderClassTransVc OCTrw;
+  string 255 res;
+
+  res = OCr.Comment;
+  OCTr.OrderClass = OCr.Code;
+  if (ReadFirstMain(OCTr,1,true)) then begin
+    rwcnt = MatRowCnt(OCTr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(OCTr,i,OCTrw);
+      if (OCTrw.LangCode==lang) then begin
+        res = OCTrw.Comment;
+        i = rwcnt;
+      end;
+    end;
+  end;
+
+  GetOrderClassText = res;
+  return;
+end;
+
 procedure FillOrderClassData(var vector string vColor,var vector string vClass,var vector string vLoad)
 begin
   record OrderClassColorBlock OCCb;
@@ -295,6 +320,7 @@ begin
   row CredManExtBlock CEbrw;
   Integer i,rwcnt;
   record OrderClassVc OCr;
+  string 255 lang;
 
   BlockLoad(OCCb);
   rwcnt = MatRowCnt(OCCb);
@@ -311,8 +337,9 @@ begin
     end;
   end;
 
+  lang = CurrentWebLang;
   while (LoopMain(OCr,1,true)) begin
-    vClass[OCr.Code] = OCr.Comment;
+    vClass[OCr.Code] = GetOrderClassText(OCr,lang);
   end;
 
   return;

@@ -356,6 +356,7 @@ begin
   end;
   
 //CUST-BEGIN
+  countrylink = "";
   if (nonblank(WCr.NodeName)) then begin
     tstr = FormatSimpleLink(GetLinkToStruct(WCSr.HandlerAppNode,true) & countrylink & WCr.NodeName,true);
   end else begin
@@ -1200,7 +1201,7 @@ begin
     case kElementTypeShoppingBasketRecommended:
       ShowRecommendedItems;
     case kElementTypeContentList:
-      ShowContentList(WEr.HALFunc,"","",false,false);
+      ShowContentList(WEr.HALFunc,ToolWebNGGetCountry,"",false,false);//CUST added ToolWebNGGetCountry
     case kElementTypeContactUsForm:
       ShowContactUsElement(WEr);
     case kElementTypeRegisterNewCustomerForm:

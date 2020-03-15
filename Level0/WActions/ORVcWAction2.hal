@@ -1,0 +1,27 @@
+//<halrule>server-only</halrule>
+/* this is just one function to silence this message in some cases*/
+
+global
+procedure IVOpenPrepExists(string custcode)
+begin
+  record ARPayVc ARPayr;
+//CUST-BEGIN
+  transaction Boolean gSilenceIVOpenPrepExists;
+
+  if (gSilenceIVOpenPrepExists) then begin
+    goto LIVOpenPrepExists;
+  end;
+//CUST-END
+  
+  if (ProgramType!=typStdAccounts) then begin
+    ARPayr.CustCode = custcode;
+    if (ReadFirstKey("CustCode",ARPayr,1,true)) then begin
+      MessageBox(0,USetStr(2025));
+    end;           
+  end; 
+
+//CUST-BEGIN
+LIVOpenPrepExists:;
+//CUST-END
+  return;
+end;

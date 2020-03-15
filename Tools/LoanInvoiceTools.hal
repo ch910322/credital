@@ -89,7 +89,6 @@ begin
   row IVVc IVrw;
   record CMApplicationSetBlock CMASb;
   string 255 oldlang;
-  
 
   BlockLoad(LMb);
   BlockLoad(CMASb);
@@ -99,9 +98,8 @@ begin
   IVr.CustCredManNr = CredManr.SerNr;
   IVr.TransDate = invdate;//or current date?
   IVr.InvDate = invdate;//from seting?
-
   IVr.CustCode = CredManr.CustCode;
-  PasteCust2InInv(IVr,LMb,"",true,warning,errstr,prepstr,invdatewarn,transdatewarn);
+  PasteCust2InInv(IVr,LMb,"",false,warning,errstr,prepstr,invdatewarn,transdatewarn);
   IVr.PayDeal = CredManr.PayDeal;
   IVVc_PastePayDeal(IVr,"",LMb.DefReturnLocation);
   IVr.SalesMan = CredManr.SalesMan;
@@ -682,7 +680,9 @@ begin
   val dueamount,openamount,lateamount;
   Integer latedays;
   Date sd;
-  
+  transaction Boolean gSilenceIVOpenPrepExists
+
+  gSilenceIVOpenPrepExists = true;
   BlockLoad(CMb);
   BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
   CreateBuyOutInvoiceFromPlan(CredManr,CMb,CredManPayPlanr,RepSpec.d1,IVr);
@@ -695,6 +695,7 @@ begin
   RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr);
   RepSpec.vals4 = dueamount;
   RepSpec.f12 = lateamount;//(RepSpec.vals2-RepSpec.vals3-RepSpec.vals4);
+  gSilenceIVOpenPrepExists = false;
 
 
   return;
@@ -952,7 +953,12 @@ begin
         end;
       end;
       if (prepayf) then begin
-        MakeFakeReceiptHist(IVr,prepIVrw);
+        for (i=0;i<rwcnt;i=i+1) begin
+          MatRowGet(IVr,i,IVrw);
+          if (IVrw.stp==kInvoiceRowTypePrepayment and IVrw.BasePrice>0) then begin
+            MakeFakeReceiptHist(IVr,IVrw);
+          end;
+        end;
       end;
     end;
   end;

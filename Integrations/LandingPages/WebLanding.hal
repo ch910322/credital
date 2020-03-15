@@ -25,10 +25,12 @@ external updating procedure CreateActivityForContactLinks(record CUVc,record CUV
 external inner updating function LongInt CUVcRecordUpdate(var record CUVc,record CUVc,LongInt,LongInt);
 external inner procedure ShowWebElement(string);
 external function string 255 CreditalFixPhone(string,string);
-external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,string);
-external updating function Boolean StoreLoanCustomer(string,string,string,string,string,string,string,string,string,string,string,string,string,var record CUVc);
+external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,Boolean,string);
+external updating function Boolean StoreLoanCustomer(string,string,string,string,string,string,string,string,string,string,string,string,string,string,var record CUVc);
 external function Integer SetCompanyBasedOnCountry();
 external procedure ResetCompanyBasedOnCountry(Integer);
+external inner function string 10 CurrentWebLang();
+external inner function string 255 GetBrowserOperatingSystem();
 
 global
 function Boolean CheckIfLandingPage(string node)
@@ -443,7 +445,7 @@ begin
 end;
 
 global
-updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday)
+updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string interfacelang,string browseros)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -474,6 +476,8 @@ begin
   LAr.Sum = amount;
   LAr.Months = term;
   LAr.MonthlyPaymentDay = paymentday;
+  LAr.InterfaceLanguage = interfacelang;
+  LAr.BrowserOS = browseros;
 
   LAr.Type = GetAgreementType(LAr,LPr.CalcType,"");
   CMTr.Code = LAr.Type;
@@ -518,7 +522,7 @@ begin
   record B2BLoanApplicationVc LAr;
   string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address;
   Integer paymentday;
-  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail;
+  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail,browseros,custclass;
   Integer oldcomp;
   record CYBlock CYb;
 
@@ -577,18 +581,19 @@ begin
             CUr.RegNr1 = regnr;
             if (ReadFirstKey("RegNr1",CUr,1,true)==false) then begin//should check email as well
               BlockLoad(CYb);
-              GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CYb.CountryCode);
-              if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
+              GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,true,CYb.CountryCode);
+              if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
               end;
             end;
           end else begin            
-            if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
+            if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
             end;
           end;
         end;
       end;
       if (err==0) then begin
-        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday)==false) then begin
+        browseros = GetBrowserOperatingSystem;
+        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,CurrentWebLang,browseros)==false) then begin
           //err?
         end;
       end else begin

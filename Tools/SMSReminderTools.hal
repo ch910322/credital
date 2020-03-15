@@ -1,4 +1,6 @@
 external procedure SendMessenteMessage(string,string);
+external function string 255 NovitiGetEmailSender();
+external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 
 enum begin
   kMaxCheckDays = 5
@@ -58,10 +60,30 @@ begin
         res = DateToString(RepSpec.d1,"YYYY/MM/DD");;
       case "OverDueAmount":
         res = RepSpec.vals1;
+      case "PayableAmount":
+        res = RepSpec.vals2;
     end;
   end;
 
   SMSReminderVcReplaceToken = res;
+  return;
+end;
+
+function val GetTotalPayableAmount(Longint sernr)
+begin
+  val res;
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+  
+  CredManr.SerNr = sernr;
+  if (ReadFirstMain(CredManr,1,true)) then begin  
+    RepSpec.d1 = CurrentDate;
+    CheckBuyOutAgreement(CredManr,RepSpec);
+    res = RepSpec.vals4;
+    res = res + StringToVal(RepSpec.f12,M4Val);
+  end;
+
+  GetTotalPayableAmount = res;
   return;
 end;
 
@@ -93,6 +115,7 @@ begin
     RepSpec.long1 = IVr.SerNr;
     RepSpec.long2 = IVr.CustCredManNr;
     RepSpec.d1 = IVr.InvDate;
+    RepSpec.vals2 = GetTotalPayableAmount(IVr.CustCredManNr);
     ParseTextField(a,SMSReminder,RepSpec,"SMSReminderVcReplaceToken");
 
     lcnt = CountLinesInArea(a);
@@ -125,7 +148,7 @@ begin
   record EMailQueVc emqrp;
   row EMailQueVc emarw;
   record CYBlock CYb;
-  record MailSettingsBlock MSb;
+  record ARVc ARr;
   
   CUr.Code = IVr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
@@ -137,9 +160,8 @@ begin
       goto LSendSMSReminder;
     end;
 
-    BlockLoad(MSb);
     emarw.RowTyp = 1;
-    emarw.AddrCode = MSb.Postmaster;
+    emarw.AddrCode = NovitiGetEmailSender;
     MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
 
     emarw.RowTyp = 0;
@@ -147,10 +169,15 @@ begin
     MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
     emqrp.Header = SMSReminder.Subject;
 
-    BlockLoad(CYb);
+    ARr.InvoiceNr = IVr.SerNr;
+    ReadFirstMain(ARr,1,true);
     RepSpec.searchstr = CUr.Name;
     RepSpec.vals0 = IVr.Sum4;
+    RepSpec.vals1 = ARr.RVal;
+    RepSpec.long1 = IVr.SerNr;
+    RepSpec.long2 = IVr.CustCredManNr;
     RepSpec.d1 = IVr.InvDate;
+    RepSpec.vals2 = GetTotalPayableAmount(IVr.CustCredManNr);
     ParseTextField(a,SMSReminder,RepSpec,"SMSReminderVcReplaceToken");
 
     l = GetAreaLength(a);
@@ -340,8 +367,7 @@ begin
   return;
 end;
 
-global
-procedure CheckSMSRemindersTask(string args)
+procedure CheckSMSRemindersCompany()
 begin
   Boolean TrHs;
   record SMSReminderVc SMSReminder;
@@ -357,6 +383,25 @@ begin
       end;
     end;
   end;
+
+  return;
+end;
+
+global
+procedure CheckSMSRemindersTask(string args)
+begin
+  Integer i,rwcnt,oldcomp;
+  record CompaniesBlock Compb;
+
+  oldcomp = CurrentCompany;
+  BlockLoad(Compb);
+  rwcnt = MatRowCnt(Compb);
+  for (i=0;i<rwcnt;i=i+1) begin
+    if (SetCompany(i+1,false)) then begin
+      CheckSMSRemindersCompany;
+    end;
+  end;
+  ResetCompany(oldcomp);
 
   return;
 end;

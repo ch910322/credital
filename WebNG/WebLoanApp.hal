@@ -11,7 +11,7 @@ external inner function Boolean GetNextCustNr(var string);
 external inner function Date DateFromString(string,string);
 external inner procedure ShowRedirectHtml(string,boolean);
 external inner function string 255 GetLinkToMyAccount();
-external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,string);
+external procedure GetCustomerNameFromServer(string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,var string,Boolean,string);
 external function Boolean InsertContactName(var record B2BLoanApplicationVc);
 external inner updating function Boolean AddContactCUDsmRemote(record CUVc,string);
 external remote function Boolean InsertSuretyInB2BApplication(var record B2BLoanApplicationVc,Integer);
@@ -35,6 +35,9 @@ external function string 255 CreditalFixPhone(string,string);
 external procedure PrintEBSDocument(string,string,record RcVc,string,string);
 external function Integer SetCompanyBasedOnCountry();
 external procedure ResetCompanyBasedOnCountry(Integer);
+external inner function string 10 CurrentWebLang();
+external inner function string 255 GetBrowserOperatingSystem();
+external inner procedure CUVc_PasteCountryCode(var record CUVc,string);
 
 global
 function string 255 GetLinkToLoanApp()
@@ -81,11 +84,16 @@ begin
   return;
 end;
 
-procedure GetLoanDefaults(var vector string vSess)
+procedure GetLoanDefaults(record CreditalWebSetBlock CWSb,var vector string vSess,var Boolean deftypef)
 begin
-  
+
   if (nonblank(WebGetArg("type"))) then begin
     vSess["LoanType"] = WebGetArg("type");
+  end else begin
+    if (CWSb.DefaultType>=0) then begin
+      vSess["LoanType"] = CWSb.DefaultType;
+      deftypef = true;
+    end;
   end;
   if (nonblank(WebGetArg("amount"))) then begin
     vSess["LoanAmount"] = WebGetArg("amount");
@@ -215,9 +223,9 @@ begin
   
   WebOutString("<div class='loan_head'><h2>" & ToolWebNGTranslateText2(70108) & "</h2></div>");
   WebOutString("<div class='row loan-payments'>")
-  WebOutString("<div class='col monthly-payment'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70109) & "</div></div>");
-  WebOutString("<div class='col deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
-  WebOutString("<div class='col percentage'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70111) & "</div></div>");
+  WebOutString("<div class='col-12 col-md-4 monthly-payment'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70109) & "</div></div>");
+  WebOutString("<div class='col-12 col-md-4 deposit'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70110) & "</div></div>");
+  WebOutString("<div class='col-12 col-md-4 percentage'><div class='value'></div><div class='text'>" & ToolWebNGTranslateText2(70111) & "</div></div>");
 
   WebOutString("</div>");
 
@@ -338,7 +346,7 @@ begin
   return;
 end;
 
-procedure ShowAllLoanTypeScript(Integer type,val sum,Integer months)
+procedure ShowAllLoanTypeScript(Integer type,val sum,Integer months,Boolean deftypef)
 begin
   record WebLoanCalcVc WLCr;
   row WebLoanCalcVc WLCrw;
@@ -347,6 +355,7 @@ begin
 
   WebOutString("<script>");
   WebOutString("var deftype = " & type & ";");
+  WebOutString("var deftypef = " & deftypef & ";");
   WebOutString("var defamount = " & ValToString(sum,M4Val,"",".",1) & ";");
   WebOutString("var defterm = " & months & ";");
   WebOutString("var loantypes = {};");
@@ -369,6 +378,8 @@ begin
     WebOutString("t['term-max'] = " & WLCr.TermMax & ";");
     WebOutString("t['term-step'] = " & WLCr.TermStep & ";");
     WebOutString("t['term-add'] = '" & add & "';");
+    WebOutString("t['prcfrom'] = '" & WLCr.PrcFrom & "';");
+    WebOutString("t['prcto'] = '" & WLCr.PrcTo & "';");
     WebOutString("t['rates'] = [];");
     
     for (i=0;i<rwcnt;i=i+1) begin
@@ -451,9 +462,12 @@ procedure ShowLoanAppStepOne()
 begin
   vector string 255 vSess;
   record B2BLoanApplicationVc LAr;
+  record CreditalWebSetBlock CWSb;
+  Boolean deftypef;
   
+  BlockLoad(CWSb);
   LoadLoanSession(vSess);
-  GetLoanDefaults(vSess)
+  GetLoanDefaults(CWSb,vSess,deftypef)
   
   WebOutString("<div class='loan_app_wrap'>");
   ShowLoanSteps(1,-1);
@@ -482,7 +496,7 @@ begin
 
   DisplayLoanFooter;
 
-  ShowAllLoanTypeScript(LAr.Surety1Type,LAr.Sum,LAr.Months);
+  ShowAllLoanTypeScript(LAr.Surety1Type,LAr.Sum,LAr.Months,deftypef);
   WebOutString("</div>");//loan_form
   WebOutString("</div>");
   WebOutString("</div>");
@@ -927,11 +941,13 @@ LShowLoanApp:;
 end;
 
 global
-updating function Boolean StoreLoanCustomer(string regnr,string email,string name,string addr0,string addr1,string addr2,string addr3,string phone,string mobile,string fax,string homepage,string compemail,string vatnr,var record CUVc CUr)
+updating function Boolean StoreLoanCustomer(string regnr,string email,string name,string addr0,string addr1,string addr2,string addr3,string phone,string mobile,string fax,string homepage,string compemail,string vatnr,string custclass,var record CUVc CUr)
 begin
   Boolean res;
   string 255 tstr;
+  record CYBlock CYb;
   
+  BlockLoad(CYb);  
   RecordNew(CUr);
   if (GetNextCustNr(tstr)) then begin end;
   CUr.Code = tstr;
@@ -948,6 +964,9 @@ begin
   CUr.VATNr = vatnr;
   CUr.CUType = 1;
   CUr.VEType = 1;
+  CUr.Classification = custclass;
+  CUr.CountryCode = CYb.CountryCode;
+  CUVc_PasteCountryCode(CUr,""); 
   if (RecordInsert(CUr,true)) then begin
     res = true;
     ReadFirstMain(CUr,1,true);
@@ -958,7 +977,7 @@ begin
 end;
 
 global
-updating function Boolean StoreLoanContact(string email,string phone,var record CUVc CUr)
+updating function Boolean StoreLoanContact(string email,string phone,string name,var record CUVc CUr)
 begin
   Boolean res;
   string 255 tstr;
@@ -977,7 +996,7 @@ begin
   CUr.CustCat = "";
   CUr.CustType = 1;
   CUr.AllowLogin = 0;
-  CUr.CountryCode = CYb.CountryCode;//"LT";//hardcoded for now   
+  CUr.CountryCode = CYb.CountryCode;   
   if (RecordInsert(CUr,true)) then begin
     res = true;
 /*
@@ -1000,6 +1019,7 @@ begin
   return;
 end;
 
+global
 function Boolean CompanyLinkedToContact(record CUVc CUr,record CUVc ContactCUr)
 begin
   record ContactRelVc ContactRelr;
@@ -1018,7 +1038,7 @@ end;
 global
 procedure CheckLoanCustomer(string regnr,string email,string contactphone,Boolean ignoreloginf,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
 begin
-  string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail;
+  string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail,custclass;
   Boolean res;
   Boolean compf,contactf,loginf,res2;
   record CYBlock CYb;
@@ -1035,7 +1055,7 @@ begin
       end;
     end;
   end else begin
-    if (qupdating.StoreLoanContact(email,contactphone,ContactCUr)) then begin
+    if (qupdating.StoreLoanContact(email,contactphone,"",ContactCUr)) then begin
       res = true;
     end;
   end;
@@ -1063,9 +1083,9 @@ begin
     //  name = regnr;
     //end else begin
       BlockLoad(CYb);
-      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CYb.CountryCode);
+      GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,true,CYb.CountryCode);
     //end;
-    if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,CUr)) then begin
+    if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
       res = true;
    end;
   end;
@@ -1207,7 +1227,7 @@ begin
 end;
 
 global
-updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause,string comment)
+updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause,string comment,string interfacelang,string browseros)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -1237,6 +1257,8 @@ logtext(0,"status " & status);
   LAr.Sum = amount;
   LAr.Months = term;
   LAr.Comment = comment;
+  LAr.InterfaceLanguage = interfacelang;
+  LAr.BrowserOS = browseros;
   
   LAr.Type = GetAgreementType(LAr,WLCr.Type,WLCr.CredManType);
   CMTr.Code = LAr.Type;
@@ -1310,6 +1332,7 @@ begin
   vector string 255 vSess;
   Integer status;
   Integer oldcomp;
+  string 255 browseros;
 
   type = StringToLongInt(WebGetArg("type"));
   amount = StringToLongInt(WebGetArg("amount"));
@@ -1376,7 +1399,8 @@ begin
       link = link & "2";
     end else begin
 */
-      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause,comment)) then begin
+      browseros = GetBrowserOperatingSystem;
+      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause,comment,CurrentWebLang,browseros)) then begin
         StoreSessionLoan(LAr.SerNr,status);
         link = GetLinkToLoanApp;
         link = link & "2";
@@ -1642,7 +1666,7 @@ begin
   record RLinkVc RLr;
   record RcVc RepSpec;
   string 255 fn;
-  record CreditalFormBlock CFb;
+  record ExternalFormBlock EFb;
   
   RecordNew(ADr);
   ADr.SerNr = NextSerNr("AgreementDocVc",CurrentDate,-1,false,"");
@@ -1655,9 +1679,9 @@ begin
 
   if (RecordInsert(ADr,true)) then begin
     fn = "Agreement.pdf";
-    BlockLoad(CFb);
+    BlockLoad(EFb);
     RepSpec.f10 = custcode;
-    if (CFb.ExtLoanAppForm==1) then begin
+    if (EFb.ExtLoanAppForm==1) then begin
       PrintEBSDocument("LoanAppForm",fn,RepSpec,LAr.SerNr,"");
     end else begin
       PrintMultiDocDocument2("LoanAppForm",fn,LAr.SerNr,0,false,"",RepSpec);
@@ -1714,7 +1738,8 @@ begin
   return;
 end;
 
-function Boolean MaskMatches(string pattern,string tstr)
+global
+function Boolean NovitiMaskMatches(string pattern,string tstr)
 begin
   string 255 c,c2;
   Integer i;
@@ -1732,7 +1757,7 @@ begin
     end;
   end;
 
-  MaskMatches = res;
+  NovitiMaskMatches = res;
   return;
 end;
 
@@ -1746,7 +1771,7 @@ begin
   rwcnt = MatRowCnt(BCb);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(BCb,i,BCbrw);
-    if (MaskMatches(BCbrw.Pattern,bankacc)) then begin
+    if (NovitiMaskMatches(BCbrw.Pattern,bankacc)) then begin
       bankcode = BCbrw.BankCode;
       i = rwcnt;
     end;

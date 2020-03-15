@@ -27,6 +27,7 @@ external inner procedure OPPastePayMode(var record OPVc);
 external inner function Boolean PasteInvIn2OPr(var record OPVc,Integer,Date,Integer,val,var string,Boolean,var Boolean);
 external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var val,Boolean,var Boolean);
 external inner procedure IPPastePayMode(var record IPVc);
+external inner procedure OPVc_PasteRecVal(var record OPVc,Integer);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -479,7 +480,7 @@ begin
   row AgreementDocVc ADrw;
   area filearea;
   record RcVc RepSpec;
-  record CreditalFormBlock CFb;
+  record ExternalFormBlock EFb;
   Boolean flags1,flags2,flags3;
   
   RecordNew(ADr);
@@ -501,12 +502,16 @@ begin
   end;
   if (RecordInsert(ADr,true)) then begin
     scnt = GetSuretyCnt(CredManr);
-    BlockLoad(CFb);
+    BlockLoad(EFb);
     switch (ADr.Type) begin
       case 1://agreement
         fn = "Agreement.pdf";
         langcode = GetDocumentLangCode(CredManr,1);
-        if (CFb.ExtCredManForm==1) then begin
+        if (EFb.ExtCredManForm==1) then begin
+          RepSpec.long1 = CredManr.InstalmentType;
+          if (CredManr.MaxMonthlyPayment>0) then begin
+            RepSpec.flags[10] = 1;
+          end;
           PrintEBSDocument("CredManForm",fn,RepSpec,CredManr.SerNr,langcode);
         end else begin
           PrintMultiDocDocument("CredManLongForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
@@ -514,7 +519,11 @@ begin
       case 2://schedule
         fn = "Schedule.pdf";
         langcode = GetDocumentLangCode(CredManr,2);
-        if (CFb.ExtScheduleForm==1) then begin
+        if (EFb.ExtScheduleForm==1) then begin
+          RepSpec.long1 = CredManr.InstalmentType;
+          if (CredManr.MaxMonthlyPayment>0) then begin
+            RepSpec.flags[10] = 1;
+          end;
           PrintEBSDocument("CredManScheduleForm",fn,RepSpec,CredManr.SerNr,langcode);
         end else begin
           PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
@@ -522,7 +531,11 @@ begin
       case 3://surety
         fn = "Surety.pdf";
         langcode = GetDocumentLangCode(CredManr,3);
-        if (CFb.ExtSuretyAgreementForm==1) then begin
+        if (EFb.ExtSuretyAgreementForm==1) then begin
+          RepSpec.long1 = CredManr.InstalmentType;
+          if (CredManr.MaxMonthlyPayment>0) then begin
+            RepSpec.flags[10] = 1;
+          end;
           PrintEBSDocument("SuretyAgreementForm",fn,RepSpec,CredManr.SerNr,langcode);
         end else begin
           PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
@@ -530,7 +543,11 @@ begin
       case 6://vekselis
         fn = "Vekselis.pdf";
         langcode = GetDocumentLangCode(CredManr,4);
-        if (CFb.ExtVekselisForm==1) then begin
+        if (EFb.ExtVekselisForm==1) then begin
+          RepSpec.long1 = CredManr.InstalmentType;
+          if (CredManr.MaxMonthlyPayment>0) then begin
+            RepSpec.flags[10] = 1;
+          end;
           PrintEBSDocument("VekselisForm",fn,RepSpec,CredManr.SerNr,langcode);
         end else begin
           PrintMultiDocDocument("VekselisForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
@@ -739,7 +756,7 @@ begin
   return;
 end;
 
-updating procedure CreatePaymentOrder(record CredManVc CredManr,record VIVc VIr)
+updating procedure CreatePaymentOrder(record CredManVc CredManr,record VIVc VIr,val amount)
 begin
   record OPVc OPr,oldOPr;
   row OPVc OPrw;
@@ -760,6 +777,11 @@ begin
   OPrw.VISerNr = VIr.SerNr;
   MatRowPut(OPr,0,OPrw);
   PasteInvIn2OPr(OPr,0,OPr.TransDate,1,chk,warning,false,installmentf);
+  MatRowGet(OPr,0,OPrw);
+  OPrw.BankVal = amount;
+  OPrw.RecVal = amount;
+  MatRowPut(OPr,0,OPrw);
+  OPVc_PasteRecVal(OPr,0);
 
   if (RecordStore(OPr,true)) then begin
     RecordCopy(oldOPr,OPr);
@@ -782,7 +804,7 @@ begin
     //CredManCreditAllInvoices(CredManr);
     CreatePaymentFakeReceipt(CredManr,IVr);
     CreateCredmanPurchaseInvoice(CredManr,IVr.Sum4,VIr);
-    CreatePaymentOrder(CredManr,VIr);
+    CreatePaymentOrder(CredManr,VIr,IVr.Sum4);
     if (VIr.SerNr>0) then begin
       BlockLoad(OCb);
       CredManr.VINr = VIr.SerNr;

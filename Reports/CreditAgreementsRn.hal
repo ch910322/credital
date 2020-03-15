@@ -73,8 +73,7 @@ begin
   end;
 	
 	StartFormat(15);
-		OutString(0,0,"Įmonės kd.",false);
-//		OutString(0,0,"Nr",false);
+		OutString(0,0,"Nr",false);
 		if(RepSpec.Media==mtExcel)then begin
 			OutString(35,0,"Sustabdytos",false);
 			OutString(70,0,"Nutrauktos",false);
@@ -82,7 +81,8 @@ begin
 			OutString(70,0,"Be OK",false);
 			OutString(70,0,"Baigtos",false);
 		end;
-		OutString(35,0,"Klientas",false);
+		OutString(35,0,"Įmonės kd.",false);
+//		OutString(35,0,"Klientas",false);
 		OutString(70,0,"Pavadinimas",false);
 		OutString(140,0,"Pradžios data",false);
 		OutString(175,0,"Pabaigos data",false);
@@ -119,14 +119,14 @@ begin
 		  CUr.Code = CredManr.CustCode;
 		  ReadFirstMain(CUr,1,true);
 			StartFormat(15);
-      OutStringID(0,"DblCredManVc",CUr.RegNr1,false,CredManr.SerNr);
-//      OutString(0,"DblCredManVc",CredManr.SerNr,false);
+      OutString(0,"DblCredManVc",CredManr.SerNr,false);
       if(RepSpec.Media==mtExcel)then begin
         OutString(70,0,Checkbocout(CredManr.Approved==0),false);
         OutString(70,0,Checkbocout(CredManr.OKFlag==0),false);
         OutString(70,0,Checkbocout(curbal==0),false);
       end;
-      OutString(35,"DblCUVc",CredManr.CustCode,false);
+      OutStringID(35,"DblCUVc",CUr.RegNr1,false,CUr.Code);
+//      OutString(35,"DblCUVc",CredManr.CustCode,false);
       OutString(70,0,CredManr.Addr0,false);
       OutString(140,0,CredManr.startDate,false);
       OutString(175,0,CredManr.endDate,false);

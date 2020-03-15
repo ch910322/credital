@@ -66,7 +66,10 @@ external procedure WebNGFastLinkApp(record WebNGStructVc,string);
 external outer procedure OuterSetPageMetaData(record WebNGStructVc,string);
 external outer function Boolean CheckIfLandingPage(string);
 external outer procedure ShowLandingPage(string,string);
-
+external outer function Boolean FindNodeTranslation(string,Longint,var record WebNGStructVc);
+external outer function Integer SetCompanyBasedOnCountry();
+external outer procedure ResetCompanyBasedOnCountry(Integer);
+external outer procedure SetHiddenElements();
 //CUST-END
 
 procedure SetCountryAndLanguage(var string path)
@@ -445,6 +448,13 @@ begin
   array longint visitednodes;
   transaction string 60 gCountryCode;
   transaction string 20 gLangcode;
+//CUST-BEGIN
+  Boolean structf;
+  Longint struct_mother;
+  transaction string 255 gHiddenElements;
+
+  SetHiddenElements;
+//CUST-END
   
   gCountryCode = "";
   gLangcode = "";
@@ -502,10 +512,18 @@ begin
       ShowLandingPage(node,mpath);
       goto LHandlePathOut;
     end;
-//CUST-END
+
+    structf = false;
+    struct_mother = WSr.Mother;
 
     lasttype = -1;
     if (ReadFirstKey("Mother",WSr,2,true)) then begin
+      structf = true;
+    end else begin
+      structf = FindNodeTranslation(node,struct_mother,WSr);
+    end;
+    if (structf) then begin
+//CUST-END
       if (WSr.Closed==1) then begin
         goto LHandlePath;
       end;

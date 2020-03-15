@@ -1,0 +1,407 @@
+//<halrule>server-only</halrule>
+external inner procedure GetLangNr(string,var record LangNrVc);
+
+
+global
+procedure Ext_PrintValue(var vector string vVals,string fieldname,val vp,Integer typ,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec,Boolean negf)
+begin
+  string 255 tstr;
+  val v;
+  
+  v = vp;
+  if (v!=0) then begin
+    if (negf) then begin v = -v; end;
+    tstr = ValToString(v,typ,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals[fieldname] = tstr;
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintDocumentSigner(var vector string vVals)
+begin
+  record CMApplicationSetBlock ASb;
+  record UserVc Userr;
+  
+  BlockLoad(ASb);
+  Userr.Code = ASb.DocumentSigner;
+  if (ReadFIrstMain(Userr,1,true)) then begin
+    vVals["F_DOCUMENTSIGNERNAME"] = Userr.Name;
+    vVals["F_DOCUMENTSIGNERPOSITION"] = ASb.DocumentSignerPosition;
+    vVals["F_DOCUMENTSIGNERCODE"] = Userr.Code;
+  end;
+
+  return;
+end;
+
+global
+procedure Ext_PrintCurrencyCode(var vector string vVals,string formfield,string acurrency)
+begin
+  string 255 currency;
+  
+  currency = acurrency;  
+  if (blank(currency)) then begin
+    record BaseCurBlock BCb;
+    
+    BlockLoad(BCb);
+    currency = BCb.BaseCur1;
+  end;
+  vVals[formfield] = currency;
+  return;
+end;
+
+global
+procedure Ext_PrintCountryCode(var vector string vVals,string formfield,string CountryCode)
+begin
+  record CountryVc Countryr;
+  
+  Countryr.Code = CountryCode;
+  ReadFirstMain(Countryr,1,true);
+  if (nonblank(Countryr.ISOCode)) then begin
+    vVals[formfield] = Countryr.ISOCode;
+  end else begin
+    vVals[formfield] = CountryCode;
+  end;
+  return;
+end;
+
+procedure OutAddressField(string field,string data,boolean printblank,string suffixvar,var string saveline)
+begin
+  string 255 line;
+  
+  if (data=="" and printblank==false) then begin
+    goto out;
+  end;
+  
+  saveline = saveline & data & suffixvar;
+  
+out:;
+end;
+
+global
+procedure Ext_OutAddress(var vector string vVals,string field,string a0,string a1,string a2,string a3,string a4,string a5)
+begin
+  record FormBlock Formr;
+  string 255 saveline;
+  
+  BlockLoad(Formr);
+  
+  if (Formr.PrintOrgName!=0) then begin
+    OutAddressField(field,a0,Formr.PrintBlankLines,Formr.Addr0TrailingSep,saveline);
+  end;
+  OutAddressField(field,a1,Formr.PrintBlankLines,Formr.Addr1TrailingSep,saveline);
+  OutAddressField(field,a2,Formr.PrintBlankLines,Formr.Addr2TrailingSep,saveline);
+  OutAddressField(field,a3,Formr.PrintBlankLines,Formr.Addr3TrailingSep,saveline);
+  OutAddressField(field,a4,Formr.PrintBlankLines,Formr.Addr4TrailingSep,saveline);
+  OutAddressField(field,a5,Formr.PrintBlankLines,"",saveline);
+  
+  vVals[field] = saveline;
+    
+  return;
+end;
+
+global
+procedure Ext_CommonDocumentFields(var vector string vVals)
+begin
+  record CYBlock CompYear;
+  record BankVc Bankr;
+  string 255 tstr,argstr;
+  Boolean testf;
+
+  BlockLoad(CompYear);
+  vVals["F_EGENEMAIL"] = CompYear.emailAddr;
+  vVals["F_EGENWWWADDRESS"] = CompYear.wwwAddr;
+  vVals["F_EGETNAMN"] = CompYear.CompName;
+  vVals["F_BUSINESSNAME"] = CompYear.BusinessName;
+  vVals["F_EGENTEL"] = CompYear.Phone;
+  vVals["F_EGENFAX"] = CompYear.Fax;
+  vVals["F_EGENBG"] = CompYear.Bank1;
+  vVals["F_EGENPG"] = CompYear.Bank2;
+  vVals["F_EGENBANKKOD"] = CompYear.BankCode;
+  vVals["F_EGETORGNR"] = CompYear.OrgNr;
+  vVals["F_EGETMOMSNR"] = CompYear.VATNr;
+  vVals["F_EGENGLN"] = CompYear.GLN;
+  Ext_PrintCountryCode(vVals,"F_EGENCOUNTRYCODE",CompYear.CountryCode);
+  Ext_OutAddress(vVals,"F_EGENADRESS",CompYear.CompName,CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4);
+  Ext_OutAddress(vVals,"F_EGENADRESS2",CompYear.Addr0,CompYear.Addr1,CompYear.Addr2,CompYear.Addr3,CompYear.Addr4,"");
+  vVals["F_PRODUCTNAME"] = USetStr(1802);
+  vVals["F_DATUM"] = CurrentDate;
+  vVals["F_TID"] = CurrentTime;
+  vVals["F_HOMECOMMUN"] = CompYear.HomeCommunity;
+  vVals["F_COMMREGNO"] = CompYear.OrgNr2;
+  vVals["F_MANAGER"] = CompYear.Manager;
+  vVals["F_CHIEFACCOUNTAT"] = CompYear.ChiefAccountant;    
+  vVals["F_OWNLINEOFBUSINESS"] = CompYear.LineOfBusiness;    
+  vVals["F_OWNSHARECAPITAL"] = CompYear.ShareCapital;    
+  vVals["F_OWNANACODE"] = CompYear.ANACode; 
+  vVals["F_OWNSORTCODE"] = CompYear.SortCode; 
+  vVals["F_SHORTUNDERLINE"] = "_______________";
+  Bankr.Code = CompYear.BankName;
+  if (ReadFirstMain(Bankr,1,true)) then begin
+    vVals["F_OWNBANKCODE"] = CompYear.BankName;
+    vVals["F_OWNBANKCLEARING"] = Bankr.Nr1;
+    vVals["F_OWNBANKACC"] = Bankr.Nr2;
+    vVals["F_OWNBANKNAME"] = Bankr.Name;
+    vVals["F_OWNBANKSWIFT"] = Bankr.SWIFT;
+    vVals["F_OWNBANKSORTING"] = Bankr.Sorting;
+    vVals["F_OWNBANKCORRPACC"] = Bankr.CorrspAcc;
+    vVals["F_OWNBANKADDRESS0"] = Bankr.Address0;
+    vVals["F_OWNBANKADDRESS1"] = Bankr.Address1;
+    vVals["F_OWNBANKADDRESS2"] = Bankr.Address2;
+    vVals["F_OWNBANKADDRESS3"] = Bankr.Address3;
+    vVals["F_OWNBANKADDRESS4"] = Bankr.Address4;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address0;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address1;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address2;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address3;
+    vVals["F_OWNBANKADDRESS"] = Bankr.Address4;
+  end;
+
+  return;
+end;
+
+global
+procedure Ext_PrintSignature(var vector string vVals,string usercode)
+begin
+  record UserVc Userr;
+  record CUVc ContactCUr;
+  
+  Userr.Code = usercode;
+  if (ReadFirstMain(Userr,1,true)) then begin
+    vVals["F_SIGNATURE"] = usercode;
+    ContactCUr.Code = Userr.CustCode;
+    if (ReadFirstMain(ContactCUr,1,true)) then begin
+      vVals["F_SIGNNAME"] = ContactCUr.Name;
+      vVals["F_SIGNPHONE"] = ContactCUr.Phone;
+      vVals["F_SIGNEMAIL"] = ContactCUr.eMail;
+      vVals["F_SIGNFAX"] = ContactCUr.Fax;
+      vVals["F_SIGNMOBILE"] = ContactCUr.Mobile;
+    end;
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintPremiseData(var vector string vVals)
+begin
+  record CYABlock CYAb;
+  
+  BlockLoad(CYAb);
+  vVals["F_PREMISECODE"] = CYAb.MainPremiseCode;
+  vVals["F_PREMISENAME"] = CYAb.MainPremiseName;
+  Ext_OutAddress(vVals,"F_PREMISEADDRESS",CYAb.MainPremiseName,CYAb.MainPremiseAddr0,CYAb.MainPremiseAddr1,CYAb.MainPremiseAddr2,CYAb.MainPremiseAddr3,CYAb.MainPremiseAddr4);
+  vVals["F_PREMISEADDRESS1"] = CYAb.MainPremiseAddr0;
+  vVals["F_PREMISEADDRESS2"] = CYAb.MainPremiseAddr1;
+  vVals["F_PREMISEADDRESS3"] = CYAb.MainPremiseAddr2;
+  vVals["F_PREMISEADDRESS4"] = CYAb.MainPremiseAddr3;
+  vVals["F_PREMISEADDRESS5"] = CYAb.MainPremiseAddr4;
+  vVals["F_PREMISEVATNR"] = CYAb.MainPremiseVATNr;
+  vVals["F_PREMISEREGNR"] = CYAb.MainPremiseOrgNr;
+  vVals["F_PREMISECADASTRALNR"] = CYAb.MainPremiseCadastralNr;
+  vVals["F_PREMISECADASTRALBLDNR"] = CYAb.MainPremiseCadastralBldNr;
+  vVals["F_PREMISECADASTRALBLDSCTNR"] = CYAb.MainPremiseCadastralBldSctNr;
+  return;
+end;
+
+global
+procedure Ext_PrintLoyaltyCard(var vector string vVals,record LangNrVc LangNrr,string card,string clevel,val points,val pointsspent,LongInt docnr,string doctype)
+begin 
+  record SysFormatBlock SysFormatRec;
+  record PointsHistVc PointsHistr;
+  record LoyaltyCardVc LoyaltyCardr;
+  val lbalance;
+  
+  BlockLoad(SysFormatRec);
+  vVals["F_LOYALTYCARD"] = card; 
+  vVals["F_LMCARDLEVEL"] = clevel; 
+  Ext_PrintValue(vVals,"F_POINTS",points,M4Val,LangNrr,SysFormatRec,false);
+  LoyaltyCardr.SerNr = card;
+  if (ReadFirstMain(LoyaltyCardr,1,true)) then begin 
+    vVals["F_POINTSTO"] = LoyaltyCardr.PointsTo;
+  end;
+  PointsHistr.TransNr  = docnr;
+  PointsHistr.FileName = doctype;
+  if (ReadFirstKey("TransNr",PointsHistr,2,true)) then begin 
+    Ext_PrintValue(vVals,"F_POINTSSTARTBAL",PointsHistr.FWBalance,M4Val,LangNrr,SysFormatRec,false);
+    lbalance = PointsHistr.FWBalance + points - pointsspent;
+    Ext_PrintValue(vVals,"F_POINTSendBAL",lbalance,M4Val,LangNrr,SysFormatRec,false);
+    // we have already in DoInvForm and DoInvCashForm
+    //vVals["F_LOCATION"] = PointsHistr.Location; 
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintValueInclZeroWithSign(var vector string vVals,string currency,string fieldname,val vp,Integer typ,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec,Boolean negf)
+begin
+  string 255 tstr;
+  record CurncyCodeVc CurncyCoder;
+  val v;
+  
+  v = vp;
+  if (nonblank(v)) then begin
+    if (negf) then begin v = -v; end;
+    tstr = ValToString(v,typ,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    CurncyCoder.CurncyCode = currency;
+    if ReadFirstMain(CurncyCoder,1,true) then begin 
+      if nonblank(CurncyCoder.CurText) then begin 
+        tstr = CurncyCoder.CurText & tstr;
+      end;
+    end;
+    vVals[fieldname] = tstr;  
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintValueInclZero(var vector string vVals,string fieldname,val vp,Integer typ,record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negf)
+begin
+  string 255 tstr;
+  val v;
+  
+  v = vp;
+  if (nonblank(v)) then begin
+    if (negf) then begin v = -v; end;
+    tstr = ValToString(v,typ,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+    vVals[fieldname] = tstr;  
+  end;
+  return;
+end;
+
+global
+procedure Ext_CommonDocumentFields2(var vector string vVals,string bankcode)
+begin
+  record CYBlock CYb;
+  record BankVc Bankr;
+  
+  BlockLoad(CYb);
+  Bankr.Code = bankcode;
+  ReadFirstMain(Bankr,1,true);
+  if (nonblank(Bankr.Nr2)) then begin
+    vVals["F_OWNBANKACC2"] = Bankr.Nr2;
+  end else begin
+    vVals["F_OWNBANKACC2"] = CYb.Bank1;
+  end;
+  if (nonblank(Bankr.Name)) then begin
+    vVals["F_OWNBANKNAME2"] = Bankr.Name;
+  end else begin
+    vVals["F_OWNBANKNAME2"] = CYb.BankName;
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintUserDefinedCustomerFields(var vector string vVals,string us1,string us2,string us3,string us4,string us5,Date ud1,Date ud2,Date ud3,val uv1,val uv2,val uv3)
+begin
+  record SysFormatBlock SysFormatRec;
+  record LangNrVc LangNrr;
+
+  GetLangNr("",LangNrr);  
+  BlockLoad(SysFormatRec);
+  vVals["F_USERSTRCUSTOMER1"] = us1;
+  vVals["F_USERSTRCUSTOMER2"] = us2;
+  vVals["F_USERSTRCUSTOMER3"] = us3;
+  vVals["F_USERSTRCUSTOMER4"] = us4;
+  vVals["F_USERSTRCUSTOMER5"] = us5;
+  vVals["F_USERDATECUSTOMER1"] = ud1;
+  vVals["F_USERDATECUSTOMER2"] = ud2;
+  vVals["F_USERDATECUSTOMER3"] = ud3;
+  Ext_PrintValue(vVals,"F_USERVALCUSTOMER1",uv1,M4Val,LangNrr,SysFormatRec,false);
+  Ext_PrintValue(vVals,"F_USERVALCUSTOMER2",uv2,M4Val,LangNrr,SysFormatRec,false);
+  Ext_PrintValue(vVals,"F_USERVALCUSTOMER3",uv3,M4Val,LangNrr,SysFormatRec,false);
+  return;
+end;
+
+global
+procedure Ext_PrintSiteInformation(var vector string vVals,string sitecodr,string custcode)
+begin
+  record DelAddrVc DelAddrr;
+
+  DelAddrr.DelCode = sitecodr;
+  DelAddrr.CustCode = custcode;
+  if (ReadFirstMain(DelAddrr,2,true)==false) then begin
+    DelAddrr.DelCode = sitecodr;
+    DelAddrr.CustCode = "";
+    if (ReadFirstMain(DelAddrr,2,true)==false) then begin
+      RecordClear(DelAddrr);
+    end;
+  end;
+  vVals["F_SITE"] = DelAddrr.DelCode;
+  vVals["F_SITENAME"] = DelAddrr.Comment;
+  vVals["F_SITETEL"] = DelAddrr.Phone;
+  vVals["F_SITEFAX"] = DelAddrr.Fax;
+  vVals["F_SITEADDRESS"] = DelAddrr.DelAddr0;
+  vVals["F_SITEADDRESS"] = DelAddrr.DelAddr1;
+  vVals["F_SITEADDRESS"] = DelAddrr.DelAddr2;
+  vVals["F_SITEADDRESS"] = DelAddrr.DelAddr3;
+  vVals["F_SITEADDRESS"] = DelAddrr.DelAddr4;
+  vVals["F_SITECONTACT"] = DelAddrr.Contact;
+  return;
+end;
+
+global
+procedure Ext_PrintNote(var vector string vVals,record NotepadVc Noter)
+begin
+  Integer i,rwcnt;
+  string 255 tstr;
+  
+  rwcnt = LineTextCnt(Noter);
+  for (i=0;i<rwcnt;i=i+1) begin
+    tstr = LineTextGet(Noter,i);
+    vVals["F_NOTE"] = tstr;   
+  end;  
+  return;
+end;
+
+global
+procedure Ext_PrintBranchData(var vector string vVals,string BranchID)
+begin
+  record CUVc CUr;
+  
+  CUr.Code = BranchID;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    vVals["F_BRANCHADRESS"] = CUr.Name;
+    vVals["F_BRANCHADRESS"] = CUr.InvAddr0;
+    vVals["F_BRANCHADRESS"] = CUr.InvAddr1;
+    vVals["F_BRANCHADRESS"] = CUr.InvAddr2;
+    vVals["F_BRANCHADRESS"] = CUr.InvAddr3;
+    vVals["F_BRANCHADRESS"] = CUr.InvAddr4;
+
+    vVals["F_BRANCHCONTACT"] = CUr.Person;
+    vVals["F_BRANCHPHONE"] = CUr.Phone;
+    vVals["F_BRANCHEMAIL"] = CUr.eMail;
+    vVals["F_BRANCHFAX"] = CUr.Fax;
+    vVals["F_BRANCHWWW"] = CUr.wwwAddr;
+
+    vVals["F_BRANCHBANKACC"] = CUr.BankAccount;
+    vVals["F_BRANCHBANKACC2"] = CUr.Bank;
+    vVals["F_BRANCHACCOPERATOR"] = CUr.AccOperator;
+    vVals["F_BRANCHIBAN"] = CUr.IBANCode;
+
+    vVals["F_BRANCHREGNUMBER1"] = CUr.RegNr1;
+    vVals["F_BRANCHREGNUMBER2"] = CUr.RegNr2;
+  end;
+  return;
+end;
+
+global
+procedure Ext_PrintUserDefinedItemFields(var vector string vVals,string us1,string us2,string us3,string us4,string us5,Date ud1,Date ud2,Date ud3,val uv1,val uv2,val uv3)
+begin
+  record SysFormatBlock SysFormatRec;
+  record LangNrVc LangNrr;
+
+  GetLangNr("",LangNrr);  
+  BlockLoad(SysFormatRec);
+  vVals["F_USERSTRITEM1"] = us1;
+  vVals["F_USERSTRITEM2"] = us2;
+  vVals["F_USERSTRITEM3"] = us3;
+  vVals["F_USERSTRITEM4"] = us4;
+  vVals["F_USERSTRITEM5"] = us5;
+  vVals["F_USERDATEITEM1"] = ud1;
+  vVals["F_USERDATEITEM2"] = ud2;
+  vVals["F_USERDATEITEM3"] = ud3;
+  Ext_PrintValue(vVals,"F_USERVALITEM1",uv1,M4Val,LangNrr,SysFormatRec,false);
+  Ext_PrintValue(vVals,"F_USERVALITEM2",uv2,M4Val,LangNrr,SysFormatRec,false);
+  Ext_PrintValue(vVals,"F_USERVALITEM3",uv3,M4Val,LangNrr,SysFormatRec,false);
+  return;
+end;

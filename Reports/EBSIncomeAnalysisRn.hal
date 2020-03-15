@@ -114,6 +114,7 @@ begin
   OutString(0,0,USetStr(12002),false);
   OutString(80,0,USetStr(12003),false);
   sd = AddMonth(RepSpec.d1,-(RepSpec.flags[0]-1));
+  sd.Day = 1;
   basemonth = (GetYear(sd)*12) + GetMonth(sd);
   cs = 175;
   switch (RepSpec.flags[0]) begin

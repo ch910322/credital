@@ -1,0 +1,3829 @@
+//<halrule>server-only</halrule>
+external inner function string 50 TimeToString(time,string,boolean);
+external inner function string 255 SVNIVDigitalSeal(record IVVc,Integer);
+external inner function Date FindTaxAuthIDLimitDateBOL(record IVVc);
+external inner function string 255 MexEInvQRCode(string,val,string);
+external inner function string 255 MakeCroatianControlCode(date,time,string,string,string,val);
+external inner updating procedure SetPrintedFlag_IVVc2(LongInt,Boolean);
+external inner procedure PUCalcPerc(val,string,var val);
+external inner function Boolean GetPD(var record PDVc);
+external inner procedure GetWORMDocumentInfo(Integer,string,var string,var string,var string,var string);
+external inner function string 60 AddObjectToObjectList(string,string);
+external inner procedure GetLegalInvNrRow(string,var row LegalInvNrBlock);
+external inner function string 255 GetJwl_CustomerName(string);
+external inner function roundmode GetVATRoundMode(record RoundBlock);
+external inner function roundmode GetTotalRoundMode(record RoundBlock);
+external inner function roundmode SetRoundModeD(Integer);
+external inner procedure CreateEpsonPVNumber(LongInt,var string);
+external inner procedure RebPayHalf_IV(record IVVc,record RoundBlock,Integer,var string);
+external inner procedure RebPay_IV(record IVVc,record RoundBlock,Integer,Boolean,var val);
+external inner procedure GetDateMonthInWords(Date,var string);
+external inner function Boolean FindCustomerRelation(string,string,var record CUVc);
+external inner procedure RebPay2(record IVVc,record RoundBlock,Integer,Boolean,var string);
+external inner function string 255 CreateInvoiceNumber(LongInt,string);
+external inner function val MulRateToBase2(var string,val,val,val,val,val,val,roundmode);
+external inner function val MulRateToBase1(var string,val,val,val,val,val,val,roundmode);
+external inner procedure IVSetFax(record CUVc,record IVVc);
+external inner procedure SumNoDownPay(record IVVc,var val,var val,var val,var val,var val,var val);
+external inner procedure SubPrePayments(record IVVc,var val,var val);
+external inner procedure RemoveSepFromStr(string,var string);
+external inner procedure CreateKIDNoCheck(string,LongInt,var string);
+external inner procedure CreateKIDCheckNor(val,LongInt,var string);
+external inner procedure CreateKIDCode(string,LongInt,var string);
+external inner procedure InvoiceType(Integer,var string);
+external inner procedure GetFindCustBalance(string,LongInt,var val,var val,var val,var val,Integer,Integer,Integer,Integer,Integer,Integer,Boolean,var Boolean);
+external inner procedure GetMonthText(string,Date,var string);
+external inner procedure GetUserEmail(string,var string);
+external inner procedure GetCreditCardType(string,var string);
+//external procedure GetFieldArgument(record DocVc,Integer,var string);
+external inner procedure GetContactTitle(string,string,var string);
+external inner function Integer SetDateOrder(string);
+external inner procedure LongDateToStr(Date,Integer,var string);
+external inner procedure PrintValToTextBaseCur(val,Integer,string,Integer,var string);
+external inner procedure GetUserName(string,var string);
+external inner procedure GetFullCurncyRateText(Boolean,var string,val,val,val,val,val);
+external inner procedure GetObjectText(string,var string);
+external inner procedure Val2ToText(string,val,Integer,string,string,var string);
+external inner procedure CalcFraktField(LongInt,string,var string);
+external inner procedure BuildKSerno(LongInt,string,var string);
+external inner procedure ValToText(val,Integer,string,string,var string);
+external inner procedure GetShipDealText(string,string,var string);
+external inner procedure GetShipModeText(string,string,var string);
+external inner procedure GetPayDealText(string,string,var string);
+external inner procedure RussianPaymentNr(LongInt,var string);
+external inner procedure GetLangNr(string,var record LangNrVc);
+external inner procedure IntToText(string,Integer,var string);
+external inner function Integer CountNrofItemsIV(record IVVc);
+external inner procedure PrintDeliveriesNos(LongInt,LongInt,var string);
+external inner procedure ReservationDetailsToInv(record HotelBlock,record JobVc,var record IVVc);
+external inner function Boolean ReadFirstItem(string,var record INVc,Boolean,Boolean);
+external inner procedure RecalcIVSubtotal(var record IVVc);
+external inner function string 255 SAFTHashControl(string);
+external inner function string 255 CreateInternationalCreditorReference(string);
+external inner function string 50 CreateBrazilEInvoiceId(record IVVc);
+external inner function Boolean IsEnterprise();
+external inner procedure GetCountryName(string,string,var string);
+external inner function string 255 SerialNumbersString(string,LongInt,Integer);
+external inner function Integer VATType(string);
+external inner function roundmode DefaultRoundMode();
+external inner procedure GetVATText(string,var string);
+external inner procedure FindShpPackages(LongInt,LongInt,string,record LangNrVc,record SysFormatBlock,var string);
+external inner function string 255 GetVarietyComment(string,string);
+external inner procedure GetCustomsDeclarationNumber(string,LongInt,LongInt,string,string,Integer,var string);
+external inner procedure FindSalesExVat(record TaxMatrixVc,string,val,Integer,Integer,var val);
+external inner procedure GetCreditCardType(string,var string);
+external inner function string 255 CreateInvoiceNumber(LongInt,string);
+external inner procedure SelectUnitText(string,string,var string);
+external inner procedure MulVATIV(string,val,var val,var val,Integer,Integer);
+external inner procedure InvoiceCalcCommisionValue(record IVVc,val,val,var val);
+external inner procedure ItemBC39(string,var string);
+external inner procedure ItemBCEAN(string,var string);
+external inner procedure ItemBCEAN13(string,var string);
+external inner procedure IntToText(string,Integer,var string);
+external inner procedure CalcSum(val,val,val,val,var val,Integer);
+external inner procedure SetConversionFields(record INVc,val,var val,var val,var val);
+external inner procedure GetVATdouble(string,var val,var val,Integer);
+external inner function Boolean GetVAT2(string,var val,var Integer,Integer);
+external inner function Boolean GetVATincl(string,var val,var Integer);
+external inner procedure GetOriginCoutry(string,string,var string);
+external inner function Boolean GetItemNameStr(Integer,var string,string,string,string);
+external inner procedure GetItemGroupDescription(string,var string);
+external inner procedure Mul2VAT(string,val,var val,var val,Integer);
+external inner procedure FindSourcePU(LongInt,var record ItemHistVc);
+external inner function roundmode GetVATRoundModeRB();
+external inner function Date FindTaxAuthIDToDate(record IVVc);
+external inner function string 255 FindTaxAuthIDControlCode(string,record IVVc);
+external inner function string 255 FindTaxAuthID(string,record IVVc);
+external inner procedure StripSpace(var string,string);
+external inner procedure GetVATproc(string,Integer,var val);
+external inner procedure InvVat(Integer,Integer,Integer,Integer,string,val,var val,var val,var val,var val,var val);
+external inner procedure FinnishBankVal(var string,val);
+external inner procedure M4PadString(string,Integer,string,Boolean,var string);
+external inner procedure FinnishBankDate(var string,Date);
+external inner function string 60 AddStringToStringList(string,string);
+external inner function Integer VATCalcRule(string);
+external inner function Boolean UseTaxTemplatesforTaxCalc();
+external inner procedure GetVATRowFromBlock(string,record VATCodeBlock,var row VATCodeBlock);
+external inner function Integer ITType(string);
+external inner procedure CashDiscVAT(val,val,record RoundBlock,var val);
+external inner procedure AddVATBase(var record SMVc,string,val,val,Integer,Integer,Integer);
+external inner procedure SetupVATBase(var record SMVc,var Integer);
+external inner function Boolean GetPM(string,var string,var string);
+external inner procedure AddVATBaseToArrays(string,val,val,Integer,Integer,Integer,
+                             Array string,Array val,Array val,Array val,
+                             Array val,Array val,var Integer);
+
+/* Tools*/
+external procedure Ext_PrintValue(var vector string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_PrintDocumentSigner(var vector string);
+external procedure Ext_PrintCurrencyCode(var vector string,string,string);
+external procedure Ext_PrintCountryCode(var vector string,string,string);
+external procedure Ext_OutAddress(var vector string,string,string,string,string,string,string,string);
+external procedure Ext_CommonDocumentFields(var vector string);
+external procedure Ext_PrintSignature(var vector string,string);
+external procedure Ext_PrintPremiseData(var vector string);
+external procedure Ext_PrintValueInclZeroWithSign(var vector string,string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_PrintLoyaltyCard(var vector string,record LangNrVc,string,string,val,val,LongInt,string);
+external procedure Ext_PrintValueInclZero(var vector string,string,val,Integer,record LangNrVc,record SysFormatBlock,Boolean);
+external procedure Ext_CommonDocumentFields2(var vector string,string);
+external procedure Ext_PrintUserDefinedCustomerFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
+external procedure Ext_PrintSiteInformation(var vector string,string,string);
+external procedure Ext_PrintNote(var vector string,record NotepadVc);
+external procedure Ext_PrintBranchData(var vector string,string);
+external procedure Ext_PrintUserDefinedItemFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
+
+
+
+procedure PrintTaxMatrix_IVVc(var vector string vVals,record IVVc IVr,record DocVc Docr,record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negamountf)
+begin
+  record TaxMatrixVc TMr;
+  row TaxMatrixVc TMrw;
+  Integer i,rwcnt;
+  row VATCodeBlock VATCbrw;
+  record VATCodeBlock VATCodeb;
+  val t;
+  Integer valtyp;
+  string 255 tstr;
+
+  BlockLoad(VATCodeb);
+  UnpackFieldMatrix(IVr,"TaxMatrix",TMr);
+  rwcnt = MatRowCnt(TMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(TMr,i,TMrw);
+    GetVATRowFromBlock(TMrw.VATCode,VATCodeb,VATCbrw);
+    vVals["F_MOMSKODTOTAL"] = TMrw.VATCode;    
+    vVals["F_VATCOMMENT"] = VATCbrw.Comment;
+
+//    GetVATproc(TMrw.VATCode,0,t);
+    Ext_PrintValueInclZero(vVals,"F_VATEXCLPRC",TMrw.VATRate,M4Val,LangNrr,SFb,negamountf);    
+
+    valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATBASE,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_VATBASE",TMrw.BaseSum,valtyp,LangNrr,SFb,negamountf);
+    valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATVAL,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_VATVAL",TMrw.VATSum,valtyp,LangNrr,SFb,negamountf);
+
+  end;
+  return;
+end;
+
+procedure CalculatePayModesAmounts(record IVVc IVr,var vector val vpaymodes,var vector string ivpaymode)
+begin
+  Integer i,rwcnt;
+  row IVVc IVrw;
+
+  rwcnt = MatRowCnt(IVr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IVr,i,IVrw);
+    switch (IVrw.stp) begin
+      case kInvoiceRowTypeCashPayment:
+        vpaymodes[kInvoiceRowTypeCashPayment] = vpaymodes[kInvoiceRowTypeCashPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeCashPayment] = IVrw.PayMode;
+      case kInvoiceRowTypeCreditCardPayment:
+        vpaymodes[kInvoiceRowTypeCreditCardPayment] = vpaymodes[kInvoiceRowTypeCreditCardPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeCreditCardPayment] = IVrw.PayMode;
+      case kInvoiceRowTypeSwishPayment:
+        vpaymodes[kInvoiceRowTypeSwishPayment] = vpaymodes[kInvoiceRowTypeSwishPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeSwishPayment] = IVrw.PayMode;
+      case kInvoiceRowTypeQRPayment:
+        vpaymodes[kInvoiceRowTypeQRPayment] = vpaymodes[kInvoiceRowTypeQRPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeQRPayment] = IVrw.PayMode;
+      case kInvoiceRowTypeChequePayment:
+        vpaymodes[kInvoiceRowTypeChequePayment] = vpaymodes[kInvoiceRowTypeChequePayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeChequePayment] = IVrw.PayMode;
+      case kInvoiceRowTypeGiftVoucherPayment:
+        vpaymodes[kInvoiceRowTypeGiftVoucherPayment] = vpaymodes[kInvoiceRowTypeGiftVoucherPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeGiftVoucherPayment] = IVrw.PayMode;
+      case kInvoiceRowTypeLoyaltyPointsPayment:
+        vpaymodes[kInvoiceRowTypeLoyaltyPointsPayment] = vpaymodes[kInvoiceRowTypeLoyaltyPointsPayment] + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+        ivpaymode[kInvoiceRowTypeLoyaltyPointsPayment] = IVrw.PayMode;
+    end;
+  end;
+  return;
+end;
+
+procedure PrintPayModes(var vector string vVals,vector val vpaymodes,vector string ivpaymode,record SysFormatBlock SysFormatRec,record LangNrVc LangNrr)
+begin
+  string 100 accstr,tstr;
+  
+  if (nonblank(vpaymodes[kInvoiceRowTypeCashPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeCashPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeCashPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeCreditCardPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeCreditCardPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeCreditCardPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeSwishPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeSwishPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeSwishPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeQRPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeQRPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeQRPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeChequePayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeChequePayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeChequePayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeGiftVoucherPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeGiftVoucherPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeGiftVoucherPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  if (nonblank(vpaymodes[kInvoiceRowTypeLoyaltyPointsPayment])) then begin
+    GetPM(ivpaymode[kInvoiceRowTypeLoyaltyPointsPayment],accstr,tstr);  
+    vVals["F_PAYMODESUMTEXT"] = tstr;
+    tstr = ValToString(vpaymodes[kInvoiceRowTypeLoyaltyPointsPayment],M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    vVals["F_PAYMODESUMAMOUNT"] = tstr;
+  end;
+  return;
+end;
+
+procedure CalcIVTotals(var vector string vVals,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec)
+BEGIN
+  row IVVc IVrw;
+  Integer i,rwcnt,vatcnt;
+  record SMVc VATr;
+  row SMVc VATrw;
+  record SMVc VATWDr;
+  row SMVc VATWDrw;
+  record SMVc VATSkipCalcr;
+  row SMVc VATSCrw;
+  val vatv,t1,t,v;
+  val vatval,vatbase,vattot,cdiscvat;
+  val totreb,totdisc;
+  val totcost,totsubtotwdisc,totvatval,totvatbase,totrowtot,totskipcalcvatval;
+  string 255 tstr;
+  string 255 str;
+  Integer valtyp;
+  val totgoods,tottrans,totpack,totdiscnopack;
+  Integer rn;
+  val vatexclprc,vatinclprc;
+  val totgcr,totcc,totcash;
+  record AccBlock ARAccRec;
+  Boolean negamountf,UseTaxTemplatesforTaxCalcf;
+  record CUVc CUr;
+  vector val vpaymodes;
+  vector string 10 ivpaymode;
+
+  BlockLoad(ARAccRec);
+  UseTaxTemplatesforTaxCalcf = UseTaxTemplatesforTaxCalc;
+  CUr.Code = IVr.CustCode;
+  ReadFirstMain(CUr,1,true);
+  negamountf = (ARAccRec.PrintNegAmountsCredNote!=0 and (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales));
+  RecordClear(VATr);
+  RecordClear(VATWDr);
+  SetupVATBase(VATr,vatcnt);          
+  SetupVATBase(VATWDr,vatcnt);          
+  SetupVATBase(VATSkipCalcr,vatcnt);          
+  rwcnt = MatRowCnt(IVr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IVr,i,IVrw);
+    if (IVrw.ovst==0) and ((IVrw.stp==kInvoiceRowTypeNormal) or (IVrw.stp==kInvoiceRowTypeStructuredItemComponent) or (IVrw.stp==kInvoiceRowTypeInterest)) then begin      
+/*    
+    if ((IVrw.stp==kInvoiceRowTypeNormal) or (IVrw.stp==kInvoiceRowTypeInterest) or (IVrw.stp==kInvoiceRowTypeVoid)) then begin      
+      if (IVrw.stp==kInvoiceRowTypeVoid) then begin
+        IVrw.Quant = -IVrw.Quant;
+        IVrw.Sum = -IVrw.Sum;
+      end;
+*/      
+      switch (ITType(IVrw.ArtCode)) begin
+        case 0: 
+          totgoods = totgoods + IVrw.Sum;
+          totdiscnopack = totdiscnopack + (IVrw.Quant*IVrw.Price - IVrw.Sum);
+        case 1: 
+          tottrans = tottrans + IVrw.Sum;
+          totdiscnopack = totdiscnopack + (IVrw.Quant*IVrw.Price - IVrw.Sum);
+        case 2: totpack = totpack + IVrw.Sum;
+      end;
+      totsubtotwdisc = totsubtotwdisc + IVrw.Quant*IVrw.Price;
+      totcost = totcost + IVrw.Quant*IVrw.BasePrice;
+      totreb = totreb + (IVrw.Quant*IVrw.Price - IVrw.Sum);
+      if (VATCalcRule(IVrw.VATCode)!=kVATCalcRuleSkip) then begin
+        if (nonblank(IVrw.RvrsVATCode)) then begin
+          AddVATBase(VATr,IVrw.RvrsVATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);      
+          AddVATBase(VATWDr,IVrw.RvrsVATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+        end else begin
+          AddVATBase(VATr,IVrw.VATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);      
+          AddVATBase(VATWDr,IVrw.VATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+        end;
+      end else begin
+        if (nonblank(IVrw.RvrsVATCode)) then begin
+          AddVATBase(VATSkipCalcr,IVrw.RvrsVATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);      
+        end else begin
+          AddVATBase(VATSkipCalcr,IVrw.VATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);      
+        end;
+      end;
+      if (IVrw.vRebate!=0) then begin
+        if (IVrw.stp==kInvoiceRowTypeVoid) then begin
+          totdisc = totdisc - (IVrw.Quant*IVrw.Price - IVrw.Sum);        
+        end else begin
+          totdisc = totdisc + (IVrw.Quant*IVrw.Price - IVrw.Sum);        
+        end;
+      end;
+    end;      
+    switch (IVrw.stp) begin
+      case kInvoiceRowTypeDownpayment:
+        AddVATBase(VATr,IVrw.VATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+      case kInvoiceRowTypeGiftVoucherPayment:
+        totgcr = totgcr + IVrw.Sum;
+      case kInvoiceRowTypeCashPayment:
+        totcash = totcash + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+      case kInvoiceRowTypeLoyaltyPointsPayment:
+        totcash = totcash + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+      case kInvoiceRowTypeChequePayment:
+        totcash = totcash + MulRateToBase1(IVrw.CurncyCode,IVrw.Sum,IVrw.FrRate,IVrw.ToRateB1,IVrw.ToRateB2,IVrw.BaseRate1,IVrw.BaseRate2,DefaultCurRoundOff);
+      case kInvoiceRowTypeCreditCardPayment:
+        totcc = totcc + IVrw.Sum;
+      case kInvoiceRowTypeSwishPayment:
+        totcc = totcc + IVrw.Sum;
+      case kInvoiceRowTypeQRPayment:
+        totcc = totcc + IVrw.Sum;
+      case kInvoiceRowTypeCorrection:
+        totsubtotwdisc = totsubtotwdisc - IVrw.Quant*IVrw.Price;
+        totcost = totcost - IVrw.Quant*IVrw.BasePrice;
+        if (VATCalcRule(IVrw.VATCode)!=kVATCalcRuleSkip) then begin
+          AddVATBase(VATr,IVrw.VATCode,-IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+          AddVATBase(VATWDr,IVrw.VATCode,-IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+        end else begin
+          AddVATBase(VATSkipCalcr,IVrw.VATCode,IVrw.Sum,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);      
+        end;
+    end;
+  end;
+  AddVATBase(VATr,IVr.FrVATCode,IVr.FrPrice,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+  AddVATBase(VATWDr,IVr.FrVATCode,IVr.FrPrice,blankval,vatcnt,IVr.InclVAT,IVr.NoTAXonVAT);
+
+  for (i=0;i<vatcnt;i=i+1) begin
+    MatRowGet(VATr,i,VATrw);    
+    MatRowGet(VATWDr,i,VATWDrw);    
+    MatRowGet(VATSkipCalcr,i,VATSCrw);    
+    switch (RoundRec.VATCalcWay) begin
+      case 0:
+        MulVATIV(VATrw.VATCode,VATrw.DebVal,vatv,t1,IVr.InclVAT,IVr.NoTAXonVAT);
+      case 1:
+        vatv = VATrw.CredVal2;
+        t1 = VATrw.CurCredVal;
+    end;
+    if (vatv!=0) or (nonblank(VATrw.DebVal)) then begin
+    vatval = Round(vatv,GetVATRoundModeRB);
+    totvatval = totvatval + vatval;
+    totvatbase = totvatbase + VATrw.DebVal;
+    totrowtot = totrowtot + VATrw.DebVal;    
+    if (IVr.InclVAT>0) then begin
+      totvatbase = totvatbase - vatval;
+      vatbase = VATrw.DebVal - vatval;
+      vattot = VATrw.DebVal;
+    end else begin
+      totrowtot = totrowtot + vatval;
+      vatbase = VATrw.DebVal;
+      vattot = VATrw.DebVal + vatval;
+    end;
+    CashDiscVAT(vatval,IVr.pdvrebt,RoundRec,cdiscvat);
+    vVals["F_MOMSKODTOTAL"] = VATrw.VATCode;    
+    valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATBASE,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_VATBASE",vatbase,valtyp,LangNrr,SysFormatRec,negamountf);
+    valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATBASEWITHOUTDOWNPAY,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_VATBASEWITHOUTDOWNPAY",VATWDrw.DebVal,valtyp,LangNrr,SysFormatRec,negamountf);
+  end;    
+  Ext_PrintValueInclZero(vVals,"F_SUMMAMEDMOMS",VATrw.DebVal,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATVAL,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+//      Ext_PrintValue(vVals,"F_VATVAL",vatval,valtyp,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_VATVAL",vatval,valtyp,LangNrr,SysFormatRec,negamountf);
+  MulVATIV(VATrw.VATCode,VATWDrw.DebVal,vatv,t1,IVr.InclVAT,IVr.NoTAXonVAT);
+  valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATVALWITHOUTDOWNPAY,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_VATVALWITHOUTDOWNPAY",vatv,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//    GetFieldArgument(Docr,F_VATTOT,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_VATTOT",vattot,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//    GetFieldArgument(Docr,F_SECCOMMISSION,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_SECCOMMISSION",cdiscvat,valtyp,LangNrr,SysFormatRec,negamountf);
+  if (nonblank(vatval)) then begin
+    t = MulRateToBase1(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE1VATVAL,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE1VATVAL",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+    t = MulRateToBase2(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE2VATVAL,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE2VATVAL",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+  end;
+  if (nonblank(vatbase)) then begin
+    t = MulRateToBase1(IVr.CurncyCode,vatbase,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE1VATBASE,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE1VATBASE",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+    t = MulRateToBase2(IVr.CurncyCode,vatbase,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE2VATBASE,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE2VATBASE",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+  end;
+  if (nonblank(vattot)) then begin
+    t = MulRateToBase1(IVr.CurncyCode,vattot,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE1VATTOT,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE1VATTOT",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+    t = MulRateToBase2(IVr.CurncyCode,vattot,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+    valtyp = M4Val;
+//      GetFieldArgument(Docr,F_BASE2VATTOT,tstr);
+    if (tstr=="-") then begin
+      valtyp = M4NegVal;
+    end;
+    Ext_PrintValueInclZero(vVals,"F_BASE2VATTOT",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+  end;
+  GetVATproc(VATrw.VATCode,0,t);
+  Ext_PrintValue(vVals,"F_VATEXCLPRC",t,M4Val,LangNrr,SysFormatRec,negamountf);    
+  if (HasLocalization("POL")) then begin//vatPolish
+    tstr = "";
+    if (GetVAT2(VATrw.VATCode,vatexclprc,rn,0)) then begin
+    end;
+    if (GetVATincl(VATrw.VATCode,vatinclprc,rn)) then begin
+    end;
+    if (nonblank(vatbase)) then begin
+      if (nonblank(vatinclprc)) then begin
+        if ((vatinclprc==0) and (nonblank(vatexclprc))) then begin
+          tstr = USetStr(8111);
+        end;
+      end;
+      if ((vatinclprc==0) and (nonblank(vatinclprc))) then begin
+        if (blank(vatexclprc)) then begin
+          tstr = USetStr(8110);
+        end;
+      end;
+    end;
+    if (blank(tstr)) then begin
+      tstr = ValToString(vatexclprc,M4UVal,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    end;
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["F_VATPRC"] = tstr;    
+  end else begin
+    tstr = ValToString(t,M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["F_VATPRC"] = tstr;
+  end;
+  GetVATText(VATrw.VATCode,str);
+  vVals["F_VATCOMMENT"] = str;
+  end;
+  if (VATCalcRule(VATrw.VATCode)==kVATCalcRuleSkip) then begin
+    switch (RoundRec.VATCalcWay) begin
+      case 0:
+        MulVATIV(VATSCrw.VATCode,VATSCrw.DebVal,vatv,t1,IVr.InclVAT,IVr.NoTAXonVAT);
+      case 1:
+        vatv = VATSCrw.CredVal2;
+        t1 = VATSCrw.CurCredVal;
+    end;
+    if (vatv!=0) or (nonblank(VATSCrw.DebVal)) then begin
+      totskipcalcvatval = totskipcalcvatval + vatv;
+    end;
+  end;
+  
+  Ext_PrintValue(vVals,"F_TOTALGOODS",totgoods,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTTRANSPORT",tottrans,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTPACKAGES",totpack,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_SUBTOTALWITHOUTPACKAGES",totgoods + tottrans,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTALDISCOUNTNOPACK",totdiscnopack,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_SUBTOTALWITHOUTDISCOUNT",totsubtotwdisc,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_TOTALCOST",totcost,M4Val,LangNrr,SysFormatRec,negamountf);
+  totskipcalcvatval = Round(totskipcalcvatval,GetVATRoundMode(RoundRec));
+  totvatval = Round(totvatval,GetVATRoundMode(RoundRec));
+  totvatbase = Round(totvatbase,GetTotalRoundMode(RoundRec));
+  totrowtot = Round(totrowtot,GetTotalRoundMode(RoundRec));
+
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_TOTSKIPCALCVATVAL,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_TOTSKIPCALCVATVAL",totskipcalcvatval,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_TOTVATVAL,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_TOTVATVAL",totvatval,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_TOTVATBASE,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_TOTVATBASE",totvatbase,valtyp,LangNrr,SysFormatRec,negamountf);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_TOTROWTOT,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_TOTROWTOT",totrowtot,valtyp,LangNrr,SysFormatRec,negamountf);
+  if (totreb!=0) then begin
+//    GetFieldArgument(Docr,F_REBTEXT,tstr);
+    vVals["F_REBTEXT"] = tstr;
+  end;
+  Ext_PrintValue(vVals,"F_TOTALDISCOUNT",totdisc,M4Val,LangNrr,SysFormatRec,negamountf);
+
+  if (CUr.AgeStatus==2) then begin
+    Ext_PrintValue(vVals,"F_TOTALDISCOUNTFORPENSIONERE",totdisc,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+
+  t = MulRateToBase2(IVr.CurncyCode,totdisc,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"F_TOTALDISCOUNTINBASE2",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_GCRTOTAL",totgcr,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_CCTOTAL",totcc,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_CASHVALUE",totcash,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_PAYMENTROWSTOTAL",totgcr+totcc+totcash,M4Val,LangNrr,SysFormatRec,negamountf);
+
+  if (IVr.OKFlag==0) then begin
+//    GetFieldArgument(Docr,F_CASHBACK,tstr);
+    if (tstr=="-") then begin
+      Ext_PrintValue(vVals,"F_CASHBACK",-IVr.RetnValue,M4Val,LangNrr,SysFormatRec,negamountf);
+    end else begin
+      Ext_PrintValue(vVals,"F_CASHBACK",IVr.RetnValue,M4Val,LangNrr,SysFormatRec,negamountf);
+    end;
+  end;
+  CalculatePayModesAmounts(IVr,vpaymodes,ivpaymode);
+  PrintPayModes(vVals,vpaymodes,ivpaymode,SysFormatRec,LangNrr);
+  RETURN;        
+END;
+
+
+procedure PrintPurchVal(var vector string vVals,record IVVc IVr,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec)
+BEGIN
+  row IVVc IVrw;
+  Integer i,rwcnt;
+  val tot;
+  val t,t1,v;
+  val vatprc,vatval,vatexclprc,vatinclprc,rowtax;
+  record AccBlock ARAccRec;
+  Boolean negamountf;
+  
+  BlockLoad(ARAccRec);
+  negamountf = (ARAccRec.PrintNegAmountsCredNote!=0 and (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales));
+  rwcnt = MatRowCnt(IVr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IVr,i,IVrw);
+    if (IVr.InclVAT==0) then begin
+      MulVATIV(IVrw.VATCode,IVrw.Price,t,t1,0,0);
+      t = t + IVrw.Price;
+    end else begin
+      t = IVrw.Price*IVrw.vRebate;
+      t = t/100;
+      v = IVrw.Price - t;
+      InvVat(1,IVr.InclVAT,IVr.NoTAXonVAT,IVr.ExportFlag,IVrw.VATCode,IVrw.Sum,vatprc,vatval,vatexclprc,vatinclprc,rowtax);
+      t = v - vatval;      
+    end;
+    tot = tot + t;
+  end;
+  Ext_PrintValue(vVals,"F_PURCHVAL",tot,M4Val,LangNrr,SysFormatRec,negamountf);
+  RETURN;        
+END;
+
+procedure AddToDownPayArray(LongInt ivnr,Array LongInt anr,Array Date atd,var Integer acnt)
+BEGIN
+  record IVVc dpIVr;
+  Integer i;
+  
+  for (i=0;i<acnt;i=i+1) begin
+    if (anr[i]==ivnr) then begin
+      goto LAddToDownPayArray;
+    end;
+  end;
+  dpIVr.SerNr = ivnr;  
+  if (ReadFirstMain(dpIVr,1,true)) then begin end;
+  anr[acnt] = ivnr;
+  atd[acnt] = dpIVr.TransDate;
+  acnt = acnt + 1;
+LAddToDownPayArray:;  
+  RETURN;
+END;
+
+procedure PrintDownPaymentData(var vector string vVals,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec,Boolean negamountf)
+BEGIN
+  Integer i,rwcnt;
+  row IVVc IVrw;
+  Array LongInt anr;
+  Array Date atd;
+  Integer acnt;
+  Array string 2 avatcode;
+  Array val avatrate,avatbase,avatval,atax1,atax1reb;
+  Integer avatcnt;
+  Integer valtyp;
+  string 255 tstr;
+  val vattot,vatbase,vatval,t1;
+  val t;
+  
+  if (IVr.InvType!=kInvoiceTypeDownpayment) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.stp==5) then begin
+        AddToDownPayArray(StringToLongint(IVrw.ArtCode),anr,atd,acnt);
+        
+        AddVATBaseToArrays(IVrw.VATCode,IVrw.Sum,IVrw.TAX1Reb,IVr.InclVAT,IVr.NoTAXonVAT,0,
+                           avatcode,avatrate,avatbase,avatval,atax1,atax1reb,avatcnt);
+      end;
+    end;
+    for (i=0;i<acnt;i=i+1) begin
+      vVals["F_DOWNPAYNR"] = anr[i];
+      vVals["F_DOWNPAYDATE"] = atd[i];
+    end;
+
+    for (i=0;i<avatcnt;i=i+1) begin
+      MulVATIV(avatcode[i],avatbase[i],vatval,t1,IVr.InclVAT,IVr.NoTAXonVAT);    
+
+      if (IVr.InclVAT>0) then begin
+        vatbase = avatbase[i] - vatval;
+        vattot = avatbase[i];
+      end else begin
+        vatbase = avatbase[i];
+        vattot = avatbase[i] + vatval;
+      end;
+
+      if (IVr.InclVAT>0) then begin
+        vatbase = avatbase[i];
+        vattot = avatbase[i] + vatval;
+      end else begin
+        vatbase = avatbase[i];
+        vattot = avatbase[i] + vatval;
+      end;
+      vVals["F_DOWNPAYVATPRC"] = avatrate[i];
+      valtyp = M4Val;
+//      GetFieldArgument(Docr,F_DOWNPAYVATBASE,tstr);
+      if (tstr=="-") then begin
+        valtyp = M4NegVal;
+      end;
+      Ext_PrintValueInclZero(vVals,"F_DOWNPAYVATBASE",vatbase,valtyp,LangNrr,SysFormatRec,negamountf);
+      valtyp = M4Val;
+//      GetFieldArgument(Docr,F_DOWNPAYVATVAL,tstr);
+      if (tstr=="-") then begin
+        valtyp = M4NegVal;
+      end;
+      Ext_PrintValueInclZero(vVals,"F_DOWNPAYVATVAL",vatval,valtyp,LangNrr,SysFormatRec,negamountf);
+      valtyp = M4Val;
+//      GetFieldArgument(Docr,F_DOWNPAYVATTOT,tstr);
+      if (tstr=="-") then begin
+        valtyp = M4NegVal;
+      end;
+      Ext_PrintValueInclZero(vVals,"F_DOWNPAYVATTOT",vattot,valtyp,LangNrr,SysFormatRec,negamountf);
+
+      if (nonblank(vatbase)) then begin
+        t = MulRateToBase1(IVr.CurncyCode,vatbase,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE1VATBASE,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValueInclZero(vVals,"F_DOWNPAYBASE1VATBASE",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+        t = MulRateToBase2(IVr.CurncyCode,vatbase,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE2VATBASE,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValueInclZero(vVals,"F_DOWNPAYBASE2VATBASE",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+      end;
+      if (nonblank(vattot)) then begin
+        t = MulRateToBase1(IVr.CurncyCode,vattot,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE1VATTOT,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValueInclZero(vVals,"F_DOWNPAYBASE1VATTOT",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+        t = MulRateToBase2(IVr.CurncyCode,vattot,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE2VATTOT,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValueInclZero(vVals,"F_DOWNPAYBASE2VATTOT",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+      end;
+      if (vatval!=0) then begin
+        t = MulRateToBase1(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE1VATVAL,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValue(vVals,"F_DOWNPAYBASE1VATVAL",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+        t = MulRateToBase2(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,GetVATRoundMode(RoundRec));
+        valtyp = M4Val;
+//        GetFieldArgument(Docr,F_DOWNPAYBASE2VATVAL,tstr);
+        if (tstr=="-") then begin
+          valtyp = M4NegVal;
+        end;
+        Ext_PrintValue(vVals,"F_DOWNPAYBASE2VATVAL",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+      end;
+    end;
+  end;
+  RETURN;
+END;
+
+procedure AddRowToTrans(record TRVc tmpTRr,row TRVc TRrw)
+BEGIN
+  row TRVc tmpTRrw;
+  Integer i,rwcnt;
+
+  rwcnt = MatRowCnt(tmpTRr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(tmpTRr,i,tmpTRrw);
+    if (tmpTRrw.AccNumber==TRrw.AccNumber) then begin
+      tmpTRrw.DebVal = tmpTRrw.DebVal + TRrw.DebVal;
+      tmpTRrw.CredVal = tmpTRrw.CredVal + TRrw.CredVal;
+      tmpTRrw.DebVal2 = tmpTRrw.DebVal2 + TRrw.DebVal2;
+      tmpTRrw.CredVal2 = tmpTRrw.CredVal2 + TRrw.CredVal2;
+      tmpTRrw.CurDebVal = tmpTRrw.CurDebVal + TRrw.CurDebVal;
+      tmpTRrw.CurCredVal = tmpTRrw.CurCredVal + TRrw.CurCredVal;
+      MatRowPut(tmpTRr,i,tmpTRrw);
+      goto LAddRowToTrans;
+    end;
+  end;
+  MatRowPut(tmpTRr,rwcnt,TRrw);
+LAddRowToTrans:;  
+  RETURN;
+END;
+
+procedure PrintTransactionOnDocument(var vector string vVals,Integer IntYc,LongInt sernr)
+BEGIN
+  record TRVc tmpTRr;
+  record TRVc TRr;
+  row TRVc TRrw;
+  Integer i,rwcnt;
+  
+  TRr.IntYc = IntYc;
+  TRr.Number = sernr;
+  if (ReadFirstMain(TRr,2,true)) then begin
+    rwcnt = MatRowCnt(TRr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(TRr,i,TRrw);
+      AddRowToTrans(tmpTRr,TRrw);
+    end;
+  end;
+  rwcnt = MatRowCnt(tmpTRr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(tmpTRr,i,TRrw);
+    vVals["F_TRACCOUNT"] = TRrw.AccNumber;
+    vVals["F_TRDEBVAL"] = TRrw.DebVal;
+    vVals["F_TRCREDVAL"] = TRrw.CredVal;
+  end;
+  
+  RETURN;
+END;
+
+procedure PrintFreightInfo(var vector string vVals,string freightcode)
+begin
+  record FreightCompanyVc FCr;
+  
+  FCr.Code = FreightCode;
+  if (ReadFirstMain(FCr,1,true)) then begin
+    vVals["F_FREIGHTCOMPCODE"] = FCr.Code;
+    vVals["F_FREIGHTCOMP"] = FCr.Company; 
+    vVals["F_FREIGHTCOMPREGNO"] = FCr.CompanyRegNr;
+    vVals["F_TRUCKINFO"] = FCr.TruckInfo; 
+    vVals["F_DRIVER"] = FCr.Driver; 
+    vVals["F_CMRTEXT"] = FCr.CMRText;
+  end;
+  RETURN;
+END;
+
+procedure PrintTAXAuthID(var vector string vVals,string fieldname,string defTaxAuthID,LongInt SerNr,Date TransDate)
+begin  
+  record IVVc IVr;
+  
+  IVr.SerNr = SerNr;
+  if (ReadFirstMain(IVr,1,true)) then begin
+  end;
+  vVals[fieldname] = FindTaxAuthID(defTaxAuthID,IVr);
+  return;
+end;
+
+procedure PrintTAXAuthIDControlCode(var vector string vVals,string fieldname,record IVVc IVr)
+begin  
+  vVals[fieldname] = FindTaxAuthIDControlCode(IVr.TaxAuthIDCC,IVr);
+  return;
+end;
+
+procedure PrintTAXAuthIDToDate(var vector string vVals,string fieldname,record IVVc IVr)
+begin  
+  vVals[fieldname] = FindTaxAuthIDToDate(IVr);
+  return;
+end;
+
+procedure PrintNotDeliveredQty(var vector string vVals,LongInt OrderNr,string ArtCode,integer OrderRowNr,record LangNrVc LangNrr,record SysFormatBlock SysFormatRec)
+begin
+  record ORVc ORr;
+  row ORVc ORrw;
+
+  ORr.SerNr = OrderNr;
+  if (ReadFirstMain(ORr,1,true)) then begin
+    if (OrderRowNr<MatRowCnt(ORr) and OrderRowNr>=0) then begin
+      MatRowGet(ORr,OrderRowNr,ORrw);
+      if (ORrw.ArtCode==ArtCode) then begin
+        Ext_PrintValueInclZero(vVals,"F_REMAININGQTY",ORrw.Quant-ORrw.Shipd1,M4UVal,LangNrr,SysFormatRec,false);
+        Ext_PrintValueInclZero(vVals,"F_LEVANTAL",ORrw.Shipd1,M4UVal,LangNrr,SysFormatRec,false);
+        Ext_PrintValueInclZero(vVals,"F_ORDQTY",ORrw.Quant,M4UVal,LangNrr,SysFormatRec,false);
+      end;
+    end;
+  end;
+  return;
+end;
+
+procedure PrintBankData(var vector string vVals,string bankcode)
+begin
+  record BankVc Bankr;
+  
+  Bankr.Code = bankcode;
+  if (ReadFirstMain(Bankr,1,true)) then begin
+    vVals["F_ACCOUNTOPERATOR2"] = Bankr.Code;
+    vVals["F_BANKACC2"] = Bankr.Nr2;
+    vVals["F_BANKNAME2"] = Bankr.Name;
+    vVals["F_BANKSWIFT2"] = Bankr.SWIFT;
+    vVals["F_BANKCORRPACC2"] = Bankr.CorrspAcc;
+  end;
+  return; 
+end;
+
+procedure PrintOrgCustBankData(var vector string vVals,string orgcust)
+begin
+  record CUVc CUr;
+  record BankVc Bankr;
+  
+  if (nonblank(orgcust)) then begin
+    CUr.Code = orgcust;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      Bankr.Code = CUr.AccOperator;
+      if (ReadFirstMain(Bankr,1,true)) then begin
+        vVals["F_ACCOUNTOPERATORNAMEORGCUST"] = Bankr.Code;
+        vVals["F_BANKNAMEORGCUST"] = Bankr.Name;
+        vVals["F_BANKSWIFTORGCUST"] = Bankr.SWIFT;
+        vVals["F_BANKCORRPACCORGCUST"] = Bankr.CorrspAcc;
+      end;
+      if (nonblank(CUr.BankAccount)) then begin
+        vVals["F_BANKACCORGCUST"] = CUr.BankAccount;
+      end else begin
+        vVals["F_BANKACCORGCUST"] = Bankr.Nr2;
+      end;
+    end;
+  end;
+  return; 
+end;
+
+procedure IVRowTot(record IVVc ivrp,row IVVc IVrwp,record LangNrVc LangNrr,record SysFormatBlock SFb,val vatval,var string res)
+BEGIN
+  val v;
+  
+  res = "";
+  v = IVrwp.Sum;
+  if (ivrp.InclVAT==0) then begin
+    v = v + vatval;
+  end;
+  if ((blank(vatval)) and (blank(IVrwp.Sum))) then begin
+  end else begin
+    res = ValToString(v,M4Val,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+  end;
+  RETURN;
+END;
+
+procedure IVRowSum(record IVVc ivrp,row IVVc IVrwp,record LangNrVc LangNrr,record SysFormatBlock SFb,val vatval,var string res)
+BEGIN
+  val v;
+  
+  res = "";
+  v = IVrwp.Sum;
+  if (ivrp.InclVAT!=0) then begin
+    v = v - vatval;
+  end;
+  if ((blank(vatval)) and (blank(IVrwp.Sum))) then begin
+  end else begin
+    res = ValToString(v,M4Val,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+  end;
+  RETURN;
+END;
+
+procedure PrintInvoiceRow_1(var vector string vVals,string strnum,record MainStockBlock MSb,record INVc INr,row IVVc IVrw,Integer rownr,val vatprc,val vatval,val vatexclprc,val vatinclprc,val rowtax,var Integer printedrownr,
+                            record RcVc RepSpec,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,record LangNrVc LangNrr,record SysFormatBlock SFb,var val totdiscount,
+                            var val totcombase2sum,var val totcombase2vat,Boolean negamountf)
+BEGIN
+  record RecVc Recr;
+  string 255 tstr,location;
+  val t,t2,qtyconv1,qtyconv2,qtyconv3,v;
+  Integer typ;
+  roundmode rm;  
+  record BatchTextVc BTr;
+  record TaxMatrixVc TMr;
+  record ItemHistVc IHr;
+  record PUVc PUr;
+  row PUVc PUrw;
+
+  tstr = IVrw.CustomsNr;
+  if (blank(tstr)) then begin
+    GetCustomsDeclarationNumber("IVVc",IVr.SerNr,rownr,IVrw.ArtCode,IVrw.SerialNr,0,tstr);
+  end;
+  vVals["ROW_" & strnum & "_F_CUSTOMSDECLNUMBER"] = tstr;
+  tstr = IVrw.CountryOfOrg;
+  if (blank(tstr)) then begin
+    GetCustomsDeclarationNumber("IVVc",IVr.SerNr,rownr,IVrw.ArtCode,IVrw.SerialNr,1,tstr);
+  end else begin
+    GetCountryName(IVrw.CountryOfOrg,IVr.LangCode,tstr);
+  end;
+  vVals["ROW_" & strnum & "_F_COUNTRYOFORIGIN"] = tstr;
+  tstr = "";
+  if (blank(tstr)) then begin
+    GetCustomsDeclarationNumber("IVVc",IVr.SerNr,rownr,IVrw.ArtCode,IVrw.SerialNr,3,tstr);
+  end;
+  vVals["ROW_" & strnum & "_F_CUSTOMSDECLDATE"] = tstr;
+  GetObjectText(IVrw.Objects,tstr);
+  vVals["ROW_" & strnum & "_F_ROWOBJEKTTEXT"] = tstr;
+  vVals["ROW_" & strnum & "_F_ROWOBJECT"] = IVrw.Objects;
+  vVals["ROW_" & strnum & "_F_ALTERNATIVECODE"] = INr.AlternativeCode;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWWIDTH",IVrw.UnitXval,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWHEIGHT",IVrw.UnitYval,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWDEPTH",IVrw.UnitZval,M4Qty,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_ROWLOCATION"] = IVrw.Location;  
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_WARRANTY",INr.WarrantyLength,M4UVal,LangNrr,SFb,false);//vVals["F_WARRANTY"] = INr.WarrantyLength;
+  SelectUnitText(IVr.LangCode,IVrw.UnitCode,tstr);
+  vVals["ROW_" & strnum & "_F_UNITCOMMENT"] = tstr;
+  Ext_PrintValue(vVals,"F_UNITFACTQUANT",IVrw.UnitFactQuant,M4UVal,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_UNITCODE"] = IVrw.UnitCode;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_UNITFACTPRICE",IVrw.UnitFactPrice,M423Val,LangNrr,SFb,negamountf);
+  t = IVrw.Quant*IVrw.Price;
+  MulVATIV(IVrw.VATCode,t,t,t2,0,0);
+  v = v - vatval;
+  t = t - IVrw.Sum;
+  t = t + v;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWFOBVALFORR",t,M4Val,LangNrr,SFb,negamountf);
+  if (MSb.UnitConvCalc==0) then begin
+    t = IVrw.Quant*IVrw.Coefficient;
+  end else begin
+    t = IVrw.Quant/IVrw.Coefficient;
+  end;
+  t = Round(t,SetRoundModeD(3));
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_OUTQTY",t,M45Val,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COEFFICIENT",Round(IVrw.Coefficient,SetRoundModeD(3)),M45Val,LangNrr,SFb,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVr.SumIncCom,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COMBASE2TOPAY",t,M4Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_SHELFCODE"] = INr.InvCode;
+  vVals["ROW_" & strnum & "_F_EXCISE"] = IVrw.ExciseNr;
+  vVals["ROW_" & strnum & "_F_ROWDELIVERYDATE"] = IVrw.ExciseNr; // For Hotel.... The Excise Number is not used anyway....
+  tstr = IVrw.CountryOfOrg;
+  if (blank(tstr)) then begin
+    location = IVrw.Location;
+    if (blank(location)) then begin location = IVr.Location; end;
+    GetOriginCoutry(IVrw.ArtCode,location,tstr);
+  end;
+  vVals["ROW_" & strnum & "_F_ORIGINCOUNTRY"] = tstr;
+  if (nonblank(IVrw.SerialNr)) then begin 
+    IHr.ArtCode = IVrw.ArtCode;
+    IHr.SerialNr = IVrw.SerialNr;
+    IHr.FileName = "PUVc";  
+    if (ReadFirstKey("ArtCodeSerialNr",IHr,3,true)) then begin
+      PUr.SerNr = IHr.TransNr;
+      if (ReadFirstKey("SerNr",PUr,1,true)) then begin
+        MatRowGet(PUr,IHr.Row,PUrw);
+        GetCountryName(PUrw.CountryOfOrg,IVr.LangCode,tstr);
+        vVals["ROW_" & strnum & "_F_COUNTRYOFORIGIN1"] = tstr;
+        vVals["ROW_" & strnum & "_F_CUSTOMNR"] = PUrw.CustomsNr;
+      end;
+    end;
+  end;
+  vVals["ROW_" & strnum & "_F_EUCODE"] = INr.EUCodex;
+  vVals["ROW_" & strnum & "_F_EKNCODE"] = INr.EKNCode;
+
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_WEIGHT",INr.Weight,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_VOLUME",INr.Volume,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_HEIGHT",INr.Height,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_DEPTH",INr.Depth,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_WIDTH",INr.Width,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_NETWEIGHT",INr.NetWeight,M4Qty,LangNrr,SFb,negamountf);
+  
+  BTr.ArtCode  = IVrw.ArtCode;
+  BTr.SerialNr = IVrw.SerialNr;
+  if (ReadFirstMain(BTr,2,true)) then begin 
+    vVals["ROW_" & strnum & "_F_SUPPSERIALNR"] = BTr.SuppSerialNr;
+    vVals["ROW_" & strnum & "_F_MAJORSTONE"] = BTr.MajStoneDet;
+    vVals["ROW_" & strnum & "_F_COLOUR"] = BTr.Colour;
+    vVals["ROW_" & strnum & "_F_CLARITY"] = BTr.Clarity;
+    vVals["ROW_" & strnum & "_F_CERT"] = BTr.Cert;
+    vVals["ROW_" & strnum & "_F_MINORSTONE"] = BTr.MinStoneDet;
+    vVals["ROW_" & strnum & "_F_METAL"] = BTr.Metal;
+    vVals["ROW_" & strnum & "_F_ROWWEIGHT"] = BTr.RowWeight;
+    vVals["ROW_" & strnum & "_F_SIZE"] = BTr.Size;
+    vVals["ROW_" & strnum & "_F_LENGTH"] = BTr.Length;
+
+    vVals["ROW_" & strnum & "_F_WATCHBRAND"] = BTr.WatchBrand;
+    vVals["ROW_" & strnum & "_F_STYLENAME"] = BTr.StyleName;
+    vVals["ROW_" & strnum & "_F_WATCHMETAL"] = BTr.WatchMetal;
+    vVals["ROW_" & strnum & "_F_MOVEMENT"] = BTr.Movement;
+    vVals["ROW_" & strnum & "_F_BRCSTR"] = BTr.BrcStr;
+    vVals["ROW_" & strnum & "_F_GENDER"] = BTr.Gender;
+    vVals["ROW_" & strnum & "_F_OTHER"] = BTr.Other;
+    vVals["ROW_" & strnum & "_F_OTHER2"] = BTr.Other2;
+  end;  
+  t = IVrw.Quant*INr.Weight;
+  if (t==0) then begin t = blankval; end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWWEIGHT",t,M4Qty,LangNrr,SFb,negamountf);
+
+  t = IVrw.Quant*INr.NetWeight;
+  if (t==0) then begin t = blankval; end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWNETWEIGHT",t,M4Qty,LangNrr,SFb,negamountf);
+
+  t = IVrw.Quant*INr.Volume;
+  if (t==0) then begin t = blankval; end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVOLUME",t,M4Qty,LangNrr,SFb,negamountf);
+  ItemBC39(IVrw.ArtCode,tstr);
+  vVals["ROW_" & strnum & "_F_ARTNRBC39"] = tstr;
+  ItemBCEAN(IVrw.ArtCode,tstr);
+  vVals["ROW_" & strnum & "_F_ARTNRBCEAN"] = tstr;
+  ItemBCEAN13(IVrw.ArtCode,tstr);      
+  vVals["ROW_" & strnum & "_F_ARTNRBCEAN13"] = tstr;
+  tstr = IVrw.Spec;
+  if (tstr==INr.Name) then begin
+    if (GetItemNameStr(1,tstr,IVr.LangCode,INr.Name,INr.Code)) then begin end;
+  end;
+  vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = tstr;
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+//  Ext_PrintValue(vVals,"F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ANTAL",IVrw.Quant,M4UVal,LangNrr,SFb,negamountf);
+//  Ext_PrintValue(vVals,"F_ANTAL",IVrw.Quant,M4UVal,LangNrr,SFb,negamountf);
+
+  if (MSb.UnitConvCalc==0) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ANTAL2",IVrw.Quant*IVrw.Coefficient,M4UVal,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ANTAL2",IVrw.Quant/IVrw.Coefficient,M4UVal,LangNrr,SFb,negamountf);
+  end;
+
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_INQTY",IVrw.Quant,M4Qty,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_KOSTPRIS",IVrw.BasePrice,M4Val,LangNrr,SFb,negamountf);
+//  GetFieldArgument(Docr,F_UNITPRICEINCDISC,tstr);
+  rm = DefaultRoundMode;
+  typ = M4Val;
+  if (nonblank(tstr)) then begin
+    rm.decimals = StringToLongInt(tstr);
+    switch (rm.decimals) begin
+      case 3: typ = M423Val;
+      otherwise typ = M4Val;
+    end;
+  end;
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_UNITPRICEINCDISC",Round(IVrw.Sum/IVrw.Quant,rm),typ,LangNrr,SFb,negamountf);
+//  GetFieldArgument(Docr,F_APRIS,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(IVrw.Price,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (RoundRec.Discount==0) then begin
+      t = Round(IVrw.Price,SetRoundModeD(3));
+    end else begin
+      t = Round(IVrw.Price,DefaultRoundMode);
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,negamountf);
+  end;  
+  FindSalesExVat(TMr,IVrw.VATCode,IVrw.Price,IVr.InclVAT,IVr.NoTAXonVAT,t);
+//  GetFieldArgument(Docr,F_APRISEXCLVAT,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(t,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRISEXCLVAT",t,M423Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (RoundRec.Discount==0) then begin
+      t = Round(t,SetRoundModeD(3));
+    end else begin
+      t = Round(t,DefaultRoundMode);
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRISEXCLVAT",t,M423Val,LangNrr,SFb,negamountf);
+  end;  
+  if (IVr.InclVAT==0) then begin
+    MulVATIV(IVrw.VATCode,IVrw.Price,t,t2,0,0);
+    t = t + IVrw.Price;
+  end else begin
+    t = IVrw.Price*IVrw.vRebate;
+    t = t/100;
+    v = IVrw.Price - t;
+    t = vatval/IVrw.Quant;
+    t = v - t;
+  end;
+//  GetFieldArgument(Docr,F_BASPRIS,tstr);
+  if (nonblank(tstr)) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BASPRIS",Round(t,SetRoundModeD(StringToInt(tstr))),M423Val,LangNrr,SFb,negamountf);
+  end else begin
+//    GetFieldArgument(Docr,F_BASPRIS,tstr);
+    if (nonblank(tstr)) then begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BASPRIS",Round(t,SetRoundModeD(StringToInt(tstr))),M423Val,LangNrr,SFb,negamountf);
+    end else begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BASPRIS",t,M423Val,LangNrr,SFb,negamountf);
+    end;    
+  end;    
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_REPA_TAX",IVrw.RepaExVAT,M4Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_CUSTARTNR"] = IVrw.CustArtCode;
+  vVals["ROW_" & strnum & "_F_ARTNR"] = IVrw.ArtCode;
+  vVals["ROW_" & strnum & "_F_ARTNR2"] = IVrw.ArtCode;
+  vVals["ROW_" & strnum & "_F_ARTCODEVARIETIES"] = GetVarietyComment(IVrw.ArtCode,INr.Code);
+  vVals["ROW_" & strnum & "_F_ARTCODENOVARIETIES"] = INr.Code;
+  vVals["ROW_" & strnum & "_F_ARTGRUPP"] = INr.Group;
+  v = IVrw.vRebate;
+//  GetFieldArgument(Docr,F_RABATT,tstr);
+  if (nonblank(tstr)) then begin
+    if (blank(IVrw.ArtCode)) then begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",Round(v,SetRoundModeD(StringToInt(tstr))),M4Qty,LangNrr,SFb,negamountf);
+    end else begin
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_RABATT",Round(v,SetRoundModeD(StringToInt(tstr))),M4Qty,LangNrr,SFb,negamountf);
+    end;
+  end else begin
+    if (blank(IVrw.ArtCode)) then begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",v,M41Val,LangNrr,SFb,false);
+    end else begin
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_RABATT",v,M41Val,LangNrr,SFb,false);
+    end;
+  end;
+  if (nonblank(IVrw.RvrsVATCode)) then begin
+    vVals["ROW_" & strnum & "_F_REVERSEVATCODE"] = IVrw.RvrsVATCode;
+    if (HasLocalization("GBR,LTU")) then begin
+      if (nonblank(IVr.RvrsVAT) and nonblank(IVr.Sum3)) then begin
+        vVals["ROW_" & strnum & "_F_ROWREVERSEVATTEXT"] = USetStr(39370);
+      end;
+    end;
+  end;
+  if (nonblank(IVrw.RvrsVATCode)) then begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.RvrsVATCode;
+  end else begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.VATCode;
+  end;
+  vVals["ROW_" & strnum & "_F_SALESACC"] = IVrw.SalesAcc;
+  SelectUnitText(IVr.LangCode,INr.Unittext,tstr);    
+  vVals["ROW_" & strnum & "_F_ENHET"] = tstr;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_PRICEFACTOR",IVrw.PriceFactor,M4UVal,LangNrr,SFb,negamountf);
+  if (IVrw.Price!=0) then begin
+    t = IVrw.Price;
+  end else begin
+    t = IVrw.Sum/IVrw.Quant;
+  end;
+  if (IVrw.PriceFactor!=0) then begin
+    t = t/IVrw.PriceFactor;
+  end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_UNITPRICE",t,M45Val,LangNrr,SFb,negamountf);
+  FindSalesExVat(TMr,IVrw.VATCode,IVrw.Sum,IVr.InclVAT,IVr.NoTAXonVAT,t);
+  t2 = IVrw.Quant;
+  if (t2==0) then begin
+    t2 = 1;
+  end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_SECISIN",Round(t/t2,SetRoundModeD(3)),M423Val,LangNrr,SFb,negamountf);
+//  GetFieldArgument(Docr,F_SUMFIFO,tstr);
+  if (nonblank(tstr)) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_SUMFIFO",Round(IVrw.FIFORowVal,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_SUMFIFO",IVrw.FIFORowVal,M45Val,LangNrr,SFb,negamountf);
+  end;
+  t = MulRateToBase1(IVr.CurncyCode,IVrw.Price,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_PRICEBASECURNCY1",t,M4Val,LangNrr,SFb,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVrw.Price,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_PRICEBASECURNCY2",t,M4Val,LangNrr,SFb,negamountf);
+  t = MulRateToBase1(IVr.CurncyCode,IVrw.Sum,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWPRICEBASECURNCY1",t,M4Val,LangNrr,SFb,negamountf);
+//  Ext_PrintValue(vVals,"F_ROWPRICEBASECURNCY1",t,M4Val,LangNrr,SFb,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVrw.Sum,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWPRICEBASECURNCY2",t,M4Val,LangNrr,SFb,negamountf);
+  if (vatval!=0) then begin
+  t = MulRateToBase1(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWVATVAL",t,M4Val,LangNrr,SFb,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,vatval,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BASE2ROWVATVAL",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  vVals["ROW_" & strnum & "_F_COMMODITYCODE"] = INr.EUCodex;
+  if (nonblank(IVrw.ArtCode)) then begin
+    printedrownr = printedrownr + 1;
+    vVals["ROW_" & strnum & "_F_ROWNR"] = printedrownr;
+    IntToText(IVr.LangCode,printedrownr,tstr);
+    vVals["ROW_" & strnum & "_F_ROWNRINTEXT"] = tstr;
+  end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_DIFFROWVALUE",(IVr.DiscPerc*IVrw.Sum)/100,M4Val,LangNrr,SFb,negamountf);
+  if ((INr.ItemType==2) and (INr.ExplodeRec!=0)) then begin
+    SelectUnitText(IVr.LangCode,INr.Unittext,tstr);
+    vVals["ROW_" & strnum & "_F_ITEMUNIT"] = tstr;
+    Recr.Code = INr.Recepy;
+    if (ReadFirstMain(Recr,1,true)) then begin
+      vVals["ROW_" & strnum & "_F_ITEMCODE"] = Recr.Code;
+      vVals["ROW_" & strnum & "_F_ITEMNAME"] = Recr.Comment;
+    end;
+  end;
+  vVals["ROW_" & strnum & "_F_AVDELNING"] = INr.Department;
+  tstr = "";
+  if (HasLocalization("POL")) then begin
+    if (nonblank(IVrw.Sum)) then begin
+      if (nonblank(vatinclprc)) then begin
+        if ((vatinclprc==0) and (nonblank(vatexclprc))) then begin
+          tstr = USetStr(8111);
+        end;
+      end;
+      if ((vatinclprc==0) and (nonblank(vatinclprc))) then begin
+        if (blank(vatexclprc)) then begin
+          tstr = USetStr(8110);
+        end;
+      end;
+    end;
+    if (blank(tstr)) then begin
+      tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+    end;
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;    
+  end else begin
+    if (nonblank(IVrw.Sum)) then begin
+      if (blank(tstr)) then begin
+        tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+      end;
+      if (blank(tstr)) then begin
+        tstr = USetStr(1244);
+      end else begin
+        tstr = tstr & "%";
+      end;
+      vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;
+    end;
+  end;
+  if (blank(vatprc)) then begin 
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVATPRC",0,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATPRC",vatprc,M4Val,LangNrr,SFb,negamountf);
+  end;
+  vVals["ROW_" & strnum & "_F_BARCODE"] = INr.BarCode;
+  vVals["ROW_" & strnum & "_F_CPSCODE"] = INr.CPSCode;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTAXVAL",rowtax,M4Val,LangNrr,SFb,negamountf);
+  SetConversionFields(INr,IVrw.Quant,qtyconv1,qtyconv2,qtyconv3);      
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION1",qtyconv1,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION2",qtyconv2,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION3",qtyconv3,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSIONVAL1",INr.Conversion1,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSIONVAL2",INr.Conversion2,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_SALESPRICE",INr.UPrice1,M423Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_ROWITEMGROUP"] = INr.Group;
+  vVals["ROW_" & strnum & "_F_MOTHERNR"] = IVrw.MotherNr;
+  if (INr.SerNrf==1) and (IVrw.Quant>1) then begin
+    vVals["ROW_" & strnum & "_F_SERIENR"] = SerialNumbersString("IVVc",IVr.SerNr,rownr);
+  end else begin
+    vVals["ROW_" & strnum & "_F_SERIENR"] = IVrw.SerialNr;
+  end;
+  GetItemGroupDescription(INr.Group,tstr);
+  vVals["ROW_" & strnum & "_F_ROWITEMGROUPNAME"] = tstr;
+  if (vatval!=0) then begin
+    IVRowTot(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWTOTIFVAT"] = tstr;
+  end;
+  if (vatval==0) then begin
+    IVRowTot(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWTOTIFNOVAT"] = tstr;
+  end;
+  if (vatval!=0) then begin
+    IVRowSum(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWSUMIFVAT"] = tstr;
+  end;
+  if (vatval==0) then begin
+    IVRowSum(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWSUMIFNOVAT"] = tstr;
+  end;
+  
+  if (IVr.InclVAT==0) then begin
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_SUMMAEJMOMS",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_SUMMAEJMOMS",IVrw.Sum-vatval,M4Val,LangNrr,SFb,negamountf);
+  end;
+
+  v = IVrw.Sum;
+  if (blank(IVrw.RvrsVATCode)) then begin
+    if (IVr.InclVAT==0) then begin v = v + vatval; end;
+  end;
+  if ((nonblank(vatval)) or (nonblank(IVrw.Sum))) then begin
+//    GetFieldArgument(Docr,F_ROWTOT,tstr);
+    if (nonblank(tstr)) then begin
+      if (blank(IVrw.ArtCode)) then begin
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOT",Round(v,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+      end else begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWTOT",Round(v,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+      end;
+    end else begin
+      if (blank(IVrw.ArtCode)) then begin
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOT",v,M4Val,LangNrr,SFb,negamountf);
+      end else begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWTOT",v,M4Val,LangNrr,SFb,negamountf);
+      end;
+    end;
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_ROWBASE,tstr);
+  if (blank(v)) then begin v = blankval; end;          
+  if (nonblank(tstr)) then begin
+    if (blank(IVrw.Sum)) then begin v = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWBASE",Round(v,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (blank(IVrw.Sum)) then begin v = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWBASE",v,M4Val,LangNrr,SFb,negamountf);
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_BASE1ROWBASE,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(v,SetRoundModeD(StringToInt(tstr)));
+    t = MulRateToBase1(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,SetRoundModeD(StringToInt(tstr)));
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    t = MulRateToBase1(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;          
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_BASE2ROWBASE,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(v,SetRoundModeD(StringToInt(tstr)));
+    t = MulRateToBase2(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,SetRoundModeD(StringToInt(tstr)));
+    if (t==0) then begin t = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE2ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    t = MulRateToBase2(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (t==0) then begin t = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE2ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (nonblank(IVrw.ArtCode)) then begin
+    if (true) then begin//nonblank(vatval)
+//      GetFieldArgument(Docr,F_ROWVATVAL,tstr);
+      if (nonblank(tstr)) then begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",Round(vatval,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+      end else begin
+        if (blank(vatprc)) then begin 
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",0,M4Val,LangNrr,SFb,negamountf);
+        end else begin
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",vatval,M4Val,LangNrr,SFb,negamountf);
+        end;
+      end;
+    end;
+  end;
+  t = IVrw.Sum + vatval + rowtax;
+  if (IVr.InclVAT==1) then begin
+    t = IVrw.Sum;
+  end;
+  if (IVr.InclVAT==2) then begin
+    t = IVrw.Sum + rowtax;
+  end;
+  if (t!=0) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWSUMTOTAL",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (vatval!=0) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWSUMWITHVAT",vatval,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (IVr.InclVAT>0) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWSUMWITHOUTVAT",IVrw.Sum-vatval,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWSUMWITHOUTVAT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (IVrw.Sum!=0) then begin
+    t = IVr.DiscPerc*vatexclprc;
+    t = t/100;
+    tstr = ValToString(t,M4Val,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["ROW_" & strnum & "_F_DIFFTOTVALUE"] = tstr;
+  end;
+  if (nonblank(IVrw.ArtCode)) then begin
+    FindShpPackages(IVr.OrderNr,IVrw.OrdRow,IVrw.ArtCode,LangNrr,SFb,tstr);
+    vVals["ROW_" & strnum & "_F_ROWPACKAGES"] = tstr;
+  end;
+  if (nonblank(IVrw.ArtCode)) then begin
+    FindShpPackages(IVr.OrderNr,-1,"",LangNrr,SFb,tstr);
+    vVals["ROW_" & strnum & "_F_KOLLI"] = tstr;
+  end;
+  InvoiceCalcCommisionValue(IVr,IVrw.Quant,IVrw.Price,t);
+  t = t + IVrw.Price;
+  t = t*IVrw.Quant;
+  MulVATIV(IVrw.VATCode,t,v,t2,IVr.InclVAT,IVr.NoTAXonVAT);
+  t = MulRateToBase2(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  totcombase2vat = totcombase2vat + t;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COMBASE2ROWVATVAL",t,M4Val,LangNrr,SFb,negamountf);
+  v = IVrw.Sum;
+  if (IVr.InclVAT==0) then begin
+    if (v!=0) then begin
+      v = v + vatval;
+    end;
+  end;
+  if ((nonblank(vatval)) or (nonblank(IVrw.Sum))) then begin
+    t = MulRateToBase1(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWTOT",t,M4Val,LangNrr,SFb,negamountf);
+    t = MulRateToBase2(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE2ROWTOT",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (nonblank(IVrw.Sum)) then begin
+    CalcSum(1,IVrw.Price,IVrw.PriceFactor,IVrw.vRebate,t,0);
+    /*
+    if (IVrw.PriceFactor!=0) then begin
+      t = t/IVrw.PriceFactor;
+    end;
+    */ 
+    if (RoundRec.Discount==0) then begin
+      t = Round(t,SetRoundModeD(3));
+    end else begin
+      t = Round(t,DefaultRoundMode);
+    end;
+//    GetFieldArgument(Docr,F_ROWPRICEREBATE,tstr);
+    if (nonblank(tstr)) then begin
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWPRICEREBATE",Round(t,SetRoundModeD(StringToInt(tstr))),M423Val,LangNrr,SFb,negamountf);
+    end else begin
+//      GetFieldArgument(Docr,F_ROWPRICEREBATE,tstr);
+      if (nonblank(tstr)) then begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWPRICEREBATE",Round(t,SetRoundModeD(StringToInt(tstr))),M423Val,LangNrr,SFb,negamountf);
+      end else begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWPRICEREBATE",t,M423Val,LangNrr,SFb,negamountf);            
+      end;
+    end;
+  end;
+  if ((nonblank(IVrw.Quant)) and (nonblank(IVrw.Price))) then begin
+    InvoiceCalcCommisionValue(IVr,IVrw.Quant,IVrw.Price,t);
+    t = t + IVrw.Price;
+    t = t * IVrw.Quant;
+    t = MulRateToBase2(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COMBASE2ROWTOT",t,M4Val,LangNrr,SFb,negamountf);
+    InvoiceCalcCommisionValue(IVr,IVrw.Quant,IVrw.Price,t);
+    t = t + IVrw.Price;
+    t = MulRateToBase2(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    totcombase2sum = totcombase2sum + t;
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COMROWPRICEBASECURNCY2",t,M4Val,LangNrr,SFb,negamountf);
+  end; 
+  Ext_PrintUserDefinedItemFields(vVals,INr.UserStr1,INr.UserStr2,INr.UserStr3,INr.UserStr4,INr.UserStr5,INr.UserDate1,INr.UserDate2,INr.UserDate3,INr.UserVal1,INr.UserVal2,INr.UserVal3);
+  PrintNotDeliveredQty(vVals,IVr.OrderNr,IVrw.ArtCode,IVrw.OrdRow,LangNrr,SFb);
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWSUMWITHOUTDISCOUNT",IVrw.Quant*IVrw.Price,M4Val,LangNrr,SFb,negamountf);            
+  totdiscount = totdiscount + (IVrw.Quant*IVrw.Price - IVrw.Sum);        
+  RETURN;
+END;
+
+procedure PrintInvoiceRow_5(var vector string vVals,string strnum,row IVVc IVrw,record INVc INr,val vatprc,val vatval,val vatexclprc,val vatinclprc,val rowtax,var Integer printedrownr,
+                            record RcVc RepSpec,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,
+                            record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negamountf)
+BEGIN      
+  val t,v;
+  string 255 tstr;
+
+  if (nonblank(IVrw.ArtCode)) then begin
+    printedrownr = printedrownr + 1;
+    vVals["ROW_" & strnum & "_F_ROWNR"] = printedrownr;
+    IntToText(IVr.LangCode,printedrownr,tstr);
+    vVals["ROW_" & strnum & "_F_ROWNRINTEXT"] = tstr;
+    SelectUnitText(IVr.LangCode,INr.Unittext,tstr);    
+    vVals["ROW_" & strnum & "_F_ENHET"] = tstr;
+  end;
+  vVals["ROW_" & strnum & "_F_ARTNR"] = IVrw.ArtCode;
+  vVals["ROW_" & strnum & "_F_ARTNR2"] = IVrw.ArtCode;
+  ItemBC39(IVrw.ArtCode,tstr);
+  vVals["ROW_" & strnum & "_F_ARTNRBC39"] = tstr;
+  ItemBCEAN(IVrw.ArtCode,tstr);
+  vVals["ROW_" & strnum & "_F_ARTNRBCEAN"] = tstr;
+  ItemBCEAN13(IVrw.ArtCode,tstr);      
+  vVals["ROW_" & strnum & "_F_ARTNRBCEAN13"] = tstr;
+  Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ANTAL",IVrw.Quant,M4UVal,LangNrr,SFb,negamountf);
+//  GetFieldArgument(Docr,F_APRIS,tstr);
+  t = IVrw.Price;
+  if (IVrw.Price==0) then begin t = IVrw.Sum/IVrw.Quant; end;
+  if (nonblank(tstr)) then begin
+    t = Round(t,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_APRIS",t,M45Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (RoundRec.Discount==0) then begin
+      t = Round(t,SetRoundModeD(3));
+    end else begin
+      t = Round(t,DefaultRoundMode);
+    end;
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,negamountf);
+  end;  
+  v = IVrw.vRebate;
+//  GetFieldArgument(Docr,F_RABATT,tstr);
+  if (nonblank(tstr)) then begin
+    if (blank(IVrw.ArtCode)) then begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",Round(v,SetRoundModeD(StringToInt(tstr))),M4Qty,LangNrr,SFb,negamountf);
+    end else begin
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_RABATT",Round(v,SetRoundModeD(StringToInt(tstr))),M4Qty,LangNrr,SFb,negamountf);
+    end;
+  end else begin
+    if (blank(IVrw.ArtCode)) then begin
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",v,M41Val,LangNrr,SFb,false);
+    end else begin
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_RABATT",v,M41Val,LangNrr,SFb,false);
+    end;
+  end;
+  t = IVrw.Sum;
+  if (IVr.InclVAT==0) then begin
+    t = t + vatval;
+  end;  
+  if ((nonblank(vatval)) or (nonblank(IVrw.Sum))) then begin
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFVAT",t,M4Val,LangNrr,SFb,negamountf);
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFNOVAT",t,M4Val,LangNrr,SFb,negamountf);       
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOT",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+//  Ext_PrintValue(vVals,"F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  if (nonblank(IVrw.RvrsVATCode)) then begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.RvrsVATCode;
+  end else begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.VATCode;
+  end;
+  if (HasLocalization("POL")) then begin
+    tstr = "";
+    if (nonblank(IVrw.Sum)) then begin
+      if (nonblank(vatinclprc)) then begin
+        if ((vatinclprc==0) and (nonblank(vatexclprc))) then begin
+          tstr = USetStr(8111);
+        end;
+      end;
+      if ((vatinclprc==0) and (nonblank(vatinclprc))) then begin
+        if (blank(vatexclprc)) then begin
+          tstr = USetStr(8110);
+        end;
+      end;
+    end;
+    if (blank(tstr)) then begin
+      tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+    end;
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;    
+  end else begin
+    tstr = "";
+    if (nonblank(IVrw.Sum)) then begin
+      if (blank(tstr)) then begin
+        tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+      end;
+      if (blank(tstr)) then begin
+        tstr = USetStr(1244);
+      end;
+      vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;
+    end;
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_BASE1ROWBASE,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(v,SetRoundModeD(StringToInt(tstr)));
+    t = MulRateToBase1(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,SetRoundModeD(StringToInt(tstr)));
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    t = MulRateToBase1(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (blank(vatprc)) then begin 
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVATPRC",0,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATPRC",vatprc,M4Val,LangNrr,SFb,negamountf);
+  end;
+  if (true) then begin//nonblank(vatval)
+//    GetFieldArgument(Docr,F_ROWVATVAL,tstr);
+    if (nonblank(tstr)) then begin
+      if (blank(IVrw.ArtCode)) then begin
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVATVAL",Round(vatval,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+      end else begin
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",Round(vatval,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+      end;
+    end else begin
+      if (blank(vatprc)) then begin 
+        if (blank(IVrw.ArtCode)) then begin
+          Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVATVAL",0,M4Val,LangNrr,SFb,negamountf);
+        end else begin
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",0,M4Val,LangNrr,SFb,negamountf);
+        end;
+      end else begin
+        if (blank(IVrw.ArtCode)) then begin
+          Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWVATVAL",vatval,M4Val,LangNrr,SFb,negamountf);
+        end else begin
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWVATVAL",vatval,M4Val,LangNrr,SFb,negamountf);
+        end;
+      end;
+    end;
+  end;
+
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_ROWBASE,tstr);
+  if (v==0) then begin v = blankval; end;          
+  if (nonblank(tstr)) then begin
+    if (IVrw.Sum==0) then begin v = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWBASE",Round(v,SetRoundModeD(StringToInt(tstr))),M45Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (IVrw.Sum==0) then begin v = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ROWBASE",v,M4Val,LangNrr,SFb,negamountf);
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_BASE1ROWBASE,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(v,SetRoundModeD(StringToInt(tstr)));
+    t = MulRateToBase1(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,SetRoundModeD(StringToInt(tstr)));
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    t = MulRateToBase1(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (blank(IVrw.Sum)) then begin
+      if (t==0) then begin t = blankval; end;          
+    end;
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE1ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  v = IVrw.Sum;
+  if (IVr.InclVAT>0) then begin
+    if (v!=0) then begin
+      v = v - vatval;
+    end;
+  end;
+//  GetFieldArgument(Docr,F_BASE2ROWBASE,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(v,SetRoundModeD(StringToInt(tstr)));
+    t = MulRateToBase2(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,SetRoundModeD(StringToInt(tstr)));
+    if (t==0) then begin t = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE2ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end else begin
+    t = MulRateToBase2(IVr.CurncyCode,v,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (t==0) then begin t = blankval; end;          
+    Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BASE2ROWBASE",t,M4Val,LangNrr,SFb,negamountf);
+  end;
+  RETURN;
+END;
+
+procedure PrintInvoiceRow_4(var vector string vVals,string strnum,record MainStockBlock MSb,record INVc INr,row IVVc IVrw,val vatprc,val vatval,val vatexclprc,val vatinclprc,val rowtax,var Integer printedrownr,
+                            record RcVc RepSpec,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,
+                            record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negamountf)
+BEGIN
+  val t,t2,v;
+  string 255 tstr;
+  val qtyconv1,qtyconv2,qtyconv3;
+  record IVVc orgIVr;
+
+  orgIVr.SerNr = StringToLongInt(IVrw.ArtCode);
+  if (ReadFirstMain(orgIVr,1,true)) then begin end;
+  SelectUnitText(IVr.LangCode,IVrw.UnitCode,tstr);
+  vVals["ROW_" & strnum & "_F_UNITCOMMENT"] = tstr;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_UNITFACTQUANT",IVrw.UnitFactQuant,M4UVal,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_UNITCODE"] = IVrw.UnitCode;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_UNITFACTPRICE",IVrw.UnitFactPrice,M423Val,LangNrr,SFb,negamountf);
+  t = IVrw.Quant*IVrw.Price;
+  MulVATIV(IVrw.VATCode,t,t,t2,0,0);
+  v = v - vatval;
+  t = t - IVrw.Sum;
+  t = t + v;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWFOBVALFORR",t,M4Val,LangNrr,SFb,negamountf);
+  if (MSb.UnitConvCalc==0) then begin
+    t = IVrw.Quant*IVrw.Coefficient;
+  end else begin
+    t = IVrw.Quant/IVrw.Coefficient;
+  end;
+  t = Round(t,SetRoundModeD(3));
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_OUTQTY",t,M45Val,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ANTAL2",t,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_COEFFICIENT",Round(IVrw.Coefficient,SetRoundModeD(3)),M45Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ANTAL",IVrw.Quant,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_INQTY",IVrw.Quant,M4Qty,LangNrr,SFb,negamountf);
+//  GetFieldArgument(Docr,F_APRIS,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(IVrw.Price,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_APRIS",t,M45Val,LangNrr,SFb,negamountf);
+  end else begin
+    if (RoundRec.Discount==0) then begin
+      t = Round(IVrw.Price,SetRoundModeD(3));
+    end else begin
+      t = Round(IVrw.Price,DefaultRoundMode);
+    end;
+    Ext_PrintValue(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,negamountf);
+  end;  
+  if (IVr.InclVAT==0) then begin
+    MulVATIV(IVrw.VATCode,IVrw.Price,t,t2,0,0);
+    t = t + IVrw.Price;
+  end else begin
+    t = IVrw.Price*IVrw.vRebate;
+    t = t/100;
+    v = IVrw.Price - t;
+    t = vatval/IVrw.Quant;
+    t = v - t;
+  end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BASPRIS",t,M423Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_ARTNR"] = IVrw.ArtCode;
+  vVals["ROW_" & strnum & "_F_ARTNR2"] = IVrw.ArtCode;
+  vVals["ROW_" & strnum & "_F_ARTGRUPP"] = INr.Group;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",IVrw.vRebate,M4Val,LangNrr,SFb,negamountf);
+  if (nonblank(IVrw.RvrsVATCode)) then begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.RvrsVATCode;
+  end else begin
+    vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.VATCode;
+  end;
+  vVals["ROW_" & strnum & "_F_REMLEVEL"] = IVrw.OrdRow;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_GRUNDBELOPP",IVrw.BasePrice,M4Val,LangNrr,SFb,negamountf);
+  SetConversionFields(INr,IVrw.Quant,qtyconv1,qtyconv2,qtyconv3);      
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION1",qtyconv1,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION2",qtyconv2,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSION3",qtyconv3,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSIONVAL1",INr.Conversion1,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_CONVERSIONVAL2",INr.Conversion2,M4UVal,LangNrr,SFb,negamountf);
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_SALESPRICE",INr.UPrice1,M423Val,LangNrr,SFb,negamountf);
+  if (HasLocalization("POL")) then begin
+    tstr = "";
+    if (nonblank(IVrw.Sum)) then begin
+      if (nonblank(vatinclprc)) then begin
+        if ((vatinclprc==0) and (nonblank(vatexclprc))) then begin
+          tstr = USetStr(8111);
+        end;
+      end;
+      if ((vatinclprc==0) and (nonblank(vatinclprc))) then begin
+        if (blank(vatexclprc)) then begin
+          tstr = USetStr(8110);
+        end;
+      end;
+    end;
+    if (blank(tstr)) then begin
+      tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+    end;
+    if (blank(tstr)) then begin
+      tstr = USetStr(1244);
+    end;
+    vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;    
+  end else begin
+    if (nonblank(IVrw.Sum)) then begin
+      if (blank(tstr)) then begin
+        tstr = ValToString(vatexclprc,M4UVal,SFb.thousSep,SFb.decimalPt,LangNrr.CutDecimals);
+      end;
+      if (blank(tstr)) then begin
+        tstr = USetStr(1244);
+      end;
+      vVals["ROW_" & strnum & "_F_ROWVATEXCLPRC"] = tstr;
+    end;
+  end;
+  if (vatval!=0) then begin
+    IVRowTot(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWTOTIFVAT"] = tstr;
+  end;
+  if (vatval==0) then begin
+    IVRowTot(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWTOTIFNOVAT"] = tstr;
+  end;
+  if (vatval!=0) then begin
+    IVRowSum(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWSUMIFVAT"] = tstr;
+  end;
+  if (vatval==0) then begin
+    IVRowSum(IVr,IVrw,LangNrr,SFb,vatval,tstr);
+    vVals["ROW_" & strnum & "_F_ROWSUMIFNOVAT"] = tstr;
+  end;
+  Ext_PrintValue(vVals,"ROW_" & strnum & "_F_KOSTPRIS",IVrw.BasePrice,M4Val,LangNrr,SFb,negamountf);
+  vVals["ROW_" & strnum & "_F_DUEDATE"] = orgIVr.PayDate;
+  RETURN;
+END;      
+  
+function Boolean PrintInvoiceRow_Payments(var vector string vVals,string strnum,row IVVc IVrw,record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negamountf)
+BEGIN
+  string 255 tstr;
+  Boolean endformrowf;
+
+  endformrowf = true;
+  switch (IVrw.stp) begin
+    case kInvoiceRowTypeGiftVoucherSold:
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8112);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+      vVals["ROW_" & strnum & "_F_GCNr"] = IVrw.GCNr;
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ANTAL",1.00,M4UVal,LangNrr,SFb,negamountf);
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",IVrw.Sum,M423Val,LangNrr,SFb,negamountf);
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRISEXCLVAT",IVrw.Sum,M423Val,LangNrr,SFb,negamountf);
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf); 
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWSUMTOTAL",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+    case kInvoiceRowTypeLoyaltyPointsPayment:
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(19300);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;      
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",IVrw.Sum,M423Val,LangNrr,SFb,negamountf);
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);          
+    case kInvoiceRowTypeGiftVoucherPayment:
+      endformrowf = false;
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8113);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;      
+      vVals["ROW_" & strnum & "_F_GCNr"] = IVrw.GCNr;
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ANTAL",1.00,M4UVal,LangNrr,SFb,negamountf);
+      Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",IVrw.Sum,M423Val,LangNrr,SFb,negamountf);
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+      endformrowf = true;
+    case kInvoiceRowTypeCashPayment:
+      endformrowf = false;
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8114);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+      Ext_PrintCurrencyCode(vVals,"ROW_" & strnum & "_F_RECCURENCY",IVrw.CurncyCode);
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);          
+      endformrowf = true;
+    case kInvoiceRowTypeCreditCardPayment:
+      endformrowf = false;
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8109);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+      vVals["ROW_" & strnum & "_F_CREDCARDROW"] = IVrw.CreditCard;  
+      GetCreditCardType(IVrw.CreditCard,tstr);
+      vVals["ROW_" & strnum & "_F_CREDCARDTYPEROW"] = tstr;
+      vVals["ROW_" & strnum & "_F_AUTHORIZATIONROW"] = IVrw.AuthorizationCode;        
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);          
+      endformrowf = true;
+    case kInvoiceRowTypeSwishPayment:
+      endformrowf = false;
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8109);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+      vVals["ROW_" & strnum & "_F_CREDCARDROW"] = IVrw.CreditCard;  
+      GetCreditCardType(IVrw.CreditCard,tstr);
+      vVals["ROW_" & strnum & "_F_CREDCARDTYPEROW"] = tstr;
+      vVals["ROW_" & strnum & "_F_AUTHORIZATIONROW"] = IVrw.AuthorizationCode;        
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);          
+      endformrowf = true;
+    case kInvoiceRowTypeQRPayment:
+      endformrowf = false;
+      vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8109);
+      vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+      vVals["ROW_" & strnum & "_F_CREDCARDROW"] = IVrw.CreditCard;  
+      GetCreditCardType(IVrw.CreditCard,tstr);
+      vVals["ROW_" & strnum & "_F_CREDCARDTYPEROW"] = tstr;
+      vVals["ROW_" & strnum & "_F_AUTHORIZATIONROW"] = IVrw.AuthorizationCode;        
+      Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);          
+      endformrowf = true;
+  end;
+  PrintInvoiceRow_Payments = endformrowf;
+  RETURN;
+END;      
+  
+procedure PrintInvoiceRows2(var vector string vVals,record RcVc RepSpec,record IVVc IVr,record DocVc Docr,record RoundBlock RoundRec,record LangNrVc LangNrr,record SysFormatBlock SFb,var val totdiscount,
+                           var val totinprice,var val totweight,var val totnetweight,var val totvolume,var val totcombase2sum,var val totqty,var val totqty2,var val totfifo,var val totcombase2vat,
+                           var val totwithh,var val totnormwinttax,var val totnormwithvatprc,var val PointsSpent,
+                           Boolean negamountf,Integer rwcnt)
+begin
+  record MainStockBlock MSb;
+  record INVc INr;
+  record RecVc Recr;
+  row IVVc IVrw;
+  Integer i,j;
+  string 255 tstr;
+  val t,t2,qtyconv1,qtyconv2,qtyconv3,v;
+  Integer printedrownr;
+  val vatprc,vatval,vatexclprc,vatinclprc,rowtax;
+  record ARPayHistVc ARHistr;
+  record RegionVc Regionr;
+  Boolean hiddenrowf,testf,endformrowf;
+  record FormBlock Formb;
+  record INVc dummyINr;
+  string 255 strnum;
+
+  RecordClear(dummyINr);
+  BlockLoad(MSb);
+  if (HasLocalization("ARG")) then begin
+    BlockLoad(Formb);
+  end;
+  totinprice = blankval;
+  totvolume = blankval;
+  totweight = blankval;
+  totcombase2sum = blankval;
+  totdiscount = blankval;
+  for (i=0;i<rwcnt;i=i+1) begin
+    M4PadString(i,3,"0",true,strnum);
+    MatRowGet(IVr,i,IVrw);
+    testf = true;
+    if (hiddenrowf) then begin
+      if (IVrw.stp!=kInvoiceRowTypePerceptionTax) then begin
+        testf = false;
+      end;
+    end;
+    if (IVrw.stp==kInvoiceRowTypeHidden) then begin
+      hiddenrowf = true;
+      testf = false;
+    end;
+    if (IVrw.ovst!=0) then begin testf = false; end;
+    if (HasLocalization("ARG")) then begin
+      switch (Formb.PerceptionTax) begin
+        case kDonotPrintPerceptionTaxRow:
+          if (IVrw.stp==kInvoiceRowTypePerceptionTax) then begin
+            testf = false;
+          end;
+      end;
+    end;
+    if (testf) then begin
+    PointsSpent = PointsSpent + IVrw.Points;
+    endformrowf = true;
+    //SetRowStyle(Docr,"IVVc",IVrw.stp,IVrw.ArtCode,IVrw.Sum);
+    RecordClear(INr);
+    INr.Code = IVrw.ArtCode;
+    if (ReadFirstItem(IVrw.ArtCode,INr,true,true)) then begin
+    end;
+    if (INr.HasExcise==0) then begin
+      vVals["ROW_" & strnum & "_F_HASEXCISE"] = USetStr(23352);
+    end;    
+    totinprice = totinprice + IVrw.Quant*INr.InPrice;
+    switch (IVrw.stp) begin 
+      case kInvoiceRowTypeMultiBuyDiscount:
+        vVals["ROW_" & strnum & "_F_ARTNR"] = IVrw.ArtCode;
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_ANTAL",IVrw.Quant,M4UVal,LangNrr,SFb,false);
+//        GetFieldArgument(Docr,F_APRIS,tstr);
+        if (nonblank(tstr)) then begin
+          t = Round(IVrw.Price,SetRoundModeD(StringToInt(tstr)));
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,false);
+        end else begin
+          if (RoundRec.Discount==0) then begin
+            t = Round(IVrw.Price,SetRoundModeD(3));
+          end else begin
+            t = Round(IVrw.Price,DefaultRoundMode);
+          end;
+          Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_APRIS",t,M423Val,LangNrr,SFb,false);
+        end;  
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,false);
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_RABATT",IVrw.vRebate,M4Val,LangNrr,SFb,false);
+      case kInvoiceRowTypeStructuredItemComponent:
+        goto LkInvoiceRowTypeNormal1;
+      case kInvoiceRowTypeNormal:
+LkInvoiceRowTypeNormal1:;
+        totweight = totweight + IVrw.Quant*INr.Weight;
+        totnetweight = totnetweight + IVrw.Quant*INr.NetWeight;
+        totvolume = totvolume + IVrw.Quant*INr.Volume;
+        totqty = totqty + IVrw.Quant;
+        if (MSb.UnitConvCalc==0) then begin
+          totqty2 = totqty2 + IVrw.Coefficient*IVrw.Quant;
+        end else begin
+          totqty2 = totqty2 + IVrw.Quant/IVrw.Coefficient;
+        end;
+      case kInvoiceRowTypeCorrection:
+        totweight = totweight - IVrw.Quant*INr.Weight;
+        totnetweight = totnetweight - IVrw.Quant*INr.NetWeight;
+        totvolume = totvolume - IVrw.Quant*INr.Volume;
+        totqty = totqty - IVrw.Quant;
+        if (MSb.UnitConvCalc==0) then begin
+          totqty2 = totqty2 - IVrw.Coefficient*IVrw.Quant;
+        end else begin
+          totqty2 = totqty2 - IVrw.Quant/IVrw.Coefficient;
+        end;
+    end;
+    totfifo = totfifo + IVrw.FIFORowVal;
+    InvVat(1,IVr.InclVAT,IVr.NoTAXonVAT,IVr.ExportFlag,IVrw.VATCode,IVrw.Sum,vatprc,vatval,vatexclprc,vatinclprc,rowtax);
+    switch (IVrw.stp) begin
+      case kInvoiceRowTypeStructuredItemComponent:
+        goto LkInvoiceRowTypeNormal2;
+      case kInvoiceRowTypeNormal:
+LkInvoiceRowTypeNormal2:;      
+        PrintInvoiceRow_1(vVals,strnum,MSb,INr,IVrw,i,vatprc,vatval,vatexclprc,vatinclprc,rowtax,printedrownr,
+                          RepSpec,IVr,Docr,RoundRec,LangNrr,SFb,totdiscount,totcombase2sum,totcombase2vat,negamountf);
+        switch (VATType(IVrw.VATCode)) begin
+          case kVATTypeNormalWithInternalTaxes:
+            totnormwinttax = totnormwinttax + rowtax;
+          case kVATTypeNormalWithVATPerceptions:
+            totnormwithvatprc = totnormwithvatprc + rowtax;
+        end;
+      case kInvoiceRowTypeVoid:
+        IVrw.Quant = -IVrw.Quant;
+        vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(1216);
+        PrintInvoiceRow_1(vVals,strnum,MSb,INr,IVrw,i,vatprc,vatval,vatexclprc,vatinclprc,rowtax,printedrownr,
+                          RepSpec,IVr,Docr,RoundRec,LangNrr,SFb,totdiscount,totcombase2sum,totcombase2vat,negamountf);
+      case kInvoiceRowTypeCorrection:
+        PrintInvoiceRow_1(vVals,strnum,MSb,INr,IVrw,i,vatprc,vatval,vatexclprc,vatinclprc,rowtax,printedrownr,
+                          RepSpec,IVr,Docr,RoundRec,LangNrr,SFb,totdiscount,totcombase2sum,totcombase2vat,negamountf);
+        switch (VATType(IVrw.VATCode)) begin
+          case kVATTypeNormalWithInternalTaxes:
+            totnormwinttax = totnormwinttax - rowtax;
+          case kVATTypeNormalWithVATPerceptions:
+            totnormwithvatprc = totnormwithvatprc - rowtax;
+        end;
+      case kInvoiceRowTypeDebit:
+        goto  LLPrintInvoiceRows;   
+      case kInvoiceRowTypeCredit:
+LLPrintInvoiceRows:;
+        if (IVrw.OrdRow!=-1) then begin
+          tstr = IVrw.Spec & CreateInvoiceNumber(IVrw.OrdRow,IVrw.CredOfficialSerNr);
+          vVals["ROW_" & strnum & "_F_BESKRIVNING"] = tstr;
+          tstr = USetStr(1807) & CreateInvoiceNumber(IVrw.OrdRow,IVrw.CredOfficialSerNr);
+          vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = tstr;
+//          tstr = USetStr(1807) & CreateInvoiceNumber2(IVrw.OrdRow);
+//          vVals["F_ARGINVNUMBER3"] = tstr;
+        end;
+      case kInvoiceRowTypeInterest:
+        PrintInvoiceRow_4(vVals,strnum,MSb,INr,IVrw,vatprc,vatval,vatexclprc,vatinclprc,rowtax,printedrownr,
+                          RepSpec,IVr,Docr,RoundRec,LangNrr,SFb,negamountf);
+
+      case kInvoiceRowTypeDownpayment:
+        PrintInvoiceRow_5(vVals,strnum,IVrw,INr,vatprc,vatval,vatexclprc,vatinclprc,rowtax,printedrownr,
+                          RepSpec,IVr,Docr,RoundRec,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypePrepayment:
+        if (HasLocalization("RUS,UKR")==false) then begin
+          if (HasLocalization("POL")==false) then begin
+            vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+          end;
+          Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",-IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+          vVals["ROW_" & strnum & "_F_PREPAYNR"] = IVrw.CUPNr;
+          ARHistr.CUPNr = IVrw.CUPNr;
+          ARHistr.FileName = "IPVc";
+          if (ReadFirstMain(ARHistr,2,true)==false) then begin 
+            ARHistr.CUPNr = IVrw.CUPNr;
+            ARHistr.FileName = "CLInVc";
+            if (ReadFirstMain(ARHistr,2,true)==false) then begin end;
+          end;
+          vVals["ROW_" & strnum & "_F_PREPAYDATE"] = ARHistr.TransDate;          
+        end else begin
+          endformrowf = false;
+        end;
+      case kInvoiceRowTypeLoan:
+        vVals["ROW_" & strnum & "_F_SALESACC"] = IVrw.SalesAcc;
+        if (nonblank(IVrw.RvrsVATCode)) then begin
+          vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.RvrsVATCode;
+        end else begin
+          vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.VATCode;
+        end;
+        vVals["ROW_" & strnum & "_F_ROWOBJECT"] = IVrw.Objects;
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFVAT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFNOVAT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+        vVals["ROW_" & strnum & "_F_BESKRIVNING"] = USetStr(8080);
+      case kInvoiceRowTypeLoanInterest:
+        vVals["ROW_" & strnum & "_F_SALESACC"] = IVrw.SalesAcc;
+        if (nonblank(IVrw.RvrsVATCode)) then begin
+          vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.RvrsVATCode;
+        end else begin
+          vVals["ROW_" & strnum & "_F_MOMSKOD"] = IVrw.VATCode;
+        end;
+        vVals["ROW_" & strnum & "_F_ROWOBJECT"] = IVrw.Objects;
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFVAT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOTIFNOVAT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_ROWTOT",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+        vVals["ROW_" & strnum & "_F_BESKRIVNING"] = USetStr(8081);
+      case kInvoiceRowTypeSubtotal:
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,false);
+        Ext_PrintValueInclZero(vVals,"ROW_" & strnum & "_F_SUBTOTALAMOUNT",IVrw.Sum,M4Val,LangNrr,SFb,false);
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+//        OutFormImage(dummyINr);
+//        EndFormRow;
+//        OutFormImage(dummyINr);
+      case kInvoiceRowTypeGiftVoucherSold:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeGiftVoucherPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeLoyaltyPointsPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeCashPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeCreditCardPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeSwishPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeQRPayment:
+        endformrowf = PrintInvoiceRow_Payments(vVals,strnum,IVrw,LangNrr,SFb,negamountf);
+      case kInvoiceRowTypeHeader:
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec;
+//        OutFormImage(dummyINr);
+//        EndFormRow;
+/*
+      case kInvoiceRowTypePreviousDownpayment:
+        Ext_PrintValue(vVals,"F_APRIS",IVrw.Price,M4Val,LangNrr,SFb,negamountf);
+        Ext_PrintValueInclZero(vVals,"F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,false);
+*/        
+//        OutFormImage(dummyINr);
+      case kInvoiceRowTypePerceptionTax:
+        vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(8108);
+        vVals["ROW_" & strnum & "_F_REGIONROW"] = IVrw.CuAccCode;
+        Regionr.Code = IVrw.CuAccCode;
+        ReadFirstMain(Regionr,1,true);
+        vVals["ROW_" & strnum & "_F_REGIONNAMEROW"] = Regionr.Name;
+        vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec; 
+        vVals["ROW_" & strnum & "_F_SALESACC"] = IVrw.SalesAcc;
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_TAX2PRC",IVrw.TAX2Prc,M4Val,LangNrr,SFb,negamountf);          
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);        
+      case kInvoiceRowTypeWithholdingTax:
+        vVals["ROW_" & strnum & "_F_ROWNAME"] = USetStr(13875);
+        vVals["ROW_" & strnum & "_F_REGIONROW"] = IVrw.WHTax;
+        if (blank(IVrw.Spec)) then begin
+          vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = USetStr(13875) & " " & IVrw.WHTax ; 
+        end else begin
+          vVals["ROW_" & strnum & "_F_SPECIFIKATION"] = IVrw.Spec; 
+        end;
+        if (HasLocalization("ITA,PRT")) then begin
+          tstr = ValToString(IVrw.TAX2Prc,M4Val,SFb.thousSep,SFb.decimalPt,0) & "%";
+          vVals["ROW_" & strnum & "_F_TAX2PRC"] = tstr;
+        end else begin
+          Ext_PrintValue(vVals,"ROW_" & strnum & "_F_TAX2PRC",IVrw.TAX2Prc,M4Val,LangNrr,SFb,negamountf);          
+        end;
+        Ext_PrintValue(vVals,"ROW_" & strnum & "_F_BELOPP",IVrw.Sum,M4Val,LangNrr,SFb,negamountf);        
+        totwithh = totwithh + IVrw.Sum;
+    end;
+//    if (nonblank(INr.Code)) then begin
+//      OutFormImage(INr);
+//    end;
+    if (endformrowf) then begin
+      //EndFormRow;
+    end;
+    end;
+  end;
+  RETURN;
+END;
+
+procedure RebVal(record IVVc ivrp,record RoundBlock RoundRec,Integer base,var string res)
+BEGIN
+  val tv,t100;
+  record AccBlock atr;
+  
+  res = "";
+  BlockLoad(atr);
+  if (ivrp.pdvrebt!=0) then begin
+    t100 = 100;
+    if (atr.DiscCashVAT!=0) then begin
+      tv = t100 - ivrp.pdvrebt;
+      tv = tv*ivrp.Sum1;
+      tv = tv/100;
+      tv = Round(tv,GetTotalRoundMode(RoundRec));
+      tv = ivrp.Sum1 - tv;
+    end else begin
+      tv = t100 - ivrp.pdvrebt;
+      tv = tv*ivrp.Sum4;
+      tv = tv/100;
+      tv = Round(tv,GetTotalRoundMode(RoundRec));
+      tv = ivrp.Sum4 - tv;
+    end;
+    switch (base) begin
+      case 0: 
+      case 1: tv = MulRateToBase1(ivrp.CurncyCode,tv,ivrp.FrRate,ivrp.ToRateB1,ivrp.ToRateB2,ivrp.BaseRate1,ivrp.BaseRate2,DefaultCurRoundOff);
+      case 2: tv = MulRateToBase2(ivrp.CurncyCode,tv,ivrp.FrRate,ivrp.ToRateB1,ivrp.ToRateB2,ivrp.BaseRate1,ivrp.BaseRate2,DefaultCurRoundOff);
+    end;
+    res = tv;
+  end;
+  RETURN;
+END;
+
+procedure RebVAT(record IVVc ivrp,record RoundBlock RoundRec,var val res)
+BEGIN
+  val tv,t100;
+  record AccBlock ARAccb;
+  
+  BlockLoad(ARAccb);
+  res = BlankVal;
+  if (ivrp.pdvrebt!=0) then begin
+    t100 = 100;
+    tv = t100 - ivrp.pdvrebt;
+    tv = tv*ivrp.Sum3;
+    tv = tv/100;
+    tv = Round(tv,GetTotalRoundMode(RoundRec));
+    res = tv;
+  end else begin
+    res = ivrp.Sum3;
+  end;
+  RETURN;
+END;
+
+procedure RebVAT2(record IVVc ivrp,record RoundBlock RoundRec,var val res)
+BEGIN
+  if (ivrp.pdvrebt!=0) then begin
+    RebVAT(ivrp,RoundRec,res);
+    res = ivrp.Sum3-res;
+  end else begin
+    res = 0;
+  end;
+  RETURN;
+END;
+
+procedure PrintInstallment(var vector string vVals,record IVVc IVp,Integer type)
+BEGIN
+  record InstallmentVc Intr;
+  row InstallmentVc Insrw;
+  record PDVc PDr;
+  record PDVc crPDr;
+  string 20 linstcode;
+  record IVVc origIVr;
+  Date tdr,tdp,lasttdr;
+  Integer rwcnt,i;
+  record JobVc Jobr;  
+  val totsumcur,totsumb1,rval,bookrval,sum,t;
+  
+//similar code to IVCalcInstallment
+  PDr.Code = IVp.PayDeal;
+  if (GetPD(PDr)) then begin
+    linstcode = PDr.Installment;
+    if (IVp.InvType==kInvoiceTypeCredit or IVp.InvType==kInvoiceTypeCreditSpecialSales) then begin
+      origIVr.SerNr = IVp.CredInv;
+      if (ReadFirstMain(origIVr,1,true)) then begin 
+        crPDr.Code = origIVr.PayDeal;
+        if (GetPD(crPDr)) then begin    
+          linstcode = crPDr.Installment;
+        end;
+      end;
+    end;
+
+    lasttdr = IVp.InvDate;
+    Intr.Code = linstcode;
+    if (ReadFirstMain(Intr,1,true)) then begin
+
+      rwcnt = MatRowCnt(Intr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(Intr,i,Insrw);
+        switch (Insrw.Type) begin
+          case 0: 
+          case 1: 
+            tdr = lasttdr;
+          case 2:
+            tdr = tdp;
+            if (IVp.JobNr>0) then begin
+              Jobr.SerNr = IVp.JobNr;
+              if (ReadFirstMain(Jobr,1,true)) then begin
+                tdr = Jobr.TransDate;
+              end;
+            end;
+        end;
+        if (Insrw.Months!=-1) then begin
+          tdr = AddMonth(tdr,Insrw.Months);
+        end;
+        if (Insrw.Days!=-1) then begin
+          tdr = AddDay(tdr,Insrw.Days);
+        end;
+        if (tdr<IVp.InvDate) then begin
+          tdr = lasttdr;
+        end;
+        lasttdr = tdr;
+
+        if (i==(rwcnt-1)) then begin
+          rval = Round(IVp.Sum4 - totsumcur,SetRoundModeD(2));
+          sum = MulRateToBase1(IVp.CurncyCode,IVp.Sum4,IVp.FrRate,IVp.ToRateB1,IVp.ToRateB2,IVp.BaseRate1,IVp.BaseRate2,DefaultCurRoundOff);
+          bookrval = Round(sum - totsumb1,SetRoundModeD(2));
+        end else begin
+          PUCalcPerc(IVp.Sum4,Insrw.Prc,t);
+          rval = Round(t,SetRoundModeD(2));
+          sum = MulRateToBase1(IVp.CurncyCode,IVp.Sum4,IVp.FrRate,IVp.ToRateB1,IVp.ToRateB2,IVp.BaseRate1,IVp.BaseRate2,DefaultCurRoundOff);
+          PUCalcPerc(sum,Insrw.Prc,t);
+          bookrval = Round(t,SetRoundModeD(2));
+        end;
+
+        totsumcur = totsumcur + rval;
+        totsumb1 = totsumb1 + bookrval;
+
+        switch (type) begin
+          case 1:
+            vVals["F_INSTALLMENTDATE"] = tdr;
+          case 2:
+            vVals["F_INSTALLMENTSUM"] = rval;
+        end;
+      end;
+    end;
+  end;
+  RETURN;
+END;
+
+procedure CCSlipPrintNote(var vector string vVals,string formfield,record NotepadVc Noter)
+BEGIN
+  Integer i,rwcnt;
+  string 255 tstr;
+  
+  rwcnt = LineTextCnt(Noter);
+  for (i=0;i<rwcnt;i=i+1) begin
+    tstr = LineTextGet(Noter,i);
+    vVals[formfield] = tstr;    
+  end;  
+  RETURN;
+END;
+
+procedure CCSlipNotePrintNote(var vector string vVals,string formfield,record IVVc IVr,string argumentstr)
+begin
+  record CouponVc Couponr;
+  record NotepadVc Noter;
+  record RLinkVc RLr;
+  Integer notenr;
+  Boolean found;
+
+  Couponr.IVNr = IVr.SerNr;
+  Couponr.OriginType = 0;
+  found = true;
+  while (LoopKey("OriginType",Couponr,2,found)) begin
+    if (Couponr.IVNr!=IVr.SerNr) then begin found = false; end;
+    if (Couponr.OriginType!=0) then begin found = false; end;
+    if (found) then begin
+      notenr = 1;
+      while (ReadRecordLink(Couponr,notenr,Noter,RLr)) begin
+        if ((argumentstr==Noter.Classification) or (blank(argumentstr))) then begin
+          CCSlipPrintNote(vVals,formfield,Noter);
+          goto LCCSlipNotePrintNote;
+        end;
+        notenr = notenr + 1;
+      end;
+    end;
+LCCSlipNotePrintNote:;  
+  end;
+  return;
+end;
+
+procedure IVPrintNote(var vector string vVals,record IVVc IVr,string argumentstr)
+BEGIN
+  record NotepadVc Noter;
+  record RLinkVc RLr;
+  Integer notenr;
+
+  notenr = 1;
+  while (ReadRecordLink(IVr,notenr,Noter,RLr)) begin
+    if ((argumentstr==RLr.Comment) or (blank(argumentstr))) then begin
+      Ext_PrintNote(vVals,Noter);
+      goto LIVPrintNote;
+    end;
+    notenr = notenr + 1;
+  end;
+LIVPrintNote:;  
+  RETURN;
+END;
+
+procedure PrintCuAccNo(var vector string vVals,record IVVc IVr)
+BEGIN
+  row IVVc IVrw;
+  Integer i,rwcnt;
+
+  rwcnt = MatRowCnt(IVr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(IVr,i,IVrw);
+    if ((IVrw.stp==7) or (IVrw.stp==8)) then begin
+      if (nonblank(IVrw.CuAccCode)) then begin
+        vVals["F_CUACCNO"] = IVrw.CuAccCode;  
+        goto LPrintCuAccNo;
+      end;
+    end;
+  end;      
+LPrintCuAccNo:;  
+  RETURN;        
+END;
+
+function val GetRowSum(row IVVc IVrw)
+begin
+  val res;
+  
+  switch (IVrw.stp) begin
+    case kInvoiceRowTypeSubtotal: ;
+  otherwise 
+    res = IVrw.Sum;
+  end;
+  GetRowSum = res;
+  return;
+end;
+
+procedure RemoveHiddenLines(var record IVVc IVr)
+begin
+  row IVVc IVrw;
+  integer i,rowcnt;
+  longint delcnt;
+  boolean foundf;
+  
+  rowcnt = MatRowCnt(IVr);
+  while (true) begin
+    if (foundf==false) then begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.stp==kInvoiceRowTypeHidden) then begin
+        foundf = true;
+        delcnt = rowcnt-i;
+      end else begin
+        i = i+1;
+        if (i==rowcnt) then begin
+          goto LRemoveHiddenLines;
+        end;
+      end;
+    end else begin
+      MatRowDelete(IVr,i);
+      delcnt = delcnt-1;
+    end;
+    if (delcnt==0) then begin
+      goto LRemoveHiddenLines;
+    end;
+  end;
+  
+LRemoveHiddenLines:;
+  return;
+end;
+
+procedure MoveGroupToBottom(var record IVVc IVr,string GroupToMove)
+begin
+  row IVVc IVrw;
+  integer i, insertix;
+  boolean foundf;
+  
+  insertix = MatRowCnt(IVr);
+  i = insertix-1;
+  while (i>=0) begin
+    MatRowGet(IVr,i,IVrw);
+    if ((IVrw.Comment==GroupToMove) and (i==insertix-1)) then begin //Group already at bottom. Don't continue
+      i = -1;
+    end else begin
+      if (IVrw.Comment==GroupToMove) then begin
+        MatRowInsert(IVr,insertix,IVrw);
+        MatRowDelete(IVr,i);
+        insertix = insertix-1;
+        foundf = true;
+      end;
+      if ((foundf==true) and (IVrw.Comment<>GroupToMove)) then begin //Finished with group section? Don't continue.
+        i = -1;
+      end else begin
+        i = i-1;
+      end;
+    end;
+  end;
+  
+  return;
+end;
+
+procedure DoAddGroupSubTotals(var record IVVc IVr,string group,string desc,string sysgroup,var integer ix)
+begin
+  row IVVc IVrw;
+  
+  if (group==sysgroup) then begin
+    goto LDoAddGroupSubTotals;
+  end;
+  ClearRow(IVr,IVrw,kInvoiceRowTypeHeader); //Add empty row
+  IVrw.Comment = group;
+  MatRowInsert(IVr,ix,IVrw);
+  ClearRow(IVr,IVrw,kInvoiceRowTypeSubtotal); //Add sub total row
+  IVrw.Comment = group;
+  IVrw.Spec = USetStr(16094) & ": " & desc;
+  MatRowInsert(IVr,ix,IVrw);
+  ix = ix+2;
+LDoAddGroupSubTotals:;
+  return;
+end;
+
+procedure AddGroupSubTotals(var record IVVc IVr,string sysgroup)
+begin
+  integer i;
+  row IVVc IVrw,NewIVrw;
+  string 255 group,desc;
+  
+  for (i=0;i<MatRowCnt(IVr);i=i+1) begin
+    MatRowGet(IVr,i,IVrw);
+    //Have we reached a new group? If so, add sub total to previous group
+    if (group<>IVrw.Comment) then begin
+      if nonblank(group) then begin
+        DoAddGroupSubTotals(IVr,group,desc,sysgroup,i);
+      end;
+      desc = IVrw.Spec;
+    end;
+    group = IVrw.Comment;
+  end;
+  DoAddGroupSubTotals(IVr,group,desc,sysgroup,i); //Add sub total for last group
+  RecalcIVSubtotal(IVr);
+  return;
+end;
+
+procedure SortByGroup(var record IVVc IVr)
+begin
+  record ITVc ITr;
+  record INVc INr;
+  row IVVc IVrw,GroupIVrw;
+  longint insertix;
+  integer i,rowcnt,rowstomove;
+  string 255 group,desc,othergroup,systemgroup;
+
+  othergroup = USetStr(14306);
+  systemgroup = USetStr(16235);
+  RemoveHiddenLines(IVr);
+  rowstomove = MatRowCnt(IVr);
+  while (rowstomove>0) begin
+    MatRowGet(IVr,MatRowCnt(IVr)-1,IVrw);      
+    //Get the relevant item group
+    if ((IVrw.stp==kInvoiceRowTypeSubtotal) or (IVrw.stp==kInvoiceRowTypeHeader)) then begin          
+      group = "";
+    end else begin
+      if (IVrw.stp==kInvoiceRowTypeNormal) then begin
+        ITr.Code = "";
+        if (ReadFirstItem(IVrw.ArtCode,INr,false,false)) then begin
+          ITr.Code = INr.Group;
+          if (ReadFirstMain(ITr,1,true)==false) then begin
+            ITr.Code = "";
+          end else begin
+            group = INr.Group;
+            desc = ITr.Comment;
+          end;
+        end;
+        if blank(ITr.Code) then begin
+          group = othergroup;
+          desc = othergroup;
+        end;
+      end else begin            
+        group = systemgroup; //Used to group rows that must be listed seperately, at the end of the invoice
+        desc = "";
+      end;
+    end;
+    //Move row to correct group
+    if blank(group) then begin
+      MatRowDelete(IVr,MatRowCnt(IVr)-1);
+    end else begin
+      IVrw.Comment = group;
+      rowcnt = MatRowCnt(IVr);
+      for (i=0;i<(rowcnt-rowstomove);i=i+1) begin
+        MatRowGet(IVr,i,GroupIVrw);
+        if (GroupIVrw.Comment==group) then begin
+          insertix = i+1;
+          goto LMoveRowToGroup;
+        end;
+      end;          
+      ClearRow(IVr,GroupIVrw,kInvoiceRowTypeHeader);
+      GroupIVrw.Comment = group;
+      GroupIVrw.Spec = desc;
+      MatRowInsert(IVr,0,GroupIVrw);
+      insertix = 1;
+LMoveRowToGroup:;
+      MatRowInsert(IVr,insertix,IVrw);
+      MatRowDelete(IVr,MatRowCnt(IVr)-1);
+      rowstomove = rowstomove-1;
+    end;
+  end;
+  MoveGroupToBottom(IVr,othergroup);  //Will be 2nd last group
+  MoveGroupToBottom(IVr,systemgroup); //Will be last group
+  AddGroupSubTotals(IVr,systemgroup); //Create sub totals, ignore 'System' group
+  return;
+end;
+
+function string 255 FindDeliveriesOfficialSerNr(record IVVc IVr,record ORVc ORr)
+begin
+  string 255 res;
+  Integer i,rwcnt;
+  record OrdSettBlock OSb;
+  record SHVc SHr;
+  row SHVc SHrw;
+  Integer shrow,shrwcnt;
+  row IVVc IVrw;
+  Boolean found,testf;
+    
+  BlockLoad(OSb);
+  if (OSb.IVBasedOnSH!=0) and (IVr.OrderNr>0) then begin
+    rwcnt = MatRowCnt(IVr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(IVr,i,IVrw);
+      if (IVrw.OrdRow>=0) then begin
+        ResetLoop(SHr);
+        SHr.OrderNr = IVr.OrderNr;
+        while (LoopKey("OrderKey",SHr,1,found)) begin
+          if (SHr.OrderNr!=IVr.OrderNr) then begin found = false; end;
+          if (found) then begin
+            testf = true;
+            if (SHr.OKFlag==0) then begin testf = false; end;
+            if (testf) then begin
+              shrwcnt = MatRowCnt(SHr);
+              for (shrow=0;shrow<shrwcnt;shrow=shrow+1) begin
+                MatRowGet(SHr,shrow,SHrw);
+                if (SHrw.OrdRow==IVrw.OrdRow) then begin
+                  res = AddObjectToObjectList(res,SHr.OfficialSerNr);        
+                  found = false;
+                  shrow = shrwcnt;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  FindDeliveriesOfficialSerNr = res;
+  return;
+end;
+
+function string 255 EncodeCAEBarcode(string barcode)
+begin
+  string 255 res,tstr,tstr2;
+  Integer i,l,c;
+  
+  tstr = barcode;
+  l = Len(tstr);
+  if (Mod(l,2)==1) then begin
+    tstr = "0" & tstr;
+    l = l + 1;
+  end;
+  
+  res = "?";
+  for (i=0;i<l;i=i+2) begin
+    tstr2 = Mid(tstr,i,2);
+    c = StringToInt(tstr2);
+    res = res & Chr(c + 33);
+  end;
+  res = res & "?";
+  
+  EncodeCAEBarcode = res;
+end;
+
+function string 255 CAEBarcode(Integer InvType,string OfficialSerNr,string CAE,Date CAEExpiry)
+begin
+  string 255 res;
+  string 255 branch,type,docnrstart,docnrend;
+  record CYBlock CYb;
+  Integer i;
+  LongInt s1,s2;
+  
+  BlockLoad(CYb);
+  GetWORMDocumentInfo(InvType,OfficialSerNr,type,branch,docnrstart,docnrend);
+  res = StripNonDigits(CYb.VATNr) & type & branch & CAE & DateToString(CAEExpiry,"YYYYMMDD");
+  s1 = 0;
+  for (i=1;i<len(res);i=i+2) begin
+    s1 = s1 + (asc(Mid(res,i,1))-48);
+  end;
+  s2 = 0;
+  for (i=0;i<len(res);i=i+2) begin
+    s2 = s2 + (asc(Mid(res,i,1))-48);
+  end;
+  s1 = s1 + s2;
+  s1 = MOD(s1,10);
+  s2 = 10 - s1;
+  if (s2==10) then begin s2 = 0; end;
+  res = res & s2;
+  CAEBarcode = res;
+  return;
+end;
+
+function Boolean HasSplitPaymentItem(record IVVc IVr)
+begin
+  row IVVc IVrw;
+  Integer i,rwcnt;
+  record AccBlock Accb;
+  Boolean res;
+  val sumb1;
+  record INVc INr;
+  record ITVc ITr;
+
+  res = false;
+  BlockLoad(Accb);
+  if (Accb.SplitVATMinTotal>0) then begin
+    sumb1 = MulRateToBase1(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    if (sumb1>=Accb.SplitVATMinTotal) then begin
+      rwcnt = MatRowCnt(IVr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(IVr,i,IVrw);
+        if ((IVrw.stp==kInvoiceRowTypeNormal or IVrw.stp==kInvoiceRowTypeStructuredItemComponent) and IVrw.ovst==0) then begin
+          INr.Code = IVrw.ArtCode;
+          if (ReadFirstMain(INr,1,true)) then begin
+            if (INr.SplitPayment!=0) then begin
+              res = true;
+              i = rwcnt;
+            end;
+            if (!res) then begin
+              ITr.Code = INr.Group;
+              if (ReadFirstMain(ITr,1,true)) then begin
+                if (ITr.SplitPayment!=0) then begin
+                  res = true;
+                  i = rwcnt;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  
+  HasSplitPaymentItem = res;
+  return;
+end;
+
+global
+procedure ExternalPrintInvoiceForm(record IVVc IVr,var vector string vVals)
+BEGIN
+  record SysFormatBlock SysFormatRec;
+  record LangNrVc LangNrr;
+  record CUVc CUr;
+  record LocationVc Locr;
+  record CUVc InvoiceToCUr;
+  record CUVc OrderingCUr;
+  record CUVc VEr;
+  record PRVc PRr;
+  record ORVc ORr;
+  record SHVc lastSHr;
+  record IIBlock IIRec;
+  record DocVc Docr;
+  row IVVc IVrw;
+  Integer i,rwcnt,rwcnt2;
+  Integer tmp;
+  string 255 tstr,tstr1;
+  val v,t,t1,t2,t3,t4;
+  val totinprice,totweight,totnetweight,totvolume,totcombase2sum,totqty,totqty2,totfifo,totcombase2vat,totwithh,totnormwinttax,totnormwithvatprc;
+  val totdiscount;
+  Date td;
+  record RoundBlock RoundRec; 
+  Integer valtyp; 
+  record JobVc Jobr;
+  record CUVc CUContactr;
+  record AccBlock ARAccRec;
+  Boolean negamountf,found,limitdaysf,testf;
+  record IVVc orgIVr;
+  Integer pages;
+  record OffSerNrIVVc OffSNIVr;  
+  record BankVc Bankr;
+  row LegalInvNrBlock LINrbrw;
+  Area orgchaina;
+  LongInt al,posa;
+  record IVVc NewIVr;
+  val PointsSpent;
+  record BrazilEInvTypeVc EInvTyper;
+  record StandProblemVc SPr;
+  record CYBlock CYb;
+  boolean tstr3;
+  string 60 VatNr,MOOfficialSerNr,Disc;
+  string 255 importval,impvalb1,impvalb2;
+  val importvalb1,importvalb2;
+  record CountryVc Countryr;
+  record CUVc ContactCUr;
+  record UserVc Userr;
+  record RcVc RepSpec;//Dummy RepSpec
+
+  BlockLoad(CYb);
+  if (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales or IVr.InvType==kInvoiceTypeDebit or IVr.InvType==kInvoiceTypeInterest) then begin
+    if (IVr.CredInv>0) then begin
+      orgIVr.SerNr = IVr.CredInv;
+      if (ReadFirstMain(orgIVr,1,true)) then begin
+      end;
+    end;
+  end;
+  BlockLoad(RoundRec);
+  BlockLoad(SysFormatRec);  
+  BlockLoad(ARAccRec);
+  negamountf = (ARAccRec.PrintNegAmountsCredNote!=0 and (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales));
+  GetLangNr(IVr.LangCode,LangNrr);
+  Ext_CommonDocumentFields(vVals);    
+  Ext_CommonDocumentFields2(vVals,IVr.BankCode);    
+  Locr.Code = IVr.Location;
+  if (ReadFirstMain(Locr,1,true)) then begin
+  end;
+  CUr.Code = IVr.CustCode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+  end;
+  PRr.Code = IVr.PRCode;
+  if (ReadFirstMain(PRr,1,true)) then begin
+  end;
+  ORr.SerNr = IVr.OrderNr;
+  if (ReadFirstMain(ORr,1,true)) then begin
+  end;
+  if (nonblank(IVr.OrgCust)) then begin
+    OrderingCUr.Code = IVr.OrgCust;
+    ReadFirstMain(OrderingCUr,1,true);
+  end;
+  if (ORr.SerNr>0) then begin
+    lastSHr.OrderNr = ORr.SerNr;
+    lastSHr.SerNr = 2147483647;
+    if (ReadLastKey("OrderKey",lastSHr,2,false)) then begin
+      if (lastSHr.OrderNr!=ORr.SerNr) then begin
+        RecordClear(lastSHr);
+      end;
+    end;
+  end else begin
+    RecordClear(lastSHr);
+  end;
+  if (HasLocalization("PRT") and (CUr.CustType==1)) then begin    
+    vVals["F_CUSTTYPE"] = USetStr(23361);
+  end;
+  tstr = "";
+  switch (CYb.VATIndicator) begin
+    case kVATIndicatorInvoice:
+      switch (CUr.CustType) begin
+        case 0:  tstr = "R1";
+        case 1:  tstr = "";
+      end;
+    case kVATIndicatorReceipt:
+      switch (CUr.CustType) begin
+        case 0:  tstr = "R2";
+        case 1:  tstr = "";
+      end;
+  end;
+  vVals["F_VATINDICATOR"] = tstr;
+  
+  
+  if (IVr.Prntdf==0) then begin
+    vVals["F_COPYTYPE"] = USetStr(18630);
+  end else begin
+    vVals["F_COPYTYPE"] = USetStr(18631);
+  end;
+    if (ORr.SerNr>0) then begin
+      vVals["F_ORDEROFFICIALSERNO"] = ORr.OfficialSerNr;
+    end;
+  if (IVr.Prntdf!=0) then begin
+    if (IVr.OKFlag!=0) then begin
+      vVals["F_DUPLICATE"] = USetStr(18632) & " " & CurrentDate;
+    end;
+  end;
+  
+  vVals["F_TRANSPORTNR"] = lastSHr.TransportNumber;
+  tstr = FindDeliveriesOfficialSerNr(IVr,ORr);
+  if (blank(tstr)) then begin
+    if (lastSHr.SerNr>0) then begin
+      vVals["F_DELIVERYOFFICIALSERNO"] = lastSHr.OfficialSerNr;
+    end;
+  end else begin
+      vVals["F_DELIVERYOFFICIALSERNO"] = tstr;
+  end;
+
+  vVals["F_FISCALDEVICESEQNO"] = IVr.FiscalDeviceSeqNr;   
+  if (IVr.VINr>0)  then begin
+    vVals["F_PURCHINVNO"] = IVr.VINr;
+  end;
+  vVals["F_CROATIANCONTROLCODE"] = MakeCroatianControlCode(IVr.InvDate,IVr.TransTime,IVr.SerNr,IVr.Location,IVr.TerminalID,IVr.Sum4);
+  tstr = IVr.CustCode & "-";
+  tstr = tstr & IVr.SerNr;
+  PrintTAXAuthID(vVals,"F_TAXAUTHID",IVr.TaxAuthID,IVr.SerNr,IVr.TransDate);
+  PrintTAXAuthIDControlCode(vVals,"F_TAXAUTHIDCC",IVr);
+  vVals["F_PRINTDATE"] = IVr.PrintDate;
+  PrintTAXAuthIDToDate(vVals,"F_TAXAUTHIDTODATE",IVr);
+  vVals["F_REFSTR"] = IVr.RefStr;
+  if (nonblank(IVr.OfficialSerNr)) then begin
+    GetLegalInvNrRow(IVr.OfficialSerNr,LINrbrw);
+    vVals["F_LEGALINVNOAPPROVALNO"] = LINrbrw.ApprovalNr;
+    vVals["F_LEGALINVNOAPPROVALYEAR"] = LINrbrw.ApprovalYear;
+    vVals["F_LEGALINVNOCERTIFICATENO"] = LINrbrw.CertificateNr;
+    vVals["F_TAXADMINSERVICECERTIFICATENO"] = IVr.TaxAdminServCertificateNr;
+    vVals["F_TAXADMINSERVICESIGNATURETIMESTAMP"] = IVr.TaxAdminServSignatureTimeStamp;
+    vVals["F_TAXADMINSERVICESEAL"] = IVr.TaxAdminServSeal;
+    vVals["F_TAXADMINSERVICERECEIPTNR"] = IVr.TaxAdminReceiptNr;
+    vVals["F_OFFICIALSERNOSERIE"] = left(IVr.OfficialSerNr,len(LINrbrw.Serie));
+    if (HasLocalization("BOL,HRV,SVN")) then begin
+      vVals["F_OFFICIALSERNOWITHOUTSERIE"] = StringToLongInt(Right(IVr.OfficialSerNr,len(IVr.OfficialSerNr)-len(LINrbrw.Serie)));
+    end else begin
+      vVals["F_OFFICIALSERNOWITHOUTSERIE"] = Right(IVr.OfficialSerNr,len(IVr.OfficialSerNr)-len(LINrbrw.Serie));
+    end;
+  end;  
+  tstr = GetJwl_CustomerName(IVr.CustCode);
+  vVals["F_KUNDNAMNJWL"] = tstr;  
+  vVals["F_SLOVENIANREF"] = tstr; 
+  if (IVr.InclVAT==0) then begin
+    t = IVr.Sum3+IVr.Sum1;
+  end else begin
+    t = IVr.Sum1;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_SUBTOTALWITHVAT",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TAXSUM",IVr.TAX1Sum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TAXSUM2",IVr.TAX2Sum,M4Val,LangNrr,SysFormatRec,negamountf);
+  RussianPaymentNr(IVr.SerNr,tstr);
+  vVals["F_RUSPAYNR"] = tstr;
+  if (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales) then begin
+    tstr = USetStr(1807);
+    tstr = tstr & CreateInvoiceNumber(IVr.CredInv,IVr.CredOfficialSerNr);
+    vVals["F_CREDITEDINVOICENR"] = tstr;
+  end;
+  if (IVr.CredInv!=-1) then begin
+    vVals["F_CREDITEDINVOICEDATE"] = orgIVr.TransDate;
+  end;
+  if (IVr.CredInv!=-1) then begin
+    vVals["F_CREDITEDINVOICEINVDATE"] = orgIVr.InvDate;
+  end;
+  if (IVr.CredInv!=-1) then begin
+    if (nonblankdate(orgIVr.ServiceDelDate)) then begin
+      vVals["F_CREDITEDINVOICESRVDATE"] = orgIVr.ServiceDelDate;
+    end else begin
+      vVals["F_CREDITEDINVOICESRVDATE"] = orgIVr.InvDate;
+    end;
+  end;
+  if (nonblank(IVr.CredOfficialSerNr)) then begin
+    vVals["F_ORGINVOFFICIALSERNO"] = IVr.CredOfficialSerNr;
+  end else begin  
+    vVals["F_ORGINVOFFICIALSERNO"] = orgIVr.OfficialSerNr;
+  end;
+  if (IVr.CredInv!=-1) then begin
+    PrintTAXAuthID(vVals,"F_ORGTAXAUTHID",orgIVr.TaxAuthID,orgIVr.SerNr,orgIVr.TransDate);
+  end;
+  if (IVr.CredInv!=-1) then begin
+    PrintTAXAuthIDControlCode(vVals,"F_ORGTAXAUTHIDCC",orgIVr);
+  end;
+  if (IVr.CredInv!=-1) then begin
+    PrintTAXAuthIDToDate(vVals,"F_ORGTAXAUTHIDTODATE",IVr);
+  end;
+  
+  if (IVr.CredInv!=-1) then begin
+    GetFullCurncyRateText(true,tstr,orgIVr.FrRate,orgIVr.ToRateB1,orgIVr.ToRateB2,orgIVr.BaseRate1,IVr.BaseRate2);
+    vVals["F_ORGRATE"] = tstr;
+  end;
+  if (IVr.CredInv!=-1) then begin
+    GetFullCurncyRateText(false,tstr,orgIVr.FrRate,orgIVr.ToRateB1,orgIVr.ToRateB2,orgIVr.BaseRate1,orgIVr.BaseRate2);
+    vVals["F_ORGBASERATE"] = tstr;
+  end;
+  t = MulRateToBase1(orgIVr.CurncyCode,orgIVr.Sum4,orgIVr.FrRate,orgIVr.ToRateB1,orgIVr.ToRateB2,orgIVr.BaseRate1,orgIVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_ORGBASE1BETALA,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_ORGBASE1BETALA",t,valtyp,LangNrr,SysFormatRec,negamountf);
+//  GetFieldArgument(Docr,F_ORGATTBETALA,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(orgIVr.Sum4,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZero(vVals,"F_ORGINVATTBETALA",t,M45Val,LangNrr,SysFormatRec,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"F_ORGINVATTBETALA",orgIVr.Sum4,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+  
+  if (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales) then begin
+    if (IVr.Sum4<0) then begin
+      Ext_PrintValueInclZero(vVals,"F_TOPAYTOPAYBACK",IVr.Sum4,M4NegVal,LangNrr,SysFormatRec,negamountf);
+    end else begin
+      Ext_PrintValueInclZero(vVals,"F_TOPAYTOPAYBACK",IVr.Sum4,M4Val,LangNrr,SysFormatRec,negamountf);
+    end;
+  end;
+  if (IVr.InvType==kInvoiceTypeCredit or IVr.InvType==kInvoiceTypeCreditSpecialSales) then begin
+    if (IVr.Sum4<0) then begin
+      vVals["F_TOPAYTOPAYBACKTEXT"] = USetStr(2082);
+    end else begin
+      vVals["F_TOPAYTOPAYBACKTEXT"] = USetStr(2083);
+    end;
+  end;
+  if (IVr.InclVAT!=0) then begin
+    vVals["F_PRICETEXT"] = USetStr(2067);
+  end else begin
+    vVals["F_PRICETEXT"] = USetStr(2068);
+  end;
+//  GetFieldArgument(Docr,F_NOTE,tstr);
+  IVPrintNote(vVals,IVr,tstr);
+//  GetFieldArgument(Docr,F_CCSLIPNOTE,tstr);
+  CCSlipNotePrintNote(vVals,"F_CCSLIPNOTE",IVr,tstr);
+//  GetFieldArgument(Docr,F_CCSLIPNOTE2,tstr);
+  CCSlipNotePrintNote(vVals,"F_CCSLIPNOTE2",IVr,tstr);
+
+  Ext_PrintValue(vVals,"F_RECVALUE",IVr.RecValue,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_RETVALUE",IVr.RetValue,M4Val,LangNrr,SysFormatRec,negamountf);
+  PrintPurchVal(vVals,IVr,LangNrr,SysFormatRec);
+  PrintCuAccNo(vVals,IVr);
+  Ext_PrintUserDefinedCustomerFields(vVals,CUr.UserStr1,CUr.UserStr2,CUr.UserStr3,CUr.UserStr4,CUr.UserStr5,CUr.UserDate1,CUr.UserDate2,CUr.UserDate3,CUr.UserVal1,CUr.UserVal2,CUr.UserVal3);
+  GetCountryName(CUr.CountryCode,IVr.LangCode,tstr);
+  vVals["F_COUNTRYNAME"] = tstr;
+  vVals["F_CREDCARD"] = IVr.CreditCard;  
+  GetCreditCardType(IVr.CreditCard,tstr);
+  vVals["F_CREDCARDTYPE"] = tstr;
+  vVals["F_AUTHORIZATION"] = IVr.AuthorizationCode;  
+  vVals["F_PLANSENTDATE"] = IVr.PlanSendDate;
+  vVals["F_PLANSENTTIME"] = IVr.PlanSendTime;
+  vVals["F_PLANARRIVALDATE"] = IVr.PlanArrDate;
+  vVals["F_PLANARRIVALTime"] = IVr.PlanArrTime;
+  vVals["F_DATEDAY"] = GetDay(IVr.TransDate);  
+  vVals["F_DATEMONTH"] = GetMonth(IVr.TransDate);  
+  GetMonthText(IVr.LangCode,IVr.TransDate,tstr);
+  vVals["F_DATEMONTHTEXT"] = tstr;  
+  vVals["F_DATEYEAR"] = GetYear(IVr.TransDate);  
+  GetDateMonthInWords(IVr.TransDate,tstr);
+  vVals["F_DATEMONTHINWORDS"] = tstr;
+  vVals["F_FROMADRESS"] = CUr.Name;        
+  vVals["F_FROMADRESS"] = CUr.InvAddr0;
+  vVals["F_FROMADRESS"] = CUr.InvAddr1;
+  vVals["F_FROMADRESS"] = CUr.InvAddr2;  
+  vVals["F_FROMADRESS"] = CUr.InvAddr3;  
+  vVals["F_FROMADRESS"] = CUr.InvAddr4;  
+  vVals["F_BANKACC"] = CUr.BankAccount;
+  vVals["F_ANACODE"] = CUr.ANACode;
+  Ext_PrintCountryCode(vVals,"F_CUCOUNTRYCODE",CUr.CountryCode)
+  vVals["F_ACCOUNTOPERATOR"] = CUr.AccOperator;
+  Countryr.Code = IVr.InvCountry;
+  ReadFirstMain(Countryr,1,true);
+  vVals["F_COUNTRYISOCODE"] = Countryr.ISOCode;
+  Bankr.Code = CUr.AccOperator;
+  ReadFirstMain(Bankr,1,true);
+  vVals["F_ACCOUNTOPERATORNAME"] = Bankr.Name;
+  vVals["F_BANKCORRPACC"] = Bankr.CorrspAcc;
+  vVals["F_FROMADRESS"] = CUr.CountryCode;  
+  Ext_PrintValue(vVals,"F_AMOUNTWITHOUTDISCSUM",IVr.Sum4-IVr.DiscSum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_DISCSUM",IVr.DiscSum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_DISCPERC",IVr.DiscPerc,M4Val,LangNrr,SysFormatRec,negamountf);
+  vVals["F_PROJEKTNUMMER"] = IVr.PRCode;  
+  vVals["F_PROJECTNAME"] = PRr.Name;  
+  vVals["F_CLASS"] = PRr.PRClass;  
+  vVals["F_LEDARE"] = PRr.Leader;  
+  vVals["F_LEDARE2"] = PRr.Leader2;  
+  vVals["F_LEDARE3"] = PRr.Leader3;  
+  vVals["F_LEDARE4"] = PRr.Leader4;  
+  vVals["F_LEDARE5"] = PRr.Leader5;  
+  vVals["F_NAMN"] = PRr.LeaderName;  
+  vVals["F_NAMN2"] = PRr.Leader2Name;  
+  vVals["F_NAMN3"] = PRr.Leader3Name;  
+  vVals["F_NAMN4"] = PRr.Leader4Name;  
+  vVals["F_NAMN5"] = PRr.Leader5Name;  
+  vVals["F_TOCONTACT"] = PRr.Contact;  
+  PrintInstallment(vVals,IVr,1);
+  PrintInstallment(vVals,IVr,2);
+  vVals["F_COMMENT"] = PRr.Desc0;  
+  vVals["F_COMMENT"] = PRr.Desc1;  
+  vVals["F_COMMENT"] = PRr.Desc2;  
+  vVals["F_PROJECTTEXT"] = PRr.Text0;  
+  vVals["F_PROJECTTEXT"] = PRr.Text1;  
+  vVals["F_PROJECTTEXT"] = PRr.Text2;  
+  vVals["F_PROJECTTEXT"] = PRr.Text3;  
+  vVals["F_PROJECTTEXT"] = PRr.Text4;  
+  vVals["F_PROJECTTEXT"] = PRr.Text5;  
+  vVals["F_PROJECTTEXT"] = PRr.Text6;  
+  vVals["F_PROJECTTEXT"] = PRr.Text7;  
+  vVals["F_PROJECTTEXT"] = PRr.Text8;  
+  vVals["F_PROJECTTEXT"] = PRr.Text9;  
+  vVals["F_TEXT"] = PRr.Text0;  
+  vVals["F_TEXT"] = PRr.Text1;  
+  vVals["F_TEXT"] = PRr.Text2;  
+  vVals["F_TEXT"] = PRr.Text3;  
+  vVals["F_TEXT"] = PRr.Text4;  
+  vVals["F_TEXT"] = PRr.Text5;  
+  vVals["F_TEXT"] = PRr.Text6;  
+  vVals["F_TEXT"] = PRr.Text7;  
+  vVals["F_TEXT"] = PRr.Text8;  
+  vVals["F_TEXT"] = PRr.Text9;  
+  vVals["F_ARGINVNUMBER"] = CreateInvoiceNumber(IVr.SerNr,IVr.OfficialSerNr);  
+  if (nonblank(IVr.OfficialSerNr2)) then begin
+    vVals["F_OFFICIALSERNO"] = IVr.OfficialSerNr2;
+  end else begin
+    vVals["F_OFFICIALSERNO"] = IVr.OfficialSerNr;
+  end;
+  vVals["F_OFFICIALSERNO2"] = IVr.OfficialSerNr2;
+  if (IVr.IPBookVAT!=0) then begin 
+    vVals["F_IPBOOKVAT"] = USetStr(19123);
+  end;
+  found = true;
+  OffSNIVr.IVNr = IVr.SerNr;
+  while (LoopMain(OffSNIVr,1,found)) begin
+    if (OffSNIVr.IVNr!=IVr.SerNr) then begin found = false; end;
+    if (found) then begin
+      vVals["F_OFFICIALSERNOPERPAGE"] = OffSNIVr.OfficialSerNr;
+    end;
+  end;  
+  
+  vVals["F_CAE"] = IVr.CAE;
+  vVals["F_CAEEXPIRY"] = IVr.CAEExpiry;
+  vVals["F_CAEASTARTDATE"] = IVr.CAEAStartDate;
+  vVals["F_CAEAENDDATE"] = IVr.CAEAExpiryDate;
+  vVals["F_CAEBARCODE"] = CAEBarcode(IVr.InvType,IVr.OfficialSerNr,IVr.CAE,IVr.CAEExpiry);
+  vVals["F_CAEBARCODEENCODED"] = CAEBarcode(IVr.InvType,IVr.OfficialSerNr,IVr.CAE,IVr.CAEExpiry);
+  CreateEpsonPVNumber(IVr.SerNr,tstr);
+  vVals["F_EPSONINVNR"] = tstr;
+  if (blank(IVr.VATNr)) then begin
+    tstr = CUr.VATNr;      
+  end else begin
+    tstr = IVr.VATNr;      
+  end; 
+  vVals["F_RFREFERENCE"] = CreateInternationalCreditorReference(IVr.CustCode & IVr.SerNr);
+  vVals["F_ADRESSATT"] = IVr.Addr0;  
+  vVals["F_ADRESSATT"] = IVr.ClientContact;  
+  vVals["F_ADRESSATT"] = IVr.Addr1;  
+  vVals["F_ADRESSATT"] = IVr.Addr2;  
+  vVals["F_ADRESSATT"] = IVr.Addr3;  
+  vVals["F_ADRESSATT"] = IVr.InvAddr3;  
+  vVals["F_ADRESSATT"] = IVr.InvAddr4;
+  t1 = 0;
+  GetFindCustBalance(IVr.CustCode,-1,t1,t,t2,t3,0,0,0,0,0,0,false,limitdaysf);
+  Ext_PrintValue(vVals,"F_SALDO",t+t3,M4Val,LangNrr,SysFormatRec,negamountf);
+  if (blank(IVr.RegNr1)) then begin
+    vVals["F_REGNUMBER1"] = CUr.RegNr1;      
+  end else begin
+    vVals["F_REGNUMBER1"] = IVr.RegNr1;      
+  end;
+  vVals["F_REGNUMBER2"] = CUr.RegNr2;  
+  if (blank(IVr.Phone)) then begin
+    vVals["F_KUNDTEL"] = CUr.Phone;      
+  end else begin
+    vVals["F_KUNDTEL"] = IVr.Phone;      
+  end;      
+  if (blank(IVr.Fax)) then begin
+    vVals["F_KUNDFAX"] = CUr.Fax;      
+  end else begin
+    vVals["F_KUNDFAX"] = IVr.Fax;      
+  end;      
+  vVals["F_CUSTOMEREMAIL"] = CUr.eMail;  
+  vVals["F_MOBILE"] = CUr.Mobile;
+  
+  testf = true;
+  if (testf) then begin
+    if (blank(IVr.VATNr)) then begin
+      vVals["F_KUNDMOMSNR"] = CUr.VATNr;      
+    end else begin
+      vVals["F_KUNDMOMSNR"] = IVr.VATNr;      
+    end;
+  end;      
+
+  Userr.Code = IVr.SalesMan;
+  ReadFirstMain(Userr,1,true);
+  vVals["F_SALJARE"] = IVr.SalesMan;
+  vVals["F_SALJARNAMN"] = Userr.Name;
+  vVals["F_EMAIL"] = Userr.emailAddr;
+  if (HasLocalization("SVN")) then begin
+    ContactCUr.Code = Userr.CustCode;//salesman
+    ReadFirstMain(ContactCUr,1,true);
+
+    tstr1 = SVNIVDigitalSeal(IVr,0);
+    vVals["F_DIGITALSEAL"] = tstr1;
+    
+    tstr = HexStringToDecimalString(tstr1);
+    tstr = tstr & StripNonDigits(ContactCUr.VATNr);//CYb.VATNr
+    tstr = tstr & DateToString(IVr.TransDate,"YYMMDD") & TimeToString(IVr.TransTime,"HHMMSS",false);
+
+    posa = 0;
+    for (i=0;i<len(tstr);i=i+1) begin
+      posa = posa + asc(Mid(tstr,i,1)) - asc("0");  //48;
+    end;  
+    posa = Mod(posa,10);
+    tstr = tstr & posa;
+    
+//    GetFieldArgument(Docr,F_SVNINVOICEBARCODE128,tstr1);
+    tmp = StringToInt(tstr1);
+    if (tmp>0) then begin
+      rwcnt = len(tstr)/tmp;
+      if (rwcnt==3) then begin
+        tstr1 = Mid(tstr,0,20);
+        vVals["F_SVNINVOICEBARCODE128"] = "41" & tstr1;
+        tstr1 = Mid(tstr,20,20);
+        vVals["F_SVNINVOICEBARCODE128"] = "42" & tstr1;
+        tstr1 = Mid(tstr,40,20);
+        vVals["F_SVNINVOICEBARCODE128"] = "43" & tstr1;
+      end;
+      if (rwcnt==4) then begin
+        tstr1 = Mid(tstr,0,15);
+        vVals["F_SVNINVOICEBARCODE128"] = "441" & tstr1;
+        tstr1 = Mid(tstr,15,15);
+        vVals["F_SVNINVOICEBARCODE128"] = "442" & tstr1;
+        tstr1 = Mid(tstr,30,15);
+        vVals["F_SVNINVOICEBARCODE128"] = "443" & tstr1;
+        tstr1 = Mid(tstr,45,15);
+        vVals["F_SVNINVOICEBARCODE128"] = "444" & tstr1;
+      end;
+    end else begin
+      vVals["F_SVNINVOICEBARCODE128"] = tstr;
+    end;
+    vVals["F_SVNINVOICEQRCODE"] = tstr;
+    
+  end;  
+  
+  vVals["F_ORDERCOMMENT"] = ORr.Comment;  
+  vVals["F_PLANSHIP"] = ORr.PlanShip;  
+  vVals["F_ORDERTOTQTY"] = ORr.TotQty;  
+  vVals["F_ORDERROWSNR"] = MatRowCnt(ORr);  
+  GetFullCurncyRateText(false,tstr,ORr.FrRate,ORr.ToRateB1,ORr.ToRateB2,ORr.BaseRate1,ORr.BaseRate2);
+  vVals["F_ORDERBASERATE"] = tstr;
+//  GetFieldArgument(Docr,F_FRAKTSEDELNR,tstr1);
+  CalcFraktField(IVr.OrderNr,tstr1,tstr);
+  vVals["F_FRAKTSEDELNR"] = tstr;
+  RebVal(IVr,RoundRec,0,tstr);
+  if (nonblank(tstr)) then begin
+//    GetFieldArgument(Docr,F_IFCASHDISCOUNT,tstr);
+  end;
+  vVals["F_IFCASHDISCOUNT"] = tstr;
+  RebVal(IVr,RoundRec,2,tstr);
+  if (nonblank(tstr)) then begin
+//    GetFieldArgument(Docr,F_IFCASHDISCOUNT2,tstr);
+  end;
+  vVals["F_IFCASHDISCOUNT2"] = tstr;
+  vVals["F_RECIPIENTGLN"] = IVr.RecipientGLN;
+  vVals["F_GOODSRECIPIENTGLN"] = IVr.DelRecipientGLN;
+  vVals["F_LOCATION"] = IVr.Location;  
+  vVals["F_LOCATIONNAME"] = Locr.Name;  
+  vVals["F_LOCCONTACT"] = Locr.Contact;  
+  vVals["F_LOCPHONE"] = Locr.Phone;  
+  vVals["F_LOCFAX"] = Locr.Fax;  
+  vVals["F_LOCEMAIL"] = Locr.Email;  
+  vVals["F_LOCADDRESS"] = Locr.Addr0;  
+  vVals["F_LOCADDRESS"] = Locr.Addr1;  
+  vVals["F_LOCADDRESS"] = Locr.Addr2;  
+  vVals["F_LOCADDRESS"] = Locr.Addr3;  
+  vVals["F_LOCADDRESS"] = Locr.Addr4;  
+  vVals["F_INVCOMMENT"] = IVr.InvComment;  
+  vVals["F_CUSTCOMMENT"] = CUr.Comment;
+  InvoiceType(IVr.InvType,tstr); //TODO: this function is not returning proper invoice type description
+  vVals["F_FAKTTYP"] = tstr;
+  vVals["F_FAKTURATYP"] = tstr;
+  LongDateToStr(IVr.InvDate,SetDateOrder(IVr.LangCode),tstr);
+  vVals["F_FAKTURADATUM"] = tstr;
+  vVals["F_FAKTURADATUMHIJRI"] = ConvertDate(kCalendarGregorian,IVr.InvDate,kCalendarHijri);
+  LongDateToStr(IVr.TransDate,SetDateOrder(IVr.LangCode),tstr);
+  vVals["F_TRANSDATE"] = tstr;
+  vVals["F_TRANSTIME"] = IVr.TransTime;
+  vVals["F_TRANSDATEHIJRI"] = ConvertDate(kCalendarGregorian,IVr.TransDate,kCalendarHijri);
+  LongDateToStr(IVr.PayDate,SetDateOrder(IVr.LangCode),tstr);
+  vVals["F_FORFALLODATUM"] = tstr;
+  vVals["F_FORFALLODATUMHIJRI"] = ConvertDate(kCalendarGregorian,IVr.PayDate,kCalendarHijri);
+  LongDateToStr(IVr.ServiceDelDate,SetDateOrder(IVr.LangCode),tstr);
+  vVals["F_SERVICEDELDATE"] = tstr;
+  vVals["F_FAKTURANUMMER"] = IVr.SerNr;  
+  if (IVr.SVONr==-1) then begin
+    tstr = "";
+  end else begin
+    tstr = IVr.SVONr;
+  end;
+  vVals["F_ORDNUMMER"] = tstr;  
+  if (IVr.OrderNr==-1) then begin
+    tstr = "";
+  end else begin
+    tstr = IVr.OrderNr;
+  end;
+  vVals["F_ORDERNUMMER"] = tstr;  
+  if (IVr.SVONr==-1) then begin
+    tstr = "";
+  end else begin
+    tstr = IVr.SVONr;
+  end;
+  vVals["F_SVONR"] = tstr;
+  vVals["F_SERVICEORDER"] = tstr;
+  vVals["F_REFERENSNUMMER"] = IVr.CalcFinRef;
+  vVals["F_DEPARTMENT"] = CUr.Department;
+  testf = true;
+  if (testf) then begin
+    vVals["F_KUNDNR"] = IVr.CustCode;
+    vVals["F_KUNDNAMN"] = IVr.Addr0;
+    Ext_OutAddress(vVals,"F_ADRESS",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);
+    vVals["F_ADDR2"] = IVr.Addr1;
+    vVals["F_ADDR3"] = IVr.Addr2;
+    vVals["F_ADDR4"] = IVr.Addr3;
+    vVals["F_INVADDR3"] = IVr.InvAddr3;
+    vVals["F_INVADDR4"] = IVr.InvAddr4;
+  end;
+  
+  vVals["F_BRAZILEINVID"] = CreateBrazilEInvoiceId(IVr);
+  if (nonblank(IVr.BrazilEInvType)) then begin
+    EInvTyper.Code = IVr.BrazilEInvType;
+    if (ReadFirstMain(EInvTyper,1,true)) then begin
+      vVals["F_BRAZILEINVDIR"] = EInvTyper.InvDir;
+      vVals["F_BRAZILEINVOPNAT"] = EInvTyper.Spec;
+    end;
+  end;
+
+  vVals["F_TERMINALID"] = IVr.TerminalID;
+  vVals["F_MACHINE"] = IVr.MachineName;
+
+  GetPayDealText(IVr.PayDeal,IVr.LangCode,tstr);
+  vVals["F_VILLKOR"] = tstr;
+  vVals["F_VARREFERENS"] = IVr.OurContact;
+  vVals["F_ERREFERENS"] = IVr.ClientContact;
+  if (FindCustomerRelation(IVr.CustCode,IVr.ClientContact,CUContactr)) then begin
+    vVals["F_TITLE"] = CUContactr.Title;    
+    vVals["F_SALUTATION1"] = CUContactr.Salutation1;
+    vVals["F_SALUTATION2"] = CUContactr.Salutation2;
+    vVals["F_SALUTATION3"] = CUContactr.Salutation3;
+  end else begin
+    vVals["F_TITLE"] = CUr.Title;    
+    vVals["F_SALUTATION1"] = CUr.Salutation1;
+    vVals["F_SALUTATION2"] = CUr.Salutation2;
+    vVals["F_SALUTATION3"] = CUr.Salutation3;
+  end;
+  vVals["F_OBJECT"] = IVr.Objects;
+  GetObjectText(IVr.Objects,tstr);
+  vVals["F_OBJEKTTEXT"] = tstr;
+  vVals["F_FAKTHUVUD"] = IVr.InvComment;
+  Ext_PrintCurrencyCode(vVals,"F_VALUTA",IVr.CurncyCode);
+  vVals["F_CURUSER"] = CurrentUser;
+  GetUserName(CurrentUser,tstr);
+  vVals["F_CURUSERNAME"] = tstr;
+  GetFullCurncyRateText(true,tstr,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2);
+  vVals["F_RATE"] = tstr;
+  GetFullCurncyRateText(false,tstr,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2);
+  vVals["F_BASERATE"] = tstr;
+  if (blank(IVr.OrgCust)) then begin
+    vVals["F_ORGCUSTNR"] = ORr.CustCode;      
+    vVals["F_KUNDMOMSNRORGCUST"] = ORr.VATNr;      
+  end else begin
+    vVals["F_ORGCUSTNR"] = IVr.OrgCust;      
+    vVals["F_KUNDMOMSNRORGCUST"] = OrderingCUr.VATNr;      
+  end;      
+  if (blank(IVr.OrgCust)) then begin
+    vVals["F_ORGCUSTNAME"] = ORr.Addr0;      
+  end else begin
+    vVals["F_ORGCUSTNAME"] = IVr.Addr0;      
+  end;      
+  vVals["F_POSTADRESS"] = ORr.Addr0;
+  vVals["F_POSTADRESS"] = ORr.Addr1;
+  vVals["F_POSTADRESS"] = ORr.Addr2;
+  vVals["F_POSTADRESS"] = ORr.Addr3;
+  vVals["F_POSTADRESS"] = ORr.InvAddr3;
+  vVals["F_POSTADRESS"] = ORr.InvAddr4;
+  if ((IVr.InvType==kInvoiceTypeNormal or IVr.InvType==kInvoiceTypeNormalSpecialSales) or (IVr.InvType==kInvoiceTypeDownpayment)) then begin
+    vVals["F_RANTASATS"] = IVr.IntCode;
+  end;
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_INLEVADRESS3"] = IVr.Addr0;      
+  end else begin
+    vVals["F_INLEVADRESS3"] = IVr.ShipAddr0;      
+  end;      
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_INLEVADRESS4"] = IVr.Addr1;
+  end else begin
+    vVals["F_INLEVADRESS4"] = IVr.ShipAddr1;
+  end;      
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_INLEVADRESS5"] = IVr.Addr2;
+  end else begin
+    vVals["F_INLEVADRESS5"] = IVr.ShipAddr2;
+  end;      
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_INLEVADRESS6"] = IVr.Addr3;
+  end else begin
+    vVals["F_INLEVADRESS6"] = IVr.ShipAddr3;
+  end;      
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_DELADDR3"] = IVr.InvAddr3;
+  end else begin
+    vVals["F_DELADDR3"] = IVr.DelAddr3;
+  end;      
+  if (blank(IVr.ShipAddr0)) then begin
+    vVals["F_DELADDR4"] = IVr.InvAddr4;
+  end else begin
+    vVals["F_DELADDR4"] = IVr.DelAddr4;
+  end;      
+  if (HasLocalization("PRT")==false) then begin
+    Ext_OutAddress(vVals,"F_INLEVADRESS",IVr.ShipAddr0,IVr.ShipAddr1,IVr.ShipAddr2,IVr.ShipAddr3,IVr.DelAddr3,IVr.DelAddr4);
+  end else begin
+    if (blank(IVr.PlanSendDate) or blank(IVr.PlanSendTime)) then begin
+      vVals["F_INLEVADRESS"] = "";
+    end else begin
+      if (blank(IVr.ShipAddr1) or blank(IVr.ShipAddr0)) then begin
+        Ext_OutAddress(vVals,"F_INLEVADRESS",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);
+      end else begin
+        Ext_OutAddress(vVals,"F_INLEVADRESS",IVr.ShipAddr0,IVr.ShipAddr1,IVr.ShipAddr2,IVr.ShipAddr3,IVr.DelAddr3,IVr.DelAddr4);
+      end;
+    end;
+  end;
+  vVals["F_INVLEVSATT"] = IVr.ShipMode;
+  vVals["F_INVLEVVILLK"] = IVr.ShipDeal;
+  GetShipDealText(IVr.ShipDeal,IVr.LangCode,tstr);
+  vVals["F_INVLEVVILLKTEXT"] = tstr;
+  vVals["F_ORDLEVADRESS"] = ORr.ShipAddr0;
+  vVals["F_ORDLEVADRESS"] = ORr.ShipAddr1;
+  vVals["F_ORDLEVADRESS"] = ORr.ShipAddr2;
+  vVals["F_ORDLEVADRESS"] = ORr.ShipAddr3;
+  vVals["F_ORDLEVADRESS"] = ORr.DelAddr3;
+  vVals["F_ORDLEVADRESS"] = ORr.DelAddr4;
+  vVals["F_FAKTURATILL"] = CUr.Name;
+  vVals["F_FAKTURATILL"] = CUr.InvAddr0;
+  vVals["F_FAKTURATILL"] = CUr.InvAddr1;
+  vVals["F_FAKTURATILL"] = CUr.InvAddr2;
+  vVals["F_FAKTURATILL"] = CUr.InvAddr3;
+  vVals["F_FAKTURATILL"] = CUr.InvAddr4;
+  vVals["F_ORDDATUM"] = ORr.OrdDate;
+  vVals["F_KUNDORDNR"] = ORr.CustOrdNr;
+  vVals["F_KUNDORDNRFROMINV"] = IVr.CustOrdNr;
+  if (blank(IVr.BankCode)) then begin
+    PrintBankData(vVals,CUr.Bank);
+  end else begin
+    PrintBankData(vVals,IVr.BankCode);
+  end;
+  PrintOrgCustBankData(vVals,IVr.OrgCust);
+  if (IVr.QTNr>0) then begin
+    vVals["F_QUOTENR"] = IVr.QTNr;
+  end;
+
+  vVals["F_RECEIPTINFO"] = IVr.ReceiptInfo;
+
+  Ext_PrintPremiseData(vVals);
+  Ext_PrintBranchData(vVals,IVr.BranchID);
+  Ext_PrintSiteInformation(vVals,IVr.DelAddrCode,IVr.CustCode);
+  vVals["F_SHIPTERM"] = IVr.ShipDeal;
+  GetShipDealText(IVr.ShipDeal,IVr.LangCode,tstr);
+  vVals["F_SHIPTERMTEXT"] = tstr;
+  vVals["F_DANREFNUMBER"] = IVr.PriceList;
+//  if (RepSpec.flags[15]==0) then begin
+    PrintInvoiceRows2(vVals,RepSpec,IVr,Docr,RoundRec,LangNrr,SysFormatRec,totdiscount,totinprice,totweight,totnetweight,totvolume,totcombase2sum,totqty,totqty2,totfifo,totcombase2vat,totwithh,totnormwinttax,totnormwithvatprc,PointsSpent,negamountf,MatRowCnt(IVr));
+//  end else begin
+    //PrepareInvoiceLayout(RepSpec,IVr,NewIVr); //If layout option is selected, prepare invoice (copy,reformat) and print
+//    PrintInvoiceRows2(vVals,RepSpec,NewIVr,Docr,RoundRec,LangNrr,SysFormatRec,totdiscount,totinprice,totweight,totnetweight,totvolume,totcombase2sum,totqty,totqty2,totfifo,totcombase2vat,totwithh,totnormwinttax,totnormwithvatprc,PointsSpent,negamountf,MatRowCnt(NewIVr));
+//  end;
+  PrintDownPaymentData(vVals,IVr,Docr,RoundRec,LangNrr,SysFormatRec,negamountf);
+  PrintTransactionOnDocument(vVals,IVYc,IVr.SerNr);
+  tstr = "";
+  if (MatRowCnt(IVr)>0) then begin
+    MatRowGet(IVr,0,IVrw);
+    tstr = IVrw.ArtCode;
+    BuildKSerno(IVr.SerNr,IVrw.ArtCode,tstr);
+    vVals["F_KFAKTURANR"] = tstr;
+  end;
+  CreateKIDCode(IVr.CustCode,IVr.SerNr,tstr);
+  vVals["F_KID"] = tstr;
+  CreateKIDCheckNor(IVr.Sum4,IVr.SerNr,tstr);
+  vVals["F_KIDCHECK"] = tstr;
+  CreateKIDNoCheck(IVr.CustCode,IVr.SerNr,tstr);
+  vVals["F_KIDNOCHECK"] = tstr;
+  if (nonblank(lastSHr.ShipMode)) then begin
+    vVals["F_LEVSATT"] = lastSHr.ShipMode;
+  end else begin
+    vVals["F_LEVSATT"] = IVr.ShipMode;
+  end;
+  if (nonblank(lastSHr.ShipMode)) then begin
+    GetShipModeText(lastSHr.ShipMode,IVr.LangCode,tstr);
+    vVals["F_LEVSATTTEXT"] = tstr;
+  end else begin
+    GetShipModeText(IVr.ShipMode,IVr.LangCode,tstr);
+    vVals["F_LEVSATTTEXT"] = tstr;
+  end;
+  if (lastSHr.SerNr==-1) then begin
+    tstr = "";
+  end else begin
+    tstr = lastSHr.SerNr;
+  end;  
+  vVals["F_LEVNR"] = tstr;
+  vVals["F_LEVDATUM"] = lastSHr.ShipDate;
+  Ext_PrintValue(vVals,"F_TOTQTY2",totqty2,M45Val,LangNrr,SysFormatRec,negamountf);
+  if (lastSHr.SerNr!=-1) then begin
+    Ext_OutAddress(vVals,"F_LEVADRESS",lastSHr.Addr0,lastSHr.Addr1,lastSHr.Addr2,lastSHr.Addr3,lastSHr.DelAddr3,lastSHr.DelAddr4);
+  end else begin
+    Ext_OutAddress(vVals,"F_LEVADRESS",IVr.ShipAddr0,IVr.ShipAddr1,IVr.ShipAddr2,IVr.ShipAddr3,IVr.DelAddr3,IVr.DelAddr4);
+  end;
+  if (blank(IVr.ShipAddr0)) then begin
+    Ext_OutAddress(vVals,"F_INLEVADRESS2",IVr.Addr0,IVr.Addr1,IVr.Addr2,IVr.Addr3,IVr.InvAddr3,IVr.InvAddr4);
+  end else begin
+    Ext_OutAddress(vVals,"F_INLEVADRESS2",IVr.ShipAddr0,IVr.ShipAddr1,IVr.ShipAddr2,IVr.ShipAddr3,IVr.DelAddr3,IVr.DelAddr4);
+  end;
+  vVals["F_DELSITECODE"] = IVr.DeliverySiteCode;
+  vVals["F_WORKSITENR"] = IVr.WorkSiteNumber;
+  Ext_PrintSignature(vVals,IVr.Sign);  
+  if (blank(IVr.OrgCust)) then begin
+    if (lastSHr.SerNr!=-1) then begin
+      Ext_OutAddress(vVals,"F_ORGCUSTNAMEADRESS",lastSHr.Addr0,lastSHr.Addr1,lastSHr.Addr2,lastSHr.Addr3,lastSHr.DelAddr3,lastSHr.DelAddr4);
+    end;
+  end else begin
+    if (ORr.SerNr>0) then begin
+      Ext_OutAddress(vVals,"F_ORGCUSTNAMEADRESS",ORr.Addr0,ORr.Addr1,ORr.Addr2,ORr.Addr3,ORr.InvAddr3,ORr.InvAddr4);
+    end else begin
+      Ext_OutAddress(vVals,"F_ORGCUSTNAMEADRESS",OrderingCUr.Name,OrderingCUr.InvAddr0,OrderingCUr.InvAddr1,OrderingCUr.InvAddr2,OrderingCUr.InvAddr3,OrderingCUr.InvAddr4);
+    end;
+  end;
+  if ((IVr.InvType==kInvoiceTypeNormal or IVr.InvType==kInvoiceTypeNormalSpecialSales) or (IVr.InvType==kInvoiceTypeDownpayment)) then begin
+    if (IVr.pdvrebt!=0) then begin
+      vVals["F_KASSADATUM"] = AddDay(IVr.InvDate,IVr.pdrdays);
+    end;
+  end;
+  if ((IVr.InvType==kInvoiceTypeNormal or IVr.InvType==kInvoiceTypeNormalSpecialSales) or (IVr.InvType==kInvoiceTypeDownpayment)) then begin
+    if (IVr.pdvrebt2!=0) then begin
+      vVals["F_KASSADATUM_2"] = AddDay(IVr.InvDate,IVr.pdrdays2);
+    end;
+  end;
+  PrintDeliveriesNos(IVr.SerNr,IVr.OrderNr,tstr);
+  vVals["F_DELIVERIESNR"] = tstr;
+  Ext_PrintValue(vVals,"F_COMBASE2VAT",Round(totcombase2vat,GetVATRoundMode(RoundRec)),M45Val,LangNrr,SysFormatRec,negamountf);
+  GetContactTitle(IVr.CustCode,IVr.ClientContact,tstr);
+//  vVals["F_TITLE"] = tstr;    use some other field if u need it
+  Ext_PrintValue(vVals,"F_DISCSUM",IVr.DiscSum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_COMBASE2SUM",totcombase2sum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTFIFO",totfifo,M4Val,LangNrr,SysFormatRec,negamountf);
+  Val2ToText("",IVr.Sum3,M4Val,IVr.CurncyCode,IVr.LangCode,tstr);
+  vVals["F_VATINTEXT"] = tstr;
+  t = MulRateToBase1(IVr.CurncyCode,IVr.Sum1,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE1SUMMA,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValue(vVals,"F_BASE1SUMMA",t,valtyp,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase1(IVr.CurncyCode,IVr.Sum3,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE1MOMS,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValue(vVals,"F_BASE1MOMS",t,valtyp,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase1(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE1BETALA,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_BASE1BETALA",t,valtyp,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVr.Sum1,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE2SUMMA,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_BASE2SUMMA",t,valtyp,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVr.Sum3,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE2MOMS,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValue(vVals,"F_BASE2MOMS",Round(t,GetVATRoundMode(RoundRec)),valtyp,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_BASE2BETALA,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValue(vVals,"F_BASE2BETALA",t,valtyp,LangNrr,SysFormatRec,negamountf);
+  
+  Ext_PrintValue(vVals,"F_REVERSEVATAMOUNT",IVr.RvrsVAT,M4Val,LangNrr,SysFormatRec,negamountf);
+  if (blank(IVr.RvrsVAT)==false) then begin
+    if (HasLocalization("POL")) then begin
+      vVals["F_REVERSEVATTEXT"] = USetStr(39371);
+    end;
+    if (HasLocalization("LTU")) then begin
+      if (nonblank(IVr.RvrsVAT) and blank(IVr.Sum3)) then begin
+        vVals["F_REVERSEVATTEXT"] = USetStr(39371);
+      end;
+    end;
+    if (HasLocalization("GBR")) then begin
+      if (nonblank(IVr.RvrsVAT) and blank(IVr.Sum3)) then begin
+        if (IVr.InvType==kInvoiceTypeCredit) then begin
+          vVals["F_REVERSEVATTEXT"] = USetStr(39373);
+        end else begin
+          vVals["F_REVERSEVATTEXT"] = USetStr(39372);
+        end;
+      end else begin
+        if (IVr.InvType==kInvoiceTypeCredit) then begin
+          vVals["F_REVERSEVATTEXT"] = USetStr(39375);
+        end else begin
+          vVals["F_REVERSEVATTEXT"] = USetStr(39374);
+        end;
+      end;
+    end;
+  end;
+
+  Ext_PrintValue(vVals,"F_AVRUNDNING",IVr.Sum0,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_SUMFREIGHT",IVr.Sum1-IVr.FrPrice,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TAX1",IVr.TAX1Sum,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_SUMMAMOMS",IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+//  Ext_PrintValue(vVals,"F_SUMMAMOMS",IVr.Sum4-IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_FRAKT",IVr.FrPrice,M4Val,LangNrr,SysFormatRec,negamountf);
+//  Ext_PrintValue(vVals,"F_SUMMAEJMOMS",IVr.Sum2,M4Val,LangNrr,SysFormatRec,negamountf); // What is Sum2?? Using this field for something on row that actually prints something :)
+  Ext_PrintValue(vVals,"F_TOPAYEXCLFREIGHT",IVr.Sum1-IVr.FrPrice+IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+  tstr = ValToString(IVr.Sum4,M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+  if (negamountf) then begin
+    vVals["F_ATTBETALAFIXED"] = "-" & Left(tstr,len(tstr)-3);
+  end else begin
+    vVals["F_ATTBETALAFIXED"] = Left(tstr,len(tstr)-3);
+  end;
+  t = IVr.Sum4;
+  SubPrePayments(IVr,t,t1);
+  ValToText(t,M4Val,IVr.CurncyCode,IVr.LangCode,tstr);
+  vVals["F_ATTBETALATEXT"] = tstr;  
+  Ext_PrintValue(vVals,"F_TOTQTY",totqty,M4Qty,LangNrr,SysFormatRec,negamountf);
+  IntToText(IVr.LangCode,CountNrofItemsIV(IVr),tstr);
+  vVals["F_NROFITEMSINTEXT"] = tstr;  
+  IntToText(IVr.LangCode,totqty,tstr);
+  vVals["F_QTYINTEXT"] = tstr;  
+  Ext_PrintValue(vVals,"F_TOTALNOWITHHOLDING",IVr.Sum4-totwithh,M4Val,LangNrr,SysFormatRec,negamountf);  
+  Ext_PrintValue(vVals,"F_TOTALINTERNALTAXES",totnormwinttax,M4Val,LangNrr,SysFormatRec,negamountf);  
+  Ext_PrintValue(vVals,"F_TOTALVATPERCEPTIONS",totnormwithvatprc,M4Val,LangNrr,SysFormatRec,negamountf);  
+  Ext_PrintValue(vVals,"F_TOTALINCLVAT",IVr.Sum1-IVr.Sum2+IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTALNONVAT",IVr.Sum2,M4Val,LangNrr,SysFormatRec,negamountf);
+//  GetFieldArgument(Docr,F_AMOUNTINTEXT,tstr);
+  Val2ToText(tstr,IVr.Sum4,M4Val,IVr.CurncyCode,IVr.LangCode,tstr);
+  vVals["F_AMOUNTINTEXT"] = tstr;
+  t = MulRateToBase1(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  PrintValToTextBaseCur(t,M4Val,IVr.LangCode,1,tstr);
+  vVals["F_AMOUNTINTEXTBASECUR1"] = tstr;  
+  t = MulRateToBase2(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  PrintValToTextBaseCur(t,M4Val,IVr.LangCode,2,tstr);
+  vVals["F_AMOUNTINTEXTBASECUR2"] = tstr;  
+  if ((IVr.InvType==kInvoiceTypeNormal or IVr.InvType==kInvoiceTypeNormalSpecialSales) or (IVr.InvType==kInvoiceTypeDownpayment)) then begin
+    RebPay_IV(IVr,RoundRec,0,false,t);
+    Ext_PrintValue(vVals,"F_KASSABETALA",t,M4Val,LangNrr,SysFormatRec,negamountf);
+    RebPay_IV(IVr,RoundRec,1,false,t);
+    vVals["F_KASSABETALA1"] = t;  
+    RebPay_IV(IVr,RoundRec,2,false,t);
+    vVals["F_KASSABETALA2"] = t;  
+    RebPay_IV(IVr,RoundRec,0,true,t);
+    Ext_PrintValue(vVals,"F_KASSARABATT",t,M4Val,LangNrr,SysFormatRec,negamountf);
+    RebPay_IV(IVr,RoundRec,1,true,t);
+    vVals["F_KASSARABATT1"] = t;  
+    RebPay_IV(IVr,RoundRec,2,true,t);
+    vVals["F_KASSARABATT2"] = t;  
+    RebPay_IV(IVr,RoundRec,0,false,t);
+    vVals["F_SETDISCTOT"] = t;  
+    RebPay2(IVr,RoundRec,0,true,tstr);
+    vVals["F_KASSARABATT_2"] = tstr;  
+    RebPay2(IVr,RoundRec,1,true,tstr);
+    vVals["F_KASSARABATT1_2"] = tstr;  
+    RebPay2(IVr,RoundRec,2,true,tstr);
+    vVals["F_KASSARABATT2_2"] = tstr;  
+    RebPay2(IVr,RoundRec,0,false,tstr);
+    vVals["F_SETDISCTOT_2"] = tstr;  
+    RebVAT(IVr,RoundRec,t1);
+    Ext_PrintValue(vVals,"F_DISCVAT",t1,M4Val,LangNrr,SysFormatRec,negamountf);
+    RebVAT2(IVr,RoundRec,t1);
+    Ext_PrintValue(vVals,"F_SUMCOMMISSION",t1,M4Val,LangNrr,SysFormatRec,negamountf);
+    RebPayHalf_IV(IVr,RoundRec,0,tstr);
+    vVals["F_TOPAYHALFCASHDISC"] = tstr;  
+  end;
+  CalcIVTotals(vVals,IVr,Docr,RoundRec,LangNrr,SysFormatRec);
+  Ext_PrintValue(vVals,"F_TOTVOLUME",totvolume,M4Qty,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTWEIGHT",totweight,M4Qty,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_TOTNETWEIGHT",totnetweight,M4Qty,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_DISCSUMTOT",totdiscount,M4Val,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase1(IVr.CurncyCode,totdiscount,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"F_DISCSUMTOTBC1",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,totdiscount,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValue(vVals,"F_DISCSUMTOTBC2",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  if (IVr.Sum4<0) then begin
+    tstr = USetStr(1567);
+  end else begin
+    tstr = USetStr(1566);
+  end;
+  vVals["F_POSNEGTEXT"] = tstr;  
+  tstr = ValToString(IVr.Sum4,M4Val,SysFormatRec.thousSep,SysFormatRec.decimalPt,LangNrr.CutDecimals);
+  RemoveSepFromStr(tstr,tstr1);
+  vVals["F_ATTBETALAWITHOUTSEP"] = Left(tstr1,len(tstr1)-2);  
+//  GetFieldArgument(Docr,F_MOMS,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(IVr.Sum3,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZeroWithSign(vVals,IVr.CurncyCode,"F_MOMSWITHCURNCYSIGN",t,M45Val,LangNrr,SysFormatRec,negamountf);
+    Ext_PrintValueInclZero(vVals,"F_MOMS",t,M45Val,LangNrr,SysFormatRec,negamountf);
+  end else begin
+    Ext_PrintValueInclZeroWithSign(vVals,IVr.CurncyCode,"F_MOMSWITHCURNCYSIGN",IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+    Ext_PrintValueInclZero(vVals,"F_MOMS",IVr.Sum3,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+//  GetFieldArgument(Docr,F_ATTBETALA,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(IVr.Sum4,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZero(vVals,"F_ATTBETALA",t,M45Val,LangNrr,SysFormatRec,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"F_ATTBETALA",IVr.Sum4,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+  valtyp = M4Val;
+//  GetFieldArgument(Docr,F_ATTBETALASIGNARG,tstr);
+  if (tstr=="-") then begin
+    valtyp = M4NegVal;
+  end;
+  Ext_PrintValueInclZero(vVals,"F_ATTBETALASIGNARG",IVr.Sum4,valtyp,LangNrr,SysFormatRec,negamountf);
+  
+  t = IVr.Sum4;
+  SubPrePayments(IVr,t,t1);
+  Ext_PrintValueInclZero(vVals,"F_TOPAY",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  t = MulRateToBase2(IVr.CurncyCode,t,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+  Ext_PrintValueInclZero(vVals,"F_TOPAYBC2",t,M4Val,LangNrr,SysFormatRec,negamountf);
+
+  t = IVr.Sum4;
+  SubPrePayments(IVr,t,t1);
+  t = IVr.Sum4 - t;
+  Ext_PrintValue(vVals,"F_PREPAID",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  SumNoDownPay(IVr,t,v,t1,t2,t3,t4);
+  Ext_PrintValueInclZero(vVals,"F_ORGSUMMA",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_ORGMOMS",t1,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValueInclZero(vVals,"F_ORGATTBETALA",t2,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_DOWNPAYSENT",t3+t4,M4Val,LangNrr,SysFormatRec,negamountf);
+  Ext_PrintValue(vVals,"F_DOWNPAYSENTVAT",t4,M4Val,LangNrr,SysFormatRec,negamountf);
+  if (IVr.InclVAT==0) then begin
+    Ext_PrintValue(vVals,"F_DOWNPAYSENTWITHOUTVAT",t3,M4Val,LangNrr,SysFormatRec,negamountf);
+  end else begin
+    Ext_PrintValue(vVals,"F_DOWNPAYSENTWITHOUTVAT",t3,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+  if (IVr.InclVAT>0) then begin
+    t = IVr.Sum1;
+  end else begin
+//    t = IVr.Sum1 - IVr.Sum2; why - sum2, sum2 contains some starnge numbers when proice< 0.10 used
+    t = IVr.Sum1;
+  end; 
+  t = t - IVr.FrPrice;
+  Ext_PrintValue(vVals,"F_SUMMAMOMSPLIKTEJFRAKT",t,M4Val,LangNrr,SysFormatRec,negamountf);
+  if (IVr.InclVAT>0) then begin
+    t = IVr.Sum4 - IVr.Sum3 - IVr.Sum2;
+  end else begin
+    t = IVr.Sum1 - IVr.Sum2;
+  end;  
+  Ext_PrintValueInclZero(vVals,"F_SUMMAMOMSPLIKTIGT",t,M4Val,LangNrr,SysFormatRec,negamountf);
+
+  if (IVr.InclVAT>0) then begin
+    t = IVr.Sum4 - IVr.Sum3;
+  end else begin
+    t = IVr.Sum1;
+  end;  
+  Ext_PrintValueInclZero(vVals,"F_VATTYPETOTALSUM",t,M4Val,LangNrr,SysFormatRec,negamountf);
+
+//  GetFieldArgument(Docr,F_SUMMA,tstr);
+  if (nonblank(tstr)) then begin
+    t = Round(IVr.Sum1,SetRoundModeD(StringToInt(tstr)));
+    Ext_PrintValueInclZero(vVals,"F_SUMMA",t,M45Val,LangNrr,SysFormatRec,negamountf);
+  end else begin
+    Ext_PrintValueInclZero(vVals,"F_SUMMA",IVr.Sum1,M4Val,LangNrr,SysFormatRec,negamountf);
+  end;
+  tstr = Right(IVr.Sum4,2);
+  vVals["F_ATTBETALAFRAC"] = tstr;  
+  
+  Jobr.SerNr  = IVr.JobNr;
+  if (ReadFirstMain(Jobr,1,true)) then begin
+  end;
+  vVals["F_CHECKIN"] = Jobr.TransDate; 
+  vVals["F_CHECKOUT"] = Jobr.EndDate; 
+  vVals["F_RESNAME"] = Jobr.CUName; 
+  vVals["F_SAFTHASHCONTROL"] = SAFTHashControl(IVr.Hash);
+
+  if (nonblank(IVr.Reason)) then begin  
+    vVals["F_REASON"] = IVr.Reason;
+    SPr.Code = IVr.Reason;
+    if (ReadFirstMain(SPr,1,true)) then begin 
+      vVals["F_REASONTEXT"] = SPr.Comment1;
+      vVals["F_REASONTEXT"] = SPr.Comment2;
+      vVals["F_REASONTEXT"] = SPr.Comment3;
+    end;
+  end;  
+  vVals["F_GLOBALTRANSPORTNR"] = IVr.GlobalTransportNr;
+  vVals["F_GLOBALTRANSPORTDATE"] = IVr.GlobalTransportDate;
+  
+  if (HasLocalization("BOL")) then begin
+    td = FindTaxAuthIDLimitDateBOL(IVr);
+    vVals["F_LEGALLIMITDATEBOL"] = td;
+    importvalb1 = MulRateToBase1(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    importvalb2 = MulRateToBase2(IVr.CurncyCode,IVr.Sum4,IVr.FrRate,IVr.ToRateB1,IVr.ToRateB2,IVr.BaseRate1,IVr.BaseRate2,DefaultCurRoundOff);
+    importval = ValToString(IVr.Sum4,M4Val,"",".",0);
+    impvalb1 = ValToString(importvalb1,M4Val,"",".",0);
+    impvalb2 = ValToString(importvalb2,M4Val,"",".",0);
+    
+    VatNr = IVr.VATNr;
+    if (blank(VatNr)) then begin
+      VatNr = "0";
+    end;
+    
+    Disc = totdiscount;
+    if (totdiscount==0) then begin
+      Disc = "0";
+    end;
+    
+    GetLegalInvNrRow(IVr.OfficialSerNr,LINrbrw);
+    MOOfficialSerNr = Right(IVr.OfficialSerNr,len(IVr.OfficialSerNr)-len(LINrbrw.Serie));
+  
+    vVals["F_QRCODE"] = CYb.VATNr & "|" & MOOfficialSerNr  & "|" & IVr.TaxAuthID & "|" & IVr.TransDate & "|" & importval & "|" & importval & "|" & IVr.TaxAuthIDCC & "|" & VATNr & "|0|0|0|" & Disc;
+    vVals["F_QRCODEB1"] = CYb.VATNr & "|" & MOOfficialSerNr  & "|" & IVr.TaxAuthID & "|" & IVr.TransDate & "|" & impvalb1 & "|" & impvalb1 & "|" & IVr.TaxAuthIDCC & "|" & VATNr & "|0|0|0|" & Disc;
+    vVals["F_QRCODEB2"] = CYb.VATNr & "|" & MOOfficialSerNr  & "|" & IVr.TaxAuthID & "|" & IVr.TransDate & "|" & impvalb2 & "|" & impvalb2 & "|" & IVr.TaxAuthIDCC & "|" & VATNr & "|0|0|0|" & Disc;
+  end;
+
+  if (HasLocalization("POL") and (IsEnterprise or Left(BuildProductCode,16)=="StandardAccounts" or Left(BuildProductCode,23)=="StandardBookkeepingLite")) then begin
+    if (HasSplitPaymentItem(IVr)) then begin
+      vVals["F_SPLITPAYMENTMETHOD"] = USetStr(42470);
+    end;
+  end;
+    
+  Ext_PrintLoyaltyCard(vVals,LangNrr,IVr.LoyaltyCardNr,IVr.LCMLevel,IVr.Points,PointsSpent,IVr.SerNr,"IVVc");
+
+  //OutFormImage(IVr);
+  IVSetFax(CUr,IVr);
+  PrintFreightInfo(vVals,IVr.FreightCode);
+  if (PreviewFlag==false) then begin
+    transaction Boolean gIVCreateAndAttachPdf;
+    queued.SetPrintedFlag_IVVc2(IVr.SerNr,gIVCreateAndAttachPdf==false);
+  end;
+LPrintInvoice:;  
+  RETURN;
+END;
+

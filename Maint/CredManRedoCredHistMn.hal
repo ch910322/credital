@@ -1,12 +1,9 @@
 external updating procedure UpdateCredHistInvoice(var record IVVc,record IVVc);
 external updating procedure SplitLoanPaymentsInReceipt(record IPVc,Boolean);
 
-
-global
-updating procedure CredManRedoCredHistMn(record RcVc RepSpec)
+updating procedure TreatSingleAgreement(record CredManVc CredManr)
 begin
   record IVVc IV3r,IVr;
-  record CredManVc CredManr;
   record CredHistVc CredHistr;
   Boolean TrHs,TrHs2;
   record IPrsVc IPrsr;
@@ -14,56 +11,70 @@ begin
   row IPVc IPrw;
   Integer i,rwcnt;
 
-  CredManr.SerNr = RepSpec.long1;
-  if (ReadFirstMain(CredManr,1,true)) then begin
-    //remove all history
-    //loop through all invoices and each invoice receipts
-
-    CredHistr.CredManNr = CredManr.SerNr;
-    TrHs = true;
-    while (LoopKey("CredManTypeDate",CredHistr,1,TrHs)) begin
-      if (CredHistr.CredManNr!=CredManr.SerNr) then begin
-        TrHs = false;
-      end else begin
-        RecordRemove(CredHistr);
-        StepBack(CredHistr);
-      end;
+  CredHistr.CredManNr = CredManr.SerNr;
+  TrHs = true;
+  while (LoopKey("CredManTypeDate",CredHistr,1,TrHs)) begin
+    if (CredHistr.CredManNr!=CredManr.SerNr) then begin
+      TrHs = false;
+    end else begin
+      RecordRemove(CredHistr);
+      StepBack(CredHistr);
     end;
+  end;
 
-    TrHs = true;
-    IVr.CustCode = CredManr.CustCode;
-    while (LoopKey("CustCode",IVr,1,TrHs)) begin
-      if (IVr.CustCode!=CredManr.CustCode) then begin
-        TrHs = false;
-      end else begin
-        if (IVr.CustCredManNr==CredManr.SerNr and IVr.OKFlag==1) then begin
-          UpdateCredHistInvoice(IVr,IV3r);
-          ResetLoop(IPrsr);
-          RecordClear(IPrsr);
-          TrHs2 = true;
-          IPrsr.IVNr = IVr.SerNr;
-          IPrsr.TransType = 1;
-          while (LoopKey("IVKey",IPrsr,2,TrHs2)) begin
-            if (IPrsr.IVNr!=IVr.SerNr or IPrsr.TransType!=1) then begin
-              TrHs2 = false;
-            end else begin
-              IPr.SerNr = IPrsr.TransNr;
-              if (ReadFirstMain(IPr,1,true)) then begin
-                rwcnt = MatRowCnt(IPr);
-                for (i=rwcnt-1;i>=0;i=i-1) begin
-                  MatRowGet(IPr,i,IPrw);
-                  if (IPrw.InvoiceNr!=IVr.SerNr) then begin
-                    MatRowDelete(IPr,i);
-                  end;
+  TrHs = true;
+  IVr.CustCode = CredManr.CustCode;
+  while (LoopKey("CustCode",IVr,1,TrHs)) begin
+    if (IVr.CustCode!=CredManr.CustCode) then begin
+      TrHs = false;
+    end else begin
+      if (IVr.CustCredManNr==CredManr.SerNr and IVr.OKFlag==1) then begin
+        UpdateCredHistInvoice(IVr,IV3r);
+        ResetLoop(IPrsr);
+        RecordClear(IPrsr);
+        TrHs2 = true;
+        IPrsr.IVNr = IVr.SerNr;
+        IPrsr.TransType = 1;
+        while (LoopKey("IVKey",IPrsr,2,TrHs2)) begin
+          if (IPrsr.IVNr!=IVr.SerNr or IPrsr.TransType!=1) then begin
+            TrHs2 = false;
+          end else begin
+            IPr.SerNr = IPrsr.TransNr;
+            if (ReadFirstMain(IPr,1,true)) then begin
+              rwcnt = MatRowCnt(IPr);
+              for (i=rwcnt-1;i>=0;i=i-1) begin
+                MatRowGet(IPr,i,IPrw);
+                if (IPrw.InvoiceNr!=IVr.SerNr) then begin
+                  MatRowDelete(IPr,i);
                 end;
-                SplitLoanPaymentsInReceipt(IPr,true);
               end;
+              SplitLoanPaymentsInReceipt(IPr,true);
             end;
           end;
         end;
       end;
     end;
   end;
+  
+  return;
+end;
 
+global
+updating procedure CredManRedoCredHistMn(record RcVc RepSpec)
+begin
+  record CredManVc CredManr;
+
+  if (RepSpec.long1>0) then begin
+    CredManr.SerNr = RepSpec.long1;
+    if (ReadFirstMain(CredManr,1,true)) then begin
+      TreatSingleAgreement(CredManr);
+    end;
+  end else begin
+    while (LoopMain(CredManr,1,true)) begin
+      if ((blank(CredManr.endDate) or CredManr.endDate>CurrentDate) and CredManr.OKFlag==1) then begin
+        TreatSingleAgreement(CredManr);
+      end;
+    end;
+  end;
   return;
 end;
