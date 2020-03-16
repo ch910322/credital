@@ -163,6 +163,7 @@ begin
   RecordField(Comment,M4Str,255,0);
   RecordField(InterfaceLanguage,M4Code,10,0);
   RecordField(BrowserOS,M4Str,30,0);
+  RecordField(Source,M4Str,255,0);
 
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
@@ -769,6 +770,7 @@ begin
   RecordField(Message,M4TextField,0,0);
   RecordField(Subject,M4Str,255,0);
   RecordField(CustCode,M4Code,20,CUVc);
+  RecordField(MinAmount,M4Val,0,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(ActiveFlag);

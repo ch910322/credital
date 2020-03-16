@@ -539,11 +539,12 @@ begin
   EditField(h,v,80,"Ser. No.",Normal,SerNr,false,0);
   CheckBox(h2-50,v,0,"Active",ActiveFlag);
   EditField(h,v+=vs,250,"Comment",Normal,Comment,false,0);
-  EditField(h,v+=vs,120,"Reminder Type",Normal,ReminderType,false,SetSClass);
+  EditField(h,v+=vs,100,"Reminder Type",Normal,ReminderType,false,SetSClass);
   EditField(h2,v,70,"Type",Normal,Type,false,SetSClass);
-  EditField(h,v+=vs,120,"Days",Normal,Days,false,0);
+  EditField(h,v+=vs,100,"Days",Normal,Days,false,0);
   EditField(h2,v,70,"Customer",Normal,CustCode,false,CUSClass);
-  EditField(h,v+=vs,120,"Last Sent",Normal,LastSentDate,false,0);
+  EditField(h,v+=vs,100,"Last Sent",Normal,LastSentDate,false,0);
+  EditField(h2,v,70,"Up to EUR",Normal,MinAmount,false,0);//Very confusing label
   CheckBox(h,v+=vs,0,"Mondays",Day1);
   EditField(h2,v,70,"Time",Normal,Time1,false,PasteCurTime);
   CheckBox(h,v+=vs,0,"Tuesday",Day2);
@@ -692,6 +693,7 @@ begin
   EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
   EditField(h,v+=vs,100,"Princ. Delay Int. %",ViewOnly,PrincipleDelayInterest,true,0);
   EditField(h,v+=vs,100,"Princ. Delay Months",ViewOnly,PrincipleDelayMonths,true,0);
+  EditField(h,v+=vs,230,"Source link",ViewOnly,Source,true,0);
   //EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
   //EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
   //EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);

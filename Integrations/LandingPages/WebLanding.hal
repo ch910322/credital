@@ -445,7 +445,7 @@ begin
 end;
 
 global
-updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string interfacelang,string browseros)
+updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string interfacelang,string browseros,string source)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -478,6 +478,7 @@ begin
   LAr.MonthlyPaymentDay = paymentday;
   LAr.InterfaceLanguage = interfacelang;
   LAr.BrowserOS = browseros;
+  LAr.Source = source;
 
   LAr.Type = GetAgreementType(LAr,LPr.CalcType,"");
   CMTr.Code = LAr.Type;
@@ -522,7 +523,7 @@ begin
   record B2BLoanApplicationVc LAr;
   string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address;
   Integer paymentday;
-  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail,browseros,custclass;
+  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail,browseros,custclass,source;
   Integer oldcomp;
   record CYBlock CYb;
 
@@ -593,7 +594,8 @@ begin
       end;
       if (err==0) then begin
         browseros = GetBrowserOperatingSystem;
-        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,CurrentWebLang,browseros)==false) then begin
+        source = WebGetArg("source");       
+        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,CurrentWebLang,browseros,source)==false) then begin
           //err?
         end;
       end else begin

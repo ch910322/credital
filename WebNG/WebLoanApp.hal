@@ -1227,7 +1227,7 @@ begin
 end;
 
 global
-updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause,string comment,string interfacelang,string browseros)
+updating function Boolean StoreInitialLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLoanCalcVc WLCr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string email,string phone,string datause,string comment,string interfacelang,string browseros,string source)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
@@ -1259,6 +1259,7 @@ logtext(0,"status " & status);
   LAr.Comment = comment;
   LAr.InterfaceLanguage = interfacelang;
   LAr.BrowserOS = browseros;
+  LAr.Source = source;
   
   LAr.Type = GetAgreementType(LAr,WLCr.Type,WLCr.CredManType);
   CMTr.Code = LAr.Type;
@@ -1332,7 +1333,7 @@ begin
   vector string 255 vSess;
   Integer status;
   Integer oldcomp;
-  string 255 browseros;
+  string 255 browseros,source;
 
   type = StringToLongInt(WebGetArg("type"));
   amount = StringToLongInt(WebGetArg("amount"));
@@ -1400,7 +1401,8 @@ begin
     end else begin
 */
       browseros = GetBrowserOperatingSystem;
-      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause,comment,CurrentWebLang,browseros)) then begin
+      source = WebGetArg("source");       
+      if (qupdating.StoreInitialLoanApp(CUr,ContactCUr,WLCr,status,amount,term,LAr,email,phone,datause,comment,CurrentWebLang,browseros,source)) then begin
         StoreSessionLoan(LAr.SerNr,status);
         link = GetLinkToLoanApp;
         link = link & "2";

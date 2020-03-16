@@ -310,11 +310,24 @@ begin
   return;
 end;
 
+function Boolean SkipCustomerBalance(longint sernr,val minval)
+begin
+  Boolean res;
+
+  res = false;
+  if (GetTotalPayableAmount(sernr)<minval) then begin
+    res = true;
+  end;
+
+  SkipCustomerBalance = res;
+  return;
+end;
+
 procedure FindAndSendInvoiceReminders(record SMSReminderVc SMSReminder)
 begin
   record SMSReminderQueueVc SRQr;
   record IVVc IVr;
-  Boolean TrHs;
+  Boolean TrHs,testf;
   record ARVc ARr;
   Integer latedays;
   Date td,ed;
@@ -331,7 +344,14 @@ begin
         end else begin
           IVr.SerNr = SRQr.InvoiceNr;
           if (ReadFirstMain(IVr,1,true)) then begin
-            if (blank(SMSReminder.CustCode) or SMSReminder.CustCode==IVr.CustCode) then begin
+            testf = true;
+            if (nonblank(SMSReminder.CustCode) or SMSReminder.CustCode!=IVr.CustCode) then begin
+              testf = false;
+            end;
+            if (SMSReminder.MinAmount>0 and SkipCustomerBalance(IVr.CustCredManNr,SMSReminder.MinAmount)) then begin
+              testf = false;
+            end;
+            if (testf) then begin
               ARr.InvoiceNr = IVr.SerNr;
               ReadFirstMain(ARr,1,true);
               if (ARr.RVal>0) then begin
@@ -353,7 +373,14 @@ begin
         end else begin
           IVr.SerNr = ARr.InvoiceNr;
           if (ReadFirstMain(IVr,1,true)) then begin
-            if (blank(SMSReminder.CustCode) or SMSReminder.CustCode==IVr.CustCode) then begin
+            testf = true;
+            if (nonblank(SMSReminder.CustCode) or SMSReminder.CustCode!=IVr.CustCode) then begin
+              testf = false;
+            end;
+            if (SMSReminder.MinAmount>0 and SkipCustomerBalance(IVr.CustCredManNr,SMSReminder.MinAmount)) then begin
+              testf = false;
+            end;
+            if (testf) then begin
               if (ReminderAlreadySent(IVr.SerNr,SMSReminder.SerNr)==false) then begin
                 queued.Cust_SendReminder2(SMSReminder,IVr);
               end;

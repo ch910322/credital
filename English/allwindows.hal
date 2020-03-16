@@ -606,7 +606,7 @@ begin
   real h,h2,h3,h4,t,v,vm,vs;
   string 255 label1,label2,label3,label4,label5;
   WindowBegin("Credit Agreement",CredManDClass,CGview,-);
-  SetWRect(20,80,900,500);
+  SetWRect(20,80,940,500);
   Sizeable(-1,-1,0,0);
   UseView(CredManVc);
   FormName(CredManForm);
