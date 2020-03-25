@@ -1068,6 +1068,8 @@ begin
   RecordField(HideMenu4,M4Code,20,WebNGMenuVc);
   RecordField(DefaultType,M4Set,2013,0);
   RecordField(HideElements,M4UStr,255,0);
+  RecordField(HideMenus,M4UStr,255,0);
+  RecordField(LoanStruct,M4Long,0,0);
   EndBlock;
 
   RecordBegin(WebMetaTagVc,-,"");
@@ -1079,9 +1081,11 @@ begin
   KeyBegin(StructNr);
   KeySegment(StructNr);
   KeySegment(ContentNr);
+  KeySegment(SerNr);
   KeyBegin(ContentNr);
   KeySegment(ContentNr);
   KeySegment(StructNr);
+  KeySegment(SerNr);
   EndRecord;
 
   RecordBegin(WebMetaTagTransVc,-,"");
@@ -1390,7 +1394,7 @@ begin
   RecordField(CalcType,M4Set,2013,0);
   RecordField(IntroText,M4Str,255,0);
   RecordField(CheckRegNr,M4Int,0,0);
-  
+  RecordField(PhoneNumber,M4Str,200,0);
 
   MainKeyBegin(Code,0);
   KeySegment(Code);

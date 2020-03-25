@@ -127,8 +127,8 @@ begin
   array string 255 aDet,aDetLabel;
   Integer i,rwcnt;
   
-  WebOutString("<script src='/scripts/websurvey.js'></script>");
-  WebOutString("<link rel='stylesheet' type='text/css' href='/websurvey.css'>");
+  WebOutString("<script src='/scripts/websurvey.js?ver=20200324'></script>");
+  WebOutString("<link rel='stylesheet' type='text/css' href='/websurvey.css?ver=20200324'>");
   WebOutString("<div class='websurvey_wrap'><form name='websurvey'>");
   WebOutString("<div class='websurvey_title'>" & WFr.IntroText & "</div>");
   SetSurveyDetails(WFr,SMr);
@@ -156,7 +156,11 @@ begin
     end;
   end;
   WebOutString("</div>");
-  WebOutString("<div class='websurvey_submit_line'><div class='websurvey hl_button'>" & ToolWebNGTranslateText2(70420) & "</div></div>");
+  WebOutString("<div class='websurvey_submit_line'><div class='websurvey hl_button'>" & ToolWebNGTranslateText2(70420) & "</div>");
+  if (nonblank(WFr.PhoneNumber)) then begin
+    WebOutString("<div class='websurvey_call'><a href='tel:" & WFr.PhoneNumber & "'><i class='fas fa-phone'></i></a></div>");
+  end;
+  WebOutString("</div>");
 
   WebOutString("</form></div>");//landing_survey;
   ShowScall;

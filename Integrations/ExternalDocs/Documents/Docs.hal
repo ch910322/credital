@@ -465,6 +465,10 @@ begin
   ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
   vVals["F_CREDHALFSUMTEXT"] = tstr;
 
+  vVals["F_CREDMULSUM"] = (CredManr.InvSum4*1.5);
+  ValToText((CredManr.InvSum4*1.5),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  vVals["F_CREDMULSUMTEXT"] = tstr;
+
   return;
 end;
 

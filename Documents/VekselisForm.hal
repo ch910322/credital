@@ -133,6 +133,12 @@ LBREAK:;
           OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
         end;
 
+        OutFormField("F_CREDMULSUM",(CredManr.InvSum4*1.5));
+        if (FIELDINFORM("F_CREDMULSUMTEXT")) then begin
+          ValToText((CredManr.InvSum4*1.5),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+          OUTFORMFIELD("F_CREDMULSUMTEXT",tstr);
+        end;
+
         CloseForm;        
       end else begin
         printf = false;

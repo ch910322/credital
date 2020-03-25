@@ -7,7 +7,7 @@ remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 external procedure GetCredManEventList2(Longint,var record ORVc);
-remote procedure DoPauseCredMan(var record CredManVc,Longint);
+remote procedure DoPauseCredMan(var record CredManVc,Longint,Date);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
@@ -19,6 +19,7 @@ remote function Boolean GetAgreementDoc(record CredManVc,Integer,var record Agre
 remote updating procedure CredManMakePaymentRemote(var record CredManVc,var record VIVc);
 remote function Boolean GetAgreementDoc2(Longint,string,Integer,var record AgreementDocVc);
 remote updating procedure CredManPartialBuyoutDo(Date,val,Longint);
+remote function Date GetPauseCredManNextDate(record CredManVc);
 
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
@@ -360,12 +361,14 @@ begin
   Integer wn;
   record RcVc RepSpec;
   record CredManVc CredManr;
+  Date td;
 
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   if (WindowState(wn)==Rs_Normal) then begin
-    
+    td = GetPauseCredManNextDate(CredManr);
     RepSpec.long1 = CredManr.PauseMonths;
+    RepSpec.d1 = td;
     OpenWindow("PauseCredManWClass",0,wn,"","",RepSpec);
   end;
 
@@ -386,7 +389,7 @@ begin
     mwn = MotherWindow(wn);
     if (WindowState(mwn)==Rs_Normal) then begin
       GetWindowRecord(mwn,CredManr);
-      DoPauseCredMan(CredManr,RepSpec.long1);
+      DoPauseCredMan(CredManr,RepSpec.long1,RepSpec.d1);
       PutWindowRecord(mwn,CredManr);
       WindowDoOK(mwn,0);
       //SetWindowState(mwn,Rs_Normal);
@@ -601,6 +604,7 @@ begin
   record RcVc RepSpec,RepSpec2;
 
   wn = CurWindow;
+  DeselectWindow(wn,true);
   GetWindowRecord(wn,RepSpec);
   
   GetRefinCredManData(RepSpec.long1,type,RepSpec2,true);

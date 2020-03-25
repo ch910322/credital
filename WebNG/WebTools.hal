@@ -29,7 +29,9 @@ external inner function string 60 AddObjectToObjectList(string,string);
 external inner procedure UpdateWebCountry(string);
 external inner function string 255 FormatSimpleLink(string,boolean);
 external function Boolean NovitiMaskMatches(string,string);
-external inner procedure StripSpace(var string,string);
+external inner procedure StripTrailingSpaces(var string);
+external inner procedure StripLeadingSpaces(var string);
+external inner function string 255 GetLinkToStruct(LongInt,boolean);
 
 global
 function Integer SetCompanyBasedOnCountry()
@@ -404,9 +406,10 @@ begin
   row WebLoanCalcVc WLCrw;
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Integer type;
-  string 255 add,termtext;
+  string 255 add,termtext,link;
   Integer i,rwcnt;
   Integer oldcomp;
+  record CreditalWebSetBlock CWSb;
 
   oldcomp = SetCompanyBasedOnCountry;
 
@@ -436,9 +439,12 @@ begin
     end;
 
 
+    BlockLoad(CWSb);
+    link = GetLinkToStruct(CWSb.LoanStruct,true);
     WebOutString("<div class='loan_app'><form method='POST' type='" & type & "'>");
     rwcnt = MatRowCnt(WLCr);
     WebOutString("<script>");
+    WebOutString("var loan_link = '" & link & "';");
     WebOutString("var rates" & type & " = [];");//sorry for doing it like this. 
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(WLCr,i,WLCrw);
@@ -495,8 +501,9 @@ begin
   Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Boolean verslof,faktf,garantf;
   Integer type,i,rwcnt;
-  string 255 add;
+  string 255 add,link;
   Integer oldcomp;
+  record CreditalWebSetBlock CWSb;
 
   oldcomp = SetCompanyBasedOnCountry;
 
@@ -520,8 +527,11 @@ begin
       add = ToolWebNGTranslateText2(70073);
     end;
 
+    BlockLoad(CWSb);
+    link = GetLinkToStruct(CWSb.LoanStruct,true);
     rwcnt = MatRowCnt(WLCr);
     WebOutString("<script>");
+    WebOutString("var loan_link = '" & link & "';");
     WebOutString("var rates = [];");
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(WLCr,i,WLCrw);
@@ -1049,7 +1059,8 @@ begin
   
   BlockLoad(RCb);
   while (GetNextSubstring(list,pos,";",tmp)) begin
-    StripSpace(tmp,tmp);
+    StripTrailingSpaces(tmp);
+    StripLeadingSpaces(tmp);
     if (SetInSet(tmp,nlist)==false) then begin
       ClearRow(RCb,RCbrw,1);
       RCbrw.Category = tmp;
@@ -1456,6 +1467,26 @@ begin
   return;
 end;
 
+function Longint FindContentID(string node)
+begin
+  Longint res;
+  record WebNGContentVc WCr;
+
+  WCr.NodeName = node;
+  if (ReadFirstKey("NodeName",WCr,1,true)) then begin
+    res = WCr.SerNr;
+  end else begin
+    WCr.SerNr = StringToLongint(node);
+    if (ReadFirstMain(WCr,1,true)) then begin
+      res = WCr.SerNr;
+    end;
+  end;
+
+
+  FindContentID = res;
+  return;
+end;
+
 global
 procedure OuterSetPageMetaData(record WebNGStructVc WSr,string mpath)
 begin
@@ -1474,7 +1505,7 @@ begin
     if (blank(node)) then begin
       FindMetaTag(WSr.SerNr,-1,title,kw,descr);
     end else begin
-      FindMetaTag(-1,StringToLongint(node),title,kw,descr);      
+      FindMetaTag(-1,FindContentID(node),title,kw,descr);      
     end;
   end else begin
     if (WSr.Type!=21 and WSr.Type!=19 and WSr.Type!=13) then begin
@@ -1996,12 +2027,14 @@ begin
   oldcomp = SetCompanyBasedOnCountry;
 
   BlockLoad(WSb);
+/*
   res = AddObjectToObjectList(res,WSb.HideMenu1);
   res = AddObjectToObjectList(res,WSb.HideMenu2);
   res = AddObjectToObjectList(res,WSb.HideMenu3);
   res = AddObjectToObjectList(res,WSb.HideMenu4);
+*/
   gHiddenElements = WSb.HideElements;
-  gHiddenMenus = res;
+  gHiddenMenus = WSb.HideMenus;
 
   ResetCompanyBasedOnCountry(oldcomp);
 

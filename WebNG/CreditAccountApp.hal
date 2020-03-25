@@ -107,6 +107,8 @@ begin
   record IVVc IVr;
   row IPVc IPrw;
   Integer i,j,rwcnt;
+  val tval;
+  vector Boolean vIPr;
 
   WebOutString("<div class='record-list receipt-list'>");
   custcode = GetSelectedCustomerCode;//we will have to redo this once we implement multiple companies
@@ -119,24 +121,31 @@ begin
       if (IPrsr.CustCode!=custcode or IPrsr.TransType!=1) then begin
         TrHs = false;
       end else begin
-        IPr.SerNr = IPrsr.TransNr;
-        if (ReadFirstMain(IPr,1,true)) then begin
-          rwcnt = MatRowCnt(IPr);
-          for (i=0;i<rwcnt;i=i+1) begin
-            MatRowGet(IPr,i,IPrw);
-            if (IPrw.CustCode==custcode) then begin
-              tstr = ToolWebNGTranslateText2(70283);
-              if (IPrw.InvoiceNr>0) then begin
-                IVr.SerNr = IPrw.InvoiceNr;
-                if (ReadFirstMain(IVr,1,true)) then begin
-                  if (IVr.CustCredManNr>0) then begin
-                    tstr = IVr.CustCredManNr;
+        if (vIPr[IPrsr.TransNr]==false) then begin
+          IPr.SerNr = IPrsr.TransNr;
+          if (ReadFirstMain(IPr,1,true)) then begin
+            vIPr[IPrsr.TransNr] = true;
+            rwcnt = MatRowCnt(IPr);
+            tval = 0;
+            for (i=0;i<rwcnt;i=i+1) begin
+              MatRowGet(IPr,i,IPrw);
+              if (IPrw.CustCode==custcode) then begin
+                tstr = ToolWebNGTranslateText2(70283);
+                if (IPrw.InvoiceNr>0) then begin
+                  IVr.SerNr = IPrw.InvoiceNr;
+                  if (ReadFirstMain(IVr,1,true)) then begin
+                    if (IVr.CustCredManNr>0) then begin
+                      tstr = AddObjectToObjectList(tstr,IVr.CustCredManNr);
+                      tval = tval + IPrw.RecVal;
+                    end;
                   end;
                 end;
               end;
+            end;
+            if (tval>0) then begin
               WebOutString("<div class='acc-item-line'><div class='item-cnt'>" & j & "</div>");
               DisplayAccDataField("date",ToolWebNGTranslateText2(70280),IPr.TransDate);
-              DisplayAccDataField("amount",ToolWebNGTranslateText2(70281),IPrw.RecVal);
+              DisplayAccDataField("amount",ToolWebNGTranslateText2(70281),tval);
               DisplayAccDataField("ref",ToolWebNGTranslateText2(70282),tstr);
               WebOutString("</div>");
               j = j + 1;

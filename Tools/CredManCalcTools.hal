@@ -391,6 +391,32 @@ begin
   return;
 end;
 
+function val GetCredHistOpenAmount(record CredHistVc CredHistr)
+begin
+  val res,paid;
+  Boolean TrHs;
+  Integer type;
+  record CredHistVc CredHist2r;
+
+  type = GetCredHistType(CredHistr.ArtCode,false); 
+  if (type==kEventTypeIssueInstalment) then begin
+    TrHs = true;
+    CredHist2r.PreviousNr = CredHistr.SerNr;
+    while (LoopKey("PreviousNr",CredHist2r,1,TrHs)) begin
+      if (CredHist2r.PreviousNr!=CredHistr.SerNr) then begin
+        TrHs = false;
+      end else begin
+        paid = paid + CredHist2r.Sum;
+      end;
+    end;
+
+    res = CredHistr.Sum - paid;
+  end;
+
+  GetCredHistOpenAmount = res;
+  return;
+end;
+
 procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf,record CredManSetBlock CredManSetb,var Integer months)
 begin
   record CredHistVc CredHistr,PrevCredHistr;
@@ -414,7 +440,7 @@ begin
         switch (CredHistr.RecordType) begin
           case 0: 
             type = GetCredHistType(CredHistr.ArtCode,false); 
-            openamount = CredHistr.Sum-CredHistr.PaidSum;
+            openamount = GetCredHistOpenAmount(CredHistr);
           case 4: 
             type = kEventTypePartialBuyout;
             buyoutamount = buyoutamount + CredHistr.Sum;

@@ -109,33 +109,47 @@ begin
 end;
 
 global
-procedure DoPauseCredMan(var record CredManVc CredManr,Longint months)
+procedure DoPauseCredMan(var record CredManVc CredManr,Longint months,Date td)
+begin
+
+  if (nonblank(td)) then begin
+    //RecordCopy(oldCredManr,CredManr);
+    CredManr.PauseDate = td;
+    CredManr.PauseMonths = months;
+    CredManSetDatesCust(CredManr);
+    //RecordUpdate(oldCredManr,CredManr,true);
+  end;
+
+  return;
+end;
+
+global
+function Date GetPauseCredManNextDate(record CredManVc CredManr)
 begin
   record CredManVc oldCredManr;
   record CredManPayPlanVc CredManPayPlanr;
   row CredManPayPlanVc CredManPayPlanrw;
   Integer i,rwcnt;
-  Date nextdate;
+  Date res;
   record CredManSetBlock CMb;
-
-  BlockLoad(CMb);
-  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
-  rwcnt = MatRowCnt(CredManPayPlanr);
-  nextdate = CredManr.FirstInvDate;
-  for (i=0;i<rwcnt;i=i+1) begin
-    MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
-    if (CredManPayPlanrw.PlanType<5) then begin
-      i = rwcnt;
-      nextdate = CredManPayPlanrw.TransDate;
+  
+  if (nonblank(CredManr.PauseDate)) then begin
+    res = CredManr.PauseDate;
+  end else begin
+    BlockLoad(CMb);
+    BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+    rwcnt = MatRowCnt(CredManPayPlanr);
+    res = CredManr.FirstInvDate;
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
+      if (CredManPayPlanrw.PlanType<5) then begin
+        i = rwcnt;
+        res = CredManPayPlanrw.TransDate;
+      end;
     end;
   end;
-
-  //RecordCopy(oldCredManr,CredManr);
-  CredManr.PauseDate = nextdate;
-  CredManr.PauseMonths = months;
-  CredManSetDatesCust(CredManr);
-  //RecordUpdate(oldCredManr,CredManr,true);
-
+  
+  GetPauseCredManNextDate = res;
   return;
 end;
 
@@ -188,7 +202,36 @@ begin
   return;
 end;
 
-updating procedure CreateRefinCredMan(record RcVc RepSpec,var record CredManVc CredManr)
+procedure CopySingleCredManSurety(var record CredManVc CredManr,record CredManVc tCredManr,Integer num)
+begin
+  
+    SetFieldValueByName(CredManr,"SuretyProvider" & num,GetFieldValueByName(tCredManr,"SuretyProvider" & num,-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Name",GetFieldValueByName(tCredManr,"Surety" & num & "Name",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Position",GetFieldValueByName(tCredManr,"Surety" & num & "Position",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Phone",GetFieldValueByName(tCredManr,"Surety" & num & "Phone",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Mobile",GetFieldValueByName(tCredManr,"Surety" & num & "Mobile",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "eMail",GetFieldValueByName(tCredManr,"Surety" & num & "eMail",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "ID",GetFieldValueByName(tCredManr,"Surety" & num & "ID",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr0",GetFieldValueByName(tCredManr,"Surety" & num & "Addr0",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr1",GetFieldValueByName(tCredManr,"Surety" & num & "Addr1",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr2",GetFieldValueByName(tCredManr,"Surety" & num & "Addr2",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr3",GetFieldValueByName(tCredManr,"Surety" & num & "Addr3",-1),-1);
+    SetFieldValueByName(CredManr,"Surety" & num & "Addr4",GetFieldValueByName(tCredManr,"Surety" & num & "Addr4",-1),-1);
+
+  return;
+end;
+
+procedure CopyCredManSurety(var record CredManVc CredManr,record CredManVc tCredManr)
+begin
+  
+  CopySingleCredManSurety(CredManr,tCredManr,1);
+  CopySingleCredManSurety(CredManr,tCredManr,2);
+  CopySingleCredManSurety(CredManr,tCredManr,3);
+
+  return;
+end;
+
+updating procedure CreateRefinCredMan(record RcVc RepSpec,var record CredManVc CredManr,record CredManVc tCredManr)
 begin
   
   RecordNew(CredManr);
@@ -200,9 +243,11 @@ begin
   PasteCustInCredMan(CredManr);
   CredManVc_PasteType(CredManr);
   CredManr.IntRate = RepSpec.vals4;
+  CredManr.ClientContact = tCredManr.ClientContact;
   CredManr.MonthlyPaymentDay = RepSpec.flags[1];
   CredManr.InstalmentMonths = RepSpec.flags[0];
   CredManSetDatesCust(CredManr); 
+  CopyCredManSurety(CredManr,tCredManr);
   CredManr.SerNr = NextSerNr("CredManVc",CredManr.startDate,-1,false,"");
   CredManr.OKFlag = 1;
   CredManr.Approved = 1;
@@ -275,7 +320,7 @@ begin
     RecordCopy(oldCredManr,CredManr);
     CredManr.OrderClass = OCb.RefinClass;
     if (RecordUpdate(oldCredManr,CredManr,true)==0) then begin
-      CreateRefinCredMan(RepSpec,nCredManr);
+      CreateRefinCredMan(RepSpec,nCredManr,CredManr);
       DoBuyOutAgreement(CredManr,IVr);
       CreditCredManInvoices(CredManr);
       res = true;
@@ -536,6 +581,7 @@ begin
           if (CredManr.MaxMonthlyPayment>0) then begin
             RepSpec.flags[10] = 1;
           end;
+          RepSpec.flags[11] = scnt;
           PrintEBSDocument("SuretyAgreementForm",fn,RepSpec,CredManr.SerNr,langcode);
         end else begin
           PrintMultiDocDocument("SuretyAgreementForm" & scnt,fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);

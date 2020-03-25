@@ -460,10 +460,11 @@ begin
 
   WindowBegin("Pause Credit Agreement",PauseCredManWClass,CGother,RcType);
   UseView(RcVc);
-  SetWRect(20,80,400,140);
+  SetWRect(20,80,400,160);
   AutoSizeWindow(false);  
   h = 150; h2 = 250; v=450;
-  EditFieldTL(h,v=6,120,"Pause Months",M4Long,Normal,0,long1,false,0);
+  EditFieldTL(h,v=6,120,"Pause Date",M4Date,Normal,0,d1,false,PasteCurDate);
+  EditFieldTL(h,v+=vs,120,"Pause Months",M4Long,Normal,0,long1,false,0);
   HalPushButton(h,v+=vs,h+120,v+20,"PauseCredManWClassPause","Pause");
   EndWindow;
 
@@ -1658,15 +1659,19 @@ begin
   EditField(h2,v,90,"Color",Normal,LoanType5Color,false,StrSetSClass);
   CheckBox(h3,v,0,"Enable",LoanType5Show);
 
+/*
   ButtonFrame(h,v+=60,200,5,"Hide Menu Item");
   EditField(h+50,v+=5,100,"Menu 1",Normal,HideMenu1,false,WebNGMenuSClass);
   EditField(h+50,v+=vs,100,"Menu 2",Normal,HideMenu2,false,WebNGMenuSClass);
   EditField(h+50,v+=vs,100,"Menu 3",Normal,HideMenu3,false,WebNGMenuSClass);
   EditField(h+50,v+=vs,100,"Menu 4",Normal,HideMenu4,false,WebNGMenuSClass);
-
+*/
   v = v + 30;
+
+  EditField(h+50,v+=vs,150,"Loan Structure",Normal,LoanStruct,false,WebNGStructSClass);
   EditField(h+50,v+=vs,150,"Default Type",Normal,DefaultType,false,SetSClass);
   EditField(h+50,v+=vs,-40,"Hide Elements",Normal,HideElements,false,WebNGElementSClass);
+  EditField(h+50,v+=vs,-40,"Hide Menus",Normal,HideMenus,false,WebNGMenuSClass);
 
   EndWindow;
 end;
@@ -2276,7 +2281,8 @@ begin
   EditField(h,v=6,150,"Code",Normal,Code,false,0);
   EditField(h,v+=vs,150,"Intro Text",Normal,IntroText,false,0);
   EditField(h,v+=vs,150,"Email Receiver",Normal,MailReceiver,false,0);
-  CheckBox(h,v+=vs,0,"Check Registration Number",CheckRegNr);
+  EditField(h,v+=vs,150,"Phone Number",Normal,PhoneNumber,false,0);
+ CheckBox(h,v+=vs,0,"Check Registration Number",CheckRegNr);
 
   CheckBox(h3,v=6,0,"Create Application",CreateApplication);
   EditField(h3,v+=vs,150,"Order Class",Normal,OrderClass,false,OrderClassSClass);
@@ -2285,7 +2291,7 @@ begin
   
 //  EditField(h,v+=vs,82,"Credit Agr. Type",Normal,CredManType,false,CredManTypeSClass);//??
 
-  v = v + 40;
+  v = v + 60;
   CheckBox(h,v,0,"Request Reg. No.",RegFlag);
   EditField(h2,v,ord,"Order",Normal,RegOrder,false,0);
   EditField(h3,v,100,"Label",Normal,RegLabel,false,0);
