@@ -940,11 +940,64 @@ LShowLoanApp:;
   return;
 end;
 
+function Boolean EmailAddressExists(string email,var string contactcode,var string contactname)
+begin
+  Boolean res;
+  record CUVc CUr;
+
+  CUr.eMail = email;
+  if (ReadFirstKey("eMail",CUr,1,true)) then begin
+    res = true;
+    contactcode = CUr.Code;
+    contactname = CUr.Name;
+  end;
+
+  EmailAddressExists = res;
+  return;
+end;
+
+updating procedure AddEmailRecipient(string maincode,string mainname,string contactcode,string contactname)
+begin  
+  record CUVc CUr;
+  record EmailRecipVc EmailRecipr;
+  row EmailRecipVc EmailReciprw;
+  Integer i,rwcnt;
+  Boolean res,foundf;
+  
+  EmailRecipr.MainContactCode = maincode;
+  if (ReadFirstMain(EmailRecipr,1,true)) then begin 
+    rwcnt = MatRowCnt(EmailRecipr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(EmailRecipr,i,EmailReciprw);
+      if (EmailReciprw.ContactCode==contactcode and (EmailReciprw.DocType==kMailInvoice)) then begin 
+        foundf = true;
+      end;
+    end;
+  end else begin
+    RecordNew(EmailRecipr);
+    EmailRecipr.MainContactCode = maincode;
+    EmailRecipr.MainContactName = mainname;
+  end;
+
+  if (!foundf) then begin
+    ClearRow(EmailRecipr,EmailReciprw,1);
+    EmailReciprw.ContactCode = contactcode;
+    EmailReciprw.DocType = kMailInvoice;
+    EmailReciprw.RowTyp = kMailRowTypeTo;
+    EmailReciprw.ContactName = contactname;
+    MatRowPut(EmailRecipr,MatRowCnt(EmailRecipr),EmailReciprw);
+  end;
+
+  RecordInsert(EmailRecipr,true);
+
+  return;
+end;
+
 global
 updating function Boolean StoreLoanCustomer(string regnr,string email,string name,string addr0,string addr1,string addr2,string addr3,string phone,string mobile,string fax,string homepage,string compemail,string vatnr,string custclass,var record CUVc CUr)
 begin
-  Boolean res;
-  string 255 tstr;
+  Boolean res,addmailf;
+  string 255 tstr,contactcode,contactname;
   record CYBlock CYb;
   
   BlockLoad(CYb);  
@@ -952,11 +1005,17 @@ begin
   if (GetNextCustNr(tstr)) then begin end;
   CUr.Code = tstr;
   CUr.RegNr1 = regnr;
-  CUr.eMail = compemail;
+  if (EmailAddressExists(compemail,contactcode,contactname)) then begin
+    addmailf = true;
+  end else begin
+    CUr.eMail = compemail;
+  end;
   CUr.Name = name;
   CUr.InvAddr0 = addr0;
   CUr.InvAddr2 = addr2;
   CUr.InvAddr3 = addr3;
+  CUr.CountryCode = CYb.CountryCode;
+  CUVc_PasteCountryCode(CUr,""); 
   CUr.Phone = CreditalFixPhone(phone,CUr.CountryCode);
   CUr.Mobile = CreditalFixPhone(mobile,CUr.CountryCode);
   CUr.Fax = fax;
@@ -965,11 +1024,12 @@ begin
   CUr.CUType = 1;
   CUr.VEType = 1;
   CUr.Classification = custclass;
-  CUr.CountryCode = CYb.CountryCode;
-  CUVc_PasteCountryCode(CUr,""); 
   if (RecordInsert(CUr,true)) then begin
     res = true;
     ReadFirstMain(CUr,1,true);
+    if (addmailf) then begin
+      AddEmailRecipient(CUr.Code,CUr.Name,contactcode,contactname);
+    end;
   end;
 
   StoreLoanCustomer = res;

@@ -406,7 +406,7 @@ begin
             case "Picture2":   ShowLandingPicture(LPr,2);
             case "Picture3":   ShowLandingPicture(LPr,3);
             case "Html1":      ShowLandingHtml(LPr,1);
-            case "Html1":      ShowLandingHtml(LPr,2);
+            case "Html2":      ShowLandingHtml(LPr,2);
             case "Submit":     ShowLandingSubmit(LPr);
           end;
         end;
@@ -587,7 +587,7 @@ begin
               end;
             end;
           end else begin            
-            if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
+            if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,custclass,CUr)) then begin
             end;
           end;
         end;

@@ -1296,6 +1296,7 @@ begin
   EndBlock;
 
   BlockBegin(PhonePrefixBlock,-,"");
+  BlockInServer;
   BlockForAllCompanies;
   RecordField(Math,M4Matrix,0,0);
   ArrayBegin(Math,-,1);

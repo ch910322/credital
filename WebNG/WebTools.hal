@@ -32,6 +32,7 @@ external function Boolean NovitiMaskMatches(string,string);
 external inner procedure StripTrailingSpaces(var string);
 external inner procedure StripLeadingSpaces(var string);
 external inner function string 255 GetLinkToStruct(LongInt,boolean);
+external inner function string 255 GetBrowserOperatingSystem();
 
 global
 function Integer SetCompanyBasedOnCountry()
@@ -1487,6 +1488,20 @@ begin
   return;
 end;
 
+function Boolean IsMobileDevice()
+begin
+  string 255 os;
+  Boolean res;
+  
+  os = GetBrowserOperatingSystem;
+  if (os=="android" or os=="ios" or os=="linux") then begin
+    res = true;
+  end;
+
+  IsMobileDevice = res;
+  return;
+end;
+
 global
 procedure OuterSetPageMetaData(record WebNGStructVc WSr,string mpath)
 begin
@@ -1528,15 +1543,17 @@ begin
     gExtraHeadHTML = gExtraHeadHTML & "<link rel='canonical' href='" & CWb.CanonicalBase & WebGetArg("path") & "'>";
   end;
 
-  if (blank(GetCookie("exitpopup"))) then begin
-    fullpath = WebGetArg("path");
-    BlockLoad(EPb);
-    rwcnt = MatRowCnt(EPb);
-    for (i=0;i<rwcnt;i=i+1) begin
-      MatRowGet(EPb,i,EPbrw);
-      if (fullpath==EPbrw.Link) then begin
-        gExtraHeadHTML = gExtraHeadHTML & "<script src='/scripts/exitpopup.js'></script>";
-        i = rwcnt;
+  if (IsMobileDevice==false) then begin
+    if (blank(GetCookie("exitpopup"))) then begin
+      fullpath = WebGetArg("path");
+      BlockLoad(EPb);
+      rwcnt = MatRowCnt(EPb);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(EPb,i,EPbrw);
+        if (fullpath==EPbrw.Link) then begin
+          gExtraHeadHTML = gExtraHeadHTML & "<script src='/scripts/exitpopup.js'></script>";
+          i = rwcnt;
+        end;
       end;
     end;
   end;

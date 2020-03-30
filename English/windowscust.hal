@@ -694,7 +694,7 @@ begin
   EditField(h,v+=vs,100,"Months",Normal,Months,true,0);
   EditField(h,v+=vs,100,"Princ. Delay Int. %",ViewOnly,PrincipleDelayInterest,true,0);
   EditField(h,v+=vs,100,"Princ. Delay Months",ViewOnly,PrincipleDelayMonths,true,0);
-  EditField(h,v+=vs,230,"Source link",ViewOnly,Source,true,0);
+  EditField(h,v+=vs,230,"Source link",ViewOnly,Source,false,0);
   //EditField(h,v+=vs,100,"Monthly Rate %",Normal,InterestRate,true,0);
   //EditField(h,v+=vs,100,"Start Date",Normal,StartDate,false,PasteCurDate);
   //EditField(h,v+=vs,100,"End Date",ViewOnly,EndDate,false,0);
