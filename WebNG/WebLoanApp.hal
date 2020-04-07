@@ -1096,7 +1096,7 @@ begin
 end;
 
 global
-procedure CheckLoanCustomer(string regnr,string email,string contactphone,Boolean ignoreloginf,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
+procedure CheckLoanCustomer2(string regnr,string name2,string compemail2,string email,string contactphone,Boolean ignoreloginf,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
 begin
   string 255 tstr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,vatnr,compemail,custclass;
   Boolean res;
@@ -1134,20 +1134,22 @@ begin
   end;
 
   res = false;
-  CUr.RegNr1 = regnr;
-  if (ReadFirstKey("RegNr1",CUr,1,true)) then begin//should check email as well
-    compf = true;
-    res = true;
-  end else begin
-    //if (len(regnr)==11) then begin
-    //  name = regnr;
-    //end else begin
+  if (nonblank(regnr)) then begin
+    CUr.RegNr1 = regnr;
+    if (ReadFirstKey("RegNr1",CUr,1,true)) then begin//should check email as well
+      compf = true;
+      res = true;
+    end else begin
       BlockLoad(CYb);
       GetCustomerNameFromServer(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,true,CYb.CountryCode);
-    //end;
-    if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
+      if (qupdating.StoreLoanCustomer(regnr,email,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail,vatnr,custclass,CUr)) then begin
+        res = true;
+      end;
+    end;
+  end else begin
+    if (qupdating.StoreLoanCustomer(regnr,email,name2,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,compemail2,vatnr,custclass,CUr)) then begin 
       res = true;
-   end;
+    end;
   end;
 
   if (!compf and !res) then begin
@@ -1178,6 +1180,15 @@ begin
   end;
 
 LCheckCustomer:;
+  return;
+end;
+
+global
+procedure CheckLoanCustomer(string regnr,string email,string contactphone,Boolean ignoreloginf,var record CUVc CUr,var record CUVc ContactCUr,var Integer status)
+begin
+
+  CheckLoanCustomer2(regnr,"","",email,contactphone,ignoreloginf,CUr,ContactCUr,status);
+
   return;
 end;
 

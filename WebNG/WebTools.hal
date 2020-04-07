@@ -1655,7 +1655,7 @@ begin
     CUr.InvAddr0 = address;
     CUr.Password = CalcPassword(passw1,CUr.Code,0);
     if (RecordUpdate(oldCUr,CUr,false)==0) then begin//avoid record check because of missing classifications
-      CUVcRecordUpdate(CUr,oldCUr,Rs_Update,1);
+      CUVcRecordUpdate(oldCUr,CUr,Rs_Update,1);
       
       RecordCopy(oldIRr,IRr);
       IRr.Status = 1;
@@ -1858,15 +1858,32 @@ begin
   return;
 end;
 
+function string 255 CleanPhoneNumber(string tstr)
+begin
+  Integer i,n;
+  string 255 res,c;
+  
+  for (i=0;i<len(tstr);i=i+1) begin
+    c = mid(tstr,i,1);
+    n = asc(c);
+    if (n==43 or (n>47 and n<58)) then begin
+      res = res & c;
+    end;
+  end;
+
+  CleanPhoneNumber = res;
+  return;
+end;
 
 global
-function string 255 CreditalFixPhone(string phone,string countrycode)
+function string 255 CreditalFixPhone(string tphone,string countrycode)
 begin
   record PhonePrefixBlock PPb;
   row PhonePrefixBlock PPbrw;
   Integer i,rwcnt;
-  string 255 prefix,rprefix,res,tprefix;
+  string 255 prefix,rprefix,res,tprefix,phone;
   
+  phone = CleanPhoneNumber(tphone);
   res = phone;
   if (blank(res)) then begin
     goto LCreditalFixPhone;

@@ -201,7 +201,7 @@ begin
     ContactCUr.JobDesc = contactjob;
     ContactCUr.Name = contactname;
     RecordUpdate(oldCUr,ContactCUr,false);
-    CUVcRecordUpdate(oldCUr,ContactCUr,Rs_Update,1);
+    CUVcRecordUpdate(ContactCUr,oldCUr,Rs_Update,1);
   end;
 
   return;
@@ -228,10 +228,10 @@ begin
   LAr.OrderClass = WFr.OrderClass;
 
 
-  LAr.PhoneNo = phone;
+  LAr.PhoneNo = CreditalFixPhone(phone,CUr.CountryCode);
   LAr.ContactName = ContactCUr.Name;
   LAr.ContacteMail = ContactCUr.eMail;
-  LAr.ContactMobile = contactmobile;
+  LAr.ContactMobile = CreditalFixPhone(contactmobile,CUr.CountryCode);
   LAr.Manager = WFr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;

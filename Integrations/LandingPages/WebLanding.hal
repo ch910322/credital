@@ -16,7 +16,7 @@ external inner procedure ShowWebAppPageStart(record WebNGPageVc,string);
 external inner procedure ShowWebAppPageEnd(record WebNGPageVc);
 external inner procedure LoadWebPage(string,var record WebNGPageVc);
 external procedure ShowWebLoanStrings();
-external procedure CheckLoanCustomer(string,string,string,Boolean,var record CUVc,var record CUVc,var Integer);
+external procedure CheckLoanCustomer2(string,string,string,string,string,Boolean,var record CUVc,var record CUVc,var Integer);
 external function Boolean InsertCustomerInB2BApplication(var record B2BLoanApplicationVc);
 external function Boolean InsertManagerInB2BApplication(var record B2BLoanApplicationVc);
 external function string 255 GetAgreementType(record B2BLoanApplicationVc,Integer,string);
@@ -438,7 +438,7 @@ begin
     ContactCUr.JobDesc = contactjob;
     ContactCUr.Name = contactname;
     RecordUpdate(oldCUr,ContactCUr,false);
-    CUVcRecordUpdate(oldCUr,ContactCUr,Rs_Update,1);
+    CUVcRecordUpdate(ContactCUr,oldCUr,Rs_Update,1);
   end;
 
   return;
@@ -467,10 +467,10 @@ begin
   LAr.OrderClass = LPr.OrderClass;
 
 
-  LAr.PhoneNo = phone;
+  LAr.PhoneNo = CreditalFixPhone(phone,CUr.CountryCode);
   LAr.ContactName = ContactCUr.Name;
   LAr.ContacteMail = ContactCUr.eMail;
-  LAr.ContactMobile = contactmobile;
+  LAr.ContactMobile = CreditalFixPhone(contactmobile,CUr.CountryCode);
   LAr.Manager = LPr.Manager;
   InsertManagerInB2BApplication(LAr);
   LAr.Sum = amount;
@@ -563,7 +563,7 @@ begin
       term = StringToLongint(WebGetArg("term"));
       if (err==0) then begin
         if (nonblank(contactemail)) then begin
-          CheckLoanCustomer(regnr,contactemail,contactmobile,false,CUr,ContactCUr,status);
+          CheckLoanCustomer2(regnr,name,email,contactemail,contactmobile,false,CUr,ContactCUr,status);
           switch (status) begin
             case 0://we are logged in - all good
             case 1://we just created a new company and new contact - all good
