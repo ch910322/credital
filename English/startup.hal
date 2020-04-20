@@ -52,7 +52,7 @@ begin
 
 /*DB Maint*/
 
-  Setting("SMS Reminder Queue",SMSReminderQueueLClass,modDBMain);
+  Setting("Reminder Queue",SMSReminderQueueLClass,modDBMain);
 
 /*Webshop*/
 
@@ -172,6 +172,7 @@ begin
   SString(200107,"Invitation sent successfully");
 
   SString(200108,"These Changes require Server Restart");
+  SString(200109,"Can't pause becauce there is an Invoice already created");
 
 /*Web Codes 200200-200230*/
   SString(200200,"Banner with this type already registered in these days");

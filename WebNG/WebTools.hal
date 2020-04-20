@@ -712,6 +712,9 @@ begin
   if (ReadFirstMain(Userr,1,true)) then begin
     if (ReadRecordLink(Userr,1,Attachr,RLr)) begin
       ext = right(Attachr.FileName,4);
+      if (left(ext,1)==".") then begin
+        ext = right(Attachr.FileName,3);
+      end;
       SetContentTypeForExtension(ext);
       WebSetContentDisposition("inline; filename=" & Attachr.FileName);
       WebOutAttachment(Attachr.SerNr);
@@ -1077,12 +1080,11 @@ begin
 end;
 
 global
-procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,var string custclass,Boolean checkclassf,string countrycode)
+procedure GetCustomerNameFromServer2(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,var string custclass,Boolean checkclassf,string countrycode,var Boolean res)
 begin
   area a_req,a_reply;
   string 255 fres,err,tstr,fulladdr,root,post,city;
   record TXServiceReplyVc TXSrvReplyr;
-  Boolean res;
   string 255 gEBSAddrLookupCountry;
   xml axml;
   Integer i,rwcnt,cnt,listcnt;
@@ -1183,6 +1185,15 @@ begin
   return;
 end;
 
+global
+procedure GetCustomerNameFromServer(string regnr,var string name,var string addr0,var string addr1,var string addr2,var string addr3,var string phone,var string mobile,var string fax,var string homepage,var string email,var string vatnr,var string custclass,Boolean checkclassf,string countrycode)
+begin
+  Boolean res;
+  GetCustomerNameFromServer2(regnr,name,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,custclass,checkclassf,countrycode,res)
+
+  return;
+end;
+
 function Boolean RegistrationNumberMatchesCountry(record CYBlock CYb,string compid,var Boolean checkf)
 begin
   Boolean res;
@@ -1212,7 +1223,7 @@ begin
   record CUVc CUr;
   Integer oldcomp;
   record CYBlock CYb;
-  Boolean checkf;
+  Boolean checkf,res;
 
   oldcomp = SetCompanyBasedOnCountry;
 
@@ -1228,8 +1239,12 @@ begin
       end else begin
         
         if (checkf) then begin//only for companies (9 chars) not persons (12 chars)
-          GetCustomerNameFromServer(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,custclass,false,CYb.CountryCode);
-          addrstr = addr0 & "," & addr1 & "," & addr2 & "," & addr3;
+          GetCustomerNameFromServer2(compid,fres,addr0,addr1,addr2,addr3,phone,mobile,fax,homepage,email,vatnr,custclass,false,CYb.CountryCode,res);
+          if (!res) then begin
+            fres = " ";
+          end else begin
+            addrstr = addr0 & "," & addr1 & "," & addr2 & "," & addr3;
+          end;
         end else begin
           fres = " ";
         end;

@@ -204,6 +204,7 @@ begin
     
   end;
 */
+  BlockLoad(CMSb);
   RecordClear(RepSpec);
   ReportDefaults(RepSpec,"IVToMailVClass");
   if (GetInvoiceSequence(aIVr,invfr,invto,datefr,dateto)) then begin
@@ -211,7 +212,11 @@ begin
     RepSpec.sStartDate = datefr;
     RepSpec.sEndDate = dateto;
     RepSpec.ArtMode = 0;
-    RepSpec.flags[1] = 1;
+    if (CMSb.AutoInvoiceSend==1) then begin
+      RepSpec.flags[1] = 1;
+    end else begin
+      RepSpec.flags[1] = 0;
+    end;
     RepSpec.flags[4] = 1;
     RepSpec.flags[5] = 1;
     RepSpec.flags[6] = 1;
@@ -220,7 +225,11 @@ begin
     qupdating.IVToMailMn(RepSpec);
   end else begin
     RepSpec.ArtMode = 0;
-    RepSpec.flags[1] = 1;
+    if (CMSb.AutoInvoiceSend==1) then begin
+      RepSpec.flags[1] = 1;
+    end else begin
+      RepSpec.flags[1] = 0;
+    end;
     RepSpec.flags[4] = 1;
     RepSpec.flags[5] = 1;
     RepSpec.flags[6] = 1;
@@ -235,7 +244,6 @@ begin
       qupdating.IVToMailMn(RepSpec);
     end;
   end;
-  BlockLoad(CMSb);
   if (CMSb.AutoInvoiceFlag==1) then begin
     RemoveTask("CredManAutoInvoiceTask");
     td = AddDay(CurrentDate,1);

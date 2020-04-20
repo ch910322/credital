@@ -41,6 +41,7 @@ external procedure Ext_PrintSiteInformation(var vector string,string,string);
 external procedure Ext_PrintNote(var vector string,record NotepadVc);
 external procedure Ext_PrintBranchData(var vector string,string);
 external procedure Ext_PrintUserDefinedItemFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
+external inner function roundmode SetRoundModeD(Integer);
 
 procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
@@ -228,8 +229,7 @@ begin
   vVals["F_FEES"] = fees;
   ValToText(fees,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
   vVals["F_FEESINTEXT"] = tstr;
-
-  prolong = CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100));
+  prolong = Round(CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100)),SetRoundModeD(2));
   vVals["F_PROLONG"] = prolong;
   ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
   vVals["F_PROLONGINTEXT"] = tstr;

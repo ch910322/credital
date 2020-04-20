@@ -1232,3 +1232,24 @@ begin
   SearchField("Search");
   EndWindow;
 end;
+
+window IPSuggestionVClass:1
+  wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
+begin
+  real h,v,vm,vs;
+  WindowBegin("Create Receipts Suggestion",IPSuggestionVClass,CGMnt,RcType);
+  SetWRect(20,93,390,280);
+  vs=20;
+  PeriodField(h=160,v=6,"Due Date in Period");
+  EditFieldTL(h,v+=20 ,82,"Customer",M4UStr,Normal,41,f1,false,CUSClass);
+  EditFieldTL(h,v+=vs ,82,"Category",   M4UStr,Normal,10,LastAcc,false,CCatSClass);
+  EditFieldTL(h,v+=20 ,82,"Classification",M4UStr,Normal,60,f4,false,CClassSClass);
+  EditFieldTL(h,v+=20 ,82,"Payment Term",M4Code,Normal,5,AccStr,false,PDSClass);
+  EditFieldTL(h,v+=20 ,82,"Currency",M4UStr,Normal,5,CurncyCode,false,CurncyCodeSClass);
+  EditFieldTL(h,v+=20 ,30,"Receipt Payment Mode",M4Code,Normal,2,FirstAcc,false,PMSClass);
+  EditFieldTL(h,v+=20 ,82,"Receipt Date",M4Date,Normal,0,RegDate,false,PasteCurDate);
+  EditFieldTL(h,v+=20 ,82,"Receipt Date",M4Date,Normal,0,RegDate,false,PasteCurDate);
+  EditFieldTL(h,v+=20 ,82,"Amount up to",M4Val,Normal,0,vals0,false,0);
+  CheckBox(h,v+=20,0,"Only for finished Agreements",flags[1]);
+  EndWindow;
+end;

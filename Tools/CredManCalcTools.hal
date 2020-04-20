@@ -548,7 +548,7 @@ begin
   Integer i,monthtype,monthtype2,monthtype3,delaymonths;
   val hundred,twelve;
   Date invdat,frdat,todat;
-  Boolean firstinvf;
+  Boolean firstinvf,setdelf;
   
 /*should we calculate VAT here?
   if CredManr.VATSum > 0 and nonblank(CredManr.VATAddMonths) then begin
@@ -569,7 +569,6 @@ begin
   if (withactuals) then begin
     AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf,CredManSetb,months);
   end;
-  
   for(i=calculatedmonths;i<months;i=i+1) begin
     if (calcbal>0) then begin
       CalcCredManCurrentPeriod(inCredManr,i-1,frdat,todat,invdat); //sets dates, frdat, todat and invdat
@@ -613,14 +612,16 @@ begin
           AddFactoringInvoices(inCredManr,CredManPayPlanr,CredManSetb,CurrentDate,acumint,calcbal,frdat,todat)
         case 5://Payment guarantee
 
-        case 6:
-          if (i==0) then begin
+        case 6://linear with delay
+          if (setdelf==false) then begin
             inCredManr.InstalmentMonths = inCredManr.InstalmentMonths-inCredManr.PrincipleDelayMonths;
+            setdelf = true;
           end;
           monthtype2 = monthtype;
           if (monthtype2==kMonthTypeLast) then begin
             monthtype2 = kMonthTypeRegular;
           end;
+
           if (i>=inCredManr.PrincipleDelayMonths) then begin
             AddPlannedFees(inCredManr,CredManPayPlanr,CredManSetb,kPlannedFeesMonthly,monthtype2,invdat,acumint,  calcbal,frdat,todat,-1);
             AddInterest(inCredManr,CredManPayPlanr,CredManSetb,monthtype2,invdat,acumint,calcbal,frdat,todat,-1);
@@ -628,10 +629,11 @@ begin
           end else begin
             AddInterestDelay(inCredManr,CredManPayPlanr,CredManSetb,monthtype2,invdat,acumint,calcbal,frdat,todat,-1);
           end;
-        case 7:
-          if (i==0) then begin
+        case 7://annuity with delay
+          if (setdelf==false) then begin
             inCredManr.InstalmentMonths = inCredManr.InstalmentMonths-inCredManr.PrincipleDelayMonths;
             delaymonths = inCredManr.PrincipleDelayMonths;
+            setdelf = true;
           end;
           monthtype2 = monthtype;
           monthtype3 = monthtype;

@@ -1,6 +1,9 @@
-external procedure SendMessenteMessage(string,string);
+external inner procedure SendMessenteMessage(string,string);
 external function string 255 NovitiGetEmailSender();
 external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
+external inner function Boolean PasteCuInAct(var record ActVc,var string);
+external inner function Boolean PasteActTypeInAct2(string,var record ActVc,var string);
+external updating procedure Cust_SetReminderStatus(record SMSReminderQueueVc,Integer);
 
 enum begin
   kMaxCheckDays = 5
@@ -87,26 +90,148 @@ begin
   return;
 end;
 
+procedure FindFirstContactPerson(record CUVc CUr,var record CUVc ContactCUr)
+begin
+  record ContactRelVc CRr;
+
+  CRr.CustCode = CUr.Code;
+  if (ReadFirstMain(CRr,1,true)) then begin
+    ContactCUr.Code = CRr.ContactCode;
+    if (ReadFirstMain(ContactCUr,1,true)) then begin
+    end;
+  end;
+
+  return;
+end;
+
+function string 255 GetContactPhoneNumber(record CUVc CUr)
+begin
+  string 255 res;
+  record CUVc ContactCUr;
+
+  res = CUr.Mobile;
+  if (blank(res)) then begin
+    FindFirstContactPerson(CUr,ContactCUr);
+    res = ContactCUr.Mobile;
+  end;
+  if (blank(res)) then begin
+    res = CUr.Phone;
+  end;
+  if (blank(res)) then begin
+    res = ContactCUr.Phone;
+  end;
+
+  GetContactPhoneNumber = res;
+  return;
+end;
+
+function string 255 GetContactEmail(record CUVc CUr)
+begin
+  string 255 res;
+  record CUVc ContactCUr;
+
+  res = CUr.eMail;
+  if (blank(res)) then begin
+    FindFirstContactPerson(CUr,ContactCUr);
+    res = ContactCUr.eMail;
+  end;
+
+  GetContactEmail = res;
+  return;
+end;
+
 global
-procedure DoSendSMSReminder(record SMSReminderVc SMSReminder,record IVVc IVr)
+procedure SendSMSReminderToService(string phoneno,string text,Longint queuenr)
+begin
+  transaction Longint gSMSQueueRecord;
+
+  gSMSQueueRecord = queuenr;
+  SendMessenteMessage(phoneno,text);
+
+  return;
+end;
+
+global
+updating procedure DoHandleFailedSMSReminder(Longint sernr,Integer type,area reply)
+begin
+  record SMSReminderQueueVc SRQr;
+  record NotePadVc Noter;
+  record RLinkVc RLr;
+  record MesenteSMSBlock MSb;
+  record ActVc Actr;
+  string 255 warning;
+
+  SRQr.SerNr = sernr;
+  if (ReadFirstMain(SRQr,1,true)) then begin
+    Cust_SetReminderStatus(SRQr,3);
+    RecordNew(Noter);
+    Noter.SerNr = NextSerNr("NotepadVc",CurrentDate,-1,false,"");
+    if (type==0) then begin
+      AddAreaToTextField(reply,Noter);
+    end else begin
+      SetTextField(Noter,"Failed to connect to server");
+    end;
+    if (RecordStore(Noter,false)) then begin
+      CreateRecordLink(SRQr,CurrentCompany,Noter,CurrentCompany);  
+      if (ReadRecordLink(SRQr,1,Noter,RLr)) then begin
+        RLr.Comment = "Error Message";
+        if (RecordStore(RLr,true)) then begin
+        end;
+      end;
+    end;
+    BlockLoad(MSb);
+    if (MSb.CreateActivity==1) then begin
+      RecordNew(Actr);
+      Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+      Actr.TransDate = CurrentDate;
+      Actr.ActType = MSb.ActType;
+      PasteActTypeInAct2("",Actr,warning);
+      Actr.MainPersons = MSb.ActPerson;
+      Actr.Comment = MSb.ActText;
+      Actr.TodoFlag = kTodoFlagTodo;
+      if (RecordInsert(Actr,true)) then begin
+        CreateRecordLink(Actr,CurrentCompany,SRQr,CurrentCompany);
+        CreateRecordLink(SRQr,CurrentCompany,Actr,CurrentCompany);
+      end;
+
+    end;
+
+  end;
+
+  return;
+end;
+
+global
+procedure HandleFailedSMSReminder(Integer errtype,area reply)
+begin
+  transaction Longint gSMSQueueRecord;
+
+  queued.DoHandleFailedSMSReminder(gSMSQueueRecord,errtype,reply);
+
+  return;
+end;
+
+function Boolean DoSendSMSReminder(record SMSReminderVc SMSReminder,record IVVc IVr,Longint queuenr)
 begin
   record RcVc RepSpec;
   area a;
-  string 255 text,tstr;
+  string 255 text,tstr,phoneno;
   Integer i,lcnt;
   record CUVc CUr;
   record ARVc ARr;
+  Boolean res;
   
   CUr.Code = IVr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
     if (CUr.NoLetterPosting!=0) then begin
       goto LSendSMSReminder;
     end;
-    if (blank(CUr.Mobile)) then begin
+    phoneno = GetContactPhoneNumber(CUr);
+    if (blank(phoneno)) then begin
       LogText(0,"Skipping SMS reminder for contact " & CUr.Code & " - " & CUr.Name & ". No Mobile Phone specified");
       goto LSendSMSReminder;
     end;
-    
+    res = true;
     ARr.InvoiceNr = IVr.SerNr;
     ReadFirstMain(ARr,1,true);
     RepSpec.searchstr = CUr.Name;
@@ -127,21 +252,21 @@ begin
       text = text & tstr;
     end;
 
-    SendMessenteMessage(CUr.Mobile,text);
+    threadasync.SendSMSReminderToService(phoneno,text,queuenr);
 
   end;
 
 LSendSMSReminder:;
+  DoSendSMSReminder = res;
   return;
 end;
 
-
 global
-updating procedure DoSendEmailReminder(record SMSReminderVc SMSReminder,record IVVc IVr)
+updating function Boolean DoSendEmailReminder(record SMSReminderVc SMSReminder,record IVVc IVr)
 begin
   record RcVc RepSpec;
   area a;
-  string 255 text,tstr;
+  string 255 text,tstr,email;
   Integer i;
   Longint l,pos;
   record CUVc CUr;
@@ -149,23 +274,26 @@ begin
   row EMailQueVc emarw;
   record CYBlock CYb;
   record ARVc ARr;
+  Boolean res;
   
   CUr.Code = IVr.CustCode;
   if (ReadFirstMain(CUr,1,true)) then begin
     if (CUr.NoLetterPosting!=0) then begin
       goto LSendSMSReminder;
     end;
-    if (blank(CUr.eMail)) then begin
+    email = GetContactEmail(CUr);
+    if (blank(email)) then begin
       LogText(0,"Skipping Email reminder for contact " & CUr.Code & " - " & CUr.Name & ". No Email specified");
       goto LSendSMSReminder;
     end;
 
+    res = true;
     emarw.RowTyp = 1;
     emarw.AddrCode = NovitiGetEmailSender;
     MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
 
     emarw.RowTyp = 0;
-    emarw.AddrCode = CUr.eMail;
+    emarw.AddrCode = email;
     MatRowPut(emqrp,MatRowCnt(emqrp),emarw);
     emqrp.Header = SMSReminder.Subject;
 
@@ -206,6 +334,7 @@ begin
   end;
 
 LSendSMSReminder:;
+  DoSendEmailReminder = res;
   return;
 end;
 
@@ -260,17 +389,44 @@ begin
   return;
 end;
 
+updating procedure CreateFailedReminderActivity(record SMSReminderVc SMSReminder,string custcode)
+begin
+  string 255 warning;
+  record ActVc Actr;
+
+  if (SMSReminder.CreateActivity==1) then begin
+    RecordNew(Actr);
+    Actr.SerNr = NextSerNr("ActVc",CurrentDate,-1,false,"");
+    Actr.TransDate = CurrentDate;
+    Actr.CUCode = custcode;
+    PasteCuInAct(Actr,warning);
+    Actr.ActType = SMSReminder.ActType;
+    PasteActTypeInAct2("",Actr,warning);
+    Actr.MainPersons = SMSReminder.ActPerson;
+    Actr.Comment = SMSReminder.ActText;
+    Actr.TodoFlag = kTodoFlagTodo;
+    RecordInsert(Actr,true);
+  end;
+
+  return;
+end; 
+
 global
 updating procedure Cust_SendReminder(record SMSReminderQueueVc SRQr,record SMSReminderVc SMSReminder,record IVVc IVr)
 begin
-  
-  if (SMSReminder.ReminderType==0) then begin
-    threadasync.DoSendSMSReminder(SMSReminder,IVr);
-  end else begin    
-    DoSendEmailReminder(SMSReminder,IVr);
-  end;
-  Cust_SetReminderStatus(SRQr,1);
+  Boolean sentf;
 
+  if (SMSReminder.ReminderType==0) then begin
+    sentf = DoSendSMSReminder(SMSReminder,IVr,SRQr.SerNr);
+  end else begin    
+    sentf = DoSendEmailReminder(SMSReminder,IVr);
+  end;
+  if (sentf) then begin
+    Cust_SetReminderStatus(SRQr,1);
+  end else begin
+    Cust_SetReminderStatus(SRQr,3);
+    CreateFailedReminderActivity(SMSReminder,IVr.CustCode);
+  end;
   return;
 end;
 
@@ -278,12 +434,8 @@ global
 updating procedure Cust_SendReminder2(record SMSReminderVc SMSReminder,record IVVc IVr)
 begin
   record SMSReminderQueueVc SRQr;
+  Boolean sentf;
 
-  if (SMSReminder.ReminderType==0) then begin
-    threadasync.DoSendSMSReminder(SMSReminder,IVr);
-  end else begin
-    DoSendEmailReminder(SMSReminder,IVr);
-  end;
   RecordNew(SRQr);
   SRQr.SerNr = NextSerNr("SMSReminderQueueVc",CurrentDate,-1,false,"");
   SRQr.InvoiceNr = IVr.SerNr;
@@ -292,6 +444,17 @@ begin
   SRQr.SentFlag = 1;
   RecordInsert(SRQr,true);
 
+  if (SMSReminder.ReminderType==0) then begin
+    sentf = DoSendSMSReminder(SMSReminder,IVr,SRQr.SerNr);
+  end else begin
+    sentf = DoSendEmailReminder(SMSReminder,IVr);
+  end;
+
+  if (!sentf) then begin
+    SRQr.SentFlag = 3;
+    RecordStore(SRQr,true);
+    CreateFailedReminderActivity(SMSReminder,IVr.CustCode);
+  end;
   return;
 end;
 

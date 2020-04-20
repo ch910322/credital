@@ -98,7 +98,8 @@ begin
   CheckBox(h,v+=20,0,"Automatically connect Prepayments to Invoices",AddPrepayments);
 
   EditField(h,v+=30,100,"Time",Normal,AutoInvoiceTime,false,PasteCurTime);
-  CheckBox(h+120,v,0,"Automatically issue and send invoices",AutoInvoiceFlag);
+  CheckBox(h+120,v,0,"Automatically issue and send Invoices",AutoInvoiceFlag);
+  CheckBox(h+120,v+=16,0,"Mark Emails as sent",AutoInvoiceSend);
 
   EditField(h,v+=vs,100,"Additional Comment",Normal,InvoiceCommentStr,false,0);
   EditField(h,v+=vs,100,"Document Signer",Normal,DocumentSigner,false,UserSClass);
@@ -563,13 +564,21 @@ begin
 
   CheckBox(h,v+=vs,0,"Bank Holidays",BankHolidays);
 
+  ButtonFrame(h,v=v+40,320,4,"Failed Reminders");
+  CheckBox(h,v,0,"Create Activity if Reminder can not be sent",CreateActivity);
+  EditField(h+50,v+=vs,70,"Person",Normal,ActPerson,false,UserSClass);
+  EditField(h2,v,70,"Type",Normal,ActType,false,ActTypeSClass);
+  EditField(h+50,v+=vs,250,"Text",Normal,ActText,false,0);
+
+  
+
   EditField(h2=420,v=10,-20,"Email Subject",Normal,Subject,false,0);
   StaticText(h2,v+=30,"Text",false);
   TextField(h2,v+=10,-20,190,Message,0);
 
   EndWindow;
 
-  WindowBegin("SMS Reminder Queues",SMSReminderQueueLClass,CGmList,-);
+  WindowBegin("Reminder Queues",SMSReminderQueueLClass,CGmList,-);
   Sizeable(-1,-1,0,0);
   SetWRect(64,80,600,298);
   UseView(SMSReminderQueueVc);
@@ -582,7 +591,7 @@ begin
   RlColKeyTL(-30,-30,"Sent",M4Mark,SentFlag,false,SentFlag);
   EndWindow;
 
-  WindowBegin("SMS Reminder Queue",SMSReminderQueueDClass,CGview,-);
+  WindowBegin("Reminder Queue",SMSReminderQueueDClass,CGview,-);
   SetWRect(20,80,460,380);
   h = 120; h2 = 300; h3 = 440; v = 6; vs=20;
   UseView(SMSReminderQueueVc);
@@ -590,10 +599,11 @@ begin
   EditField(h,v+=vs,120,"Inv. Date",Normal,InvDate,false,0);
   EditField(h,v+=vs,120,"Invoice Nr.",Normal,InvoiceNr,false,0);
   EditField(h,v+=vs,120,"Reminder Nr.",Normal,ReminderNr,false,0);
-  ButtonFrame(h,v=v+40,150,3,"Status");
+  ButtonFrame(h,v=v+40,150,4,"Status");
   RadioButton(h,v,0,0,"Created",SentFlag);
   RadioButton(h,v+=16,1,0,"Sent",SentFlag);
   RadioButton(h,v+=16,2,0,"Paid before sending",SentFlag);  
+  RadioButton(h,v+=16,3,0,"Error",SentFlag);  
   EndWindow;
 
   WindowBegin("Campaigns",WebCampaignLClass,CGmList,-);
@@ -1873,7 +1883,7 @@ begin
   HalPushButton(-300,7,-200,27,"AgreementDocDClassSign","Sign");
 
   MatrixBegin(10,v+=40,-30,220,-,10);
-  MatCol(1,25,"Code",0,CustCode,false,CUSClass);
+  MatCol(1,25,"Code",0,CustCode,false,B2BLoanApp_CUSClass);
   MatCol(1,120,"Name",0,CustName,false,0);
   MatCol(1,-270,"Status",0,Status,false,0);
   MatCol(1,-180,"Date",0,SignatureDate,false,0);

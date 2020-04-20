@@ -7,7 +7,7 @@ remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 external procedure GetCredManEventList2(Longint,var record ORVc);
-remote procedure DoPauseCredMan(var record CredManVc,Longint,Date);
+remote procedure DoPauseCredMan(var record CredManVc,Longint,Date,var Boolean);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
@@ -180,6 +180,9 @@ begin
   end;
   if (fieldname=="CustCode") then begin//call standard function as well
     res = CredManDClassCustCodeEFAfter(wn,rownr,changed!=0);
+  end;
+  if (fieldname=="InstalmentMonths") then begin//to update the dates correctly
+    res = CredManDClassstartDateEFAfter(wn,changed!=0);
   end;
   
   CredManDClassAfterEditField = res;
@@ -381,21 +384,26 @@ begin
   Integer wn,mwn;
   record CredManVc CredManr;
   record RcVc RepSpec;
+  Boolean res;
 
   wn = CurWindow;
   DeselectWindow(wn,true);
   GetWindowRecord(wn,RepSpec);
-  if (RepSpec.long1>0) then begin
+  //if (RepSpec.long1>0) then begin
     mwn = MotherWindow(wn);
     if (WindowState(mwn)==Rs_Normal) then begin
       GetWindowRecord(mwn,CredManr);
-      DoPauseCredMan(CredManr,RepSpec.long1,RepSpec.d1);
-      PutWindowRecord(mwn,CredManr);
-      WindowDoOK(mwn,0);
+      DoPauseCredMan(CredManr,RepSpec.long1,RepSpec.d1,res);
+      if (res) then begin
+        PutWindowRecord(mwn,CredManr);
+        WindowDoOK(mwn,0);
+      end else begin
+        MessageBox(200109,"");
+      end;
       //SetWindowState(mwn,Rs_Normal);
     end;
     CloseWindow(wn);
-  end;
+  //end;
   return;
 end;
 

@@ -447,12 +447,51 @@ begin
 end;
 
 
+function Boolean AgreementDocDClassCustCodeEFAfter(Integer wn,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record CUVc CUr;
+  record AgreementDocVc ADr;
+  row AgreementDocVc ADrw;
+  
+  if (changed!=0) then begin
+    GetWindowRecord(wn,ADr);
+    MatRowGet(ADr,rownr,ADrw); 
+    CUr.Code = ADrw.CustCode;
+    if (ReadFirstMain(CUr,1,true)) then begin
+      ADrw.CustName = CUr.Name;
+      MatRowPut(ADr,rownr,ADrw);
+      PutWindowRecord(wn,ADr);
+    end; 
+  end;
+
+  AgreementDocDClassCustCodeEFAfter = res;
+  return;
+end;
+
+global
+function Boolean AgreementDocDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+
+  if (changed) then begin
+    switch (fieldname) begin
+      case "CustCode": 
+        res = AgreementDocDClassCustCodeEFAfter(wn,rownr,changed);
+    end;
+  end;
+
+  AgreementDocDClassAfterEditField = res;
+  return;
+end;
+
 global
 function Boolean B2BLoanApp_ContactSClassOnOpenWindow(Integer wn)
 begin
   Integer mwn;
   record B2BLoanApplicationVc LAr;
   record CredManVc CredManr;
+  record AgreementDocVc ADr;
   Array string 60 acontact;
   Integer i,acnt;
   longint pos;
@@ -467,6 +506,14 @@ begin
     case "B2BLoanApplicationVc":
       GetWindowRecord(mwn,LAr);
       custcode = LAr.CustCode;
+    case "AgreementDocVc":
+      GetWindowRecord(mwn,ADr);
+      if (ADr.RecordType==0) then begin
+        CredManr.SerNr = ADr.RecordNr;
+        if (ReadFirstMain(CredManr,1,true)) then begin
+          custcode = CredManr.CustCode;
+        end;
+      end;
   end;
   ClearStringList(wn);
   B2BLoanApp_ContactSClassOnOpenRemote(custcode,acontact,acnt);

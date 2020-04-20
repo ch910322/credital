@@ -261,6 +261,7 @@ begin
   RecordField(AutoInvoiceFlag,M4Int,0,0);
   RecordField(AutoInvoiceTime,M4Time,0,0);
   RecordField(OverdueItemClass,M4UStr,255,0);
+  RecordField(AutoInvoiceSend,M4Int,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -771,6 +772,10 @@ begin
   RecordField(Subject,M4Str,255,0);
   RecordField(CustCode,M4Code,20,CUVc);
   RecordField(MinAmount,M4Val,0,0);
+  RecordField(CreateActivity,M4Int,0,0);
+  RecordField(ActPerson,M4Code,20,0);
+  RecordField(ActType,M4Code,20,0);
+  RecordField(ActText,M4Str,255,0);
   MainKeyBegin(SerNr,0);
   KeySegment(SerNr);
   KeyBegin(ActiveFlag);
@@ -1472,6 +1477,8 @@ begin
   SourceFile("halcust\\WebNG", 3);
 
   SourceFile("halcust\\Level0\\Documents", 0);
+  SourceFile("halcust\\Level0\\Maint", 0);
+  SourceFile("halcust\\Level0\\RActions", 0);
   SourceFile("halcust\\Level0\\Reports", 0);
   SourceFile("halcust\\Level0\\Tools", 0);
   SourceFile("halcust\\Level0\\WActions", 0);
@@ -1480,7 +1487,7 @@ begin
 
 /*Mesente SMS*/
   Exec_file("halcust\\Integrations\\Mesente\\datadef.hal");
-  SourceFile("halcust\\Integrations\\Mesente", 3);
+  SourceFile("halcust\\Integrations\\Mesente", 0);
 
 /*SmartID*/
   Exec_file("halcust\\Integrations\\SmartID\\datadef.hal");

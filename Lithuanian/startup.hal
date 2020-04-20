@@ -30,7 +30,7 @@ begin
 
 /*DB Maint*/
 
-  Setting("SMS Reminder Queue",SMSReminderQueueLClass,modDBMain);
+  Setting("Reminder Queue",SMSReminderQueueLClass,modDBMain);
 
 /*Webshop*/
 

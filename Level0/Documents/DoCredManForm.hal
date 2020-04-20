@@ -23,6 +23,7 @@ external procedure ValToText(val,Integer,string,string,var string);
 //CUST-BEGIN
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
 external outer procedure PrintDocumentSigner();
+external function roundmode SetRoundModeD(Integer);
 
 global
 function Boolean FindCustomerRelationCred(string custcode,string contactname,var record CUVc ContactCUr)
@@ -146,7 +147,7 @@ begin
     OUTFORMFIELD("F_FEESINTEXT",tstr);
   end;
 
-  prolong = CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100));
+  prolong = Round(CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100)),SetRoundModeD(2));
   OUTFORMFIELD("F_PROLONG",prolong);
   if (FIELDINFORM("F_PROLONGINTEXT")) then begin
     ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);

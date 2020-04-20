@@ -297,7 +297,7 @@ begin
   i = 1;
   while (ReadRecordLink(LPr,i,Attachr,RLr)) begin
     if (Attachr.FileName==name) then begin
-      WebOutString("<img src='" & WebGetArg("path") & "/image/" & name2 & "/" & num & "' alt='" & LPr.Name & " - " & num & "'>");
+      WebOutString("<div class='landing_image'><img src='" & WebGetArg("path") & "/image/" & name2 & "/" & num & "' alt='" & LPr.Name & " - " & num & "'></div>");
       goto LShowLandingPicture;
     end;
     i = i + 1;

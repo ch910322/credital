@@ -108,17 +108,62 @@ begin
   return;
 end;
 
-global
-procedure DoPauseCredMan(var record CredManVc CredManr,Longint months,Date td)
+function Boolean CanPauseAgreement(record CredManVc CredManr,Date td,Integer months)
 begin
-
-  if (nonblank(td)) then begin
-    //RecordCopy(oldCredManr,CredManr);
-    CredManr.PauseDate = td;
-    CredManr.PauseMonths = months;
-    CredManSetDatesCust(CredManr);
-    //RecordUpdate(oldCredManr,CredManr,true);
+  record CredManPayPlanVc CredManPayPlanr;
+  row CredManPayPlanVc CredManPayPlanrw;
+  Integer i,rwcnt;
+  record CredManSetBlock CMb;
+  Date td3;
+  Boolean res;
+  
+  if (CredManr.PauseMonths>0) then begin
+    td3 = AddDay(AddMonth(td,months),-1);
   end;
+
+  res = true;
+  BlockLoad(CMb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+  rwcnt = MatRowCnt(CredManPayPlanr);
+  for (i=rwcnt-1;i>=0;i=i-1) begin
+    MatRowGet(CredManPayPlanr,i,CredManPayPlanrw);
+    if (CredManPayPlanrw.PlanType>=5) then begin
+      if (td<=CredManPayPlanrw.TransDate) then begin
+        res = false;
+        if (nonblank(td3)) then begin
+          if (td3>CredManPayPlanrw.TransDate and td==CredManr.PauseDate) then begin
+            res = true;
+          end;
+        end;
+      end else begin
+        if (nonblank(CredManr.PauseDate)) then begin
+          if (CredManr.PauseDate<=CredManPayPlanrw.TransDate) then begin
+            res = false;
+          end;
+        end;
+      end;
+      i = 0;
+    end;
+  end;
+
+  CanPauseAgreement = res;
+  return;
+end;
+
+global
+procedure DoPauseCredMan(var record CredManVc CredManr,Longint months,Date td,var Boolean res)
+begin
+  res = false;
+//  if (nonblank(td)) then begin
+    //RecordCopy(oldCredManr,CredManr);
+    if (CanPauseAgreement(CredManr,td,months)) then begin
+      CredManr.PauseDate = td;
+      CredManr.PauseMonths = months;
+      CredManSetDatesCust(CredManr);
+      res = true;      
+    end;
+    //RecordUpdate(oldCredManr,CredManr,true);
+//  end;
 
   return;
 end;
