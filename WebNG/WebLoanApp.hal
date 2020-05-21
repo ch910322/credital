@@ -260,7 +260,7 @@ begin
 end;
 
 global
-procedure ShowPaymentDateField(string name,string label,string ph,string value,string add,Integer colcnt)
+procedure ShowPaymentDateField(string name,string label,string ph,string order,string value,string add,Integer colcnt)
 begin
   record CreditalWebSetBlock CWSb;
   string 255 daystr,tmp;
@@ -276,7 +276,12 @@ begin
   if (colcnt>0) then begin
     WebOutString("<div class='col-md-" & colcnt & "'>");
   end;
-  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label & "</div><div class='input'><select " & add & ">");
+  WebOutString("<div class='loan_input " & name & "'");
+  if (nonblank(order)) then begin
+    WebOutString(" field-order='" & order & "'");
+  end;
+
+  WebOutString("><div class='loan_label'>" & label & "</div><div class='input'><select " & add & ">");
   WebOutString(ShowOption("",ph));
   while (GetNextSubstring(daystr,pos,",",tmp)) begin
     n = StringToInt(tmp);
@@ -608,7 +613,7 @@ begin
     WebOutString("</div>");
 
     WebOutString("<div class='row input_row block_end ltype" & loantype & "'>")
-    ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","",4);
+    ShowPaymentDateField("paymentdate",ToolWebNGTranslateText2(70138),ToolWebNGTranslateText2(70139),"","","",4);
     WebOutString("</div>");
 
     WebOutString("<div class='surety_block_wrap'>")
@@ -1104,7 +1109,7 @@ begin
   record CYBlock CYb;
 
   ContactCUr.eMail = email;
-  if (ReadFirstKey("eMail",ContactCUr,1,true)) then begin
+  if (nonblank(email) and ReadFirstKey("eMail",ContactCUr,1,true)) then begin
     res = true;
     contactf = true;
     if (ContactCUr.Code==CurrentCust) then begin
@@ -2122,6 +2127,7 @@ begin
   return;
 end;
 
+global
 updating function Boolean ArchiveExistingDocument(record AgreementDocVc ADr)
 begin
   record RLinkVc RLr,RL2r;

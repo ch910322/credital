@@ -1,0 +1,12 @@
+global
+function LongInt PersColListVcRecordDefaults(var record PersColListVc PersColListr,record PersColListVc PersColList2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  
+  //master function doesn't exist
+  res = 0;
+  PersColListr.TransDate = CurrentDate;
+
+  PersColListVcRecordDefaults = res;
+  return;
+END;

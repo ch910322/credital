@@ -158,12 +158,14 @@ begin
   RecordField(StateChangeTime,M4Time,0,0);
   RecordField(StateNotified,M4Int,0,0);
   RecordField(CreatedDate,M4Date,0,0);
-  RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(PrincipleDelayInterest,M4Rate,0,0);
   RecordField(MaxMonthlyPayment,M4Val,0,0);
   RecordField(Comment,M4Str,255,0);
   RecordField(InterfaceLanguage,M4Code,10,0);
   RecordField(BrowserOS,M4Str,30,0);
   RecordField(Source,M4Str,255,0);
+  RecordField(Math2,M4TextField,0,0);
+  RecordField(AnnualRate,M4Int,0,0);
 
   ArrayBegin(Math,-,1);
   ArrayField(Period,M4Str,10,0);
@@ -262,6 +264,7 @@ begin
   RecordField(AutoInvoiceTime,M4Time,0,0);
   RecordField(OverdueItemClass,M4UStr,255,0);
   RecordField(AutoInvoiceSend,M4Int,0,0);
+  RecordField(AutoMailsFromInvoices,M4Int,0,0);
   EndBlock;
   
   RecordAddBegin(CUVc,"CredCUVc");
@@ -437,7 +440,7 @@ begin
   RecordField(OtherConditions,M4Str,250,0);
 
   RecordField(PrincipleDelayMonths,M4Qty,0,0);
-  RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(PrincipleDelayInterest,M4Rate,0,0);
   RecordField(MaxMonthlyPayment,M4Val,0,0);
 
 /*Payment guarantee start*/
@@ -464,7 +467,12 @@ begin
   RecordField(LangCode2,M4Code,5,0);
   RecordField(VersionNo,M4Long,0,0);
   RecordField(Classifications,M4UStr,255,0);
-
+  RecordField(LoanApplication,M4Long,0,0);
+  RecordField(ProlongMonths,M4Qty,0,0);
+  RecordField(ProlongDate,M4Date,0,0);//For now the same as pause date
+  RecordField(AnnualRate,M4Int,0,0);
+  ChangeField(IntRate,M4Rate,0,0);
+  ChangeField(PrincipleDelayInterest,M4Rate,0,0);
   KeyBegin(OrderClass);
   KeySegment(OrderClass);
   KeySegment(SerNr);  
@@ -514,7 +522,7 @@ begin
   RecordField(StdProlongPrc,M4Qty,0,0);
   RecordField(LoanToValue,M4Qty,0,0);
   RecordField(PrincipleDelayMonths,M4Qty,0,0);
-  RecordField(PrincipleDelayInterest,M4Qty,0,0);
+  RecordField(PrincipleDelayInterest,M4Rate,0,0);
   RecordField(LangCode,M4Code,5,0);
   RecordField(LangCode2,M4Code,5,0);
   RecordField(Closed,M4Int,0,0);
@@ -539,6 +547,8 @@ begin
   RecordField(VekselisUs,M4Int,0,0);
   RecordField(VekselisLangCode,M4Code,10,0);
   RecordField(Classifications,M4UStr,255,0);
+  RecordField(OwnBankAccount,M4UStr,255,0);
+  RecordField(AnnualRate,M4Int,0,0);
   KeyBegin(ActCode);
   KeySegment(Code);
   KeyBegin(ActComment);
@@ -868,7 +878,7 @@ begin
   RecordBegin(WebLoanCalcVc,-,"");
   RecordField(Type,M4Set,2013,0);
   RecordField(AmountMin,M4Int,0,0);
-  RecordField(AmountMax,M4Int,0,0);
+  RecordField(AmountMax,M4Long,0,0);
   RecordField(AmountStep,M4Int,0,0);
   RecordField(TermMin,M4Int,0,0);
   RecordField(TermMax,M4Int,0,0);
@@ -1141,7 +1151,7 @@ begin
   KeySegment(Font);
   EndRecord;
 
-  RecordBegin(AgreementDocVc,0,"");
+  RecordBegin(AgreementDocVc,-,"");
   RecordField(SerNr,M4Long,0,0);
   RecordField(RecordNr,M4Long,0,CredManVc);
   RecordField(TransDate,M4Date,0,0);
@@ -1201,6 +1211,8 @@ begin
   RecordField(PaymentAccount,M4Code,10,AccVc);
   RecordField(PaymentVATCode,M4Code,10,0);
   RecordField(PaymentMode,M4Code,10,0);
+  RecordField(FVIPaymentMode,M4Code,10,0);
+  RecordField(FIVPaymentMode,M4Code,10,0);
   EndBlock;
 
   BlockBegin(CredManAutoTaskBlock,-,"");
@@ -1401,6 +1413,8 @@ begin
   RecordField(IntroText,M4Str,255,0);
   RecordField(CheckRegNr,M4Int,0,0);
   RecordField(PhoneNumber,M4Str,200,0);
+  RecordField(ShowDesktop,M4Int,0,0);
+  RecordField(ShowMobile,M4Int,0,0);
 
   MainKeyBegin(Code,0);
   KeySegment(Code);
@@ -1463,8 +1477,13 @@ begin
   ArrayBegin(Math,-,1);
   ArrayField(Category,M4Str,255,0);
   ArrayField(Class,M4Code,20,0);
+  ArrayField(NACECode,M4Code,20,0);
   EndArray;
   EndBlock;
+
+  RecordAddBegin(PersColListVc,"PersColListVc_Cust");
+  RecordField(TransDate,M4Date,0,0);
+  EndRecordAdd;
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);

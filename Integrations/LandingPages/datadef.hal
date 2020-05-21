@@ -106,6 +106,76 @@ begin
   RecordField(ContHeaderFlag,M4Int,0,0);
   RecordField(ContFooterFlag,M4Int,0,0);
 
+  RecordField(SurveyCommentFlag,M4Int,0,0);
+  RecordField(SurveyCommentOrder,M4Long,0,0);
+  RecordField(SurveyCommentLabel,M4Str,255,0);
+  RecordField(SurveyCommentMand,M4Int,0,0);
+
+  RecordField(SurveyUploadFlag,M4Int,0,0);
+  RecordField(SurveyUploadOrder,M4Long,0,0);
+  RecordField(SurveyUploadLabel,M4Str,255,0);
+  RecordField(SurveyUploadMand,M4Int,0,0);
+
+  RecordField(MetaTitle,M4Str,255,0);
+  RecordField(MetaDescription,M4Str,255,0);
+  RecordField(MetaKeyWords,M4Str,255,0);
+
+  RecordField(SurveyUpload2Flag,M4Int,0,0);
+  RecordField(SurveyUpload2Order,M4Long,0,0);
+  RecordField(SurveyUpload2Label,M4Str,255,0);
+  RecordField(SurveyUpload2Mand,M4Int,0,0);
+
+  RecordField(SurveyUpload3Flag,M4Int,0,0);
+  RecordField(SurveyUpload3Order,M4Long,0,0);
+  RecordField(SurveyUpload3Label,M4Str,255,0);
+  RecordField(SurveyUpload3Mand,M4Int,0,0);
+
+  RecordField(SurveyUpload4Flag,M4Int,0,0);
+  RecordField(SurveyUpload4Order,M4Long,0,0);
+  RecordField(SurveyUpload4Label,M4Str,255,0);
+  RecordField(SurveyUpload4Mand,M4Int,0,0);
+
+  RecordField(SurveyUpload5Flag,M4Int,0,0);
+  RecordField(SurveyUpload5Order,M4Long,0,0);
+  RecordField(SurveyUpload5Label,M4Str,255,0);
+  RecordField(SurveyUpload5Mand,M4Int,0,0);
+
+  RecordField(SurveyRegOrderMobile,M4Long,0,0);
+  RecordField(SurveyNameOrderMobile,M4Long,0,0);
+  RecordField(SurveyPhoneOrderMobile,M4Long,0,0);
+  RecordField(SurveyEmailOrderMobile,M4Long,0,0);
+  RecordField(SurveyContactNameOrderMobile,M4Long,0,0);
+  RecordField(SurveyContactEmailOrderMobile,M4Long,0,0);
+  RecordField(SurveyContactMobileOrderMobile,M4Long,0,0);
+  RecordField(SurveyContactJobOrderMobile,M4Long,0,0);
+  RecordField(SurveyVATNrOrderMobile,M4Long,0,0);
+  RecordField(SurveyAddressOrderMobile,M4Long,0,0);
+  RecordField(SurveyPaymentDayOrderMobile,M4Long,0,0);
+  RecordField(SurveyAmountOrderMobile,M4Long,0,0);
+  RecordField(SurveyTermOrderMobile,M4Long,0,0);
+  RecordField(SurveyCommentOrderMobile,M4Long,0,0);
+  RecordField(SurveyUploadOrderMobile,M4Long,0,0);
+  RecordField(SurveyUpload2OrderMobile,M4Long,0,0);
+  RecordField(SurveyUpload3OrderMobile,M4Long,0,0);
+  RecordField(SurveyUpload4OrderMobile,M4Long,0,0);
+  RecordField(SurveyUpload5OrderMobile,M4Long,0,0);
+  RecordField(ContSubmitLabel,M4Str,255,0);
+
+  RecordField(SurveyBankAccFlag,M4Int,0,0);
+  RecordField(SurveyBankAccOrder,M4Long,0,0);
+  RecordField(SurveyBankAccLabel,M4Str,255,0);
+  RecordField(SurveyBankAccMand,M4Int,0,0);
+  RecordField(SurveyBankAccOrderMobile,M4Long,0,0);
+
+  RecordField(SurveyContactIDFlag,M4Int,0,0);
+  RecordField(SurveyContactIDOrder,M4Long,0,0);
+  RecordField(SurveyContactIDLabel,M4Str,255,0);
+  RecordField(SurveyContactIDMand,M4Int,0,0);
+  RecordField(SurveyContactIDOrderMobile,M4Long,0,0);
+
+  RecordField(SendEmail,M4Int,0,0);
+  RecordField(StdText,M4Code,10,LTxtVc);
+
   ArrayBegin(Math,-,1);
   ArrayField(Months,M4Val,0,0);
   ArrayField(Rate,M4Val,0,0);

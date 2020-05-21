@@ -42,6 +42,9 @@ external procedure Ext_PrintNote(var vector string,record NotepadVc);
 external procedure Ext_PrintBranchData(var vector string,string);
 external procedure Ext_PrintUserDefinedItemFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
 external inner function roundmode SetRoundModeD(Integer);
+external inner function string 255 CredManOwnBankAccount(Longint);
+external inner function string 255 CredManCustEmail(record CUVc);
+external inner function val GetMonthlyFees(record CredManVc,Integer);
 
 procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
@@ -65,11 +68,12 @@ begin
   string 255 tstr;
   string 255 contactname,contactid;
   record BankVc Bankr;
-  val amt,fees,prolong,tot;
+  val amt,fees,prolong,tot,calcfees,fixfees;
   row CredManVc CredManrw;
   record CUVc ContactCUr,CEOCUr;
   record B2BLoanApplicationVc LAr;
   record RLinkVc RLr;
+  Boolean foundf;
   
 
   CUr.Code = CredManr.CustCode;
@@ -170,7 +174,7 @@ begin
   vVals["F_KUNDMOMSNR"] = CUr.VATNr;
   vVals["F_KUNDFAX"] = CUr.Fax;  
 
-  vVals["F_EMAIL"] = CUr.eMail;//Email
+  vVals["F_EMAIL"] = CredManCustEmail(CUr);//Email
   vVals["F_REGNUMBER1"] = CUr.RegNr1;//Customer Registration No. 1
   vVals["F_KUNDTEL"] = CUr.Phone;//Customer Telephone Number
   vVals["F_MOBILE"] = CUr.Mobile;//Mobile
@@ -181,7 +185,7 @@ begin
   vVals["F_DATEDAY"] = CredManr.MonthlyPaymentDay;
   vVals["F_MONTHLYINST"] = CredManr.MonthlySum;
   vVals["F_DELAYMONTHS"] = CredManr.PrincipleDelayMonths;
-  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_TOTSUMINTEXT"] = tstr;
   
   vVals["F_BANKACC"] = CUr.BankAccount;
@@ -189,18 +193,18 @@ begin
   ReadFirstMain(Bankr,1,true);
   vVals["F_ACCOUNTOPERATORNAME"] = Bankr.Name;
   vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
-  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_CREDHALFSUMTEXT"] = tstr;
 
   tstr = "";
   amt = GetMonthlyPaymentAmount(CredManr,6);
   vVals["F_AMOUNT"] = amt;
-  ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(amt,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_AMOUNTINTEXT"] = tstr;
 
   amt = GetMonthlyPaymentAmount(CredManr,14);
   vVals["F_AMOUNT2"] = amt;
-  ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(amt,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_AMOUNTINTEXT2"] = tstr;
 
   amt = GetMonthlyPaymentAmount(CredManr,8);
@@ -227,11 +231,11 @@ begin
     end;
   end;
   vVals["F_FEES"] = fees;
-  ValToText(fees,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(fees,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_FEESINTEXT"] = tstr;
   prolong = Round(CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100)),SetRoundModeD(2));
   vVals["F_PROLONG"] = prolong;
-  ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(prolong,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_PROLONGINTEXT"] = tstr;
   vVals["F_OVERDUEPRC"] = CredManr.OverduePercentage;
   vVals["F_OTHERCONDITIONS"] = CredManr.OtherConditions;
@@ -239,18 +243,42 @@ begin
   Ext_OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
 
   if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    foundf = true;
+  end else begin
+    if (CredManr.LoanApplication>0) then begin
+      LAr.SerNr = CredManr.LoanApplication;
+      if (ReadFirstMain(LAr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+  end;
+  if (foundf) then begin
     CEOCUr.Code = LAr.CEOCustCode;
     if (ReadFirstMain(CEOCUr,1,true)) then begin
       vVals["F_CEONAME"] = CEOCUr.Name;
       vVals["F_CEOID"] = CEOCUr.RegNr1;
     end;
-  end;  
+  end;
 
 
   amt = GetMonthlyPaymentAmount(CredManr,2);
   vVals["F_INTEREST"] = amt;
   Ext_PrintDocumentSigner(vVals);
+  vVals["F_CUSTOWNBANKACC"] = CredManOwnBankAccount(CredManr.SerNr);
+  if (CredManr.AnnualRate==1) then begin
+    vVals["F_ANNUALRATE"] = Round(CredManr.IntRate,SetRoundModeD(2)) & " %";
+  end else begin
+    vVals["F_ANNUALRATE"] = Round(CredManr.IntRate*12,SetRoundModeD(2)) & " %";
+  end;
 
+  calcfees = GetMonthlyFees(CredManr,0);
+  fixfees =  GetMonthlyFees(CredManr,1);
+  if (calcfees>0) then begin
+    vVals["F_CALCFEES"] = calcfees & " %";
+  end;
+  if (fixfees>0) then begin
+    vVals["F_FIXFEES"] = fixfees;
+  end;
 
   return;
 end;
@@ -374,7 +402,7 @@ begin
   Ext_OutAddress(vVals,"F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
   Ext_PrintCurrencyCode(vVals,"F_VALUTA",CredManr.CurncyCode);
   vVals["F_TOTSUM"] = CredManr.InvSum4;
-  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_TOTSUMINTEXT"] = tstr;
 
   RecordCLear(CUr);
@@ -385,8 +413,10 @@ begin
 
   Ext_PrintDocumentSigner(vVals);
   vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
-  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_CREDHALFSUMTEXT"] = tstr;
+
+  vVals["F_CUSTOWNBANKACC"] = CredManOwnBankAccount(CredManr.SerNr);
 
   return;
 end;
@@ -459,15 +489,16 @@ begin
   vVals["F_ORT"] = CYb.Addr3;
 
   vVals["F_TOTSUM"] = CredManr.InvSum4;
-  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_TOTSUMINTEXT"] = tstr;
   vVals["F_CREDHALFSUM"] = (CredManr.InvSum4/2);
-  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_CREDHALFSUMTEXT"] = tstr;
 
   vVals["F_CREDMULSUM"] = (CredManr.InvSum4*1.5);
-  ValToText((CredManr.InvSum4*1.5),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
+  ValToText((CredManr.InvSum4*1.5),M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
   vVals["F_CREDMULSUMTEXT"] = tstr;
+  vVals["F_CUSTOWNBANKACC"] = CredManOwnBankAccount(CredManr.SerNr);
 
   return;
 end;

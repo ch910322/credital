@@ -1,0 +1,105 @@
+global
+procedure LoanApplicationListRn(record RcVc RepSpec)
+begin
+  Boolean testf,TrHs;
+  record B2BLoanApplicationVc LAr;
+  Integer totcnt;
+  val totamount;
+  record CUVc CUr;
+  Integer c11,c12,c13;
+  
+  StartReportJob(UsetStr(200210));
+
+  EndHeader;
+
+  SetRepCol(2,60);
+  SetRepCol(3,130);
+  SetRepCol(4,180);
+  c13 = 290;
+ // SetRepCol(13,290);
+  SetRepCol(5,340);
+  c12 = 420;
+//  SetRepCol(12,420);
+  SetRepCol(6,650);
+  SetRepCol(7,660);
+  SetRepCol(8,700);
+  SetRepCol(9,980);
+  c11 = 1030;
+//  SetRepCol(11,890);
+
+  StartFormat(15);
+  OutString(0,0,USetStr(200211),false);
+  OutString(2,0,USetStr(200212),false);
+  OutString(3,0,USetStr(200213),false);
+  OutString(4,0,USetStr(200214),false);
+  OutString(c13,0,USetStr(200215),false);
+  OutString(5,0,USetStr(200216),false);
+  OutString(c12,0,USetStr(200217),false);
+  OutString(6,0,USetStr(200218),true);
+  OutString(7,0,USetStr(200219),false);
+  OutString(8,0,USetStr(200220),false);
+  OutString(9,0,USetStr(200221),false);
+  OutString(c11,0,USetStr(200222),false);
+  EndFormat;
+  StartFormat(1);
+  Gray_divider(0,1130);
+  EndFormat;
+
+  TrHs = true;
+  LAr.TransDate = RepSpec.sStartDate;
+  while (LoopKey("TransDate",LAr,1,TrHs)) begin
+    if (LAr.TransDate>RepSpec.sEndDate) then begin
+      TrHs = false;
+    end else begin
+      testf = true;
+      if (nonblank(RepSpec.f1) and LAr.CustCode!=RepSpec.f1) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f2) and LAr.Type!=RepSpec.f2) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f3) and LAr.Manager!=RepSpec.f3) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f4) and LAr.OrderClass!=RepSpec.f4) then begin
+        testf = false;
+      end;
+      if (nonblank(RepSpec.f5) and LAr.Source!=RepSpec.f5) then begin
+        testf = false;
+      end;
+      if (testf) then begin
+
+        CUr.Code = LAr.CustCode;
+        ReadFirstMain(CUr,1,true);
+        StartFormat(15);
+        OutString(0,"DblB2BLoanAppVc",LAr.SerNr,false);
+        OutString(2,0,LAr.TransDate,false);
+        OutString(3,0,LAr.OrderClass,false);
+        OutString(4,"DblCredManTypeVc",LAr.Type,false);
+        OutString(c13,0,LAr.Manager,false);
+        OutString(5,0,CUr.RegNr1,false);
+        OutString(c12,0,CUr.Name,false);
+        OutString(6,0,LAr.Sum,true);
+        OutString(7,0,LAr.Months,false);
+        OutString(8,0,LAr.Source,false);
+        OutString(9,0,LAr.InterfaceLanguage,false);
+        OutString(c11,0,LAr.BrowserOS,false);
+        totcnt = totcnt + 1;
+        totamount = totamount + LAr.Sum;
+        EndFormat;
+      end;
+    end;
+  end;
+  StartFormat(1);
+  Gray_divider(0,1130);
+  EndFormat;
+
+  StartFormat(15);
+  OutString(0,0,totcnt,false);
+  OutString(6,0,totamount,true);
+  EndFormat;
+
+  EndJob;
+
+  return;
+end;

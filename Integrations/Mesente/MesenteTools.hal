@@ -32,8 +32,8 @@ begin
   SetAreaZeroSize(request);
 
   if (SendWebRequest(url,443,-1,true,"POST",path,"text/plain","",false,request,reply,10)) then begin
-    pos = FindStringInArea("omnimessage_id",reply);
-    if (pos>0) then begin
+    pos = FindStringInArea("OK",reply);
+    if (pos>=0) then begin
       messageid = GetStringFromArea(reply,pos+15,GetAreaLength(reply)-pos-15);
       LogText(0,"MessageID::" & messageid);;
       BlockLoad(ASTb);

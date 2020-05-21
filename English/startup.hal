@@ -35,8 +35,9 @@ begin
 
   Report("B2B Application Evaluation",B2BLoanEvalRClass,B2BLoanEvalRn,0,modCredMan);
 	Report("Credit Agreements",CreditAgreementsRClass,CreditAgreementsRn,0,modCredMan);
-	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modCredMan);
+	Report("Application Overview",LoanApplicationListRClass,LoanApplicationListRn,0,modCredMan);
 
+	Report("Income Analysis",EBSIncomeAnalysisRClass,EBSIncomeAnalysisRn,0,modCredMan);
 
   Maintenance("Create Agreement Invoices",GenLoanInvoicesVClass,GenLoanInvoicesMn,modCredMan);
   Maintenance("Create Payment Guarantee Invoices",PmtGrntInvoiceVClass,PmtGrntInvoiceMn,modCredMan);
@@ -80,6 +81,10 @@ begin
 
 /* System */
 	Setting("Rekvizitai.lt Classifications",RekvizitaiClassTClass,modSY);
+
+/*CRM */
+
+	Report("Mailing List",MailingListRClass,MailingListRn,0,modCRM);
 
   SString(200000,"Evaluation report");
   SString(200001,"Company");
@@ -179,7 +184,23 @@ begin
   SString(200201,"Content with this URL already exists");
   SString(200202,"URL contains restricted Characters");
 
+  SString(200210,"Application Overview");
+  SString(200211,"Number");
+  SString(200212,"Date");
+  SString(200213,"Status");
+  SString(200214,"Product");
+  SString(200215,"Manager");
+  SString(200216,"Reg. Nr.");
+  SString(200217,"Name");
+  SString(200218,"Sum");
+  SString(200219,"Months");
+  SString(200220,"Source");
+  SString(200221,"Interface");
+  SString(200222,"OS");
 
+  SString(200230,"Mailing List");
+  SString(200231,"Email");
+  SString(200232,"Date");
 
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");

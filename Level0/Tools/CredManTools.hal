@@ -321,6 +321,7 @@ begin
       CredManr.InstalmentMonths = 1;
     end;
     CredManr.Classifications = CredManTyper.Classifications;
+    CredManr.AnnualRate = CredManTyper.AnnualRate;
 //CUST-END
     AddCredManTypeMatrix(CredManr,CredManTyper);
     if (CredManr.DepositSum==0) then begin

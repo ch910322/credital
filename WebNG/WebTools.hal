@@ -374,7 +374,7 @@ begin
   return;
 end;
 
-procedure ShowSlideBar(Integer min,Integer max,Integer step,string name,string label,string add,Boolean inputf,val prcfrom,val prcto)
+procedure ShowSlideBar(Longint min,Longint max,Longint step,string name,string label,string add,Boolean inputf,val prcfrom,val prcto)
 begin
   
 //70007,70008
@@ -405,7 +405,7 @@ procedure ShowLoanApplicationOnWeb(record WebNGElementVc WEr)
 begin
   record WebLoanCalcVc WLCr;
   row WebLoanCalcVc WLCrw;
-  Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
+  Longint amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Integer type;
   string 255 add,termtext,link;
   Integer i,rwcnt;
@@ -499,7 +499,7 @@ procedure ShowLoanApplicationOnWeb2(record WebNGElementVc WEr)
 begin
   record WebLoanCalcVc WLCr;
   row WebLoanCalcVc WLCrw;
-  Integer amount_min,amount_max,amount_step,term_min,term_max,term_step;
+  Longint amount_min,amount_max,amount_step,term_min,term_max,term_step;
   Boolean verslof,faktf,garantf;
   Integer type,i,rwcnt;
   string 255 add,link;
@@ -611,6 +611,7 @@ begin
   end;
   PersColListr.PersColCode = PersColr.Code;
   PersColListr.FileName = "CUVc";
+  PersColListr.TransDate = CurrentDate;
   if (RecordInsert(PersColListr,true)) then begin 
     //Send mail for submittion
     SendSignupMail(CUr);
@@ -1052,20 +1053,38 @@ begin
   return;
 end;
 
+function Boolean ItemInArray(string tstr,array string arr)
+begin
+  Integer i;
+  Boolean res;
+
+  for (i=0;i<arr.length;i=i+1) begin
+    if (arr[i]==tstr) then begin
+      res = true;
+      i = arr.length;
+    end;
+  end;
+
+  ItemInArray = res;
+  return;
+end;
+
 global
-updating procedure AddNewCategoriesToRekvizitaiSetting(string list,string nlist)
+updating procedure AddNewCategoriesToRekvizitaiSetting(array string alist,array string nlist)
 begin
   Longint pos;
   record RekvizitaiClassBlock RCb;
   row RekvizitaiClassBlock RCbrw;
   string 255 tmp;
   Boolean updf;
+  Integer i;
   
   BlockLoad(RCb);
-  while (GetNextSubstring(list,pos,";",tmp)) begin
+  for (i=0;i<alist.length;i=i+1) begin
+    tmp = alist[i];
     StripTrailingSpaces(tmp);
     StripLeadingSpaces(tmp);
-    if (SetInSet(tmp,nlist)==false) then begin
+    if (ItemInArray(tmp,nlist)==false) then begin
       ClearRow(RCb,RCbrw,1);
       RCbrw.Category = tmp;
       MatRowPut(RCb,MatRowCnt(RCb),RCbrw);
@@ -1088,7 +1107,8 @@ begin
   string 255 gEBSAddrLookupCountry;
   xml axml;
   Integer i,rwcnt,cnt,listcnt;
-  string 255 list,nlist;
+  string 255 list;
+  array string 255 alist,nlist;
   Longint pos;
   record RekvizitaiClassBlock RCb;
   row RekvizitaiClassBlock RCbrw;
@@ -1161,14 +1181,15 @@ begin
           list  = GetTabTextFromArea(0,8,a_reply);
           while (GetNextSubstring(list,pos,";",tstr)) begin
             listcnt = listcnt + 1;
+            alist[alist.length] = Trim(tstr);
           end;
           BlockLoad(RCb);
           rwcnt = MatRowCnt(RCb);
           for (i=0;i<rwcnt;i=i+1) begin
             MatRowGet(RCb,i,RCbrw);
-            if (SetInSet(RCbrw.Category,list)) then begin
+            if (ItemInArray(RCbrw.Category,alist)) then begin
               custclass = AddObjectToObjectList(custclass,RCbrw.Class);
-              nlist = AddObjectToObjectList(nlist,RCbrw.Class);
+              nlist[nlist.length] = RCbrw.Category;
               cnt = cnt + 1;
             end;
             if (listcnt==cnt) then begin
@@ -1176,7 +1197,7 @@ begin
             end;
           end;
           if (cnt!=listcnt) then begin
-            queued.AddNewCategoriesToRekvizitaiSetting(list,nlist);
+            queued.AddNewCategoriesToRekvizitaiSetting(alist,nlist);
           end;
         end;
     end;

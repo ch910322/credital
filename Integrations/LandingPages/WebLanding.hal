@@ -8,7 +8,7 @@ TODO
 */
 external procedure DisplayLoanSlideBars();
 external procedure DisplayLoanPayments();
-external procedure ShowPaymentDateField(string,string,string,string,string,Integer);
+external procedure ShowPaymentDateField(string,string,string,string,string,string,Integer);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function string 255 removenextnode(var string);
 external inner procedure SetContentTypeForExtension(string);
@@ -31,6 +31,8 @@ external function Integer SetCompanyBasedOnCountry();
 external procedure ResetCompanyBasedOnCountry(Integer);
 external inner function string 10 CurrentWebLang();
 external inner function string 255 GetBrowserOperatingSystem();
+external inner function string 255 StrReplace(string,string,string);
+external updating procedure SendEmailWithStdText(string,record RCVc,string);
 
 global
 function Boolean CheckIfLandingPage(string node)
@@ -68,7 +70,7 @@ begin
   return;
 end;
 
-procedure AddToArray2(Integer flag,Longint order,string label,Integer mandatory,string flname,var record SMVc SMr)
+procedure AddToArray2(Integer flag,Longint order,Longint order2,string label,Integer mandatory,string flname,var record SMVc SMr)
 begin
   row SMVc SMrw;
   
@@ -78,6 +80,9 @@ begin
     SMrw.DebVal = order;
     SMrw.ExtraComment = label;
     SMrw.RowSimStat = mandatory;
+    if (order2>-1) then begin
+      SMrw.VATCode = order2;
+    end;
     MatRowPut(SMr,MatRowCnt(SMr),SMrw);
   end;
 
@@ -171,20 +176,28 @@ end;
 procedure SetSurveyDetails(record WebLandingPageVc LPr,var record SMVc SMr)
 begin
   
-  AddToArray2(LPr.SurveyRegFlag,LPr.SurveyRegOrder,LPr.SurveyRegLabel,LPr.SurveyRegMand,"RegNr",SMr);
-  AddToArray2(LPr.SurveyNameFlag,LPr.SurveyNameOrder,LPr.SurveyNameLabel,LPr.SurveyNameMand,"Name",SMr);
-  AddToArray2(LPr.SurveyPhoneFlag,LPr.SurveyPhoneOrder,LPr.SurveyPhoneLabel,LPr.SurveyPhoneMand,"Phone",SMr);
-  AddToArray2(LPr.SurveyEmailFlag,LPr.SurveyEmailOrder,LPr.SurveyEmailLabel,LPr.SurveyEmailMand,"Email",SMr);
-  AddToArray2(LPr.SurveyContactNameFlag,LPr.SurveyContactNameOrder,LPr.SurveyContactNameLabel,LPr.SurveyContactNameMand,"ContactName",SMr);
-  AddToArray2(LPr.SurveyContactEmailFlag,LPr.SurveyContactEmailOrder,LPr.SurveyContactEmailLabel,LPr.SurveyContactEmailMand,"ContactEmail",SMr);
-  AddToArray2(LPr.SurveyContactMobileFlag,LPr.SurveyContactMobileOrder,LPr.SurveyContactMobileLabel,LPr.SurveyContactMobileMand,"ContactMobile",SMr);
-  AddToArray2(LPr.SurveyContactJobFlag,LPr.SurveyContactJobOrder,LPr.SurveyContactJobLabel,LPr.SurveyContactJobMand,"ContactJob",SMr);
-  AddToArray2(LPr.SurveyVATNrFlag,LPr.SurveyVATNrOrder,LPr.SurveyVATNrLabel,LPr.SurveyVATNrMand,"VATNr",SMr);
-  AddToArray2(LPr.SurveyAddressFlag,LPr.SurveyAddressOrder,LPr.SurveyAddressLabel,LPr.SurveyAddressMand,"Address",SMr);
-  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
-  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
-  AddToArray2(LPr.SurveyAmountFlag,LPr.SurveyAmountOrder,LPr.SurveyAmountLabel,LPr.SurveyAmountMand,"Amount",SMr);
-  AddToArray2(LPr.SurveyTermFlag,LPr.SurveyTermOrder,LPr.SurveyTermLabel,LPr.SurveyTermMand,"Term",SMr);
+  AddToArray2(LPr.SurveyRegFlag,LPr.SurveyRegOrder,LPr.SurveyRegOrderMobile,LPr.SurveyRegLabel,LPr.SurveyRegMand,"RegNr",SMr);
+  AddToArray2(LPr.SurveyNameFlag,LPr.SurveyNameOrder,LPr.SurveyNameOrderMobile,LPr.SurveyNameLabel,LPr.SurveyNameMand,"Name",SMr);
+  AddToArray2(LPr.SurveyPhoneFlag,LPr.SurveyPhoneOrder,LPr.SurveyPhoneOrderMobile,LPr.SurveyPhoneLabel,LPr.SurveyPhoneMand,"Phone",SMr);
+  AddToArray2(LPr.SurveyEmailFlag,LPr.SurveyEmailOrder,LPr.SurveyEmailOrderMobile,LPr.SurveyEmailLabel,LPr.SurveyEmailMand,"Email",SMr);
+  AddToArray2(LPr.SurveyContactNameFlag,LPr.SurveyContactNameOrder,LPr.SurveyContactNameOrderMobile,LPr.SurveyContactNameLabel,LPr.SurveyContactNameMand,"ContactName",SMr);
+  AddToArray2(LPr.SurveyBankAccFlag,LPr.SurveyBankAccOrder,LPr.SurveyBankAccOrderMobile,LPr.SurveyBankAccLabel,LPr.SurveyBankAccMand,"BankAcc",SMr);
+  AddToArray2(LPr.SurveyContactEmailFlag,LPr.SurveyContactEmailOrder,LPr.SurveyContactEmailOrderMobile,LPr.SurveyContactEmailLabel,LPr.SurveyContactEmailMand,"ContactEmail",SMr);
+  AddToArray2(LPr.SurveyContactMobileFlag,LPr.SurveyContactMobileOrder,LPr.SurveyContactMobileOrderMobile,LPr.SurveyContactMobileLabel,LPr.SurveyContactMobileMand,"ContactMobile",SMr);
+  AddToArray2(LPr.SurveyContactJobFlag,LPr.SurveyContactJobOrder,LPr.SurveyContactJobOrderMobile,LPr.SurveyContactJobLabel,LPr.SurveyContactJobMand,"ContactJob",SMr);
+  AddToArray2(LPr.SurveyContactIDFlag,LPr.SurveyContactIDOrder,LPr.SurveyContactIDOrderMobile,LPr.SurveyContactIDLabel,LPr.SurveyContactIDMand,"ContactID",SMr);
+  AddToArray2(LPr.SurveyVATNrFlag,LPr.SurveyVATNrOrder,LPr.SurveyVATNrOrderMobile,LPr.SurveyVATNrLabel,LPr.SurveyVATNrMand,"VATNr",SMr);
+  AddToArray2(LPr.SurveyAddressFlag,LPr.SurveyAddressOrder,LPr.SurveyAddressOrderMobile,LPr.SurveyAddressLabel,LPr.SurveyAddressMand,"Address",SMr);
+  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayOrderMobile,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
+  AddToArray2(LPr.SurveyPaymentDayFlag,LPr.SurveyPaymentDayOrder,LPr.SurveyPaymentDayOrderMobile,LPr.SurveyPaymentDayLabel,LPr.SurveyPaymentDayMand,"PaymentDay",SMr);
+  AddToArray2(LPr.SurveyAmountFlag,LPr.SurveyAmountOrder,LPr.SurveyAmountOrderMobile,LPr.SurveyAmountLabel,LPr.SurveyAmountMand,"Amount",SMr);
+  AddToArray2(LPr.SurveyTermFlag,LPr.SurveyTermOrder,LPr.SurveyTermOrderMobile,LPr.SurveyTermLabel,LPr.SurveyTermMand,"Term",SMr);
+  AddToArray2(LPr.SurveyCommentFlag,LPr.SurveyCommentOrder,LPr.SurveyCommentOrderMobile,LPr.SurveyCommentLabel,LPr.SurveyCommentMand,"Comment",SMr);
+  AddToArray2(LPr.SurveyUploadFlag,LPr.SurveyUploadOrder,LPr.SurveyUploadOrderMobile,LPr.SurveyUploadLabel,LPr.SurveyUploadMand,"Upload",SMr);
+  AddToArray2(LPr.SurveyUpload2Flag,LPr.SurveyUpload2Order,LPr.SurveyUpload2OrderMobile,LPr.SurveyUpload2Label,LPr.SurveyUpload2Mand,"Upload2",SMr);
+  AddToArray2(LPr.SurveyUpload3Flag,LPr.SurveyUpload3Order,LPr.SurveyUpload3OrderMobile,LPr.SurveyUpload3Label,LPr.SurveyUpload3Mand,"Upload3",SMr);
+  AddToArray2(LPr.SurveyUpload4Flag,LPr.SurveyUpload4Order,LPr.SurveyUpload4OrderMobile,LPr.SurveyUpload4Label,LPr.SurveyUpload4Mand,"Upload4",SMr);
+  AddToArray2(LPr.SurveyUpload5Flag,LPr.SurveyUpload5Order,LPr.SurveyUpload5OrderMobile,LPr.SurveyUpload5Label,LPr.SurveyUpload5Mand,"Upload5",SMr);
 
   return;
 end;
@@ -205,7 +218,31 @@ begin
   return;
 end;
 
-procedure ShowSimpleInput(string name,string label,string type,Integer mandf)
+procedure ShowSimpleInput(string name,string label,string type,Integer mandf,string order)
+begin
+  string 255 mand,extra;
+
+  if (mandf==1) then begin
+    mand = "dnam";
+  end;
+
+  WebOutString("<div class='loan_input " & name & "'");
+  if (nonblank(order)) then begin
+    WebOutString(" field-order='" & order & "'");
+  end;
+  WebOutString("><div class='loan_label'>" & label);
+  if (mandf==1) then begin
+    WebOutString("*");
+  end;
+  if (name=="upload") then begin
+    extra = "multiple";
+  end;
+  WebOutString("</div><div class='input'><input type='" & type & "' placeholder='" & label & "' " & mand & " " & extra & "></div></div>");
+
+  return;
+end;
+
+procedure ShowSimpleTextArea(string name,string label,string type,Integer mandf,string order)
 begin
   string 255 mand;
 
@@ -213,14 +250,20 @@ begin
     mand = "dnam";
   end;
 
-  WebOutString("<div class='loan_input " & name & "'><div class='loan_label'>" & label);
+  WebOutString("<div class='loan_input " & name & "'");
+  if (nonblank(order)) then begin
+    WebOutString(" field-order='" & order & "'");
+  end;
+  WebOutString("><div class='loan_label'>" & label);
   if (mandf==1) then begin
     WebOutString("*");
   end;
-  WebOutString("</div><div class='input'><input type='" & type & "' placeholder='" & label & "' " & mand & "></div></div>");
+  WebOutString("</div><div class='input'><textarea " & mand & " ></textarea></div></div>");
 
   return;
 end;
+
+
 
 procedure ShowScall()
 begin
@@ -248,19 +291,27 @@ begin
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(SMr,i,SMrw);
     switch (SMrw.Comment) begin
-      case "RegNr":         ShowSimpleInput("regnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Name":          ShowSimpleInput("name",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Phone":         ShowSimpleInput("phone",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Email":         ShowSimpleInput("email",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactName":   ShowSimpleInput("contactname",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactEmail":  ShowSimpleInput("contactemail",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactMobile": ShowSimpleInput("contactmobile",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactJob":    ShowSimpleInput("contactjob",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "VATNr":         ShowSimpleInput("vatnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Address":       ShowSimpleInput("address",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,"","",0);
-      case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+      case "RegNr":         ShowSimpleInput("regnr",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Name":          ShowSimpleInput("name",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Phone":         ShowSimpleInput("phone",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Email":         ShowSimpleInput("email",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "ContactName":   ShowSimpleInput("contactname",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "ContactEmail":  ShowSimpleInput("contactemail",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "ContactMobile": ShowSimpleInput("contactmobile",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "ContactJob":    ShowSimpleInput("contactjob",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "ContactID":     ShowSimpleInput("contactid",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "BankAcc":       ShowSimpleInput("bankacc",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "VATNr":         ShowSimpleInput("vatnr",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Address":       ShowSimpleInput("address",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,SMrw.VATCode,"","",0);
+      case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Comment":       ShowSimpleTextArea("comment",SMrw.ExtraComment,"text",SMrw.RowSimStat,SMrw.VATCode);
+      case "Upload":        ShowSimpleInput("upload",SMrw.ExtraComment,"file",SMrw.RowSimStat,SMrw.VATCode);
+      case "Upload2":       ShowSimpleInput("upload",SMrw.ExtraComment,"file",SMrw.RowSimStat,SMrw.VATCode);
+      case "Upload3":       ShowSimpleInput("upload",SMrw.ExtraComment,"file",SMrw.RowSimStat,SMrw.VATCode);
+      case "Upload4":       ShowSimpleInput("upload",SMrw.ExtraComment,"file",SMrw.RowSimStat,SMrw.VATCode);
+      case "Upload5":       ShowSimpleInput("upload",SMrw.ExtraComment,"file",SMrw.RowSimStat,SMrw.VATCode);
     end;
   end;
 
@@ -357,8 +408,13 @@ end;
 procedure ShowLandingSubmit(record WebLandingPageVc LPr)
 begin
   //what to show here??
-
-  WebOutString("<div class='landing_submit_line'><div class='landing_submit hl_button'>" & ToolWebNGTranslateText2(70420) & "</div></div>");
+  string 255 tstr;
+  
+  tstr = LPr.ContSubmitLabel;
+  if (blank(tstr)) then begin
+    tstr = ToolWebNGTranslateText2(70420);
+  end;
+  WebOutString("<div class='landing_submit_line'><div class='landing_submit hl_button'>" & tstr & "</div></div>");
   
   return;
 end;
@@ -374,6 +430,8 @@ begin
   record WebNGPageVc WPr;
   record WebLandingPageBlock LPb;
   Integer oldcomp;
+  transaction string 255 gExtraHeadHTML;
+  transaction string 255 gExtraSiteTitle;
   
   oldcomp = SetCompanyBasedOnCountry;
 
@@ -387,6 +445,17 @@ begin
         node = removenextnode(mpath);
         DoShowLandingPageImage(LPr,node);
       otherwise
+
+        if (nonblank(LPr.MetaTitle)) then begin
+          gExtraSiteTitle = " " & LPr.MetaTitle;
+        end;
+        if (nonblank(LPr.MetaDescription)) then begin
+          gExtraHeadHTML = gExtraHeadHTML & "<meta name='description' content='" & LPr.MetaDescription & "'>";
+        end;
+        if (nonblank(LPr.MetaKeyWords)) then begin
+          gExtraHeadHTML = gExtraHeadHTML & "<meta name='keywords' content='" & LPr.MetaKeyWords & "'>";
+        end;
+
         BlockLoad(LPb);
         if (nonblank(LPb.TemplatePage)) then begin
           LoadWebPage(LPb.TemplatePage,WPr);
@@ -422,7 +491,7 @@ begin
   return;
 end;
 
-updating procedure UpdateContactRecordsWithExtraData(record CUVc CUr,record CUVc ContactCUr,string email,string phone,string contactname,string contactjob,string vatnr,string address)
+updating procedure UpdateContactRecordsWithExtraData(record CUVc CUr,record CUVc ContactCUr,string email,string phone,string contactname,string contactjob,string vatnr,string address,string contactid,string bankacc)
 begin
   record CUVc oldCUr;
 
@@ -430,6 +499,7 @@ begin
     RecordCopy(oldCUr,CUr);
     CUr.eMail = email;
     CUr.Phone = CreditalFixPhone(phone,CUr.CountryCode);
+    CUr.BankAccount = bankacc;
 //    CUr.InvAddr0 = address;
     RecordUpdate(oldCUr,CUr,false);
   end;
@@ -437,6 +507,7 @@ begin
     RecordCopy(oldCUr,ContactCUr);
     ContactCUr.JobDesc = contactjob;
     ContactCUr.Name = contactname;
+    ContactCUr.RegNr1 = contactid;
     RecordUpdate(oldCUr,ContactCUr,false);
     CUVcRecordUpdate(ContactCUr,oldCUr,Rs_Update,1);
   end;
@@ -445,19 +516,21 @@ begin
 end;
 
 global
-updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string interfacelang,string browseros,string source)
+updating function Boolean StoreLandingLoanApp(record CUVc CUr,record CUVc ContactCUr,record WebLandingPageVc LPr,Integer status,Longint amount,Longint term,var record B2BLoanApplicationVc LAr,string phone,string email,string contactname,string contactmobile,string contactjob,string vatnr,string address,Integer paymentday,string interfacelang,string browseros,string source,string comment,var Longint loannr,record NotePadVc Noter,string contactid,string bankacc)
 begin
   Boolean res;
   record CredManTypeVc CMTr;
   record CMApplicationSetBlock CMb;
   record CMOrderClassBlock OCb;
-  Integer type;
+  Integer type,j,i;
+  string 255 tstr,c,sendemail;
+  record RcVc RepSpec;
   
   BlockLoad(CMb);
   BlockLoad(OCb);
   RecordNew(LAr);
 
-  UpdateContactRecordsWithExtraData(CUr,ContactCUr,email,phone,contactname,contactjob,vatnr,address);
+  UpdateContactRecordsWithExtraData(CUr,ContactCUr,email,phone,contactname,contactjob,vatnr,address,contactid,bankacc);
 
   LAr.SerNr = NextSerNr("B2BLoanApplicationVc",CurrentDate,-1,false,"");
   LAr.TransDate = CurrentDate;
@@ -465,7 +538,6 @@ begin
   InsertCustomerInB2BApplication(LAr);
   LAr.eMail = CUr.eMail;
   LAr.OrderClass = LPr.OrderClass;
-
 
   LAr.PhoneNo = CreditalFixPhone(phone,CUr.CountryCode);
   LAr.ContactName = ContactCUr.Name;
@@ -480,7 +552,23 @@ begin
   LAr.BrowserOS = browseros;
   LAr.Source = source;
 
-  LAr.Type = GetAgreementType(LAr,LPr.CalcType,"");
+  //stupid workaround for getting line breaks;
+  for (i=0;i<SizeTextCnt(Noter);i=i+1) begin
+    c = StringFromText(Noter,i,1);
+    if (asc(c)==10) then begin
+      tstr = tstr & chr(13) & chr(10);
+    end else begin
+      tstr = tstr & c;
+    end;
+  end;
+  
+  SetTextField(LAr,tstr);
+
+  if (nonblank(LPr.CredManType)) then begin
+    LAr.Type = LPr.CredManType;
+  end else begin
+    LAr.Type = GetAgreementType(LAr,LPr.CalcType,"");
+  end;
   CMTr.Code = LAr.Type;
   if (ReadFirstMain(CMTr,1,true)) then begin
     LAr.InterestRate = CMTr.IntRate;
@@ -498,6 +586,17 @@ begin
     otherwise LAr.Months = term;
   end;
   if (RecordInsert(LAr,true)) then begin
+    loannr = LAr.SerNr;
+    if (LPr.SendEmail==1 and nonblank(LPr.StdText)) then begin
+      RepSpec.f1 = CUr.Code;
+      sendemail = ContactCUr.eMail;
+      if (blank(sendemail)) then begin
+        sendemail = CUr.eMail;
+      end;
+      if (nonblank(sendemail)) then begin
+        SendEmailWithStdText(LPr.StdText,RepSpec,sendemail);
+      end;
+    end;
     res = true;
     if (status==2) then begin
       //Create activity for linking contact with contactperson
@@ -509,6 +608,17 @@ begin
   return;
 end;
 
+procedure DebugNote(record NotePadVc Noter)
+begin
+  Integer i;
+  /*
+  for (i=0;i<SizeTextCnt(Noter);i=i+1) begin
+    LogText(0,"Noter " & StringFromText(Noter,i,1) & ":" & asc(StringFromText(Noter,i,1)));
+  end;
+  */
+  return;
+end;
+
 global webpublic
 procedure WebLandingPage()
 begin
@@ -517,15 +627,16 @@ begin
   row SMVc SMrw;
   array string 255 aDet,aDetLabel;
   Integer i,status,err,rwcnt;
-  Longint amount,term;
+  Longint amount,term,loannr;
   record CUVc CUr,ContactCUr;
   string 255 errstr;
   record B2BLoanApplicationVc LAr;
-  string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address;
+  string 255 regnr,name,phone,email,contactname,contactemail,contactmobile,contactjob,vatnr,address,contactid,bankacc;
   Integer paymentday;
-  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail,browseros,custclass,source;
+  string 255 addr0,addr1,addr2,addr3,fax,homepage,mobile,compemail,browseros,custclass,source,comment;
   Integer oldcomp;
   record CYBlock CYb;
+  record NotePadVc Noter;
 
   if (WebGetArg("action")=="store") then begin
     oldcomp = SetCompanyBasedOnCountry;
@@ -552,18 +663,21 @@ begin
           case "ContactEmail":  contactemail = WebGetArg("contactemail");
           case "ContactMobile": contactmobile = WebGetArg("contactmobile");
           case "ContactJob":    contactjob = WebGetArg("contactjob");
+          case "ContactID":     contactid = WebGetArg("contactid");
+          case "BankAcc":       bankacc = WebGetArg("bankacc");
           case "VATNr":         vatnr = WebGetArg("vatnr");
           case "Address":       address = WebGetArg("address");
           case "PaymentDay":    paymentday = StringToInt(WebGetArg("paymentday"));
-          case "Amount":        address = WebGetArg("amount");
-          case "Term":          address = WebGetArg("term");
+          case "Amount":        amount = StringToLongint(WebGetArg("amount"));
+          case "Term":          term = StringToLongint(WebGetArg("term"));
+          case "Comment":       WebGetText("comment",Noter); //DebugNote(Noter);
         end;
       end;
       amount = StringToLongint(WebGetArg("amount"));
       term = StringToLongint(WebGetArg("term"));
       if (err==0) then begin
-        if (nonblank(contactemail)) then begin
-          CheckLoanCustomer2(regnr,name,email,contactemail,contactmobile,false,CUr,ContactCUr,status);
+        if (nonblank(contactemail) or nonblank(contactmobile)) then begin//disabling this
+          CheckLoanCustomer2(regnr,name,email,contactemail,contactmobile,true,CUr,ContactCUr,status);
           switch (status) begin
             case 0://we are logged in - all good
             case 1://we just created a new company and new contact - all good
@@ -595,13 +709,13 @@ begin
       if (err==0) then begin
         browseros = GetBrowserOperatingSystem;
         source = WebGetArg("source");       
-        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,CurrentWebLang,browseros,source)==false) then begin
+        if (qupdating.StoreLandingLoanApp(CUr,ContactCUr,LPr,status,amount,term,LAr,phone,email,contactname,contactmobile,contactjob,vatnr,address,paymentday,CurrentWebLang,browseros,source,comment,loannr,Noter,contactid,bankacc)==false) then begin
           //err?
         end;
       end else begin
         errstr = ToolWebNGTranslateText2(70122);
       end;
-      WebOutString("<res err='" & errstr & "' norm='" & ToolWebNGTranslateText2(70422) & "'>");
+      WebOutString("<res err='" & errstr & "' norm='" & ToolWebNGTranslateText2(70422) & "' sernr='" & loannr & "'>");
       if (BitAnd(err,4)) then begin
         WebOutString("<err id='missing_data'></err>");
       end;
@@ -618,6 +732,31 @@ begin
     end;
     ResetCompanyBasedOnCountry(oldcomp);
 
+  end;
+
+  return;
+end;
+
+
+global
+updating procedure FinishLandingFileUpload(string sess,string filename,string id,string tag)
+begin
+  string 255 fn,nfn;
+  area filearea;
+  vector string 255 vVals;
+  array string 255 aVals;
+  Integer i;
+  record B2BLoanApplicationVc LAr;
+
+  fn = "tmp/" & tag & "/" & sess;
+  if (FileExists(fn)) then begin
+    nfn = "tmp/" & tag & "/" & Trim(filename);
+    RenameFile(fn,nfn);
+    LAr.SerNr = StringToLongint(id);
+    if (ReadFirstMain(LAr,1,true)) then begin
+      RecordLinkFile(nfn,0,LAr,CurrentCompany);    
+    end;
+    Delete_File(nfn);
   end;
 
   return;

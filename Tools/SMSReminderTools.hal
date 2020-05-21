@@ -90,6 +90,7 @@ begin
   return;
 end;
 
+global
 procedure FindFirstContactPerson(record CUVc CUr,var record CUVc ContactCUr)
 begin
   record ContactRelVc CRr;

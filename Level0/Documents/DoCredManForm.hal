@@ -24,6 +24,48 @@ external procedure ValToText(val,Integer,string,string,var string);
 external outer function val GetMonthlyPaymentAmount(record CredManVc,Integer);
 external outer procedure PrintDocumentSigner();
 external function roundmode SetRoundModeD(Integer);
+external outer procedure FindFirstContactPerson(record CUVc,var record CUVc);
+
+global
+function string 255 CredManOwnBankAccount(Longint credmannr)
+begin
+  record CYBlock CYb;
+  record CredManVc CredManr;
+  record CredManTypeVc CMTr;
+  string 255 res;
+  
+  BlockLoad(CYb);
+  res = CYb.Bank2;
+  
+  CredManr.SerNr = credmannr;
+  if (ReadFirstMain(CredManr,1,true)) then begin
+    CMTr.Code = CredManr.Type;
+    if (ReadFirstMain(CMTr,1,true)) then begin
+      if (nonblank(CMTr.OwnBankAccount)) then begin
+        res = CMTr.OwnBankAccount;
+      end;
+    end;
+  end;
+
+  CredManOwnBankAccount = res;
+  return;
+end;
+
+global
+function string 255 CredManCustEmail(record CUVc CUr)
+begin
+  string 255 res;
+  record CUVc ContactCUr;
+
+  res = CUr.eMail;
+  if (blank(res)) then begin
+    FindFirstContactPerson(CUr,ContactCUr);
+    res = ContactCUr.eMail;
+  end;
+
+  CredManCustEmail = res;
+  return;
+end;
 
 global
 function Boolean FindCustomerRelationCred(string custcode,string contactname,var record CUVc ContactCUr)
@@ -67,18 +109,73 @@ begin
   return;
 end;
 
+
+//these functions are on client only. 
+function Boolean MonthlyChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==1 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  MonthlyChargeType = res;
+  return;
+end;
+
+function Boolean CalculatedChargeType(Integer chargetype)
+begin
+  Boolean res;
+
+  if (chargetype==2 or chargetype==3) then begin
+    res = true;
+  end;
+  
+  CalculatedChargeType = res;
+  return;
+end;
+
+global
+function val GetMonthlyFees(record CredManVc CredManr,Integer type)
+begin
+  val res;
+  Integer rwcnt,i;
+  row CredManVc CredManrw;
+
+  rwcnt = MatRowCnt(CredManr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(CredManr,i,CredManrw);
+    if (MonthlyChargeType(CredManrw.ChargeType)) then begin
+      if (CalculatedChargeType(CredManrw.ChargeType)) then begin
+        if (type==0) then begin
+          res = res + CredManrw.vRebate;  
+        end;
+      end else begin
+        if (type==1) then begin
+          res = res + CredManrw.Price;
+        end;
+      end;
+    end;
+  end;
+
+  GetMonthlyFees = res;
+  return;
+end;
+
+
 procedure PrintCustomDetails(record CredManVc CredManr,record CUVc CUr)
 begin
   string 255 tstr,contactname,contactid;
   record BankVc Bankr;
-  val amt,fees,prolong,tot;
+  val amt,fees,prolong,tot,calcfees,fixfees;
   row CredManVc CredManrw;
   Integer i,rwcnt;
   record CUVc ContactCUr,CEOCUr;
   record B2BLoanApplicationVc LAr;
   record RLinkVc RLr;
-  
-  OutFormField("F_EMAIL",CUr.eMail);//Email
+  Boolean foundf;
+
+  OutFormField("F_EMAIL",CredManCustEmail(CUr));//Email
   OutFormField("F_REGNUMBER1",CUr.RegNr1);//Customer Registration No. 1
   OutFormField("F_KUNDTEL",CUr.Phone);//Customer Telephone Number
   OutFormField("F_MOBILE",CUr.Mobile);//Mobile
@@ -90,7 +187,7 @@ begin
   OUTFORMFIELD("F_MONTHLYINST",CredManr.MonthlySum);
   OUTFORMFIELD("F_DELAYMONTHS",CredManr.PrincipleDelayMonths);
   if (FIELDINFORM("F_TOTSUMINTEXT")) then begin
-    ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText(CredManr.InvSum4,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_TOTSUMINTEXT",tstr);
   end;
   
@@ -100,7 +197,7 @@ begin
   OUTFORMFIELD("F_ACCOUNTOPERATORNAME",Bankr.Name);
   OutFormField("F_CREDHALFSUM",(CredManr.InvSum4/2));
   if (FIELDINFORM("F_CREDHALFSUMTEXT")) then begin
-    ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
   end;
 
@@ -108,14 +205,14 @@ begin
   amt = GetMonthlyPaymentAmount(CredManr,6);
   OUTFORMFIELD("F_AMOUNT",amt);
   if (FIELDINFORM("F_AMOUNTINTEXT")) then begin
-    ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText(amt,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_AMOUNTINTEXT",tstr);
   end;
 
   amt = GetMonthlyPaymentAmount(CredManr,14);
   OUTFORMFIELD("F_AMOUNT2",amt);
   if (FIELDINFORM("F_AMOUNTINTEXT2")) then begin
-    ValToText(amt,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText(amt,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_AMOUNTINTEXT2",tstr);
   end;
 
@@ -143,14 +240,14 @@ begin
   end;
   OUTFORMFIELD("F_FEES",fees);
   if (FIELDINFORM("F_FEESINTEXT")) then begin
-    ValToText(fees,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText(fees,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_FEESINTEXT",tstr);
   end;
 
   prolong = Round(CredManr.StdProlongFee + (CredManr.InvSum4 * (CredManr.StdProlongPrc/100)),SetRoundModeD(2));
   OUTFORMFIELD("F_PROLONG",prolong);
   if (FIELDINFORM("F_PROLONGINTEXT")) then begin
-    ValToText(prolong,M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
+    ValToText(prolong,M4Val,CredManr.CurncyCode,CredManr.LangCode,tstr);
     OUTFORMFIELD("F_PROLONGINTEXT",tstr);
   end;
   OUTFORMFIELD("F_OVERDUEPRC",CredManr.OverduePercentage);
@@ -159,6 +256,16 @@ begin
   OutAddress("F_ADRESS",CUr.Name,CUr.InvAddr0,CUr.InvAddr1,CUr.InvAddr2,CUr.InvAddr3,CUr.InvAddr4);
 
   if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    foundf = true;
+  end else begin
+    if (CredManr.LoanApplication>0) then begin
+      LAr.SerNr = CredManr.LoanApplication;
+      if (ReadFirstMain(LAr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+  end;
+  if (foundf) then begin
     CEOCUr.Code = LAr.CEOCustCode;
     if (ReadFirstMain(CEOCUr,1,true)) then begin
       OutFormField("F_CEONAME",CEOCUr.Name);
@@ -169,6 +276,21 @@ begin
   amt = GetMonthlyPaymentAmount(CredManr,2);
   OUTFORMFIELD("F_INTEREST",amt);
   PrintDocumentSigner;
+
+  OUTFORMFIELD("F_CUSTOWNBANKACC",CredManOwnBankAccount(CredManr.SerNr));
+  if (CredManr.AnnualRate==1) then begin
+    OUTFORMFIELD("F_ANNUALRATE",Round(CredManr.IntRate,SetRoundModeD(2)) & " %");
+  end else begin
+    OUTFORMFIELD("F_ANNUALRATE",Round(CredManr.IntRate*12,SetRoundModeD(2)) & " %");
+  end;
+  calcfees = GetMonthlyFees(CredManr,0);
+  fixfees =  GetMonthlyFees(CredManr,1);
+  if (calcfees>0) then begin
+    OUTFORMFIELD("F_CALCFEES",calcfees & " %");
+  end;
+  if (fixfees>0) then begin
+    OUTFORMFIELD("F_FIXFEES",fixfees);
+  end;
 
   return;
 end;

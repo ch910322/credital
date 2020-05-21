@@ -2,6 +2,7 @@
 external inner procedure ReadWebUploadArgs(var string,var string,var string);
 external inner procedure GetWebUploadSessionVars(string,var string,var string,var string);
 external procedure FinishDocFileUpload(string,string,string,string);
+external updating procedure FinishLandingFileUpload(string,string,string,string);
 
 
 function Boolean UploadFilePart(string sess,var Integer err)
@@ -74,6 +75,8 @@ begin
   switch (tag) begin
     case "doc":
       FinishDocFileUpload(sess,filename,id,tag);
+    case "landing":
+      qupdating.FinishLandingFileUpload(sess,filename,id,tag);
   end;
 
   path = "tmp/" & tag & "/" & sess;
@@ -100,6 +103,8 @@ begin
   switch (tag) begin
     case "doc":
       res = nonblank(CurrentCust);
+    case "landing":
+      res = true;
   end;
 
   FileCanBeUploaded = res;

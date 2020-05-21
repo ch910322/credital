@@ -1,7 +1,7 @@
 //<halrule>server-only</halrule>
 external procedure DisplayLoanSlideBars();
 external procedure DisplayLoanPayments();
-external procedure ShowPaymentDateField(string,string,string,string,string,Integer);
+external procedure ShowPaymentDateField(string,string,string,string,string,string,Integer);
 external inner function string 255 ToolWebNGTranslateText2(Longint);
 external inner function string 255 removenextnode(var string);
 external inner procedure SetContentTypeForExtension(string);
@@ -120,50 +120,79 @@ begin
   return;
 end;  
 
+function Boolean IsMobile()
+begin
+  Boolean res;
+  string 255 tstr;
+
+  tstr = GetBrowserOperatingSystem;
+  logtext(0,"dd " & tstr);
+  if (tstr=="Android" or tstr=="iOS") then begin
+    res = true;
+  end;
+
+  IsMobile = res;
+  return;
+end;
+
 procedure ShowWebSurvey(record NovWebFormVc WFr)
 begin
   record SMVc SMr;
   row SMVc SMrw;
   array string 255 aDet,aDetLabel;
   Integer i,rwcnt;
+  Boolean showf,ismobilef;
   
-  WebOutString("<script src='/scripts/websurvey.js?ver=20200324'></script>");
-  WebOutString("<link rel='stylesheet' type='text/css' href='/websurvey.css?ver=20200324'>");
-  WebOutString("<div class='websurvey_wrap'><form name='websurvey'>");
-  WebOutString("<div class='websurvey_title'>" & WFr.IntroText & "</div>");
-  SetSurveyDetails(WFr,SMr);
-  SortRows(SMr,"DebVal",true);
-  rwcnt = MatRowCnt(SMr);
-  WebOutString("<div class='websurvey_fields' checkregnr='" & WFr.CheckRegNr & "'>");
-  WebOutString("<input type='hidden' name='code' value='" & WFr.Code & "'>")
-  for (i=0;i<rwcnt;i=i+1) begin
-    MatRowGet(SMr,i,SMrw);
-    switch (SMrw.Comment) begin
-      case "RegNr":         ShowSimpleInput("regnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Name":          ShowSimpleInput("name",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Phone":         ShowSimpleInput("phone",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Email":         ShowSimpleInput("email",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactName":   ShowSimpleInput("contactname",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactEmail":  ShowSimpleInput("contactemail",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactMobile": ShowSimpleInput("contactmobile",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "ContactJob":    ShowSimpleInput("contactjob",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "VATNr":         ShowSimpleInput("vatnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Address":       ShowSimpleInput("address",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,"","",0);
-      case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat);
-      case "MailList":      ShowSimpleCheckbox("maillist",SMrw.ExtraComment);
+  ismobilef = IsMobile;
+  showf = false;
+  if (WFr.ShowDesktop==1 and !ismobilef) then begin
+    showf = true;
+  end;
+  if (WFr.ShowMobile==1 and ismobilef) then begin
+    showf = true;
+  end;
+  
+  if (showf) then begin
+    WebOutString("<script src='/scripts/websurvey.js?ver=20200324'></script>");
+    WebOutString("<link rel='stylesheet' type='text/css' href='/websurvey.css?ver=20200324'>");
+    WebOutString("<div class='websurvey_wrap'><form name='websurvey'>");
+    WebOutString("<div class='websurvey_title'>" & WFr.IntroText & "</div>");
+    SetSurveyDetails(WFr,SMr);
+    SortRows(SMr,"DebVal",true);
+    rwcnt = MatRowCnt(SMr);
+    WebOutString("<div class='websurvey_fields' checkregnr='" & WFr.CheckRegNr & "'>");
+    WebOutString("<input type='hidden' name='code' value='" & WFr.Code & "'>")
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(SMr,i,SMrw);
+      switch (SMrw.Comment) begin
+        case "RegNr":         ShowSimpleInput("regnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "Name":          ShowSimpleInput("name",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "Phone":         ShowSimpleInput("phone",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "Email":         ShowSimpleInput("email",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "ContactName":   ShowSimpleInput("contactname",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "ContactEmail":  ShowSimpleInput("contactemail",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "ContactMobile": ShowSimpleInput("contactmobile",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "ContactJob":    ShowSimpleInput("contactjob",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "VATNr":         ShowSimpleInput("vatnr",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "Address":       ShowSimpleInput("address",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "PaymentDay":    ShowPaymentDateField("paymentday",SMrw.ExtraComment,SMrw.ExtraComment,"","","",0);
+        case "Amount":        ShowSimpleInput("amount",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "Term":          ShowSimpleInput("term",SMrw.ExtraComment,"text",SMrw.RowSimStat);
+        case "MailList":      ShowSimpleCheckbox("maillist",SMrw.ExtraComment);
+      end;
     end;
-  end;
-  WebOutString("</div>");
-  WebOutString("<div class='websurvey_submit_line'><div class='websurvey hl_button'>" & ToolWebNGTranslateText2(70420) & "</div>");
-  if (nonblank(WFr.PhoneNumber)) then begin
-    WebOutString("<div class='websurvey_call'><a href='tel:" & WFr.PhoneNumber & "'><i class='fas fa-phone'></i></a></div>");
-  end;
-  WebOutString("</div>");
+    WebOutString("</div>");
+    WebOutString("<div class='websurvey_submit_line'><div class='websurvey hl_button'>" & ToolWebNGTranslateText2(70420) & "</div>");
+    if (nonblank(WFr.PhoneNumber)) then begin
+      WebOutString("<div class='websurvey_call'><a href='tel:" & WFr.PhoneNumber & "'><i class='fas fa-phone'></i></a></div>");
+    end;
+    WebOutString("</div>");
 
-  WebOutString("</form></div>");//landing_survey;
-  ShowScall;
+    WebOutString("</form></div>");//landing_survey;
+    ShowScall;
+    WebOutString("<div style='clear:both'></div>");
+  end;
+
   return;
 end;
 

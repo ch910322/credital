@@ -7,7 +7,7 @@ remote inner procedure SetupCustPS2Rn(string,var record RcVc);
 remote procedure CredManSetDatesCust(var record CredManVc);
 remote procedure GetCredManEventList(record CredManVc,var record ORVc);
 external procedure GetCredManEventList2(Longint,var record ORVc);
-remote procedure DoPauseCredMan(var record CredManVc,Longint,Date,var Boolean);
+remote procedure DoPauseCredMan(var record CredManVc,val,val,Date,var Boolean);
 remote procedure PasteSuretyInCredMan(var record CredManVc,string,Integer);
 remote procedure GetRefinCredManData(Longint,Integer,var record RcVc,Boolean);
 remote updating function Boolean DoRefinCredMan(record RcVc,var string,var record CredManVc);
@@ -20,7 +20,35 @@ remote updating procedure CredManMakePaymentRemote(var record CredManVc,var reco
 remote function Boolean GetAgreementDoc2(Longint,string,Integer,var record AgreementDocVc);
 remote updating procedure CredManPartialBuyoutDo(Date,val,Longint);
 remote function Date GetPauseCredManNextDate(record CredManVc);
+remote updating procedure RecreateAgreementSchedule(record CredManVc);
+remote function Boolean ContractHasInvoiceCreated(record CredManVc);
+remote updating procedure CheckAndCreateAutoMailFromInvoice(record IVVc);
 
+procedure UpdateCredManSoftFields(Integer wn,record CredManVc CredManr,Boolean allf)
+begin
+  record RcVc RepSpec;
+  val calcfees;
+/*
+  PutWindowString(wn,"annualrate",(CredManr.IntRate*12) & " %");
+  calcfees = GetMonthlyFees(CredManr,0);
+  if (calcfees>0) then begin
+    PutWindowString(wn,"monthlycalcfees",calcfees & " %");
+  end else begin
+    PutWindowString(wn,"monthlycalcfees","");
+  end;
+  PutWindowString(wn,"monthlyfixedfees",GetMonthlyFees(CredManr,1));
+*/  
+  if (allf) then begin
+    RepSpec.d1 = CurrentDate;
+    CheckBuyOutAgreement(CredManr,RepSpec);
+    PutWindowString(wn,"buyoutvalue",RepSpec.vals2);
+    PutWindowString(wn,"remainingprinciple",RepSpec.f13);
+    PutWindowString(wn,"totaldue",RepSpec.vals4);
+    PutWindowString(wn,"acumpenalty",RepSpec.f12);
+  end;
+
+  return;
+end;
 function Boolean CredManDClassStdProlongFeeEFAfter(Integer wn,Integer rownr,Boolean changedf)
 begin
   record CredManVc CredManr;
@@ -151,13 +179,15 @@ begin
   return;
 end;
 
-
-
 global
 function Boolean CredManDClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
 begin
   Boolean res;
+  record CredManVc CredManr;
 
+  if (changed==0) then begin
+    goto LCredManDClassAfterEditField;
+  end;
   if (fieldname=="InstalmentMonths" or fieldname=="InstalmentType") then begin//call standard function as well
     res = CredManDClassInstalmentMonthsEFAfter(wn,rownr,changed!=0);
   end;
@@ -184,7 +214,14 @@ begin
   if (fieldname=="InstalmentMonths") then begin//to update the dates correctly
     res = CredManDClassstartDateEFAfter(wn,changed!=0);
   end;
-  
+/*
+  if (changed!=0) then begin
+    GetWindowRecord(wn,CredManr);
+    UpdateCredManSoftFields(wn,CredManr,false);
+  end;
+*/
+
+LCredManDClassAfterEditField:;
   CredManDClassAfterEditField = res;
   return;
 end;
@@ -230,6 +267,8 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   CreateSingleAgreementInvoice(CredManr,CurrentDate,IVr);
+  CheckAndCreateAutoMailFromInvoice(IVr);
+
   if (IVr.SerNr>0) then begin
     OpenWindow("IVDClass",1,0,"","",IVr);
   end;
@@ -369,9 +408,17 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   if (WindowState(wn)==Rs_Normal) then begin
-    td = GetPauseCredManNextDate(CredManr);
-    RepSpec.long1 = CredManr.PauseMonths;
+    if (nonblank(CredManr.PauseDate)) then begin
+      td = CredManr.PauseDate;
+    end else begin
+      td = GetPauseCredManNextDate(CredManr);
+    end;
+    if (CredManr.PauseMonths>0) then begin
+      RepSpec.vals0 = CredManr.PauseMonths;
+    end;
+    RepSpec.vals1 = CredManr.ProlongMonths;
     RepSpec.d1 = td;
+    RepSpec.flags[1] = 1;
     OpenWindow("PauseCredManWClass",0,wn,"","",RepSpec);
   end;
 
@@ -393,10 +440,14 @@ begin
     mwn = MotherWindow(wn);
     if (WindowState(mwn)==Rs_Normal) then begin
       GetWindowRecord(mwn,CredManr);
-      DoPauseCredMan(CredManr,RepSpec.long1,RepSpec.d1,res);
+      DoPauseCredMan(CredManr,RepSpec.vals0,RepSpec.vals1,RepSpec.d1,res);
       if (res) then begin
         PutWindowRecord(mwn,CredManr);
-        WindowDoOK(mwn,0);
+        if (WindowDoOK(mwn,0)) then begin
+          if (RepSpec.flags[1]==1) then begin
+            RecreateAgreementSchedule(CredManr);
+          end;
+        end;  
       end else begin
         MessageBox(200109,"");
       end;
@@ -404,20 +455,6 @@ begin
     end;
     CloseWindow(wn);
   //end;
-  return;
-end;
-
-procedure UpdateCredManSoftFields(Integer wn,record CredManVc CredManr)
-begin
-  record RcVc RepSpec;
-
-  RepSpec.d1 = CurrentDate;
-  CheckBuyOutAgreement(CredManr,RepSpec);
-  PutWindowString(wn,"buyoutvalue",RepSpec.vals2);
-  PutWindowString(wn,"remainingprinciple",RepSpec.vals3);
-  PutWindowString(wn,"totaldue",RepSpec.vals4);
-  PutWindowString(wn,"acumpenalty",RepSpec.f12);
- 
   return;
 end;
 
@@ -431,7 +468,7 @@ begin
   //res = inner.CredManDClassOnOpenWindow(wn);
   //SetWindowSubset(wn,CredManr.SerNr);
   //UpdateCredManStringList(wn,CredManr);
-  UpdateCredManSoftFields(wn,CredManr);
+  UpdateCredManSoftFields(wn,CredManr,true);
 
   CredManDClassOnOpenWindow = false;
   return;
@@ -446,7 +483,7 @@ begin
   //SetWindowSubset(wn,CredManr.SerNr);
   //logtext(0,"set subset" & CredManr.SerNr);
   //UpdateCredManStringList(wn,CredManr);
-  UpdateCredManSoftFields(wn,CredManr);
+  UpdateCredManSoftFields(wn,CredManr,true);
 
   return;
 end;
@@ -491,6 +528,8 @@ begin
       if (ReadFirstMain(IVr,1,true)) then begin
         OpenWindow("IVDClass",1,0,"","",IVr);
       end;
+    case "4":
+      OpenWindow("CredHistDClass",1,0,"","",CredHistr);
   end;
 
   return;
@@ -506,6 +545,8 @@ begin
   //CredManr.OrderClass = CredMan2r.OrderClass;
   CredManr.PauseDate = CredMan2r.PauseDate;
   CredManr.PauseMonths = CredMan2r.PauseMonths;
+  CredManr.ProlongDate = CredMan2r.ProlongDate;
+  CredManr.ProlongMonths = CredMan2r.ProlongMonths;
   //CredManr.endDate = CredMan2r.endDate;
   
   CredManVcRecordProtectFields = res;
@@ -605,6 +646,25 @@ begin
   RefinCredMan2WClassAfterEditField = res;
   return;
 end;
+
+global
+function Boolean PauseCredManWClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record RcVc RepSpec;
+
+  switch (fieldname) begin
+    case "vals0":
+      DeselectWindow(wn,true);
+      GetWindowRecord(wn,RepSpec);
+      RepSpec.vals1 = RepSpec.vals0;
+      PutWindowRecord(wn,RepSpec);
+  end;
+
+  PauseCredManWClassAfterEditField = res;
+  return;
+end;
+
 
 procedure RefinCredMan(Integer type)
 begin
@@ -1046,6 +1106,7 @@ global
 function Boolean CredManDClassActiveEditField(Integer wn,string fieldname,Integer fn,Integer wnst,Integer rownr,Integer changed)
 begin
   Boolean res;
+  record CredManVc CredManr;
 
   res = false;
   if (wnst==2) then begin//Rs_update
@@ -1056,6 +1117,16 @@ begin
   
   if (!res) then begin
     res = inner.CredManDClassActiveEditField(wn,fieldname,fn,wnst,rownr,changed);
+  end;
+
+  if (res) then begin
+    switch (fieldname) begin
+      case "InstalmentMonths": 
+        GetWindowRecord(wn,CredManr);
+        if (ContractHasInvoiceCreated(CredManr)) then begin
+          res = false;
+        end;
+    end;
   end;
 
   CredManDClassActiveEditField = res;

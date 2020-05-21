@@ -246,7 +246,7 @@ begin
   if (blank(statuses)) then begin
     goto LFillPipeline_CredManVc;
   end;
-  
+
   BlockLoad(BCb);
   pos = 0;
   ExtractObj(statuses,pos,status);
@@ -268,8 +268,14 @@ begin
         if (nonblank(RepSpec.f1)) then begin
           if (CMr.SalesMan!=RepSpec.f1) then begin testf = false; end;
         end;
-        if (nonblank(RepSpec.f2)) then begin
-          if (CMr.CustCode!=RepSpec.f2) then begin testf = false; end;      
+        if (nonblank(RepSpec.f1)) then begin
+          if (CMr.SalesMan!=RepSpec.f1) then begin testf = false; end;
+        end;
+        if (nonblank(RepSpec.f10)) then begin
+          if (SetInSet(CMr.Type,RepSpec.f10)==false) then begin testf = false; end;      
+        end;
+        if (nonblank(RepSpec.f11)) then begin
+          if (SetInSet(RepSpec.f11,CMr.Classifications)==false) then begin testf = false; end;      
         end;
 /*
         if (nonblank(RepSpec.f7)) then begin
@@ -379,6 +385,7 @@ begin
   Integer segs,pos;
   Boolean found,testf;
   record BaseCurBlock BCb;
+  record CredManTypeVc CMTr;
   
   if (blank(statuses)) then begin
     goto LFillPipeline_B2BLoanApplicationVc;
@@ -408,6 +415,9 @@ begin
         if (nonblank(RepSpec.f2)) then begin
           if (LAr.CustCode!=RepSpec.f2) then begin testf = false; end;      
         end;
+        if (nonblank(RepSpec.f10)) then begin
+          if (SetInSet(LAr.Type,RepSpec.f10)==false) then begin testf = false; end;      
+        end;
 /*
         if (nonblank(RepSpec.f7)) then begin
           if (InString2(ASPSr.Comment,RepSpec.f7)<0) then begin testf = false; end;
@@ -432,7 +442,8 @@ var vector val vcurnr,vector val vcurv,var Array string acur,var Integer acnt,va
 begin
   Integer curcomp;
 
-  if (StringSetFromString(584,PObrw.Register)=="CredManVc") then begin
+  //if (StringSetFromString(584,PObrw.Register)=="CredManVc") then begin
+  if (PObrw.Register=="CredManVc") then begin
     curcomp = CurrentCompany;
     SetCompany(oldcomp,false);
     FillPipeline_CredManVc(CTb,RepSpec,PObrw.RegisterFilter,acol,col_cnt,vcurnr,vcurv,acur,acnt,tempORr);

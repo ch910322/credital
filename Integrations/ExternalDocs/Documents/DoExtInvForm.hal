@@ -131,7 +131,9 @@ external procedure Ext_PrintSiteInformation(var vector string,string,string);
 external procedure Ext_PrintNote(var vector string,record NotepadVc);
 external procedure Ext_PrintBranchData(var vector string,string);
 external procedure Ext_PrintUserDefinedItemFields(var vector string,string,string,string,string,string,Date,Date,Date,val,val,val);
-
+//CUST-BEGIN
+external inner function string 255 CredManOwnBankAccount(Longint);
+//CUST-END
 
 
 procedure PrintTaxMatrix_IVVc(var vector string vVals,record IVVc IVr,record DocVc Docr,record LangNrVc LangNrr,record SysFormatBlock SFb,Boolean negamountf)
@@ -3815,6 +3817,10 @@ BEGIN
   end;
     
   Ext_PrintLoyaltyCard(vVals,LangNrr,IVr.LoyaltyCardNr,IVr.LCMLevel,IVr.Points,PointsSpent,IVr.SerNr,"IVVc");
+
+  //CUST-BEGIN
+  vVals["F_CUSTOWNBANKACC"] = CredManOwnBankAccount(IVr.CustCredManNr);
+  //CUST-END
 
   //OutFormImage(IVr);
   IVSetFax(CUr,IVr);

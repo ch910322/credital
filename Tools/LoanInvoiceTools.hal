@@ -260,7 +260,12 @@ begin
   array val amounts;
   val latefee;
   Integer i;
+  val overdueprc;
  
+  overdueprc = CredManr.OverduePercentage;
+  if (CredManr.AnnualRate==1) then begin
+    overdueprc = overdueprc/12;
+  end;
   TrHs = true;
   CredHistr.ArtCode = item;
   CredHistr.CredManNr = CredManr.SerNr;
@@ -271,7 +276,7 @@ begin
       //Construct an array of days with amount that is over due starting with the first day of period
       GetLatePaymentPlan(CredManr,CredHistr,AddDay(prevtd,1),invdate,overduetd,amounts);
       for (i=0;i<amounts.length;i=i+1) begin
-        latefee = latefee + (amounts[i]*(CredManr.OverduePercentage/100));
+        latefee = latefee + (amounts[i]*(overdueprc/100));
       end;
     end;
   end;
@@ -527,18 +532,56 @@ begin
   return;
 end;
 
+global
+function string 255 SetCompanyLanguage()
+begin
+  record CYBlock CYb;
+  string 255 oldlang,newlang;
+  Integer langmode;
+
+  BlockLoad(CYb);
+  oldlang = CurrentLanguage;
+  newlang = CYb.LangCode;
+
+  if (oldlang!=newlang and nonblank(newlang)) then begin
+    langmode = SetFromString(619,newlang);
+    if (langmode>-1) then begin
+      SetLangMode(langmode,newlang,0);
+    end;
+  end;
+
+  SetCompanyLanguage = oldlang;
+  return;
+end;
+
+global
+procedure ResetCompanyLanguage(string oldlang)
+begin
+  Integer oldlangmode;
+
+  if (CurrentLanguage!=oldlang) then begin
+    oldlangmode = SetFromString(619,oldlang);
+    if (oldlangmode>-1) then begin
+      SetLangMode(oldlangmode,oldlang,0);
+    end;
+  end;
+
+  return;
+end;
 
 global
 updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed,var record IVVc IVr)
 begin
   record CredManSetBlock CMb;
   record CredManPayPlanVc CredManPayPlanr;
+  string 255 oldlang;
 
   if (CredManr.OKFlag==1 and CredManr.Approved==1) then begin
     BlockLoad(CMb);
     BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+    oldlang = SetCompanyLanguage;
     CreateInvoicesFromPlan(CredManr,CMb,CredManPayPlanr,ed,IVr);
-
+    ResetCompanyLanguage(oldlang);
   end;
 
   return;
@@ -555,6 +598,7 @@ begin
   Integer latedays;
   val lateamount;
   val cumint,calcbal;
+  record CredHistVc CredHistr;
 /*
 1. Get the last invoice date and the balance
 2. Set up and create an invoice
@@ -566,16 +610,21 @@ begin
     if (CredManPayPlanrw.PlanType<=4) then begin
       i = rwcnt;
     end else begin
-      balance = CredManPayPlanrw.Bal;
-      lastinv = CredManPayPlanrw.TransDate;
+      CredHistr.SerNr = CredManPayPlanrw.IssuedNr;
+      if (ReadFirstMain(CredHistr,1,true)) then begin
+        if (CredManPayPlanrw.ArtCode!=CMb.LateFeeItem and CredManPayPlanrw.ArtCode!=CMb.LateRateItem and CredHistr.RecordType==0) then begin
+          balance = CredManPayPlanrw.Bal;
+          lastinv = AddDay(CredManPayPlanrw.TransDate,1);
+        end;
+      end;
     end;
   end;
   
   if (balance>0) then begin
     SetupLoanInvoice(CredManr,CMb,IVr,td,lastinv,td,true,false);
     AddInstalmentFixed(CredManr,CredManPayPlan2r,CMb,balance,td,cumint,calcbal,lastinv,td);
-    AddInterest(CredManr,CredManPayPlan2r,CMb,kMonthTypeFirst,td,cumint,calcbal,lastinv,td,-1);
-    AddPlannedFees(CredManr,CredManPayPlan2r,CMb,kPlannedFeesMonthly,kMonthTypeFirst,td,cumint,calcbal,lastinv,td,-1);
+    AddInterest(CredManr,CredManPayPlan2r,CMb,kMonthTypeFirst,td,cumint,balance,lastinv,td,-1);
+    AddPlannedFees(CredManr,CredManPayPlan2r,CMb,kPlannedFeesMonthly,kMonthTypeFirst,td,cumint,balance,lastinv,td,-1);
     rwcnt = MatRowCnt(CredManPayPlan2r);
     for (i=0;i<rwcnt;i=i+1) begin
       MatRowGet(CredManPayPlan2r,i,CredManPayPlanrw);
@@ -644,11 +693,12 @@ begin
   return;
 end;
 
-function val GetActualBalance(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr)
+function val GetActualBalance(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,Boolean openf)
 begin
   val res;
 	row CredManPayPlanVc CredManPayrw;
 	Integer rwcnt,i;
+  val openamount;
 
 	res = CredManr.InvSum4;
 	rwcnt = MatRowCnt(CredManPayPlanr);
@@ -656,6 +706,7 @@ begin
 		MatRowGet(CredManPayPlanr,i,CredManPayrw);
     if (CredManPayrw.PlanType>=5) then begin
       res = CredManPayrw.Bal;
+      openamount = openamount + CredManPayrw.OpenAmount;
     end;
     if (CredManPayrw.PlanType<5) then begin
       i = rwcnt;
@@ -666,6 +717,10 @@ begin
     end;
     */
 	end;
+
+  if (openf) then begin
+    res = res + openamount;
+  end;
 
 	GetActualBalance = res;
 	return;
@@ -692,9 +747,10 @@ begin
   RepSpec.vals1 = IVr.Sum4;
   RepSpec.vals0 = dueamount;//should this be openamount?
   RepSpec.vals2 = dueamount + IVr.Sum4;
-  RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr);
+  RepSpec.vals3 = GetActualBalance(CredManr,CredManPayPlanr,false);
   RepSpec.vals4 = dueamount;
   RepSpec.f12 = lateamount;//(RepSpec.vals2-RepSpec.vals3-RepSpec.vals4);
+  RepSpec.f13 = GetActualBalance(CredManr,CredManPayPlanr,true);
   gSilenceIVOpenPrepExists = false;
 
 

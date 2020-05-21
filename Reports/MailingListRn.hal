@@ -1,0 +1,48 @@
+global
+procedure MailingListRn(record RcVc RepSpec)
+begin
+  record PersColListVc PCLr;
+  record CUVc CUr;
+  Date td;
+  Boolean TrHs;
+
+  StartReportJob(USetStr(200230));
+
+  EndHeader;
+  StartFormat(15);
+  OutString(0,0,USetStr(200231),false);
+  OutString(150,0,USetStr(200232),false);
+  EndFormat;         
+  StartFormat(1);
+  Gray_divider(0,1);
+  EndFormat;         
+
+  if (nonblank(RepSpec.f1)) then begin
+    PCLr.PersColCode = RepSpec.f1;
+    TrHs = true;
+    while (LoopMain(PCLr,1,TrHs)) begin
+      if (PCLr.PersColCode!=RepSpec.f1) then begin
+        TrHs = false;
+      end else begin
+        CUr.Code = PCLr.Code;
+        if (ReadFirstMain(CUr,1,true)) then begin
+          td = PCLr.TransDate;
+          if (blank(td)) then begin
+            td = CUr.DateCreated;
+          end;
+          if (nonblank(td) and DateInRange(td,RepSpec.sStartDate,RepSpec.sEndDate)) then begin
+            StartFormat(15);
+            OutString(0,0,CUr.eMail,false);
+            OutString(150,0,td,false);
+            EndFormat;         
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  EndJob;
+
+
+  return;
+end;

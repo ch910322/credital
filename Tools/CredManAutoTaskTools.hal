@@ -244,18 +244,14 @@ begin
       qupdating.IVToMailMn(RepSpec);
     end;
   end;
-  if (CMSb.AutoInvoiceFlag==1) then begin
-    RemoveTask("CredManAutoInvoiceTask");
-    td = AddDay(CurrentDate,1);
-    tt = CMSb.AutoInvoiceTime;
-    NewTimedTask2("CredManAutoInvoiceTask","CredManAutoInvoiceTask","CredManAutoInvoiceTask","",td,tt,"","");
-  end;
+
+  NewTimedTask2("InitAutoInvoiceTask","InitAutoInvoiceTask","InitAutoInvoiceTask","",CurrentDate,AddMinutes(CurrentTime,1),"","");
 
   return;
 end;
 
 global
-procedure InitAutoInvoiceTask()
+procedure InitAutoInvoiceTask(string args)
 begin
   record CMApplicationSetBlock CMSb;
   Date td;
@@ -263,12 +259,39 @@ begin
 
   BlockLoad(CMSb);
   if (CMSb.AutoInvoiceFlag==1) then begin
+    RemoveTask("CredManAutoInvoiceTask");
     td = CurrentDate;
     tt = CMSb.AutoInvoiceTime;
     if (tt<CurrentTime) then begin
       td = AddDay(td,1);
     end;
     NewTimedTask2("CredManAutoInvoiceTask","CredManAutoInvoiceTask","CredManAutoInvoiceTask","",td,tt,"","");
+  end;
+
+  return;
+end;
+
+global
+updating procedure CheckAndCreateAutoMailFromInvoice(record IVVc IVr)
+begin
+  record RcVc RepSpec;
+  record CMApplicationSetBlock CMSb;
+
+  BlockLoad(CMSb);
+  if (CMSb.AutoMailsFromInvoices==1) then begin
+    RecordClear(RepSpec);
+    ReportDefaults(RepSpec,"IVToMailVClass");
+    RepSpec.flags[1] = 1;
+    RepSpec.flags[4] = 1;
+    RepSpec.flags[5] = 1;
+    RepSpec.flags[6] = 1;
+    RepSpec.flags[7] = 1;
+    RepSpec.flags[3] = 1;
+    RepSpec.sStartDate = IVr.TransDate;
+    RepSpec.sEndDate = IVr.TransDate;
+
+    RepSpec.f2 = IVr.SerNr;
+    IVToMailMn(RepSpec);
   end;
 
   return;

@@ -1,7 +1,7 @@
 external procedure InitSMSReminderTask();
 external procedure InitCredManAutoTasks();
 external procedure InitAgreementDocReminderTask();
-external procedure InitAutoInvoiceTask();
+external procedure InitAutoInvoiceTask(string);
 
 global
 updating procedure OnApplicationStartupComplete()
@@ -12,7 +12,7 @@ begin
     InitSMSReminderTask;
     InitCredManAutoTasks;
     InitAgreementDocReminderTask;
-    InitAutoInvoiceTask;
+    InitAutoInvoiceTask("");
   end;
 
   return;

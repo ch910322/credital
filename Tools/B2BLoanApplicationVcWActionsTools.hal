@@ -243,6 +243,7 @@ begin
     CredManr.InstalmentMonths = LAr.Months;
     CMTr.Code = LAr.Type;
     if (ReadFirstMain(CMTr,1,true)) then begin
+      CredManr.AnnualRate = CMTr.AnnualRate;
       CredManr.PayDeal = CMTr.PayDeal;
       CredManr.Classifications = CMTr.Classifications;
     end else begin  
@@ -258,7 +259,7 @@ begin
     CredManr.PrincipleDelayMonths = LAr.PrincipleDelayMonths;
     CredManr.PrincipleDelayInterest = LAr.PrincipleDelayInterest;
     CredManr.MaxMonthlyPayment = LAr.MaxMonthlyPayment;
-
+    CredManr.LoanApplication = LAr.SerNr;
 //Pasting sureties
     PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 1,-1),1);
     PasteSuretyInCredMan(CredManr,GetFieldValueByName(LAr,"SuretyProvider" & 2,-1),2);

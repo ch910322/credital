@@ -28,6 +28,8 @@ external inner function Boolean PasteInvIn2OPr(var record OPVc,Integer,Date,Inte
 external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var val,Boolean,var Boolean);
 external inner procedure IPPastePayMode(var record IPVc);
 external inner procedure OPVc_PasteRecVal(var record OPVc,Integer);
+external updating function Boolean ArchiveExistingDocument(record AgreementDocVc);
+external updating procedure CheckAndCreateAutoMailFromInvoice(record IVVc);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -104,11 +106,37 @@ begin
   if (nonblank(CredManr.PauseDate)) then begin
     CredManr.endDate = AddMonth(CredManr.endDate,CredManr.PauseMonths);
   end;
+  if (nonblank(CredManr.ProlongDate)) then begin
+    CredManr.endDate = AddMonth(CredManr.endDate,CredManr.ProlongMonths);
+  end;
   
   return;
 end;
 
-function Boolean CanPauseAgreement(record CredManVc CredManr,Date td,Integer months)
+function string 255 GetDocumentLangCode(record CredManVc CredManr,Integer type)
+begin
+  string 255 res;
+  record CredManTypeVc CMTr;
+  
+  CMTr.Code = CredManr.Type;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    switch (type) begin
+      case 1: res = CMTr.CredManLangCode;
+      case 2: res = CMTr.ScheduleLangCode;
+      case 3: res = CMTr.SuretyLangCode;
+      case 4: res = CMTr.VekselisLangCode;
+    end;
+  end;
+
+  if (blank(res)) then begin
+    res = CredManr.LangCode;
+  end;
+
+  GetDocumentLangCode = res;
+  return;
+end;
+
+function Boolean CanPauseAgreement(record CredManVc CredManr,Date td,val months)
 begin
   record CredManPayPlanVc CredManPayPlanr;
   row CredManPayPlanVc CredManPayPlanrw;
@@ -117,8 +145,10 @@ begin
   Date td3;
   Boolean res;
   
+
+
   if (CredManr.PauseMonths>0) then begin
-    td3 = AddDay(AddMonth(td,months),-1);
+    td3 = AddMonth(td,months);
   end;
 
   res = true;
@@ -131,7 +161,7 @@ begin
       if (td<=CredManPayPlanrw.TransDate) then begin
         res = false;
         if (nonblank(td3)) then begin
-          if (td3>CredManPayPlanrw.TransDate and td==CredManr.PauseDate) then begin
+          if (td3>=CredManPayPlanrw.TransDate and td==CredManr.PauseDate) then begin
             res = true;
           end;
         end;
@@ -146,12 +176,71 @@ begin
     end;
   end;
 
+  if (td<CredManr.FirstInvDate) then begin
+    res = false;
+  end;
+
+  if (CredManr.PrincipleDelayMonths>0) then begin
+    if (AddDay(AddMonth(CredManr.FirstInvDate,CredManr.PrincipleDelayMonths),-1)>td) then begin
+      res = false;
+    end;
+  end;
+
   CanPauseAgreement = res;
   return;
 end;
 
 global
-procedure DoPauseCredMan(var record CredManVc CredManr,Longint months,Date td,var Boolean res)
+updating procedure RecreateAgreementSchedule(record CredManVc CredManr)
+begin
+  record AgreementDocVc ADr,oldADr;
+  row AgreementDocVc ADrw;
+  record RcVc RepSpec;
+  record ExternalFormBlock EFb;
+  string 255 fn,langcode;
+  Integer i,rwcnt;
+
+  ADr.RecordType = 0;
+  ADr.RecordNr = CredManr.SerNr;
+  ADr.Type = 2;
+  if (ReadFirstKey("RecordNr",ADr,3,true)) then begin
+    ArchiveExistingDocument(ADr);
+    RecordCopy(oldADr,ADr);
+    ADr.SignedByUs = 0;
+    ADr.SignedByUsDate = "";
+    ADr.SignedByUsTime = "";
+    rwcnt = MatRowCnt(ADr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(ADr,i,ADrw);
+      ADrw.Status = 0;
+      ADrw.SignatureDate = "";
+      ADrw.SignatureTime = "";
+      MatRowPut(ADr,i,ADrw);
+    end;
+    if (RecordUpdate(oldADr,ADr,true)==0) then begin
+      //should move this out to a function
+      BlockLoad(EFb);
+      fn = "Schedule.pdf";
+      langcode = GetDocumentLangCode(CredManr,2);
+      if (EFb.ExtScheduleForm==1) then begin
+        RepSpec.long1 = CredManr.InstalmentType;
+        if (CredManr.MaxMonthlyPayment>0) then begin
+          RepSpec.flags[10] = 1;
+        end;
+        PrintEBSDocument("CredManScheduleForm",fn,RepSpec,CredManr.SerNr,langcode);
+      end else begin
+        PrintMultiDocDocument("CredManScheduleForm",fn,CredManr.SerNr,CredManr.InstalmentType,(CredManr.MaxMonthlyPayment>0),langcode);
+      end;
+      RecordLinkFile(fn,0,ADr,CurrentCompany);
+      Delete_File(fn);
+    end;
+  end;
+
+  return;
+end;
+
+global
+procedure DoPauseCredMan(var record CredManVc CredManr,val months,val prolongmonths,Date td,var Boolean res)
 begin
   res = false;
 //  if (nonblank(td)) then begin
@@ -159,6 +248,10 @@ begin
     if (CanPauseAgreement(CredManr,td,months)) then begin
       CredManr.PauseDate = td;
       CredManr.PauseMonths = months;
+      if (prolongmonths>=0) then begin
+        CredManr.ProlongDate = td;
+        CredManr.ProlongMonths = prolongmonths;
+      end;
       CredManSetDatesCust(CredManr);
       res = true;      
     end;
@@ -191,6 +284,16 @@ begin
         i = rwcnt;
         res = CredManPayPlanrw.TransDate;
       end;
+    end;
+  end;
+
+  if (res<CredManr.FirstInvDate) then begin
+    res = CredManr.FirstInvDate;
+  end;
+
+  if (CredManr.PrincipleDelayMonths>0) then begin
+    if (AddDay(AddMonth(CredManr.FirstInvDate,CredManr.PrincipleDelayMonths),-1)>res) then begin
+      res = AddMonth(CredManr.FirstInvDate,CredManr.PrincipleDelayMonths);
     end;
   end;
   
@@ -293,6 +396,7 @@ begin
   CredManr.InstalmentMonths = RepSpec.flags[0];
   CredManSetDatesCust(CredManr); 
   CopyCredManSurety(CredManr,tCredManr);
+  CredManr.LoanApplication = tCredManr.LoanApplication;
   CredManr.SerNr = NextSerNr("CredManVc",CredManr.startDate,-1,false,"");
   CredManr.OKFlag = 1;
   CredManr.Approved = 1;
@@ -441,11 +545,21 @@ end;
 
 function Boolean CustIsCEO(string custcode,record CredManVc CredManr)
 begin
-  Boolean res;
+  Boolean res,foundf;
   record B2BLoanApplicationVc LAr;
   record RLinkVc RLr;
 
   if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    foundf = true;
+  end else begin
+    if (CredManr.LoanApplication>0) then begin
+      LAr.SerNr = CredManr.LoanApplication;
+      if (ReadFirstMain(LAr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+  end;
+  if (foundf) then begin
     if (LAr.CEOCustCode==custcode) then begin
       res = true;
     end;
@@ -473,30 +587,6 @@ begin
 
   return;
 end;
-
-function string 255 GetDocumentLangCode(record CredManVc CredManr,Integer type)
-begin
-  string 255 res;
-  record CredManTypeVc CMTr;
-  
-  CMTr.Code = CredManr.Type;
-  if (ReadFirstMain(CMTr,1,true)) then begin
-    switch (type) begin
-      case 1: res = CMTr.CredManLangCode;
-      case 2: res = CMTr.ScheduleLangCode;
-      case 3: res = CMTr.SuretyLangCode;
-      case 4: res = CMTr.VekselisLangCode;
-    end;
-  end;
-
-  if (blank(res)) then begin
-    res = CredManr.LangCode;
-  end;
-
-  GetDocumentLangCode = res;
-  return;
-end;
-
 
 procedure GetDocumentSigners(Integer type,record CredManVc CredManr,var Boolean flag1,var Boolean flag2,var Boolean flag3)
 begin
@@ -545,9 +635,19 @@ procedure AddCEOToDocument(record AgreementDocVc ADr,record CredManVc CredManr,B
 begin
   record B2BLoanApplicationVc LAr;
   record RLinkVc RLr;
-  Boolean testf;
+  Boolean testf,foundf;
 
   if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+    foundf = true;
+  end else begin
+    if (CredManr.LoanApplication>0) then begin
+      LAr.SerNr = CredManr.LoanApplication;
+      if (ReadFirstMain(LAr,1,true)) then begin
+        foundf = true;
+      end;
+    end;
+  end;
+  if (foundf) then begin
     if (nonblank(LAr.CEOCustCode)) then begin
       testf = CustIsSurety(LAr.CEOCustCode,CredManr);
       if (suretyf and testf) then begin
@@ -892,6 +992,8 @@ begin
 
   if (CredManr.InstalmentType!=4 and CredManr.InstalmentType!=5) then begin
     CreateSingleAgreementInvoice(CredManr,CredManr.startDate,IVr);
+    CheckAndCreateAutoMailFromInvoice(IVr);
+    
     //CredManCreditAllInvoices(CredManr);
     CreatePaymentFakeReceipt(CredManr,IVr);
     CreateCredmanPurchaseInvoice(CredManr,IVr.Sum4,VIr);
@@ -956,5 +1058,24 @@ begin
     end;
   end;
   
+  return;
+end;
+
+global
+function Boolean ContractHasInvoiceCreated(record CredManVc CredManr)
+begin
+  record CredHistVc CredHistr;
+  Boolean res;
+  record CredManSetBlock CMSb;
+  
+  BLockLoad(CMSb);
+
+  CredHistr.CredManNr = CredManr.SerNr;
+  CredHistr.ArtCode = CMSb.RateItem;
+  if (ReadFirstKey("ArtCode",CredHistr,2,true)) then begin
+    res = true;
+  end;
+
+  ContractHasInvoiceCreated = res;
   return;
 end;

@@ -317,7 +317,7 @@ begin
     if (CredManPayPlanrw.PlanType>=5) then begin
       CredHistr.SerNr = CredManPayPlanrw.IssuedNr;
       if (ReadFirstMain(CredHistr,1,true)) then begin
-        if (vRec[CredHistr.RecordType & ":" & CredHistr.RecordNr]==false) then begin
+        if (vRec[CredHistr.RecordType & ":" & CredHistr.RecordNr]==false or CredHistr.RecordType==4) then begin
           vRec[CredHistr.RecordType & ":" & CredHistr.RecordNr] = true;
           switch (CredHistr.RecordType) begin//invoice
             case 0:

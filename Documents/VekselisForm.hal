@@ -5,6 +5,7 @@ external inner procedure OutAddress(string,string,string,string,string,string,st
 external inner procedure ValToText(val,Integer,string,string,var string);
 external inner function Boolean FindCustomerRelationCred(string,string,var record CUVc);
 external inner procedure PrintCurrencyCode(string,string);
+external inner function string 255 CredManOwnBankAccount(Longint);
 
 procedure GetSuretyValues(record CredManVc CredManr,Integer num,var string name,var string phone,var string mobile,var string email,var string id,var string addr0,var string addr1,var string addr2,var string addr3,var string addr4)
 begin
@@ -138,6 +139,7 @@ LBREAK:;
           ValToText((CredManr.InvSum4*1.5),M4Val,CredManr.CurncyCode,tCUr.LangCode,tstr);
           OUTFORMFIELD("F_CREDMULSUMTEXT",tstr);
         end;
+        OUTFORMFIELD("F_CUSTOWNBANKACC",CredManOwnBankAccount(CredManr.SerNr));
 
         CloseForm;        
       end else begin

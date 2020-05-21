@@ -355,6 +355,39 @@ LCredManPmtGrntVcRecordCheck:;
   return;
 end;
 
+function Boolean ContractHasHistory(record CredManVc CredManr)
+begin
+  record CredHistVc CredHistr;
+  Boolean res;
+  
+  CredHistr.CredManNr = CredManr.SerNr;
+  if (ReadFirstKey("CredManChargeType",CredHistr,1,true)) then begin
+    res = true;
+  end;
+
+  ContractHasHistory = res;
+  return;
+end;
+
+global
+function LongInt CredManVcRecordRemoveTest(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)
+BEGIN
+  LongInt res;
+  record CredManEventVc CredManEventr;
+  string 200 thekey;
+
+  res = inner.CredManVcRecordRemoveTest(CredManr,CredMan2r,stat,long4);
+
+  if (res!=0) then begin
+    if (ContractHasHistory(CredManr)) then begin
+      res = 0;
+    end;
+  end;
+  
+  CredManVcRecordRemoveTest = res;
+  return;
+END;
+
 
 global
 updating function LongInt CredManVcRecordRemoveAfter(var record CredManVc CredManr,record CredManVc CredMan2r,LongInt stat,LongInt long4)

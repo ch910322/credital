@@ -1,7 +1,7 @@
 //<halrule>server-only</halrule>
 external procedure BuildCredManPayPlanCust(record CredManVc,var record CredManPayPlanVc,record CredManSetBlock,Boolean,Boolean);
 external inner function Boolean SetInSet2(string,string);
-
+external procedure CheckBuyOutAgreement(record CredManVc,var record RcVc);
 
 SetLangMode(LangLithuanian,"LIT",2);
 
@@ -32,7 +32,7 @@ begin
 	for (i=rwcnt-1;i>=0;i=i-1) begin
 		MatRowGet(CredManPayr,i,CredManPayrw);
     open = open + CredManPayrw.OpenAmount;
-		if (CredManPayrw.TransDate<=baldate and res==blankval) then begin
+		if (CredManPayrw.TransDate<=baldate and res==blankval and CredManSetb.InstalmentItem==CredManPayrw.ArtCode) then begin
   		res = CredManPayrw.Bal;
 //			i = 0;
 		end;
@@ -58,9 +58,11 @@ begin
 	boolean TrHs,testf;
 	record CredManEventVc CMEventr;
 	string 200 thekey;
-	val curbal,totamount,totdep,totmonth,totbal;
+	val curbal,totamount,totdep,totmonth,totbal,totalbuyout;
 	record CredManSetBlock CredManSetb;
 	record CUVc CUr;
+  record RcVc tRepSpec;
+  array Integer rp;
 
 
 	BlockLoad(CredManSetb);
@@ -71,9 +73,25 @@ begin
   if (blank(RepSpec.d1)) then begin
     RepSpec.d1 = CurrentDate;
   end;
+
+  rp[2] = 50;
+  rp[3] = 130;
+  rp[4] = 200;
+  rp[5] = 330;
+  rp[6] = 400;
+  rp[7] = 470;
+  rp[8] = 530;
+  rp[9] = 600;
+  rp[10] = 650;
+  rp[11] = 710;
+  rp[12] = 860;
+  rp[13] = 930;
+  rp[14] = 1000;
+  
 	
 	StartFormat(15);
 		OutString(0,0,"Nr",false);
+		OutString(rp[2],0,"Agr. Type",false);
 		if(RepSpec.Media==mtExcel)then begin
 			OutString(35,0,"Sustabdytos",false);
 			OutString(70,0,"Nutrauktos",false);
@@ -81,18 +99,19 @@ begin
 			OutString(70,0,"Be OK",false);
 			OutString(70,0,"Baigtos",false);
 		end;
-		OutString(35,0,"Įmonės kd.",false);
+		OutString(rp[3],0,"Įmonės kd.",false);
 //		OutString(35,0,"Klientas",false);
-		OutString(70,0,"Pavadinimas",false);
-		OutString(140,0,"Pradžios data",false);
-		OutString(175,0,"Pabaigos data",false);
-		OutString(210,0,"Viso suma",false);//totoals
-		OutString(245,0,"Užstato suma",false);//totals
-		OutString(280,0,"Užstato %",false);
-		OutString(315,0,"Mėnesiai",false);
-		OutString(350,0,"Palūkanų %",false);
-		OutString(385,0,"Mėnesiniai įnašai",false);//totals
-		OutString(1,0,"Balansų vertė",true);//totals
+		OutString(rp[4],0,"Pavadinimas",false);
+		OutString(rp[5],0,"Pradžios data",false);
+		OutString(rp[6],0,"Pabaigos data",false);
+		OutString(rp[7],0,"Viso suma",false);//totoals
+		OutString(rp[8],0,"Užstato suma",false);//totals
+		OutString(rp[9],0,"Užstato %",false);
+		OutString(rp[10],0,"Mėnesiai",false);
+		OutString(rp[11],0,"Palūkanų %",false);
+		OutString(rp[12],0,"Mėnesiniai įnašai",true);//totals
+		OutString(rp[13],0,"Balansų vertė",true);//totals
+		OutString(rp[14],0,"Buy-out",true);//buyout value
 	EndFormat;
 	
 	TrHs = true;
@@ -102,6 +121,7 @@ begin
 		if(nonblank(RepSpec.f1) and CredManr.CustCode!=RepSpec.f1)then begin testf = false; end;
 		if(nonblank(RepSpec.f2) and CredManr.Type!=RepSpec.f2)then begin testf = false; end;
 		if(nonblank(RepSpec.f3) and CredManr.OrderClass!=RepSpec.f3)then begin testf = false; end;
+		if(nonblank(RepSpec.f5) and CredManr.SalesMan!=RepSpec.f5)then begin testf = false; end;
 		if(RepSpec.flags[3]==0 and CredManr.Approved==0)then begin testf = false; end;
 		if(RepSpec.flags[4]==0 and CredManr.OKFlag==0)then begin testf = false; end;
 		if(CredManr.startDate<RepSpec.sStartDate)then begin testf = false; end;
@@ -117,30 +137,36 @@ begin
 		
 		if(testf)then begin
 		  CUr.Code = CredManr.CustCode;
+      tRepSpec.d1 = RepSpec.d1;
+      CheckBuyOutAgreement(CredManr,tRepSpec);
+
 		  ReadFirstMain(CUr,1,true);
 			StartFormat(15);
       OutString(0,"DblCredManVc",CredManr.SerNr,false);
+      OutString(rp[2],"DblCredManTypeVc",CredManr.Type,false);
       if(RepSpec.Media==mtExcel)then begin
         OutString(70,0,Checkbocout(CredManr.Approved==0),false);
         OutString(70,0,Checkbocout(CredManr.OKFlag==0),false);
         OutString(70,0,Checkbocout(curbal==0),false);
       end;
-      OutStringID(35,"DblCUVc",CUr.RegNr1,false,CUr.Code);
+      OutStringID(rp[3],"DblCUVc",CUr.RegNr1,false,CUr.Code);
 //      OutString(35,"DblCUVc",CredManr.CustCode,false);
-      OutString(70,0,CredManr.Addr0,false);
-      OutString(140,0,CredManr.startDate,false);
-      OutString(175,0,CredManr.endDate,false);
-      OutString(210,0,CredManr.InvSum4,false);
-      OutString(245,0,CredManr.DepositSum,false);
-      OutString(280,0,CredManr.DepositPrc,false);
-      OutString(315,0,CredManr.InstalmentMonths,false);
-      OutString(350,0,CredManr.IntRate,false);
-      OutString(385,0,CredManr.MonthlySum,false);
-      OutString(1,0,curbal,true);
+      OutString(rp[4],0,CredManr.Addr0,false);
+      OutString(rp[5],0,CredManr.startDate,false);
+      OutString(rp[6],0,CredManr.endDate,false);
+      OutString(rp[7],0,CredManr.InvSum4,false);
+      OutString(rp[8],0,CredManr.DepositSum,false);
+      OutString(rp[9],0,CredManr.DepositPrc,false);
+      OutString(rp[10],0,CredManr.InstalmentMonths,false);
+      OutString(rp[11],0,CredManr.IntRate,false);
+      OutString(rp[12],0,CredManr.MonthlySum,true);
+      OutString(rp[13],0,curbal,true);
+      OutString(rp[14],0,tRepSpec.vals2,true);
       totamount = totamount + CredManr.InvSum4;
       totdep = totdep + CredManr.DepositSum;
       totmonth = totmonth + CredManr.MonthlySum;
       totbal = totbal + curbal;
+      totalbuyout = totalbuyout + tRepSpec.vals2;
 			EndFormat;
 		end;
 	end;
@@ -149,16 +175,19 @@ begin
   EndFormat;
   StartFormat(15);
   OutString(0,0,"",false);
-  OutString(70,0,"",false);
-  OutString(140,0,"",false);
-  OutString(175,0,"",false);
-  OutString(210,0,totamount,false);
-  OutString(245,0,totdep,false);
-  OutString(280,0,"",false);
-  OutString(315,0,"",false);
-  OutString(350,0,"",false);
-  OutString(385,0,totmonth,false);
-  OutString(1,0,totbal,true);
+  OutString(rp[2],0,"",false);
+  OutString(rp[3],0,"",false);
+  OutString(rp[4],0,"",false);
+  OutString(rp[5],0,"",false);
+  OutString(rp[6],0,"",false);
+  OutString(rp[7],0,totamount,false);
+  OutString(rp[8],0,totdep,false);
+  OutString(rp[9],0,"",false);
+  OutString(rp[10],0,"",false);
+  OutString(rp[11],0,"",false);
+  OutString(rp[12],0,totmonth,true);
+  OutString(rp[13],0,totbal,true);
+  OutString(rp[14],0,totalbuyout,true);
   EndFormat;
 	
 	endjob;

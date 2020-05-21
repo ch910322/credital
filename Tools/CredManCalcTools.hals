@@ -440,7 +440,7 @@ begin
   return;
 end;
 
-procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf,record CredManSetBlock CredManSetb,var Integer months,var val buyoutamount,var val pausebal,var val prolongbal)
+procedure AddActualsToPlan(record CredManVc CredManr,var record CredmanPayPlanVc CredManPayPlanr,var Integer calculatedmonths,var val acumint,var val calcbal,var Boolean firstinvf,record CredManSetBlock CredManSetb,var Integer months,var val buyoutamount)
 begin
   record CredHistVc CredHistr,PrevCredHistr;
   Boolean TrHs;
@@ -464,12 +464,6 @@ begin
           case 0: 
             type = GetCredHistType(CredHistr.ArtCode,false); 
             openamount = GetCredHistOpenAmount(CredHistr);
-            if (CredManr.PauseDate==CredHistr.TransDate) then begin
-              pausebal = calcbal;
-            end;
-            if (CredManr.ProlongDate==CredHistr.TransDate) then begin
-              prolongbal = calcbal;
-            end;
           case 4: 
             type = kEventTypePartialBuyout;
             buyoutamount = buyoutamount + CredHistr.Sum;
@@ -578,8 +572,8 @@ begin
   val hundred,twelve;
   Date invdat,frdat,todat;
   Boolean firstinvf,setdelf;
-  Integer usemonths,curmonth,prolongstartmonths,basemonths,pausestartmonths;
-  val usesum,buyoutamount,pausebal,prolongbal;
+  Integer usemonths,curmonth,prolongstartmonths,pausestartmonths,adjustmonths,basemonths;
+  val usesum,buyoutamount;
   Boolean prolongf,pausef;
 
 /*should we calculate VAT here?
@@ -597,26 +591,25 @@ begin
   usesum = inCredManr.InvSum4 - inCredManr.DepositSum;
 
   if (withactuals) then begin
-    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf,CredManSetb,months,buyoutamount,pausebal,prolongbal);
+    AddActualsToPlan(inCredManr,CredManPayPlanr,calculatedmonths,acumint,calcbal,firstinvf,CredManSetb,months,buyoutamount);
   end;
   usemonths = months;
-/*
+  basemonths = months;
   if (nonblank(inCredManr.PauseDate)) then begin
     months = months + inCredManr.PauseMonths;
   end;
-*/
   if (buyoutamount>0) then begin
     usesum = usesum - buyoutamount;
   end;
 
   if (nonblank(InCredManr.ProlongDate) and InCredManr.ProlongMonths>0) then begin
-    prolongstartmonths = MonthDiff(InCredManr.FirstInvDate,InCredManr.ProlongDate);
+    prolongstartmonths = MonthDiff(InCredManr.FirstInvDate,InCredManr.ProlongDate)-1;
   end;  
   if (nonblank(InCredManr.PauseDate) and InCredManr.PauseMonths>0) then begin
-    pausestartmonths = MonthDiff(InCredManr.FirstInvDate,InCredManr.PauseDate);
+    pausestartmonths = MonthDiff(InCredManr.FirstInvDate,InCredManr.PauseDate)-1;
   end;  
-  basemonths = usemonths;
-
+  months = months + InCredManr.ProlongMonths;
+  logtext(0,"start " & prolongstartmonths & ":" & pausestartmonths);
   for(i=calculatedmonths;i<months;i=i+1) begin
     if (calcbal>0) then begin
       CalcCredManCurrentPeriod(inCredManr,i-1,frdat,todat,invdat); //sets dates, frdat, todat and invdat
@@ -624,50 +617,35 @@ begin
         AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,"","");
       end;
 //      logtext(0,"l1 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths);
-      if (nonblank(InCredManr.ProlongDate) and InCredManr.ProlongMonths>0) then begin
-        if (InCredManr.ProlongDate<=invdat and prolongf==false) then begin
-          if (prolongbal>0) then begin
-            usesum = prolongbal;
-          end else begin
-            usesum = calcbal;
-          end;
-          months = months + InCredManr.ProlongMonths;
-          usemonths = basemonths + InCredManr.ProlongMonths - prolongstartmonths;
-          if (pausef) then begin
-            usemonths = usemonths - InCredManr.PauseMonths;
-          end;
-          prolongf = true;
-        end;
-      end;
-//      logtext(0,"l2 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths);
-      if (nonblank(InCredManr.PauseDate) and InCredManr.PauseMonths>0) then begin
-        if (InCredManr.PauseDate<=invdat and pausef==false) then begin
-          if (pausebal>0) then begin
-            usesum = pausebal;
-          end else begin
-            usesum = calcbal;
-          end;
-          months = months;
-          usemonths = basemonths - InCredManr.PauseMonths - pausestartmonths;
+      if (nonblank(inCredManr.PauseDate) and AddMonth(inCredManr.PauseDate,inCredManr.PauseMonths)<=invdat) then begin
+        curmonth = curmonth - inCredManr.PauseMonths;
+        if (pausef==false) then begin
+          usemonths = basemonths - pausestartmonths;
           if (prolongf) then begin
             usemonths = usemonths + InCredManr.ProlongMonths;
           end;
+          adjustmonths = pausestartmonths;
+          usesum = calcbal;
           pausef = true;
         end;
       end;
+      if (nonblank(InCredManr.ProlongDate) and InCredManr.ProlongMonths>0) then begin
+        if (InCredManr.ProlongDate<=invdat and prolongf==false) then begin
+          usesum = calcbal;
+          usemonths = basemonths - prolongstartmonths;
+          adjustmonths = prolongstartmonths;
+         prolongf = true;
+        end;
+      end;
       curmonth = i;
-      if (prolongf) then begin
-        curmonth = curmonth - prolongstartmonths; 
-        if (setdelf) then begin
-          curmonth = curmonth + delaymonths;
-        end;       
+      if (adjustmonths>0) then begin
+        curmonth = curmonth - adjustmonths; 
       end;
-//      logtext(0,"l3 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths & ":" & pausestartmonths);
-      if (nonblank(inCredManr.PauseDate) and AddMonth(inCredManr.PauseDate,inCredManr.PauseMonths)<=invdat) then begin
-        curmonth = curmonth - inCredManr.PauseMonths;
-      end;
+      if (setdelf) then begin
+        curmonth = curmonth + delaymonths;
+      end;       
+      logtext(0,"l2 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum);
       monthtype = GetMonthType(i,months);
-//      logtext(0,"l4 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & monthtype);
       switch (inCredManr.InstalmentType) begin
         case 0://Annuity
           monthtype2 = monthtype;

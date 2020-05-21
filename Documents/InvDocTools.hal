@@ -1,0 +1,11 @@
+//<halrule>server-only</halrule>
+external inner function string 255 CredManOwnBankAccount(Longint);
+
+global
+procedure DoInvFormCustomizedFields(record IVVc IVr,record DocVc Docr,record SysFormatBlock SFb,record RoundBlock RoundRec,record LangNrVc LangNrr,Boolean negamountf)
+begin
+
+  OUTFORMFIELD("F_CUSTOWNBANKACC",CredManOwnBankAccount(IVr.CustCredManNr));
+
+  return;
+end;

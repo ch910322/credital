@@ -12,6 +12,12 @@ external inner procedure VIVc_PastePayDeal(var record VIVc);
 external inner procedure VICalcVals(var record VIVc);
 external inner procedure VISumup(record VIVc,var val);
 external function val GetCustomerOpenInvoices(string,Longint,var val);
+external inner procedure OPPastePayMode(var record OPVc);
+external inner function Boolean PasteInvIn2OPr(var record OPVc,Integer,Date,Integer,val,var string,Boolean,var Boolean);
+external inner function Boolean PasteInvIn2IPr(var record IPVc,Integer,Date,var val,Boolean,var Boolean);
+external inner procedure IPPastePayMode(var record IPVc);
+external inner procedure OPVc_PasteRecVal(var record OPVc,Integer);
+external inner procedure IPVc_PasteRecVal(var record IPVc,Integer);
 
 global
 updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc CMIr)
@@ -342,6 +348,71 @@ begin
   return;
 end;
 
+updating procedure CreateFeePaymentAndReceipt(record IVVc IVr,record VIVc VIr)
+begin
+  record OPVc OPr,oldOPr;
+  row OPVc OPrw;
+  record IPVc IPr,oldIPr;
+  row IPVc IPrw;
+  val chk;
+  Boolean installmentf;
+  string 255 warning;
+  record CreditalInvoiceBlock CIb;
+
+  BlockLoad(CIb);
+  RecordNew(OPr);
+  OPr.TransDate = CurrentDate;	 
+  OPr.PayDate = CurrentDate;	 
+  OPr.SerNr = NextSerNr("OPVc",OPr.TransDate,-1,false,"");		
+  OPr.PayMode = CIb.FVIPaymentMode;
+  OPPastePayMode(OPr);
+
+  ClearRow(OPr,OPrw,1);
+  OPrw.VISerNr = VIr.SerNr;
+  MatRowPut(OPr,0,OPrw);
+  PasteInvIn2OPr(OPr,0,OPr.TransDate,1,chk,warning,false,installmentf);
+  MatRowGet(OPr,0,OPrw);
+  if (IVr.Sum4<OPrw.BankVal) then begin
+    OPrw.BankVal = IVr.Sum4;
+    OPrw.RecVal = IVr.Sum4;
+  end;
+  MatRowPut(OPr,0,OPrw);
+  OPVc_PasteRecVal(OPr,0);
+
+  if (RecordStore(OPr,true)) then begin
+    RecordCopy(oldOPr,OPr);
+    OPr.DoneFlag = 1;
+    OPr.OrderedFlag = 1;
+    RecordUpdate(oldOPr,OPr,true);
+  end;  
+  
+  RecordNew(IPr);
+  IPr.TransDate = CurrentDate;
+  IPr.SerNr = NextSerNr("IPVc",IPr.TransDate,-1,false,"");
+  IPr.RegDate = CurrentDate;
+  IPr.OKFlag = 0;
+  IPr.PayMode = CIb.FIVPaymentMode;
+  IPPastePayMode(IPr);
+  
+  ClearRow(IPr,IPrw,1);
+  IPrw.InvoiceNr = IVr.SerNr;
+  MatRowPut(IPr,0,IPrw);
+  PasteInvIn2IPr(IPr,0,IPr.TransDate,chk,false,installmentf);
+  MatRowGet(IPr,0,IPrw);
+  if (VIr.PayVal<IPrw.InvVal) then begin
+    IPrw.RecVal = VIr.PayVal;
+    MatRowPut(IPr,0,IPrw);
+    IPVc_PasteRecVal(IPr,0);
+  end;
+  if (RecordStore(IPr,true)) then begin
+    RecordCopy(oldIPr,IPr);
+    IPr.OKFlag = 1;
+    RecordUpdate(oldIPr,IPr,true);
+  end;  
+
+  return;
+end;
+
 global
 updating procedure CheckAndCreateFactoringFeeInvoicePL(record IVVc IVr)
 begin
@@ -367,7 +438,7 @@ begin
             CredManr.SerNr = CMIr.CredManNr;
             if (ReadFirstMain(CredManr,1,true)) then begin
               BlockLoad(CIb);
-              amount = CMIr.TotalSum - (CMIr.TotalSum*CredManr.LoanToValue/100) - IVrw.Sum;
+              amount = CMIr.TotalSum - (CMIr.TotalSum*CredManr.LoanToValue/100);
               RecordNew(VIr);
               VIr.SerNr = NextSerNr("VIVc",CurrentDate,-1,false,"");
               VIr.TransDate = CurrentDate;
@@ -394,6 +465,7 @@ begin
               VISumup(VIr,ct);
               VIr.OKFlag = 1;
               if (RecordInsert(VIr,true)) then begin
+                CreateFeePaymentAndReceipt(IVr,VIr);
               end; 
             end;
           end;

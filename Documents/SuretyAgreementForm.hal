@@ -4,6 +4,7 @@ external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure OutAddress(string,string,string,string,string,string,string);
 external inner procedure PrintCurrencyCode(string,string);
 external inner procedure ValToText(val,Integer,string,string,var string);
+external inner function string 255 CredManOwnBankAccount(Longint);
 
 global
 procedure PrintDocumentSigner()
@@ -177,7 +178,9 @@ LBREAK:;
           ValToText((CredManr.InvSum4/2),M4Val,CredManr.CurncyCode,CUr.LangCode,tstr);
           OUTFORMFIELD("F_CREDHALFSUMTEXT",tstr);
         end;
-        
+        //CUST-BEGIN
+        OUTFORMFIELD("F_CUSTOWNBANKACC",CredManOwnBankAccount(CredManr.SerNr));
+        //CUST-END
 
         CloseForm;        
       end else begin

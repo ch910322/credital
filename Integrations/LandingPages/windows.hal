@@ -32,7 +32,7 @@ end;
 window WebLandingPageDClass:1
   wtag("language","ENG"), wtag("product","*"), wtag("productcode","*"), wtag("device","computer")
 begin
-  real h,h2,h3,h4,t,v,vm,vs,ord,label;
+  real h,h2,h3,h4,h5,h6,t,v,vm,vs,ord,label,labw;
 
   WindowBegin("Landing Page",WebLandingPageDClass,CGview,-);
   SetWRect(20,80,700,500);
@@ -40,12 +40,20 @@ begin
   UseView(WebLandingPageVc);
 
   h = 120; h2 = 360; h4 = 600; vs = 20; ord = 50;
-  h3 = 480;
+  h3 = 480; h6 = 420;
   Tile(0,230,false,"",Link);
   EditField(h,v=6, 150,"Link",St_i,Link,false,0);
   EditField(h,v+=vs,150,"Name",Normal,Name,false,0);
   EditField(h,v+=vs,82,"Manager",Normal,Manager,false,UserSClass);
   EditField(h,v+=vs,82,"Order Class",Normal,OrderClass,false,OrderClassSClass);
+
+  EditField(h5=420,v=6, -40,"Page Title",Normal,MetaTitle,false,0);
+  EditField(h5,v+=vs,-40,"Meta Description",Normal,MetaDescription,false,0);
+  EditField(h5,v+=vs,-40,"Meta Keywords",Normal,MetaKeyWords,false,UserSClass);
+  EditField(h5,v+=vs,-40,"Agreement Type",Normal,CredManType,false,CredManTypeSClass);
+  EditField(h5,v+=vs,-40,"Standard Text",Normal,StdText,false,LtxtSClass);
+  CheckBox(h5,v+=vs,0,"Send Email when submitted",SendEmail);
+
 //  EditField(h,v+=vs,82,"Credit Agr. Type",Normal,CredManType,false,CredManTypeSClass);//??
 
   TileButton(1,"Content");
@@ -92,6 +100,7 @@ begin
   v = v + vs;
   CheckBox(h,v,0,"Allow Submitting",ContSubmitFlag);
   EditField(h2,v,50,"Order",Normal,ContSubmitOrder,false,0);
+  EditField(h3,v,100,"Name",Normal,ContSubmitLabel,false,0);
 
   CheckBox(h,v+=vs,0,"Show Header",ContHeaderFlag);
 
@@ -116,83 +125,156 @@ begin
   EndMatrix;
 
   Tile(3,500,true,"3",SurveyRegFlag);
-  v = 6;
-  CheckBox(h,v,0,"Request Reg. No.",SurveyRegFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyRegOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyRegLabel,false,0);
+  v = 6; h = 30; h2 = 240; h6 = 310; h3 = 380; labw = 200;
+  StaticText(h2-5,v+=10,"Order",false);
+  StaticText(h6-5,v,"Order Mob.",false);
+  StaticText(h3,v,"Label",false);
+
+  CheckBox(h,v+=20,0,"Request Reg. No.",SurveyRegFlag);
+  EditField(h2,v,ord,"",Normal,SurveyRegOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyRegOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyRegLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyRegMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Name",SurveyNameFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyNameOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyNameLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyNameOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyNameOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyNameLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyNameMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Telephone",SurveyPhoneFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyPhoneOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyPhoneLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyPhoneOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyPhoneOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyPhoneLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyPhoneMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Email",SurveyEmailFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyEmailOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyEmailLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyEmailOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyEmailOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyEmailLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyEmailMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person",SurveyContactNameFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyContactNameOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyContactNameLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyContactNameOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyContactNameOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyContactNameLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyContactNameMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Email",SurveyContactEmailFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyContactEmailOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyContactEmailLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyContactEmailOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyContactEmailOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyContactEmailLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyContactEmailMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Mobile",SurveyContactMobileFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyContactMobileOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyContactMobileLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyContactMobileOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyContactMobileOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyContactMobileLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyContactMobileMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Contact Person's Job Title",SurveyContactJobFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyContactJobOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyContactJobLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyContactJobOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyContactJobOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyContactJobLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyContactJobMand);
 
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Contact Person's ID",SurveyContactIDFlag);
+  EditField(h2,v,ord,"",Normal,SurveyContactIDOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyContactIDOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyContactIDLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyContactIDMand);
+  
   v = v + vs;
   CheckBox(h,v,0,"Request VAT Nr.",SurveyVATNrFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyVATNrOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyVATNrLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyVATNrOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyVATNrOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyVATNrLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyVATNrMand);
 
   v = v + vs;  
   CheckBox(h,v,0,"Request Address",SurveyAddressFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyAddressOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyAddressLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyAddressOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyAddressOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyAddressLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyAddressMand);
 
   v = v + vs;  
   CheckBox(h,v,0,"Request Amount",SurveyAmountFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyAmountOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyAmountLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyAmountOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyAmountOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyAmountLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyAmountMand);
 
   v = v + vs;
   CheckBox(h,v,0,"Request Term",SurveyTermFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyTermOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyTermLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyTermOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyTermOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyTermLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyTermMand);
  
   v = v + vs;  
   CheckBox(h,v,0,"Request Payment Day",SurveyPaymentDayFlag);
-  EditField(h2,v,ord,"Order",Normal,SurveyPaymentDayOrder,false,0);
-  EditField(h3,v,100,"Label",Normal,SurveyPaymentDayLabel,false,0);
+  EditField(h2,v,ord,"",Normal,SurveyPaymentDayOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyPaymentDayOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyPaymentDayLabel,false,0);
   CheckBox(h4,v,0,"Mandatory",SurveyPaymentDayMand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Comment",SurveyCommentFlag);
+  EditField(h2,v,ord,"",Normal,SurveyCommentOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyCommentOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyCommentLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyCommentMand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Files",SurveyUploadFlag);
+  EditField(h2,v,ord,"",Normal,SurveyUploadOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyUploadOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyUploadLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyUploadMand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Files 2",SurveyUpload2Flag);
+  EditField(h2,v,ord,"",Normal,SurveyUpload2Order,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyUpload2OrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyUpload2Label,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyUpload2Mand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Files 3",SurveyUpload3Flag);
+  EditField(h2,v,ord,"",Normal,SurveyUpload3Order,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyUpload3OrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyUpload3Label,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyUpload3Mand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Files 4",SurveyUpload4Flag);
+  EditField(h2,v,ord,"",Normal,SurveyUpload4Order,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyUpload4OrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyUpload4Label,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyUpload4Mand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Files 5",SurveyUpload5Flag);
+  EditField(h2,v,ord,"",Normal,SurveyUpload5Order,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyUpload5OrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyUpload5Label,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyUpload5Mand);
+  
+  v = v + vs;  
+  CheckBox(h,v,0,"Request Bank Account",SurveyBankAccFlag);
+  EditField(h2,v,ord,"",Normal,SurveyBankAccOrder,false,0);
+  EditField(h6,v,ord,"",Normal,SurveyBankAccOrderMobile,false,0);
+  EditField(h3,v,labw,"",Normal,SurveyBankAccLabel,false,0);
+  CheckBox(h4,v,0,"Mandatory",SurveyBankAccMand);
   
   EndWindow;
   

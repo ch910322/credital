@@ -6,6 +6,7 @@ external procedure CompanyGetData(string,string,Longint,var area,string,Longint,
 external procedure CompanyStoreData(string,string,area,Integer,string,Longint,string,Date,var Boolean);
 external procedure DoEBSSendPrintDocument(vector string,area,var area,string,Longint,string,Date,var Boolean);
 external procedure ReadScanDocFileBankStatement(area,Integer,string,Longint,string,Date,var vector string,var array Date,var array string,var array val,var array string,var Longint,var Boolean);
+
 function string 255 GetServiceIPAddress()
 begin
   string 255 ip;
@@ -34,6 +35,24 @@ begin
   CallService(ip).ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
   
   SendScanDocFile = res;
+  return;
+end;
+
+global
+procedure SendScanDocFile2(area a,Integer type,var vector string vVals,var Boolean res)
+begin
+  record InternetEnablerBlock IEb;
+  record ModuleBlock Mb;
+  string 255 ip;
+  
+  res = false;
+  BlockLoad(IEb);
+  BlockLoad(Mb);
+  ip = GetServiceIPAddress;
+  logtext(0,"SendScanDocFile2 " & ip);
+  CallService(ip).ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
+  logtext(0,"SendScanDocFile2 finished");
+  
   return;
 end;
 

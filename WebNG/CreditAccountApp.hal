@@ -127,10 +127,10 @@ begin
             vIPr[IPrsr.TransNr] = true;
             rwcnt = MatRowCnt(IPr);
             tval = 0;
+            tstr = "";
             for (i=0;i<rwcnt;i=i+1) begin
               MatRowGet(IPr,i,IPrw);
               if (IPrw.CustCode==custcode) then begin
-                tstr = ToolWebNGTranslateText2(70283);
                 if (IPrw.InvoiceNr>0) then begin
                   IVr.SerNr = IPrw.InvoiceNr;
                   if (ReadFirstMain(IVr,1,true)) then begin
@@ -139,6 +139,9 @@ begin
                       tval = tval + IPrw.RecVal;
                     end;
                   end;
+                end else begin
+                  tval = tval + IPrw.RecVal;
+                  tstr = AddObjectToObjectList(tstr,ToolWebNGTranslateText2(70283));
                 end;
               end;
             end;
@@ -245,7 +248,7 @@ begin
   record CredManVc CredManr; 
   record B2BLoanApplicationVc LAr; 
   record RLinkVc RLr;
-  Boolean TrHs;
+  Boolean TrHs,foundf;
   
   
   rw = MatRowCnt(ORr);
@@ -262,6 +265,16 @@ begin
       ORrw.Location = CredManr.OrderClass;
       ORrw.Sum = CredManr.InvSum4;
       if (ReadRecordLink(CredManr,1,LAr,RLr)) then begin
+        foundf = true;
+      end else begin
+        if (CredManr.LoanApplication>0) then begin
+          LAr.SerNr = CredManr.LoanApplication;
+          if (ReadFirstMain(LAr,1,true)) then begin
+            foundf = true;
+          end;
+        end;
+      end;
+      if (foundf) then begin
         ORrw.ServiceDelDate = LAr.TransDate;
       end;
       MatRowPut(ORr,rw,ORrw);

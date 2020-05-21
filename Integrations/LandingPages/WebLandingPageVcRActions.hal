@@ -13,6 +13,11 @@ begin
     res = -1;
     goto LWebLandingPageVcRecordCheck;
   end;
+  if (LPr.SendEmail==1 and blank(LPr.StdText)) then begin
+    RecordCheckError(1058,"",-1,"StdText");
+    res = -1;
+    goto LWebLandingPageVcRecordCheck;
+  end;
   
 LWebLandingPageVcRecordCheck:;
   WebLandingPageVcRecordCheck = res;

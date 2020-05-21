@@ -5,6 +5,8 @@ remote updating procedure GenerateSLAndPLInvoices(record CredManFactInvoiceVc);
 remote procedure FillCredManBuyers(var record CredManFactVc,var val);
 remote procedure CredManFactInsertCustCode(var record CredManFactVc,Integer);
 remote updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
+remote procedure SendScanDocFile2(area,Integer,var vector string,var Boolean);
+external inner function Date DateFromString(string,string);
 
 global
 procedure CustCredManFactInvoiceAddSm()
@@ -360,5 +362,48 @@ function Boolean FactoringBuyersSClassOnOKWindow(Integer wn)
 begin
   PasteFromSysList(wn,-1);
   FactoringBuyersSClassOnOKWindow = false;
+  return;
+end;
+
+
+global
+procedure FactInvoiceUploadFileSm()
+begin
+  Boolean res;
+  string 255 fpath;
+  vector string 255 vVals;
+  Longint fsz;
+  area filearea;
+  record RcVc RepSpec;
+  record CredManVc CredManr;
+  record CUVc CUr;
+  
+  if (GetWindowClass(MotherWindow(CurWindow))=="CredManDClass") then begin
+    GetWindowRecord(MotherWindow(CurWindow),CredManr);
+    //res = OpenFileDialog("",fpath);
+    fpath = "/Users/kristapszogots/Downloads/SF.pdf";
+    //if (blank(fpath) or (res==false)) then begin goto LFactInvoiceUploadFile; end;
+stopalert(fpath & ":");
+    fsz = FileSize(fpath);
+stopalert(fsz);
+    LoadFileToArea(fpath,0,fsz,filearea);
+stopalert("dd");
+    SendScanDocFile2(filearea,1,vVals,res);
+stopalert("dd2");
+    RepSpec.long1 = CredManr.SerNr;
+    CUr.RegNr1 = vVals["102"];
+    if (ReadFirstKey("RegNr1",CUr,1,true)) then begin
+      RepSpec.f1 = CUr.Code;
+    end;
+    RepSpec.searchstr = vVals["100"];
+    RepSpec.ObjStr = vVals["6"];
+    RepSpec.d1 = DateFromString(vVals["7"],"YYYY-MM-DD");
+    RepSpec.d2 = DateFromString(vVals["8"],"YYYY-MM-DD");
+    RepSpec.vals0 = StringToVal(vVals["5"],M4Val);
+
+    OpenWindow("NewCredManFactInvoiceWClass",1,CurWindow,"","",RepSpec);
+  end;
+
+LFactInvoiceUploadFile:;
   return;
 end;

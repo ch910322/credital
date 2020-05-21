@@ -1,0 +1,45 @@
+
+global
+procedure CreditAgreementsRClassReportDefaults(Integer wn)
+BEGIN
+  record RcVc RepSpec;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"CreditAgreementsRClass");  
+  RepSpec.Scaling = 0;
+  RepSpec.BaseWidth = 1000;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  RETURN;
+END;
+
+
+global
+procedure DblCredManTypeVc(string dblstr,string l,Integer currepwn)
+begin
+  record CredManTypeVc CMTr;
+  Integer wn;
+  
+  CMTr.Code = dblstr;
+  if (ReadFirstMain(CMTr,1,true)) then begin
+    wn = OpenWindow("CredManTypeDClass",1,0,"","",CMTr);
+  end;
+  return;
+end;
+
+
+global
+procedure LoanApplicationListRClassReportDefaults(Integer wn)
+BEGIN
+  record RcVc RepSpec;
+  
+  DeselectWindow(wn,false);
+  GetWindowRecord(wn,RepSpec);
+  ReportDefaults(RepSpec,"LoanApplicationListRClass");  
+  RepSpec.Scaling = 0;
+  RepSpec.BaseWidth = 1100;
+  PutWindowRecord(wn,RepSpec);
+  SelectWindow(wn);
+  RETURN;
+END;

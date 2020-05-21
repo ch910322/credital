@@ -303,7 +303,7 @@ begin
 
   return;
 end;
-
+/*
 global
 updating procedure UpdateFactoringInvoicesSL(record IVVc IVr,Boolean setf)
 begin
@@ -344,7 +344,7 @@ begin
 
   return;
 end;
-
+*/
 procedure GetPmtGrntSellerRow(Longint credmannr,string custcode,var row CredManPmtGrntVc tPGrw)
 begin
   record CredManPmtGrntVc PGr;
