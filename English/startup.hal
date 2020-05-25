@@ -84,7 +84,7 @@ begin
 
 /*CRM */
 
-	Report("Mailing List",MailingListRClass,MailingListRn,0,modCRM);
+	Report("News Letter List",MailingListRClass,MailingListRn,0,modCRM);
 
   SString(200000,"Evaluation report");
   SString(200001,"Company");
