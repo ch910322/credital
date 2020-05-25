@@ -1038,6 +1038,7 @@ begin
   CheckBox(h,v+=30,0,"Include unapproved",flags[3]);
   CheckBox(h,v+=30,0,"Not OK'ed",flags[4]);
   CheckBox(h,v+=30,0,"Include Completed",flags[5]);
+  CheckBox(h,v+=30,0,"Show Email address",flags[6]);
   
   EndWindow;
 end;

@@ -105,8 +105,12 @@ begin
 		OutString(rp[5],0,"Pradžios data",false);
 		OutString(rp[6],0,"Pabaigos data",false);
 		OutString(rp[7],0,"Viso suma",false);//totoals
-		OutString(rp[8],0,"Užstato suma",false);//totals
-		OutString(rp[9],0,"Užstato %",false);
+    if (RepSpec.flags[6]==1) then begin
+		  OutString(rp[8],0,"El. paštas",false);//totoals
+    end else begin
+  		OutString(rp[8],0,"Užstato suma",false);//totals
+  		OutString(rp[9],0,"Užstato %",false);
+    end;
 		OutString(rp[10],0,"Mėnesiai",false);
 		OutString(rp[11],0,"Palūkanų %",false);
 		OutString(rp[12],0,"Mėnesiniai įnašai",true);//totals
@@ -155,8 +159,12 @@ begin
       OutString(rp[5],0,CredManr.startDate,false);
       OutString(rp[6],0,CredManr.endDate,false);
       OutString(rp[7],0,CredManr.InvSum4,false);
-      OutString(rp[8],0,CredManr.DepositSum,false);
-      OutString(rp[9],0,CredManr.DepositPrc,false);
+      if (RepSpec.flags[6]==1) then begin
+        OutString(rp[8],0,CUr.eMail,false);//totoals
+      end else begin
+        OutString(rp[8],0,CredManr.DepositSum,false);
+        OutString(rp[9],0,CredManr.DepositPrc,false);
+      end;
       OutString(rp[10],0,CredManr.InstalmentMonths,false);
       OutString(rp[11],0,CredManr.IntRate,false);
       OutString(rp[12],0,CredManr.MonthlySum,true);
