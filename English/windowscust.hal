@@ -384,6 +384,12 @@ begin
   EditFieldTL(h,v+=vs,153,"Manager",M4Code,Normal,10,f2,false,UserSClass);
   EndWindow;
 
+  WindowBegin("Specify Recreate Invoices with Prolong months",CredManRecreateDocsVClass,CGMnt,RcType);
+  SetWRect(64,80,445,95);
+  h = 150; v = 6; vs = 20;
+  EndWindow;
+
+
   WindowBegin("Specify Payment Guarantee Invoices",PmtGrntInvoiceVClass,CGMnt,RcType);
   SetWRect(64,80,445,95);
   h = 150; v = 6; vs = 20;

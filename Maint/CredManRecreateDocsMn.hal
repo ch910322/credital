@@ -1,0 +1,198 @@
+external inner procedure IPPastePayMode(var record IPVc);
+external procedure BankFillIProws(var record IPVc,string,var string,var val,string,boolean,string,string,Boolean);
+external updating procedure CreateSingleAgreementInvoice(record CredManVc,Date,var record IVVc);
+
+procedure GetReceipts(record IVVc IVr,var array record IPVc aIPr)
+begin
+  record IPrsVc IPrsr;
+  record IPVc IPr;
+  Boolean found;
+
+  IPrsr.IVNr = IVr.SerNr;
+  found = true;
+  while (LoopKey("IVKey",IPrsr,1,found)) begin
+    if (IPrsr.IVNr<>IVr.SerNr) then begin found = false; end;
+    if (found) then begin
+      if (IPrsr.TransType==kIPrsTransTypeReceipt) then begin/* receipt */      
+        IPr.SerNr = IPrsr.TransNr;
+        if (ReadFirstMain(IPr,1,true)) then begin
+          if (IPr.RejectedFlag==0) then begin
+            aIPr[aIPr.length] = IPr;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  return;
+end;
+
+procedure AddPaymentsToList(array record IPVc aIPr,var record ORVc ORr)
+begin
+  row ORVc ORrw;
+  record IPVc IPr;
+  Integer i;
+  
+  for (i=0;i<aIPr.length;i=i+1) begin
+    IPr = aIPr[i];
+    ClearRow(ORr,ORrw,1);
+    ORrw.PickingDate = IPr.TransDate;
+    ORrw.ArtCode = IPr.PayMode;
+    ORrw.Sum = IPr.CurPayVal;
+    MatRowPut(ORr,MatRowCnt(ORr),ORrw);
+  end;
+
+  return;
+end;
+
+procedure PrepareIPRecord(row ORVc ORrw,var record IPVc IPr)
+begin
+  
+  RecordClear(IPr);
+  RecordNew(IPr);
+  IPr.TransDate = ORrw.PickingDate;
+  IPr.SerNr = NextSerNr("IPVc",IPr.TransDate,-1,false,"");
+  IPr.RegDate = ORrw.PickingDate;
+  IPr.OKFlag = 0;
+  IPr.PayMode = ORrw.ArtCode;
+  IPPastePayMode(IPr);
+
+  return;
+end;
+
+updating procedure StoreIPRecord(record IPVc IPr)
+begin
+  record IPVc oldIPr;
+
+  RecordInsert(IPr,true);
+  RecordCopy(oldIPr,IPr);
+  IPr.OKFlag = 1;
+  RecordUpdate(oldIPr,IPr,true);
+
+  return;
+end;
+
+updating procedure CheckAndCreateReceiptForDate(record CredManVc CredManr,record ORVc ORr,Date td,record IVVc tIVr)
+begin
+  Integer i,rwcnt;
+  row ORVc ORrw;
+  record IPVc IPr;
+  string 255 instr;
+  
+  rwcnt = MatRowCnt(ORr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(ORr,i,ORrw);
+    if (ORrw.PickingDate<td) then begin
+      PrepareIPRecord(ORrw,IPr);
+      instr = "";
+      BankFillIProws(IPr,CredManr.Addr0,tIVr.CurncyCode,ORrw.Sum,CredManr.CustCode,true,instr,"",true);
+      MatRowDelete(ORr,i);
+      i = i - 1;
+      rwcnt = MatRowCnt(ORr);
+    end;
+  end;
+
+  if (MatRowCnt(IPr)>0) then begin
+    StoreIPRecord(IPr);
+  end;
+
+  return;
+end;
+
+updating procedure RemoveInvoice(record IVVc tIVr)
+begin
+  
+  if (ReadFirstMain(tIVr,1,true)) then begin
+    RecordRemove(tIVr);
+  end;
+
+  return;
+end;
+
+updating procedure FixSingleCredMan(record CredManVc CredManr)
+begin
+  record IVVc IVr,oldIVr,tIVr;
+  record IPVc IPr,oldIPr;
+  Boolean TrHs;
+  record ORVc ORr;
+  Date td;
+  array record IPVc aIPr;
+  Integer i;
+  record CredManVc oldCredManr;
+  
+  TrHs = true;
+  IVr.CustCode = CredManr.CustCode;
+  IVr.InvDate = CurrentDate;
+  while (LoopBackKey("CustDate",IVr,2,TrHs)) begin
+    if (IVr.CustCode!=CredManr.CustCode) then begin
+      TrHs = false;
+    end else begin
+      if (IVr.CustCredManNr==CredManr.SerNr) then begin
+        logtext(0,"Found invoice for cust " & IVr.CustCode & ":" & IVr.SerNr);
+        ClearArray(aIPr);
+        GetReceipts(IVr,aIPr);
+        AddPaymentsToList(aIPr,ORr);
+        logtext(0,"found " & aIPr.length & " receipt");
+        for (i=0;i<aIPr.length;i=i+1) begin
+          IPr = aIPr[i];
+          logtext(0,"removing receipt " & IPr.SerNr);
+          RecordCopy(oldIPr,IPr);
+          IPr.OKFlag = 0;
+          if (RecordUpdate(oldIPr,IPr,true)==0) then begin
+            RecordRemove(IPr);
+          end else begin
+            logtext(0,"Failed to update reciept " & IPr.SerNr);
+          end;
+        end;
+        RecordCopy(oldIVr,IVr);
+        IVr.OKFlag = 0;
+        if (RecordUpdate(oldIVr,IVr,true)==0) then begin
+          logtext(0,"removing invoice " & IVr.SerNr);
+          RemoveInvoice(oldIVr)
+          //StepForward(IVr,1);
+        end else begin
+          logtext(0,"Failed to update invoice " & IVr.SerNr);
+        end;
+      end;
+    end;
+  end;
+
+  RecordCopy(oldCredManr,CredManr);
+  CredManr.ProlongDate = CredManr.PauseDate;
+  CredManr.ProlongMonths = CredManr.PauseMonths;
+  if (RecordUpdate(oldCredManr,CredManr,true)==0) then begin
+    tIVr.CurncyCode = CredManr.CurncyCode;
+    CheckAndCreateReceiptForDate(CredManr,ORr,CredManr.startDate,tIVr);
+    RecordClear(tIVr);
+    logtext(0,"Creating Invoice for " & CredManr.SerNr & ":" & CredManr.startDate);
+    CreateSingleAgreementInvoice(CredManr,CredManr.startDate,tIVr);
+    CheckAndCreateReceiptForDate(CredManr,ORr,CredManr.FirstInvDate,tIVr);
+    td = CredManr.FirstInvDate;
+    while (td<CurrentDate) begin
+      RecordClear(tIVr);
+      logtext(0,"Creating Invoice for " & CredManr.SerNr & ":" & td);
+      CreateSingleAgreementInvoice(CredManr,td,tIVr);
+      td = AddMonth(td,1);
+      CheckAndCreateReceiptForDate(CredManr,ORr,td,tIVr);
+    end;
+  end else begin
+    logtext(0,"Failed to update agreement " & CredManr.SerNr);
+  end;
+
+  return;
+end;
+
+global
+updating procedure CredManRecreateDocsMn(record RcVc RepSpec)
+begin
+  record CredManVc CredManr;
+  
+  while (LoopMain(CredManr,1,true)) begin
+    if (CredManr.PauseMonths>0 and CredManr.ProlongMonths==0) then begin
+      if (CredManr.CustCode!="100622") then begin
+        FixSingleCredMan(CredManr);
+      end;
+    end;
+  end;
+  return;
+end;

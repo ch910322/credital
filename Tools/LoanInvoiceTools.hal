@@ -400,17 +400,19 @@ begin
       if (ARPayr.CustCode!=IVr.CustCode) then begin
         TrHs = false;
       end else begin
-        ClearRow(IVr,IVrw,kInvoiceRowTypePrepayment);
-        IVrw.Spec = USetStr(1288);
-        IVrw.CUPNr = ARPayr.CUPNr;
-        PasteARPayInIV(IVr,IVrw,-1);
-        MatRowInsert(IVr,0,IVrw);
-        if IVVc_PasteSum(IVr,0,chsum,1) then begin 
-          if (chsum) then begin
-            IVDchsum(IVr,0);
-          end;
-        end;  
-        remval = remval - IVrw.BasePrice;
+        if (ARPayr.PayDate<IVr.TransDate) then begin
+          ClearRow(IVr,IVrw,kInvoiceRowTypePrepayment);
+          IVrw.Spec = USetStr(1288);
+          IVrw.CUPNr = ARPayr.CUPNr;
+          PasteARPayInIV(IVr,IVrw,-1);
+          MatRowInsert(IVr,0,IVrw);
+          if IVVc_PasteSum(IVr,0,chsum,1) then begin 
+            if (chsum) then begin
+              IVDchsum(IVr,0);
+            end;
+          end;  
+          remval = remval - IVrw.BasePrice;
+        end;
       end;
     end;
   end;
