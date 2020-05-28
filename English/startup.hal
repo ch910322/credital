@@ -202,6 +202,8 @@ begin
   SString(200231,"Email");
   SString(200232,"Date");
 
+  SString(1808,"Noviti Nr. ");
+
   StrSetAdd(584);
   StrSetText(CredManVc,"Credit Agreements");
   StrSetText(B2BLoanApplicationVc,"B2B Loan Applications");
