@@ -950,13 +950,15 @@ begin
   Boolean res;
   record CUVc CUr;
 
-  CUr.eMail = email;
-  if (ReadFirstKey("eMail",CUr,1,true)) then begin
-    res = true;
-    contactcode = CUr.Code;
-    contactname = CUr.Name;
+  if (nonblank(email)) then begin
+    CUr.eMail = email;
+    if (ReadFirstKey("eMail",CUr,1,true)) then begin
+      res = true;
+      contactcode = CUr.Code;
+      contactname = CUr.Name;
+    end;
   end;
-
+  
   EmailAddressExists = res;
   return;
 end;
