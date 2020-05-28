@@ -1487,6 +1487,7 @@ begin
 
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
+  SourceFile("halcust\\Latvian", 0);
   SourceFile("halcust\\Documents", 3);
   SourceFile("halcust\\Maint", 3);
   SourceFile("halcust\\RActions", 3);
