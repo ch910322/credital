@@ -103,9 +103,11 @@ begin
   CredManUpdate(CredManr,-1,"");
   CredManSumup(CredManr);
   CredManr.endDate = AddMonth(CredManr.FirstInvDate,CredManr.InstalmentMonths - 1);
+/*
   if (nonblank(CredManr.PauseDate)) then begin
     CredManr.endDate = AddMonth(CredManr.endDate,CredManr.PauseMonths);
   end;
+*/
   if (nonblank(CredManr.ProlongDate)) then begin
     CredManr.endDate = AddMonth(CredManr.endDate,CredManr.ProlongMonths);
   end;
