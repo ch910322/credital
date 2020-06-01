@@ -384,11 +384,8 @@ begin
     //res = OpenFileDialog("",fpath);
     fpath = "/Users/kristapszogots/Downloads/SF.pdf";
     //if (blank(fpath) or (res==false)) then begin goto LFactInvoiceUploadFile; end;
-stopalert(fpath & ":");
     fsz = FileSize(fpath);
-stopalert(fsz);
     LoadFileToArea(fpath,0,40000,filearea);
-stopalert("dd");
     RecordNew(DAr);
     DAr.SerNr = NextSerNr("DummyAttachVc",CurrentDate,-1,false,"");
     if (RecordStore(DAr,true)) then begin
