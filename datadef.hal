@@ -1485,6 +1485,12 @@ begin
   RecordField(TransDate,M4Date,0,0);
   EndRecordAdd;
 
+  RecordBegin(DummyAttachVc,-,"");
+  RecordField(SerNr,M4Long,0,0);
+  MainKeyBegin(SerNr,0);
+  KeySegment(SerNr);
+  EndRecord;
+
   SourceFile("halcust\\English", 0);
   SourceFile("halcust\\Lithuanian", 0);
   SourceFile("halcust\\Latvian", 0);

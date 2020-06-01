@@ -615,8 +615,8 @@ begin
   if (nonblank(InCredManr.PauseDate) and InCredManr.PauseMonths>0) then begin
     pausestartmonths = MonthDiff(InCredManr.FirstInvDate,InCredManr.PauseDate);
   end;  
+  delaymonths = inCredManr.PrincipleDelayMonths;
   basemonths = usemonths;
-
   for(i=calculatedmonths;i<months;i=i+1) begin
     if (calcbal>0) then begin
       CalcCredManCurrentPeriod(inCredManr,i-1,frdat,todat,invdat); //sets dates, frdat, todat and invdat
@@ -632,7 +632,7 @@ begin
             usesum = calcbal;
           end;
           months = months + InCredManr.ProlongMonths;
-          usemonths = basemonths + InCredManr.ProlongMonths - prolongstartmonths;
+          usemonths = basemonths + InCredManr.ProlongMonths - (prolongstartmonths-delaymonths);
           if (pausef) then begin
             usemonths = usemonths - InCredManr.PauseMonths;
           end;
@@ -648,7 +648,7 @@ begin
             usesum = calcbal;
           end;
           months = months;
-          usemonths = basemonths - InCredManr.PauseMonths - pausestartmonths;
+          usemonths = basemonths - InCredManr.PauseMonths - (pausestartmonths-delaymonths);
           if (prolongf) then begin
             usemonths = usemonths + InCredManr.ProlongMonths;
           end;
