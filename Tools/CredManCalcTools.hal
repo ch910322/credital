@@ -336,7 +336,7 @@ begin
         if (CredManr.AnnualRate==1) then begin
           rate = rate/12;
         end;
-        sum = FIN_PPMT(rate/100, usemonths, usesum, month + 1);
+        sum = FIN_PPMT(rate/100, usemonths, usesum, month+1);
         if (CredManr.MaxMonthlyPayment>0) then begin
           curpayment = GetCurrentMonthPayment(CredManPayPlanr,invdate,sum);
           if (CredManr.MaxMonthlyPayment<curpayment) then begin
@@ -623,7 +623,7 @@ begin
       if (i==0 and firstinvf==false and inCredManr.InstalmentType!=4) then begin//Not for factoring
         AddInitialInvoice(inCredManr,CredManPayPlanr,CredManSetb,acumint,calcbal,"","");
       end;
-//      logtext(0,"l1 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths);
+//      logtext(0,"l1 " & invdat & ":" & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths);
       if (nonblank(InCredManr.ProlongDate) and InCredManr.ProlongMonths>0) then begin
         if (InCredManr.ProlongDate<=invdat and prolongf==false) then begin
           if (prolongbal>0) then begin
@@ -647,7 +647,7 @@ begin
           end else begin
             usesum = calcbal;
           end;
-          months = months;
+          //months = months;
           usemonths = basemonths - InCredManr.PauseMonths - (pausestartmonths-delaymonths);
           if (prolongf) then begin
             usemonths = usemonths + InCredManr.ProlongMonths;
@@ -663,7 +663,7 @@ begin
         end;       
       end;
 //      logtext(0,"l3 " & i & ":" & curmonth & ":" & usemonths & ":" & months & ":" & usesum & ":" & prolongstartmonths & ":" & pausestartmonths);
-      if (nonblank(inCredManr.PauseDate) and AddMonth(inCredManr.PauseDate,inCredManr.PauseMonths)<=invdat) then begin
+      if (nonblank(inCredManr.PauseDate) and AddMonth(inCredManr.PauseDate,inCredManr.PauseMonths)<invdat) then begin
         curmonth = curmonth - inCredManr.PauseMonths;
       end;
       monthtype = GetMonthType(i,months);
@@ -708,6 +708,9 @@ begin
           if (setdelf==false) then begin
             delaymonths = inCredManr.PrincipleDelayMonths;
             usemonths = usemonths - inCredManr.PrincipleDelayMonths;
+            if (prolongf) then begin
+              curmonth = curmonth + delaymonths;
+            end;
             setdelf = true;
           end;
           monthtype2 = monthtype;
@@ -725,6 +728,9 @@ begin
           if (setdelf==false) then begin
             delaymonths = inCredManr.PrincipleDelayMonths;
             usemonths = usemonths - inCredManr.PrincipleDelayMonths;
+            if (prolongf) then begin
+              curmonth = curmonth + delaymonths;
+            end;
             setdelf = true;
           end;
           monthtype2 = monthtype;
