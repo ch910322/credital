@@ -52,6 +52,38 @@ begin
 	return;
 end;
 
+function string 255 GetCustomerInvoicingEmails(record CUVc CUr)
+begin
+  record EmailRecipVc EmailRecipr;
+  row EmailRecipVc EmailReciprw;
+  Integer i,rwcnt;
+  string 255 res;
+  record CUVc CU2r;
+
+  res = CUr.eMail;
+  if (blank(res)) then begin
+    EmailRecipr.MainContactCode = CUr.Code;
+    if (ReadFirstMain(EmailRecipr,1,true)) then begin 
+      rwcnt = MatRowCnt(EmailRecipr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(EmailRecipr,i,EmailReciprw);
+        if (EmailReciprw.DocType==kMailInvoice) then begin
+          CU2r.Code = EmailReciprw.ContactCode;
+          if (ReadFirstMain(CU2r,1,true)) then begin
+            if (nonblank(CU2r.eMail)) then begin
+              res = CU2r.eMail;
+              i = rwcnt;
+            end;        
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  GetCustomerInvoicingEmails = res;
+  return;
+end;
+
 global procedure CreditAgreementsRn(record RcVc RepSpec)
 begin
 	record CredManVc CredManr;
@@ -160,7 +192,7 @@ begin
       OutString(rp[6],0,CredManr.endDate,false);
       OutString(rp[7],0,CredManr.InvSum4,false);
       if (RepSpec.flags[6]==1) then begin
-        OutString(rp[8],0,CUr.eMail,false);//totoals
+        OutString(rp[8],0,GetCustomerInvoicingEmails(CUr),false);//totoals
       end else begin
         OutString(rp[8],0,CredManr.DepositSum,false);
         OutString(rp[9],0,CredManr.DepositPrc,false);

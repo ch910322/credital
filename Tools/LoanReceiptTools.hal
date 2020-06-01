@@ -204,7 +204,7 @@ begin
 
   BlockLoad(IPb);
 
-  debugf = true;
+  debugf = false;
 
 //Get all history record that are unpaid
   CredHistr.CustCode = cucode;

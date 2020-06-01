@@ -44,6 +44,9 @@ begin
   Maintenance("Create Overdue Invoices",GenOverdueInvVClass,GenOverdueInvMn,modCredMan);
   Maintenance("Fix Credit History",CredManRedoCredHistVClass,CredManRedoCredHistMn,modCredMan);
 
+  Maintenance("Recreate Invoices with Prolong months",CredManRecreateDocsVClass,CredManRecreateDocsMn,modCredMan);
+
+
   Document("Credit Agreement Schedule",CredManScheduleRClass,CredManScheduleForm,CredManScheduleFClass,modCredMan);
   Document("B2B Loan Application",LoanAppRClass,LoanAppForm,LoanAppFClass,modCredMan);
   //Document("Combined Application",LoanAppRClass,CombinedAgreementForm,CombinedAgreementFClass,modCredMan);
