@@ -281,11 +281,12 @@ begin
   if (CMSb.AutoMailsFromInvoices==1) then begin
     RecordClear(RepSpec);
     ReportDefaults(RepSpec,"IVToMailVClass");
+    RepSpec.ArtMode = 0;
     RepSpec.flags[1] = 1;
     RepSpec.flags[4] = 1;
     RepSpec.flags[5] = 1;
     RepSpec.flags[6] = 1;
-    RepSpec.flags[7] = 1;
+    RepSpec.flags[7] = 0;
     RepSpec.flags[3] = 1;
     RepSpec.sStartDate = IVr.TransDate;
     RepSpec.sEndDate = IVr.TransDate;

@@ -267,9 +267,9 @@ begin
   wn = CurWindow;
   GetWindowRecord(wn,CredManr);
   CreateSingleAgreementInvoice(CredManr,CurrentDate,IVr);
-  CheckAndCreateAutoMailFromInvoice(IVr);
 
   if (IVr.SerNr>0) then begin
+    CheckAndCreateAutoMailFromInvoice(IVr);
     OpenWindow("IVDClass",1,0,"","",IVr);
   end;
   //UpdateCredManStringList(wn,CredManr);
