@@ -400,7 +400,7 @@ begin
       if (ARPayr.CustCode!=IVr.CustCode) then begin
         TrHs = false;
       end else begin
-        if (ARPayr.PayDate<IVr.TransDate) then begin
+//        if (ARPayr.PayDate<IVr.TransDate) then begin
           ClearRow(IVr,IVrw,kInvoiceRowTypePrepayment);
           IVrw.Spec = USetStr(1288);
           IVrw.CUPNr = ARPayr.CUPNr;
@@ -415,7 +415,7 @@ begin
         end;
       end;
     end;
-  end;
+//  end;
 
   return;
 end;
