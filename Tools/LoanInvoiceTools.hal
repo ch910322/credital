@@ -412,10 +412,10 @@ begin
             end;
           end;  
           remval = remval - IVrw.BasePrice;
-        end;
+//        end;
       end;
     end;
-//  end;
+  end;
 
   return;
 end;
