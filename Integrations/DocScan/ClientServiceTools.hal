@@ -6,7 +6,7 @@ external procedure CompanyGetData(string,string,Longint,var area,string,Longint,
 external procedure CompanyStoreData(string,string,area,Integer,string,Longint,string,Date,var Boolean);
 external procedure DoEBSSendPrintDocument(vector string,area,var area,string,Longint,string,Date,var Boolean);
 external procedure ReadScanDocFileBankStatement(area,Integer,string,Longint,string,Date,var vector string,var array Date,var array string,var array val,var array string,var Longint,var Boolean);
-external procedure FactInvoiceUploadFileCallBack(Longint,record DummyAttachVc,vector string);
+external procedure FactInvoiceUploadFileCallBack(Longint,Longint,vector string);
 
 function string 255 GetServiceIPAddress()
 begin
@@ -71,11 +71,15 @@ begin
   BlockLoad(Mb);
   ip = GetServiceIPAddress;
   while (retries<20) begin
+logtext(0,"SendScanDocFile2 1 " & retries);
     if (qupdating.MainReadRecordLink(DAr,1,Attachr,RLr)) then begin
+logtext(0,"SendScanDocFile2 2 " & retries & ":" & Attachr.Uploading);
       if (Attachr.Uploading==0) then begin
+logtext(0,"SendScanDocFile2 3 " & retries);
         goto LSendScanDocFile2;
       end;
     end;
+logtext(0,"SendScanDocFile2 4 " & retries);
     retries = retries + 1;
     Sleep(1);
   end;
@@ -83,8 +87,10 @@ begin
 LSendScanDocFile2:;
   blocklen = AttachFileSize(Attachr);
   LoadAttachFilePartToArea(Attachr,0,blocklen,a);
+  logtext(0,"SendScanDocFile2 " & ip & ":" & blocklen);
   CallService(ip).ReadScanDocFile(a,type,IEb.CustomerCode,IEb.Contract,Mb.TheKeyStr,Mb.ValidUntil,vVals,res);
-  ClientRemoteAsync.FactInvoiceUploadFileCallBack(RepSpec.long1,DAr,vVals);
+  logtext(0,"SendScanDocFile2 finished");
+  ClientRemoteAsync.FactInvoiceUploadFileCallBack(RepSpec.long1,DAr.SerNr,vVals);
   
   return;
 end;

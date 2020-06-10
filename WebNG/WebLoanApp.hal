@@ -1931,8 +1931,8 @@ begin
       end;
       if (RecordUpdate(oldLAr,LAr,true)==0) then begin
         RemoveOldDocuments(LAr);
-        SendEmailsToSurety(LAr);//this needs to be enabled for fast application
         if (!ignoref) then begin
+          SendEmailsToSurety(LAr);
           PrepareLoanApplicationVerification(LAr,managercode,verf);
           if (verf) then begin
             if (AllSuretyApplicationsSigned(LAr.SerNr,ADr)) then begin

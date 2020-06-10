@@ -5,6 +5,7 @@ begin
 
 /* modCredMan */  
   Register("B2B Loan Applications","B2B Loan Applications",B2BLoanApplicationVc,modCredMan);
+  Register("Agreement Schedules","Agreement Schedules",CredManSchedVc,modCredMan);
 
   Setting("Number Series - B2B Loan Applications",B2BLoanAppSerTClass,modCredMan);
   Setting("Credit Management Settings",CMApplicationSetTClass,modCredMan);
@@ -396,6 +397,11 @@ begin
   SetBegin(2026);
   SetText(0,"Check");
   SetText(1,"Don't check");
+  EndSet;
+
+  SetBegin(2027);
+  SetText(0,"Invoice");
+  SetText(4,"Buy-out");
   EndSet;
 
   return;

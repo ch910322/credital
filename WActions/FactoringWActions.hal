@@ -381,9 +381,9 @@ begin
   
   if (GetWindowClass(MotherWindow(CurWindow))=="CredManDClass") then begin
     //GetWindowRecord(MotherWindow(CurWindow),CredManr);
-    res = OpenFileDialog("",fpath);
-    //fpath = "/Users/kristapszogots/Downloads/SF.pdf";
-    if (blank(fpath) or (res==false)) then begin goto LFactInvoiceUploadFile; end;
+    //res = OpenFileDialog("",fpath);
+    fpath = "/Users/kristapszogots/Downloads/SF.pdf";
+    //if (blank(fpath) or (res==false)) then begin goto LFactInvoiceUploadFile; end;
     fsz = FileSize(fpath);
     LoadFileToArea(fpath,0,40000,filearea);
     RecordNew(DAr);
@@ -401,7 +401,7 @@ LFactInvoiceUploadFile:;
 end;
 
 global
-updating procedure FactInvoiceUploadFileCallBack(Longint credmannr,record DummyAttachVc DAr,vector string vVals)
+updating procedure FactInvoiceUploadFileCallBack(Longint credmannr,Longint sernr,vector string vVals)
 begin
   record CUVc CUr;
   record RcVc RepSpec;
@@ -417,7 +417,7 @@ begin
   RepSpec.d2 = DateFromString(vVals["8"],"YYYY-MM-DD");
   RepSpec.vals0 = StringToVal(vVals["5"],M4Val);
   OpenWindow("NewCredManFactInvoiceWClass",1,CurWindow,"","",RepSpec);
-  RecordRemove(DAr);
-  
+  //RecordRemove(DAr);
+
   return;
 end;

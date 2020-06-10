@@ -186,20 +186,14 @@ begin
 
   res = 0;
   
-logtext(0,"AgreementDocVcRecordUpdate updating " & ADr.SerNr);
   if (ADr.Type==7) then begin
-logtext(0,"AgreementDocVcRecordUpdate2");
     MatRowGet(ADr,0,ADrw);
     if (ADrw.Status==1) then begin
-logtext(0,"AgreementDocVcRecordUpdate3");
       if (AllSuretyApplicationsSigned(ADr.RecordNr,ADr)) then begin
-logtext(0,"AgreementDocVcRecordUpdate4");
         LAr.SerNr = ADr.RecordNr;
         if (ReadFirstMain(LAr,1,true)) then begin
           BlockLoad(OCb);
-logtext(0,"AgreementDocVcRecordUpdate5");
           if (LAr.OrderClass!=OCb.CheckWebAppClass) then begin
-logtext(0,"AgreementDocVcRecordUpdate6");
             RecordCopy(oldLAr,LAr);
             LAr.OrderClass = OCb.VerWebAppClass;
             RecordUpdate(oldLAr,LAr,true);
@@ -232,16 +226,13 @@ logtext(0,"AgreementDocVcRecordUpdate6");
         end;
         RecordUpdate(oldCMr,CMr,true);
       end;
-  logtext(0,"AgreementDocVcRecordUpdate7");
       BlockLoad(OCb);
       if (AllDocumentsSignedByCustomerCM(ADr.RecordNr,ADr)) then begin
-  logtext(0,"AgreementDocVcRecordUpdate8.1 " & CMr.SignVekselis);
         RecordCopy(oldCMr,CMr);
         CMr.OrderClass = OCb.CMCustSignedOrderClass;
         RecordUpdate(oldCMr,CMr,true);
       end;
       if (AllDocumentsSignedByUsCM(CMr,ADr.RecordNr,ADr)) then begin
-  logtext(0,"AgreementDocVcRecordUpdate8.2");
         RecordCopy(oldCMr,CMr);
         CMr.OrderClass = OCb.CMUsSignedOrderClass;
         RecordUpdate(oldCMr,CMr,true);

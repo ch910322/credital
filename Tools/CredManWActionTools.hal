@@ -30,6 +30,7 @@ external inner procedure IPPastePayMode(var record IPVc);
 external inner procedure OPVc_PasteRecVal(var record OPVc,Integer);
 external updating function Boolean ArchiveExistingDocument(record AgreementDocVc);
 external updating procedure CheckAndCreateAutoMailFromInvoice(record IVVc);
+external updating procedure GenerateAgreementSchedule(record CredManVc);
 
 global
 procedure PasteCustInAgreementRemote(var record CredManVc CredManr)
@@ -223,6 +224,7 @@ begin
       //should move this out to a function
       BlockLoad(EFb);
       fn = "Schedule.pdf";
+      GenerateAgreementSchedule(CredManr);
       langcode = GetDocumentLangCode(CredManr,2);
       if (EFb.ExtScheduleForm==1) then begin
         RepSpec.long1 = CredManr.InstalmentType;
@@ -710,6 +712,7 @@ begin
         end;
       case 2://schedule
         fn = "Schedule.pdf";
+        GenerateAgreementSchedule(CredManr);
         langcode = GetDocumentLangCode(CredManr,2);
         if (EFb.ExtScheduleForm==1) then begin
           RepSpec.long1 = CredManr.InstalmentType;

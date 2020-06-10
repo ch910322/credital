@@ -266,11 +266,10 @@ begin
     SetDocumentFilename("");  
     gPDFEmailf = false;
   end else begin
-    fname = "tmp/" & USetStr(1808) & IVr.SerNr & ".pdf";
+    fname = USetStr(1808) & IVr.SerNr & ".pdf";
     fRepSpec.flags[10] = IVr.InvType;
     PrintEBSDocument("InvForm",fname,fRepSpec,IVr.SerNr,IVr.LangCode);
     RecordLinkFile(fname,0,Mailr,CurrentCompany);
-    Delete_File(fname);
     RecordCopy(oldIVr,IVr);
     IVr.Prntdf = 1;
     RecordUpdate(oldIVr,IVr,false);

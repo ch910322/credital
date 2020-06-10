@@ -4,6 +4,7 @@ external inner function Boolean Getformcode(Integer,Integer,string,string,string
 external inner function Integer NumberofDocumentPages(string,Integer);
 external inner procedure CommonDocumentFields(record RcVc);
 external inner procedure PrintCredManHeader(record CredManVc);
+external function Boolean BuildCredManInfoMatrixOnSchedule(record CredManVc,record CredManSetBlock,var record SMVc);
 
 procedure PrintCredManr(record CredManVc CredManr,record DocVc Docr)
 begin
@@ -21,10 +22,11 @@ begin
   if (ReadFirstMain(CUr,1,true)) then begin
   end;
   BlockLoad(CredManSetb);
-  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
-  ReadFirstMain(CredManr,1,true);
-  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
-  
+  if (BuildCredManInfoMatrixOnSchedule(CredManr,CredManSetb,SMr)==false) then begin
+    BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
+    ReadFirstMain(CredManr,1,true);
+    BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
+  end;
   PrintCredManHeader(CredManr);
 /*
   OutFormField("F_EMAIL",CUr.eMail);//Email

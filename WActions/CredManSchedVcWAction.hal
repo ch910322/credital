@@ -1,0 +1,92 @@
+global 
+function Boolean CredManSchedDClassDeleteRowTest(Integer wn,Integer rownr)
+begin
+  record CredManSchedVc CSr;
+  row CredManSchedVc CSrw;
+  Boolean res;
+
+  res = true;
+  if (rownr!=-1) then begin
+    GetWindowRecord(wn,CSr);  
+    MatRowGet(CSr,rownr,CSrw);  
+    if (CSrw.Invoiced!=0) then begin
+      res = false;
+    end;
+  end;    
+  
+  CredManSchedDClassDeleteRowTest = res;
+  return;
+end;
+
+global
+function Boolean CredManSchedDClassActiveEditField(Integer wn,string fieldname,Integer fn,Integer wnst,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  Integer nwn;
+  record CredManSchedVc CSr;
+  row CredManSchedVc CSrw;
+
+  res = true;
+  if (wnst!=Rs_insert) then begin
+    if (rownr!=-1) then begin
+      GetWindowRecord(wn,CSr);  
+      MatRowGet(CSr,rownr,CSrw);  
+      if (CSrw.Invoiced==1) then begin
+        res = false;
+        goto LCredManSchedDClassActiveEditField;
+      end;
+      if (fieldname=="Total" or fieldname=="Invoiced") then begin
+        res = false;
+        goto LCredManSchedDClassActiveEditField;
+      end;
+    end;
+  end;
+
+LCredManSchedDClassActiveEditField:;  
+  CredManSchedDClassActiveEditField = res;
+  return;
+end;
+
+procedure RecalcSchedule(var record CredManSchedVc CSr,Integer rownr)
+begin
+  Integer i,rwcnt,start;
+  row CredManSchedVc CSrw;
+
+  start = rownr;
+  if (start<0) then begin
+    start = 0;
+  end;
+
+  //build plan
+  rwcnt = MatRowCnt(CSr);
+  for (i=start;i<rwcnt;i=i+1) begin
+    MatRowGet(CSr,i,CSrw);
+    if (rownr>-1) then begin
+      CSrw.Total = CSrw.Principle + CSrw.Interest + CSrw.Fees;
+      MatRowPut(CSr,i,CSrw);
+    end;
+  end;
+
+  return;
+end;
+
+global
+function Boolean CredManSchedDClassAfterEditField(Integer wn,string fieldname,Integer fn,Integer rownr,Integer changed)
+begin
+  Boolean res;
+  record CredManSchedVc CSr;
+
+  GetWindowRecord(wn,CSr);
+  switch (fieldname) begin
+    case "Interest":
+      RecalcSchedule(CSr,rownr);
+    case "Principle":
+      RecalcSchedule(CSr,rownr);
+    case "Fees":
+      RecalcSchedule(CSr,rownr);
+  end;
+  PutWindowRecord(wn,CSr);
+
+  CredManSchedDClassAfterEditField = res;
+  return;
+end;

@@ -45,6 +45,7 @@ external inner function roundmode SetRoundModeD(Integer);
 external inner function string 255 CredManOwnBankAccount(Longint);
 external inner function string 255 CredManCustEmail(record CUVc);
 external inner function val GetMonthlyFees(record CredManVc,Integer);
+external function Boolean BuildCredManInfoMatrixOnSchedule(record CredManVc,record CredManSetBlock,var record SMVc);
 
 procedure GetCredManCustContact(record CredManVc CredManr,var string contactid,var string contactname)
 begin
@@ -301,10 +302,12 @@ begin
   if (ReadFirstMain(CUr,1,true)) then begin
   end;
   BlockLoad(CredManSetb);
-  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
-  ReadFirstMain(CredManr,1,true);
-  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
-
+  if (BuildCredManInfoMatrixOnSchedule(CredManr,CredManSetb,SMr)==false) then begin
+    BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CredManSetb,true,true);
+    ReadFirstMain(CredManr,1,true);
+    BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
+  end;
+  
   CredManHeader(vVals,CredManr);
   Ext_CommonDocumentFields(vVals);
 

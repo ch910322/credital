@@ -233,7 +233,7 @@ begin
   return;
 end;
 
-procedure AddInvoiceToList(record IVVc IVr,var record SMVc SMr,var val calcbal)
+procedure AddInvoiceToList(record IVVc IVr,var record SMVc SMr,var val calcbal,Date fromdate,Date todate)
 begin
   Integer i,rwcnt;
   row IVVc IVrw;
@@ -267,6 +267,8 @@ begin
   SMrw.CredVal2 = pen;
   SMrw.CurDebVal = IVr.Sum4;
   SMrw.CurCredVal = calcbal;
+  SMrw.Objects = fromdate;
+  SMrw.Comment = todate;
   if (IVr.SerNr>-1) then begin
     SMrw.ExtraComment = IVr.SerNr;
   end;
@@ -298,6 +300,48 @@ begin
 end;
 
 
+procedure AddScheduleToList(row CredManSchedVc CSrw,var record SMVc SMr,var val calcbal)
+begin
+  Integer i,rwcnt;
+  val inst,intrate,fees,pen;
+  row SMVc SMrw;
+  record IVVc IVr;
+  row IVVc IVrw;
+  
+
+  calcbal = calcbal - CSrw.Principle;
+  ClearRow(SMr,SMrw,1);
+  SMrw.TransDate = CSrw.InvDate;
+  SMrw.RowSimStat = 0;//type
+  SMrw.DebVal = CSrw.Principle;
+  SMrw.CredVal = CSrw.Interest;
+  SMrw.DebVal2 = CSrw.Fees;
+  //SMrw.CredVal2 = pen;
+  SMrw.CurDebVal = CSrw.Total;
+  SMrw.CurCredVal = calcbal;
+  SMrw.Objects = CSrw.FromDate;
+  SMrw.Comment = CSrw.ToDate;
+
+  if (CSrw.Invoiced==1) then begin
+    SMrw.ExtraComment = CSrw.InvoiceNr;
+    IVr.SerNr = CSrw.InvoiceNr;
+    if (ReadFirstMain(IVr,1,true)) then begin
+      SMrw.CurDebVal = IVr.Sum4;
+      rwcnt = MatRowCnt(IVr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(IVr,i,IVrw);
+        if (IVrw.ChargeType==9) then begin
+          pen = pen + IVrw.Sum;
+        end;
+      end;
+    end;
+    SMrw.CredVal2 = pen;
+  end;
+  MatRowPut(SMr,MatRowCnt(SMr),SMrw);
+
+  return;
+end;
+
 global
 procedure BuildCredManInfoMatrix(record CredManVc CredManr,record CredManPayPlanVc CredManPayPlanr,record CredManSetBlock CMb,var record SMVc SMr)
 begin
@@ -323,7 +367,7 @@ begin
             case 0:
               IVr.SerNr = CredHistr.RecordNr;
               if (ReadFirstMain(IVr,1,true)) then begin
-                AddInvoiceToList(IVr,SMr,calcbal);
+                AddInvoiceToList(IVr,SMr,calcbal,CredManPayPlanrw.FromDate,CredManPayPlanrw.ToDate);
               end;
             case 4:
               AddBuyOutToList(CredHistr.Sum,CredHistr.TransDate,SMr,calcbal);
@@ -340,9 +384,38 @@ begin
   TestCredManInvoicesFromPlan(CredManr,CMb,CredManPayPlanr,CredManr.endDate,aIVr);
   for (i=0;i<aIVr.length;i=i+1) begin
     IVr = aIVr[i];
-    AddInvoiceToList(IVr,SMr,calcbal);
+    AddInvoiceToList(IVr,SMr,calcbal,IVr.CredFromDate,IVr.CredToDate);
   end;
 
+  return;
+end;
+
+global
+function Boolean BuildCredManInfoMatrixOnSchedule(record CredManVc CredManr,record CredManSetBlock CredManSetb,var record SMVc SMr)
+begin
+  record CredManSchedVc CSr;
+  row CredManSchedVc CSrw;
+  Integer i,rwcnt;
+  Boolean res;
+  val calcbal;
+ 
+  
+  CSr.CredManNr = CredManr.SerNr;
+  if (ReadFirstKey("CredManNr",CSr,1,true)) then begin
+    res = true;
+    calcbal = CredManr.InvSum4;
+    rwcnt = MatRowCnt(CSr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(CSr,i,CSrw);
+      if (CSrw.Type==0) then begin
+        AddScheduleToList(CSrw,SMr,calcbal)
+      end else begin
+        AddBuyOutToList(CSrw.Total,CSrw.InvDate,SMr,calcbal);
+      end;
+    end;
+  end;
+
+  BuildCredManInfoMatrixOnSchedule = res;
   return;
 end;
 
@@ -378,8 +451,10 @@ begin
   EndFormat;
   Gray_Divider(0,1);
 
-  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
-
+  if (BuildCredManInfoMatrixOnSchedule(CredManr,CredManSetb,SMr)==false) then begin
+    BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CredManSetb,SMr);
+  end;
+  
   rwcnt = MatRowCnt(SMr);
   for (i=0;i<rwcnt;i=i+1) begin
     MatRowGet(SMr,i,SMrw);

@@ -14,6 +14,7 @@ external inner procedure PasteARPayInIV(record IVVc,row IVVc,Integer);
 external updating procedure FindUnpaidCredHist(record ItemPriorityBlock,record IPVc,row IPVc,var array val,Integer);
 external inner function Boolean IVVc_PasteSum(var record IVVc,Integer,var Boolean,Integer);
 external function Date GetLastInvoiceDate(record CredManVc,Date);
+external procedure BuildCredManInfoMatrix(record CredManVc,record CredManPayPlanVc,record CredManSetBlock,var record SMVc);
 
 enum begin
   kCredHistRecTypeInvoice = 0,
@@ -103,7 +104,9 @@ begin
   IVr.PayDeal = CredManr.PayDeal;
   IVVc_PastePayDeal(IVr,"",LMb.DefReturnLocation);
   IVr.SalesMan = CredManr.SalesMan;
-  IVVc_PasteSalesMan(IVr,""); 
+  IVVc_PasteSalesMan(IVr,"");
+  IVr.CredFromDate = fromdate;
+  IVr.CredToDate = todate; 
   if (sernrf) then begin
     IVr.SerNr = NextSerNr("IVVc",IVr.InvDate,-1,false,"");
   end;
@@ -400,7 +403,7 @@ begin
       if (ARPayr.CustCode!=IVr.CustCode) then begin
         TrHs = false;
       end else begin
-        if (ARPayr.PayDate<IVr.TransDate) then begin
+//        if (ARPayr.PayDate<IVr.TransDate) then begin
           ClearRow(IVr,IVrw,kInvoiceRowTypePrepayment);
           IVrw.Spec = USetStr(1288);
           IVrw.CUPNr = ARPayr.CUPNr;
@@ -412,7 +415,7 @@ begin
             end;
           end;  
           remval = remval - IVrw.BasePrice;
-        end;
+//        end;
       end;
     end;
   end;
@@ -425,7 +428,7 @@ begin
   Integer i,rwcnt;
   row CredManPayPlanVc CredManPayPlanrw;
   Date lastd,lastd2;
-  record IVVc IVr;
+  record IVVc IVr,oldIVr;
   Boolean firstf;
   Integer latedays;
   val lateamount;
@@ -447,8 +450,11 @@ begin
           AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
           AddPrepayments(IVr,ASb);
           if (IVr.SerNr>-1) then begin
-            IVr.OKFlag = 1;
-            RecordInsert(IVr,true);
+            if (RecordInsert(IVr,true)) then begin
+              RecordCopy(oldIVr,IVr);
+              IVr.OKFlag = 1;
+              RecordUpdate(oldIVr,IVr,true);
+            end;
             if (firstf==false) then begin
               RecordCopy(firstIVr,IVr);
               firstf = true;
@@ -476,8 +482,11 @@ begin
     AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
     AddPrepayments(IVr,ASb);
     if (IVr.SerNr>-1) then begin
-      IVr.OKFlag = 1;
-      RecordInsert(IVr,true);
+      if (RecordInsert(IVr,true)) then begin
+        RecordCopy(oldIVr,IVr);
+        IVr.OKFlag = 1;
+        RecordUpdate(oldIVr,IVr,true);
+      end;
       if (firstf==false) then begin
         RecordCopy(firstIVr,IVr);
       end;
@@ -571,6 +580,93 @@ begin
   return;
 end;
 
+procedure GetItemName(string code,var string spec)
+begin
+  record INVc INr;
+
+  INr.Code = code;
+  ReadFirstMain(INr,1,true);
+  spec = INr.Name;
+
+  return;
+end;
+
+procedure BuildInvoiceBasedOnSchedule(record CredManVc CredManr,row CredManSchedVc CSrw,record CredManSetBlock CMb,record CMApplicationSetBlock ASb,Date lastd,var record IVVc IVr)
+begin
+  Integer latedays;
+  val lateamount;
+  string 255 spec;
+
+  RecordClear(IVr);
+  RecordNew(IVr);
+  SetupLoanInvoice(CredManr,CMb,IVr,CSrw.InvDate,CSrw.FromDate,CSrw.ToDate,true,false);
+  if (CSrw.Principle>0) then begin
+    GetItemName(CMb.RateItem,spec);
+    SetupInvoiceRowAndAdd(IVr,CMb.InstalmentItem,spec,1,CSrw.Principle,blankval,kEventTypeCalcInstalment,-1);
+  end;
+  if (CSrw.Interest>0) then begin
+    GetItemName(CMb.RateItem,spec);
+    SetupInvoiceRowAndAdd(IVr,CMb.RateItem,spec,1,CSrw.Interest,blankval,kEventTypeCalcInterest,-1);
+  end;
+  if (CSrw.Fees>0) then begin
+    GetItemName("CONTRACT",spec);
+    SetupInvoiceRowAndAdd(IVr,"CONTRACT",spec,1,CSrw.Fees,blankval,kEventTypeCalcFees,-1);
+  end;
+  MergeItemsInInvoice(IVr);
+  GetCredManOverdueInvoices(CredManr,CMb,CSrw.InvDate,lastd,latedays,lateamount);
+  AddLateFees(CredManr,CMb,IVr,latedays,lateamount);
+  AddPrepayments(IVr,ASb);
+
+  return;
+end;
+
+updating function Boolean CreateInvoiceBasedOnSchedule(record CredManVc CredManr,Date ed,var record IVVc firstIVr)
+begin
+  record CredManSchedVc CSr,oldCSr;
+  row CredManSchedVc CSrw;
+  Integer i,rwcnt,rw;
+  record IVVc IVr,oldIVr;
+  record CredManSetBlock CMb;
+  record CMApplicationSetBlock ASb;
+  Date lastd;
+  Boolean firstf;
+  Boolean res;
+  
+  CSr.CredManNr = CredManr.SerNr;
+  if (ReadFirstKey("CredManNr",CSr,1,true)) then begin
+    res = true;
+    BlockLoad(CMb);
+    BlockLoad(ASb);
+    lastd = CredManr.FirstInvDate;
+    rwcnt = MatRowCnt(CSr);
+    for (i=0;i<rwcnt;i=i+1) begin
+      MatRowGet(CSr,i,CSrw);
+      if (CSrw.InvDate<=ed and CSrw.Invoiced==0) then begin
+        BuildInvoiceBasedOnSchedule(CredManr,CSrw,CMb,ASb,lastd,IVr);
+        if (IVr.SerNr>-1) then begin
+          if (RecordInsert(IVr,true)) then begin
+            RecordCopy(oldIVr,IVr);
+            IVr.OKFlag = 1;
+            RecordUpdate(oldIVr,IVr,true);
+          end;
+
+          if (firstf==false) then begin
+            RecordCopy(firstIVr,IVr);
+            firstf = true;
+          end;
+        end;
+      end else begin
+        if (CSrw.InvDate>ed) then begin
+          i = rwcnt;
+        end;
+      end;
+      lastd = AddDay(CSrw.InvDate,1);
+    end;
+  end;
+  CreateInvoiceBasedOnSchedule = res;
+  return;
+end;
+
 global
 updating procedure CreateSingleAgreementInvoice(record CredManVc CredManr,Date ed,var record IVVc IVr)
 begin
@@ -579,10 +675,12 @@ begin
   string 255 oldlang;
 
   if (CredManr.OKFlag==1 and CredManr.Approved==1) then begin
-    BlockLoad(CMb);
-    BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
     oldlang = SetCompanyLanguage;
-    CreateInvoicesFromPlan(CredManr,CMb,CredManPayPlanr,ed,IVr);
+    if (CreateInvoiceBasedOnSchedule(CredManr,ed,IVr)==false) then begin
+      BlockLoad(CMb);
+      BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+      CreateInvoicesFromPlan(CredManr,CMb,CredManPayPlanr,ed,IVr);
+    end;
     ResetCompanyLanguage(oldlang);
   end;
 
@@ -644,7 +742,7 @@ updating procedure DoBuyOutAgreement(record CredManVc CredManr,var record IVVc f
 begin
   record CredManSetBlock CMb;
   record CredManPayPlanVc CredManPayPlanr;
-  record IVVc IVr;
+  record IVVc IVr,oldIVr;
 
   if (CredManr.OKFlag==1 and CredManr.Approved==1) then begin
     BlockLoad(CMb);
@@ -652,8 +750,11 @@ begin
     CreateBuyOutInvoiceFromPlan(CredManr,CMb,CredManPayPlanr,CurrentDate,IVr);
     if (IVr.SerNr>0) then begin
       if (IVr.SerNr>-1) then begin
-        IVr.OKFlag = 1;
-        RecordInsert(IVr,true);
+        if (RecordInsert(IVr,true)) then begin
+          RecordCopy(oldIVr,IVr);
+          IVr.OKFlag = 1;
+          RecordUpdate(oldIVr,IVr,true);
+        end;
         RecordCopy(firstIVr,IVr);
       end;
     end else begin
@@ -1026,6 +1127,39 @@ begin
   return;
 end;
 
+global
+updating procedure UpdateCredManScheduleFromInvoice(record IVVc IVr,Boolean setf)
+begin
+  record CredManSchedVc CSr,oldCSr;
+  row CredManSchedVc CSrw;
+  Integer rwcnt,i;
+
+  if (IVr.CustCredManNr>0) then begin
+    CSr.CredManNr = IVr.CustCredManNr;
+    if (ReadFirstKey("CredManNr",CSr,1,true)) then begin
+      RecordCopy(oldCSr,CSr);
+      rwcnt = MatRowCnt(CSr);
+      for (i=0;i<rwcnt;i=i+1) begin
+        MatRowGet(CSr,i,CSrw);
+        if (CSrw.InvDate==IVr.InvDate) then begin
+          if (setf) then begin
+            CSrw.Invoiced = 1;
+            CSrw.InvoiceNr = IVr.SerNr;
+          end else begin
+            CSrw.Invoiced = 0;
+            CSrw.InvoiceNr = "";
+          end;
+          MatRowPut(CSr,i,CSrw);
+          i = rwcnt;
+        end;
+      end;
+      RecordUpdate(oldCSr,CSr,true);
+    end;
+  end;
+
+  return;
+end; 
+
 procedure AddCredHistToArray(var record ORVc ORr,record CredHistVc prevCredHistr,val balance)
 begin
   row ORVc ORrw;
@@ -1151,3 +1285,70 @@ begin
   return;
 end; 
 
+
+global
+updating procedure GenerateAgreementSchedule(record CredManVc CredManr)
+begin
+  record CredManSetBlock CMb;
+  record CredManPayPlanVc CredManPayPlanr;
+  record SMVc SMr;
+  row SMVc SMrw;
+  record CredManSchedVc CSr,oldCSr;
+  row CredManSchedVc CSrw;
+  Integer i,rwcnt,rw;
+  Boolean updf;
+  
+  CSr.CredManNr = CredManr.SerNr;
+  if (ReadFirstKey("CredManNr",CSr,1,true)) then begin
+    RecordCopy(oldCSr,CSr);
+    rwcnt = MatRowCnt(CSr);
+    for (i=rwcnt-1;i>=0;i=i-1) begin
+      MatRowDelete(CSr,i);
+    end;
+    updf = true;
+  end else begin
+    RecordNew(CSr);
+    CSr.SerNr = NextSerNr("CredManSchedVc",CurrentDate,-1,false,"");
+    CSr.CredManNr = CredManr.SerNr;
+    CSr.CustCode = CredManr.CustCode;
+    CSr.CustName = CredManr.Addr0;
+  end;
+  CSr.TransDate = CurrentDate;
+  CSr.TransTime = CurrentTime;
+  BlockLoad(CMb);
+  BuildCredManPayPlanCust(CredManr,CredManPayPlanr,CMb,true,false);
+
+  BuildCredManInfoMatrix(CredManr,CredManPayPlanr,CMb,SMr);
+
+  rwcnt = MatRowCnt(SMr);
+  for (i=0;i<rwcnt;i=i+1) begin
+    MatRowGet(SMr,i,SMrw);
+    ClearRow(CSr,CSrw,1);
+    CSrw.InvDate = SMrw.TransDate;
+    CSrw.Type = SMrw.RowSimStat;
+    if (CSrw.Type==4) then begin
+      CSrw.Total = SMrw.CurDebVal;
+    end else begin
+      CSrw.FromDate = SMrw.Objects;
+      CSrw.ToDate = SMrw.Comment;
+      CSrw.Principle = SMrw.DebVal;
+      CSrw.Interest = SMrw.CredVal;
+      CSrw.Fees = SMrw.DebVal2;
+      CSrw.Total = CSrw.Principle + CSrw.Interest + CSrw.Fees;
+      if (nonblank(SMrw.ExtraComment)) then begin
+        CSrw.Invoiced = 1;
+        CSrw.InvoiceNr = SMrw.ExtraComment;
+      end;
+    end;
+    MatRowPut(CSr,rw,CSrw);
+    rw = rw + 1;
+  end;
+
+  if (updf) then begin
+    RecordUpdate(oldCSr,CSr,true);
+  end else begin
+    RecordInsert(CSr,true);
+  end;
+
+  return;
+end;
